@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use super::frame::*;
-use super::{IntoBytes, AsByte};
+use super::{IntoBytes};
 use super::to_n_bytes;
 
 pub struct BodyReqStartup {
@@ -74,25 +74,5 @@ impl Frame {
             opcode: opcode,
             body: body.into_bytes()
         };
-    }
-}
-
-impl<'a> IntoBytes for Frame {
-    fn into_bytes(&self) -> Vec<u8> {
-        let mut v = vec![];
-
-        let version_bytes = self.version.as_byte();
-        let flag_bytes = self.flag.as_byte();
-        let opcode_bytes = self.opcode.as_byte();
-        let body_len = self.body.len();
-
-        v.push(version_bytes);
-        v.push(flag_bytes);
-        v.extend_from_slice(to_n_bytes(self.stream, STREAM_LEN).as_slice());
-        v.push(opcode_bytes);
-        v.extend_from_slice(to_n_bytes(body_len as u64, LENGTH_LEN).as_slice());
-        v.extend_from_slice(self.body.as_slice());
-
-        return v;
     }
 }

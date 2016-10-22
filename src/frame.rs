@@ -1,5 +1,5 @@
 use std::convert::{From};
-use super::{AsByte};
+use super::{AsByte, IntoBytes, to_n_bytes};
 
 pub const VERSION_LEN: usize = 1;
 pub const FLAG_LEN: usize = 1;
@@ -15,6 +15,26 @@ pub struct Frame {
     pub opcode: Opcode,
     pub stream: u64, // we're going to use 0 here until async client is implemented
     pub body: Vec<u8> // change type to Vec<u8>
+}
+
+impl<'a> IntoBytes for Frame {
+    fn into_bytes(&self) -> Vec<u8> {
+        let mut v = vec![];
+
+        let version_bytes = self.version.as_byte();
+        let flag_bytes = self.flag.as_byte();
+        let opcode_bytes = self.opcode.as_byte();
+        let body_len = self.body.len();
+
+        v.push(version_bytes);
+        v.push(flag_bytes);
+        v.extend_from_slice(to_n_bytes(self.stream, STREAM_LEN).as_slice());
+        v.push(opcode_bytes);
+        v.extend_from_slice(to_n_bytes(body_len as u64, LENGTH_LEN).as_slice());
+        v.extend_from_slice(self.body.as_slice());
+
+        return v;
+    }
 }
 
 /// Frame's version
