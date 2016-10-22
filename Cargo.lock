@@ -1,5 +1,5 @@
 [root]
-name = "cadrs"
+name = "cdrs"
 version = "0.1.0"
 dependencies = [
  "byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",

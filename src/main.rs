@@ -1,10 +1,10 @@
 use std::io::prelude::*;
 use std::net::TcpStream;
 
-extern crate cadrs;
-use cadrs::frame::Frame;
-use cadrs::parser::parse_frame;
-use cadrs::IntoBytes;
+extern crate cdrs;
+use cdrs::frame::Frame;
+use cdrs::parser::parse_frame;
+use cdrs::IntoBytes;
 // use cadrs::frame_startup::BodyReqStartup;
 
 
