@@ -3,6 +3,7 @@ extern crate byteorder;
 extern crate log;
 
 pub mod frame;
+pub mod frame_query;
 pub mod frame_ready;
 pub mod frame_startup;
 pub mod parser;
