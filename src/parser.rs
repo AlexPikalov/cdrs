@@ -12,7 +12,6 @@ pub fn parse_frame(vec: Vec<u8>) -> Frame {
     let mut length_bytes =[0; LENGTH_LEN];
 
     // NOTE: order of reads matters
-    // TODO: add error logging here
     if let Err(err) = cursor.read(&mut version_bytes) {
         error!("Parse Cassandra version error: {}", err);
         panic!(err);
