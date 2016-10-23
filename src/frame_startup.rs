@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use super::frame::*;
+use super::types::*;
 use super::{IntoBytes};
-use super::to_n_bytes;
 
 pub struct BodyReqStartup {
     pub map: HashMap<String, String>

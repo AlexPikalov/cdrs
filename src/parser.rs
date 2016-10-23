@@ -1,7 +1,7 @@
 use std::io::{Cursor, Read};
 
 use super::frame::*;
-use super::from_bytes;
+use super::types::from_bytes;
 
 pub fn parse_frame(vec: Vec<u8>) -> Frame {
     let mut cursor = Cursor::new(vec);

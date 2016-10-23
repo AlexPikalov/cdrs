@@ -1,12 +1,12 @@
 use std::convert::{From};
-use super::{AsByte, IntoBytes, to_n_bytes};
+use super::types::to_n_bytes;
+use super::{AsByte, IntoBytes};
 
 pub const VERSION_LEN: usize = 1;
 pub const FLAG_LEN: usize = 1;
 pub const OPCODE_LEN: usize = 1;
 pub const STREAM_LEN: usize = 2;
 pub const LENGTH_LEN: usize = 4;
-pub const SHORT_LEN: usize = 2;
 
 #[derive(Debug)]
 pub struct Frame {
