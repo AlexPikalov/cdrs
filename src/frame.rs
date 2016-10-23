@@ -71,6 +71,7 @@ impl From<Vec<u8>> for Version {
 }
 
 /// Frame's flag
+// Is not implemented functionality. Only Igonore works for now
 #[derive(Debug)]
 pub enum Flag {
     Compression,

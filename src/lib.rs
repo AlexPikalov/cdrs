@@ -9,6 +9,7 @@ pub mod frame_ready;
 pub mod frame_startup;
 pub mod parser;
 pub mod types;
+pub mod value;
 
 pub trait IntoBytes {
     fn into_bytes(&self) -> Vec<u8>;
@@ -20,4 +21,8 @@ pub trait FromBytes {
 
 pub trait AsByte {
     fn as_byte(&self) -> u8;
+}
+
+pub trait FromSingleByte {
+    fn from_byte(u8) -> Self;
 }
