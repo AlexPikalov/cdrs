@@ -1,11 +1,68 @@
+use super::frame::*;
 use super::consistency::Consistency;
 use super::{AsByte, IntoBytes};
-use super::types::to_int;
 use super::value::Value;
 
 pub struct BodyReqQuery {
     pub query: Vec<u8>,
     pub query_params: ParamsReqQuery
+}
+
+impl BodyReqQuery {
+    fn new(query: String,
+            consistency: Consistency,
+            values: Option<Vec<Value>>,
+            with_names: Option<bool>,
+            page_size: Option<i32>,
+            paging_state: Option<Vec<u8>>,
+            serial_consistency: Option<Consistency>,
+            timestamp: Option<i64>) -> BodyReqQuery {
+
+            let mut flags: Vec<QueryFlags> = vec![];
+            if values.is_some() {
+                flags.push(QueryFlags::Value);
+            }
+            if with_names.is_some() && with_names.unwrap() {
+                flags.push(QueryFlags::WithNamesForValues);
+            }
+            if page_size.is_some() {
+                flags.push(QueryFlags::PageSize);
+            }
+            if serial_consistency.is_some() {
+                flags.push(QueryFlags::WithSerialConsistency);
+            }
+            if timestamp.is_some() {
+                flags.push(QueryFlags::WithDefaultTimestamp);
+            }
+
+            let _values = values.unwrap_or(vec![]);
+            let _page_size = page_size.unwrap_or(0);
+            let _paging_state = paging_state.map_or(vec![], |ps| ps.into_bytes());
+            let _serial_consistency = serial_consistency.unwrap_or(Consistency::Serial);
+            let _timestamp = timestamp.unwrap_or(0);
+
+            return BodyReqQuery {
+                query: query.into_bytes(),
+                query_params: ParamsReqQuery {
+                    consistency: consistency,
+                    flags: flags,
+                    values: _values,
+                    page_size: _page_size,
+                    paging_state: _paging_state,
+                    serial_consistency: _serial_consistency,
+                    timestamp: _timestamp
+                }
+            };
+        }
+}
+
+impl IntoBytes for BodyReqQuery {
+    fn into_bytes(&self) -> Vec<u8> {
+        let mut v: Vec<u8> = vec![];
+        v.extend_from_slice(self.query.into_bytes().as_slice());
+        v.extend_from_slice(self.query_params.into_bytes().as_slice());
+        return v;
+    }
 }
 
 pub struct ParamsReqQuery {
@@ -67,8 +124,7 @@ impl IntoBytes for ParamsReqQuery {
         for val in self.values.iter() {
             v.extend_from_slice(val.into_bytes().as_slice());
         }
-        v.extend_from_slice(to_int(self.page_size as i64).as_slice());
-        v.extend_from_slice(to_int(self.paging_state.len() as i64).as_slice());
+        v.extend_from_slice(self.paging_state.into_bytes().as_slice());
         v.extend_from_slice(self.paging_state.as_slice());
 
         return v;
@@ -106,24 +162,48 @@ impl QueryFlags {
         return (byte & FLAGS_SKIP_METADATA) != 0;
     }
 
+    pub fn set_skip_metadata(byte: u8) -> u8 {
+        return byte | FLAGS_SKIP_METADATA;
+    }
+
     pub fn has_page_size(byte: u8) -> bool {
         return (byte & WITH_PAGE_SIZE) != 0;
+    }
+
+    pub fn set_page_size(byte: u8) -> u8 {
+        return byte | WITH_PAGE_SIZE;
     }
 
     pub fn has_with_paging_state(byte: u8) -> bool {
         return (byte & WITH_PAGING_STATE) != 0;
     }
 
+    pub fn set_with_paging_state(byte: u8) -> u8 {
+        return byte | WITH_PAGING_STATE;
+    }
+
     pub fn has_with_serial_consistency(byte: u8) -> bool {
         return (byte & WITH_SERIAL_CONSISTENCY) != 0;
+    }
+
+    pub fn set_with_serial_consistency(byte: u8) -> u8 {
+        return byte | WITH_SERIAL_CONSISTENCY;
     }
 
     pub fn has_with_default_timestamp(byte: u8) -> bool {
         return (byte & WITH_DEFAULT_TIMESTAMP) != 0;
     }
 
+    pub fn set_with_default_timestamp(byte: u8) -> u8 {
+        return byte | WITH_DEFAULT_TIMESTAMP;
+    }
+
     pub fn has_with_names_for_values(byte: u8) -> bool {
         return (byte & WITH_NAME_FOR_VALUES) != 0;
+    }
+
+    pub fn set_with_names_for_values(byte: u8) -> u8 {
+        return byte | WITH_NAME_FOR_VALUES;
     }
 }
 
@@ -137,6 +217,34 @@ impl AsByte for QueryFlags {
             QueryFlags::WithSerialConsistency => WITH_SERIAL_CONSISTENCY,
             QueryFlags::WithDefaultTimestamp => WITH_DEFAULT_TIMESTAMP,
             QueryFlags::WithNamesForValues => WITH_NAME_FOR_VALUES,
+        };
+    }
+}
+
+// Frame implementation related to BodyReqStartup
+
+impl Frame {
+    pub fn new_req_query<'a>(query: String,
+            consistency: Consistency,
+            values: Option<Vec<Value>>,
+            with_names: Option<bool>,
+            page_size: Option<i32>,
+            paging_state: Option<Vec<u8>>,
+            serial_consistency: Option<Consistency>,
+            timestamp: Option<i64>) -> Frame {
+        let version = Version::Request;
+        let flag = Flag::Ignore;
+        // sync client
+        let stream: u64 = 0;
+        let opcode = Opcode::Startup;
+        let body = BodyReqQuery::new(query, consistency, values, with_names, page_size, paging_state, serial_consistency, timestamp);
+
+        return Frame {
+            version: version,
+            flag: flag,
+            stream: stream,
+            opcode: opcode,
+            body: body.into_bytes()
         };
     }
 }

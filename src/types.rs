@@ -42,12 +42,24 @@ pub fn to_int(int: i64) -> Vec<u8> {
 
 // Implementation for Rust std types
 
+// Use extended Rust string as Cassandra [string]
 impl IntoBytes for String {
     fn into_bytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
         let l = self.len() as u64;
         v.extend_from_slice(to_short(l).as_slice());
         v.extend_from_slice(self.as_bytes());
+        return v;
+    }
+}
+
+// Use extended Rust Vec<u8> as Cassandra [bytes]
+impl IntoBytes for Vec<u8> {
+    fn into_bytes(&self) -> Vec<u8> {
+        let mut v: Vec<u8> = vec![];
+        let l = self.len() as u64;
+        v.extend_from_slice(to_short(l).as_slice());
+        v.extend_from_slice(self.as_slice());
         return v;
     }
 }
