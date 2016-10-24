@@ -1,5 +1,7 @@
 use super::IntoBytes;
 
+// TODO: create Cassandra types
+
 /// Cassandra types
 
 pub const LONG_STR_LEN: usize = 4;

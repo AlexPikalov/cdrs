@@ -1,5 +1,6 @@
 use super::consistency::Consistency;
 use super::{AsByte, IntoBytes};
+use super::types::to_int;
 use super::value::Value;
 
 pub struct BodyReqQuery {
@@ -10,7 +11,11 @@ pub struct BodyReqQuery {
 pub struct ParamsReqQuery {
     pub consistency: Consistency,
     pub flags: Vec<QueryFlags>,
-    pub values: Vec<Value>
+    pub values: Vec<Value>,
+    pub page_size: i32,
+    pub paging_state: Vec<u8>,
+    pub serial_consistency: Consistency,
+    pub timestamp: i64
 }
 
 impl ParamsReqQuery {
@@ -62,6 +67,9 @@ impl IntoBytes for ParamsReqQuery {
         for val in self.values.iter() {
             v.extend_from_slice(val.into_bytes().as_slice());
         }
+        v.extend_from_slice(to_int(self.page_size as i64).as_slice());
+        v.extend_from_slice(to_int(self.paging_state.len() as i64).as_slice());
+        v.extend_from_slice(self.paging_state.as_slice());
 
         return v;
     }
