@@ -39,11 +39,12 @@ pub fn parse_frame(vec: Vec<u8>) -> Frame {
     let opcode = Opcode::from(opcode_bytes.to_vec());
     let length = from_bytes(length_bytes.to_vec()) as usize;
 
-    let mut body_bytes = Vec::with_capacity(length);
-    if let Err(err) = cursor.read_exact(&mut body_bytes) {
+    let mut body_bytes = Vec::new();
+    if let Err(err) = cursor.read_to_end(&mut body_bytes) {
         error!("Parse Cassandra body error: {}", err);
         panic!(err);
     }
+    body_bytes.truncate(length);
 
     return Frame {
         version: version,

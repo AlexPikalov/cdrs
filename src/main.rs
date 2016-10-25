@@ -37,7 +37,7 @@ fn main() {
                         if n > 0 {
                             // println!("Server response {:?}", String::from_utf8_lossy(&res[..]));
                             let parsed = parse_frame(res[..].to_vec());
-                            println!("Parsed response {:?}", parsed);
+                            println!("Parsed response {:?}", String::from_utf8_lossy(parsed.body.as_slice()));
                             match stream.write(q.into_cbytes().as_slice()) {
                                 Ok(_) => {
                                     println!("frame sent use");
