@@ -44,10 +44,11 @@ pub fn to_int(int: i64) -> Vec<u8> {
 
 // Use extended Rust string as Cassandra [string]
 impl IntoBytes for String {
-    fn into_bytes(&self) -> Vec<u8> {
+    fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
-        let l = self.len() as u64;
-        v.extend_from_slice(to_short(l).as_slice());
+        let l = self.len() as i64;
+        println!("#####{:?}", to_int(l as i64));
+        v.extend_from_slice(to_int(l).as_slice());
         v.extend_from_slice(self.as_bytes());
         return v;
     }
@@ -55,7 +56,7 @@ impl IntoBytes for String {
 
 // Use extended Rust Vec<u8> as Cassandra [bytes]
 impl IntoBytes for Vec<u8> {
-    fn into_bytes(&self) -> Vec<u8> {
+    fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
         let l = self.len() as u64;
         v.extend_from_slice(to_short(l).as_slice());

@@ -2,9 +2,10 @@ use super::frame::*;
 use super::consistency::Consistency;
 use super::{AsByte, IntoBytes};
 use super::value::Value;
+use super::types::to_int;
 
 pub struct BodyReqQuery {
-    pub query: Vec<u8>,
+    pub query: String,
     pub query_params: ParamsReqQuery
 }
 
@@ -22,7 +23,7 @@ impl BodyReqQuery {
             if values.is_some() {
                 flags.push(QueryFlags::Value);
             }
-            if with_names.is_some() && with_names.unwrap() {
+            if with_names.unwrap_or(false) {
                 flags.push(QueryFlags::WithNamesForValues);
             }
             if page_size.is_some() {
@@ -37,12 +38,12 @@ impl BodyReqQuery {
 
             let _values = values.unwrap_or(vec![]);
             let _page_size = page_size.unwrap_or(0);
-            let _paging_state = paging_state.map_or(vec![], |ps| ps.into_bytes());
+            let _paging_state = paging_state.map_or(vec![], |ps| ps.into_cbytes());
             let _serial_consistency = serial_consistency.unwrap_or(Consistency::Serial);
             let _timestamp = timestamp.unwrap_or(0);
 
             return BodyReqQuery {
-                query: query.into_bytes(),
+                query: query,
                 query_params: ParamsReqQuery {
                     consistency: consistency,
                     flags: flags,
@@ -57,10 +58,10 @@ impl BodyReqQuery {
 }
 
 impl IntoBytes for BodyReqQuery {
-    fn into_bytes(&self) -> Vec<u8> {
+    fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
-        v.extend_from_slice(self.query.into_bytes().as_slice());
-        v.extend_from_slice(self.query_params.into_bytes().as_slice());
+        v.extend_from_slice(self.query.clone().into_cbytes().as_slice());
+        v.extend_from_slice(self.query_params.into_cbytes().as_slice());
         return v;
     }
 }
@@ -116,16 +117,25 @@ impl ParamsReqQuery {
 }
 
 impl IntoBytes for ParamsReqQuery {
-    fn into_bytes(&self) -> Vec<u8> {
+    fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
 
-        v.extend_from_slice(self.consistency.into_bytes().as_slice());
+        v.extend_from_slice(self.consistency.into_cbytes().as_slice());
         v.push(self.flags_as_byte());
-        for val in self.values.iter() {
-            v.extend_from_slice(val.into_bytes().as_slice());
+        if QueryFlags::has_value(self.flags_as_byte()) {
+            for val in self.values.iter() {
+                v.extend_from_slice(val.into_cbytes().as_slice());
+            }
         }
-        v.extend_from_slice(self.paging_state.into_bytes().as_slice());
-        v.extend_from_slice(self.paging_state.as_slice());
+        if QueryFlags::has_with_paging_state(self.flags_as_byte()) {
+            v.extend_from_slice(self.paging_state.into_cbytes().as_slice());
+        }
+        if QueryFlags::has_with_serial_consistency(self.flags_as_byte()) {
+            v.extend_from_slice(self.serial_consistency.into_cbytes().as_slice());
+        }
+        if QueryFlags::has_with_default_timestamp(self.flags_as_byte()) {
+            v.extend_from_slice(to_int(self.timestamp).as_slice());
+        }
 
         return v;
     }
@@ -236,7 +246,7 @@ impl Frame {
         let flag = Flag::Ignore;
         // sync client
         let stream: u64 = 0;
-        let opcode = Opcode::Startup;
+        let opcode = Opcode::Query;
         let body = BodyReqQuery::new(query, consistency, values, with_names, page_size, paging_state, serial_consistency, timestamp);
 
         return Frame {
@@ -244,7 +254,7 @@ impl Frame {
             flag: flag,
             stream: stream,
             opcode: opcode,
-            body: body.into_bytes()
+            body: body.into_cbytes()
         };
     }
 }

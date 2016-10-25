@@ -8,7 +8,7 @@ pub enum ValueType {
 }
 
 impl IntoBytes for ValueType {
-    fn into_bytes(&self) -> Vec<u8> {
+    fn into_cbytes(&self) -> Vec<u8> {
         return match *self {
             ValueType::Normal(n) => to_int(n as i64),
             ValueType::Null => to_int(-1),
@@ -47,9 +47,9 @@ impl Value {
 }
 
 impl IntoBytes for Value {
-    fn into_bytes(&self) -> Vec<u8> {
+    fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
-        v.extend_from_slice(self.value_type.into_bytes().as_slice());
+        v.extend_from_slice(self.value_type.into_cbytes().as_slice());
         v.extend_from_slice(self.body.as_slice());
         return v;
     }

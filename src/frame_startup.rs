@@ -38,7 +38,7 @@ impl BodyReqStartup {
 }
 
 impl IntoBytes for BodyReqStartup {
-    fn into_bytes(&self) -> Vec<u8> {
+    fn into_cbytes(&self) -> Vec<u8> {
         let mut v = vec![];
         // push number of key-value pairs
         v.extend_from_slice(&self.num().as_slice());
@@ -72,7 +72,7 @@ impl Frame {
             flag: flag,
             stream: stream,
             opcode: opcode,
-            body: body.into_bytes()
+            body: body.into_cbytes()
         };
     }
 }

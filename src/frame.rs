@@ -18,7 +18,7 @@ pub struct Frame {
 }
 
 impl<'a> IntoBytes for Frame {
-    fn into_bytes(&self) -> Vec<u8> {
+    fn into_cbytes(&self) -> Vec<u8> {
         let mut v = vec![];
 
         let version_bytes = self.version.as_byte();

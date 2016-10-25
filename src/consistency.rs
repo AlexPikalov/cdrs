@@ -17,7 +17,7 @@ pub enum Consistency {
 }
 
 impl IntoBytes for Consistency {
-    fn into_bytes(&self) -> Vec<u8> {
+    fn into_cbytes(&self) -> Vec<u8> {
         return match self {
             &Consistency::Any => to_short(0x0000),
             &Consistency::One => to_short(0x0001),

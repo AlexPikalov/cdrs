@@ -16,7 +16,7 @@ impl From<Vec<u8>> for BodyResReady {
 }
 
 impl IntoBytes for BodyResReady {
-    fn into_bytes(&self) -> Vec<u8> {
+    fn into_cbytes(&self) -> Vec<u8> {
         return vec![];
     }
 }
