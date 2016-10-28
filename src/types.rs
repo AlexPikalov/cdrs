@@ -1,4 +1,4 @@
-use super::IntoBytes;
+use super::{FromBytes, IntoBytes};
 
 // TODO: create Cassandra types
 
@@ -44,16 +44,30 @@ pub fn to_int(int: i64) -> Vec<u8> {
 
 // Use extended Rust string as Cassandra [string]
 impl IntoBytes for String {
+    /// Converts into Cassandra byte representation of [string]
     fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
         let l = self.len() as i64;
-        println!("#####{:?}", to_int(l as i64));
         v.extend_from_slice(to_int(l).as_slice());
         v.extend_from_slice(self.as_bytes());
         return v;
     }
 }
 
+impl FromBytes for String {
+    fn from_bytes(bytes: Vec<u8>) -> String {
+        let len: usize = from_bytes(bytes[..SHORT_LEN].to_vec()) as usize;
+        return match String::from_utf8(bytes[(SHORT_LEN + 1)..len].to_vec()) {
+            Ok(string) => string,
+            Err(err) => {
+                error!("Parsing string error {:?}", err);
+                panic!("Parsing string error {:?}", err);
+            }
+        };
+    }
+}
+
+/**/
 // Use extended Rust Vec<u8> as Cassandra [bytes]
 impl IntoBytes for Vec<u8> {
     fn into_cbytes(&self) -> Vec<u8> {
