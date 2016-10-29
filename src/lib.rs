@@ -6,6 +6,7 @@ pub mod consistency;
 pub mod frame;
 pub mod frame_query;
 pub mod frame_ready;
+pub mod frame_response_rows;
 pub mod frame_response_set_keyspace;
 pub mod frame_response_void;
 pub mod frame_response;
