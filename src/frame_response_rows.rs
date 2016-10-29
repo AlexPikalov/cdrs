@@ -40,17 +40,28 @@ impl FromBytes for RowsMetadata {
 
         let flags: i32 = from_bytes(flags_bytes.to_vec()) as i32;
         let columns_count: i32 = from_bytes(columns_count_bytes.to_vec()) as i32;
+
         let mut paging_state: Option<Vec<u8>> = None;
         if RowsMetadataFlag::has_has_more_pages(flags) {
             paging_state = Some(Vec::from_cursor(&mut cursor))
         }
 
+        let mut global_table_space: Option<Vec<String>> = None;
+        let has_global_table_space = RowsMetadataFlag::has_global_table_space(flags);
+        if has_global_table_space {
+            let keyspace = String::from_cursor(&mut cursor);
+            let tablename = String::from_cursor(&mut cursor);
+            global_table_space = Some(vec![keyspace, tablename])
+        }
+
+        let col_specs = ColSpec::parse_colspecs(&mut cursor, columns_count, has_global_table_space);
+
         return RowsMetadata {
             flags: flags,
             columns_count: columns_count,
             paging_state: paging_state,
-            global_table_space: None,
-            col_specs: vec![]
+            global_table_space: global_table_space,
+            col_specs: col_specs
         }
     }
 }
@@ -123,15 +134,55 @@ impl FromBytes for RowsMetadataFlag {
 
 pub struct ColSpec {
     /// The initial <ksname> is a [string] and is only present
-    /// if the Global_tables_spec flag is not set
+    /// if the Global_tables_spec flag is NOT set
     pub ksname: Option<String>,
     /// The initial <tablename> is a [string] and is present
-    /// if the Global_tables_spec flag is not set
+    /// if the Global_tables_spec flag is NOT set
     pub tablename: Option<String>,
     /// Column name
     pub name: String,
     /// Column type defined in spec in 4.2.5.2
     pub col_type: ColType
+}
+
+impl ColSpec {
+    /// parse_colspecs tables mutable cursor, number of columns (column_count) and flags that indicates
+    /// if Global_tables_spec is specified. It returns column_count of ColSpecs.
+    pub fn parse_colspecs(mut cursor: &mut Cursor<Vec<u8>>,
+        column_count: i32,
+        with_globale_table_spec: bool) -> Vec<ColSpec> {
+            let mut v: Vec<ColSpec> = vec![];
+
+            for _ in 0..column_count {
+                let mut ksname: Option<String> = None;
+
+                let mut tablename: Option<String> = None;
+                if !with_globale_table_spec {
+                    ksname = Some(String::from_cursor(&mut cursor));
+                    tablename = Some(String::from_cursor(&mut cursor));
+                }
+
+                let name = String::from_cursor(&mut cursor);
+
+                let mut col_type_bytes = [0; INT_LEN];
+                if let Err(err) = cursor.read(&mut col_type_bytes) {
+                    error!("Read Cassandra column type error: {}", err);
+                    panic!(err);
+                }
+
+                let col_type = ColType::from_bytes(col_type_bytes.to_vec());
+
+                v.push(ColSpec {
+                    ksname: ksname,
+                    tablename: tablename,
+                    name: name,
+                    col_type: col_type
+                });
+            }
+
+
+            return v;
+        }
 }
 
 pub enum ColType {

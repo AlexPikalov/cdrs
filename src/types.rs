@@ -66,23 +66,35 @@ impl FromBytes for String {
     }
 }
 
-/**/
-// TODO: create cassandra bytes type instead of patching Vec
-impl FromCursor for Vec<u8> {
-    fn from_cursor(cursor: &mut Cursor<Vec<u8>>) -> Vec<u8> {
+impl FromCursor for String {
+    /// from_cursor gets Cursor who's position is set such that it should be a start of a [string].
+    /// It reads required number of bytes and returns a String
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> String {
         let mut len_bytes = [0; SHORT_LEN];
         if let Err(err) = cursor.read(&mut len_bytes) {
             error!("Read Cassandra bytes error: {}", err);
             panic!(err);
         }
-        let len: usize = from_bytes(len_bytes.to_vec()) as usize;
-        let mut body_bytes = Vec::new();
-        if let Err(err) = cursor.read_exact(&mut body_bytes) {
+        let len: u64 = from_bytes(len_bytes.to_vec());
+        let body_bytes = cursor_next_value(&mut cursor, len);
+
+        return String::from_bytes(body_bytes);
+    }
+}
+
+/**/
+// TODO: create cassandra bytes type instead of patching Vec
+impl FromCursor for Vec<u8> {
+    /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].
+    /// It reads required number of bytes and returns a Vec<u8>
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> Vec<u8> {
+        let mut len_bytes = [0; SHORT_LEN];
+        if let Err(err) = cursor.read(&mut len_bytes) {
             error!("Read Cassandra bytes error: {}", err);
             panic!(err);
         }
-        body_bytes.truncate(len);
-        return body_bytes.to_vec();
+        let len: u64 = from_bytes(len_bytes.to_vec());
+        return cursor_next_value(&mut cursor, len);
     }
 }
 
@@ -106,13 +118,17 @@ impl FromBytes for Vec<u8> {
             error!("Read Cassandra bytes error: {}", err);
             panic!(err);
         }
-        let len: usize = from_bytes(len_bytes.to_vec()) as usize;
-        let mut body_bytes = Vec::new();
-        if let Err(err) = cursor.read_exact(&mut body_bytes) {
-            error!("Read Cassandra bytes error: {}", err);
-            panic!(err);
-        }
-        body_bytes.truncate(len);
-        return body_bytes.to_vec();
+        let len: u64 = from_bytes(len_bytes.to_vec());
+        return cursor_next_value(&mut cursor, len).to_vec();
     }
+}
+
+fn cursor_next_value(cursor: &mut Cursor<Vec<u8>>, len: u64) -> Vec<u8> {
+    let mut handle = cursor.take(len);
+    let mut v = Vec::new();
+    if let Err(err) = handle.read(&mut v) {
+        error!("Read from cursor error: {}", err);
+        panic!(err);
+    }
+    return v;
 }
