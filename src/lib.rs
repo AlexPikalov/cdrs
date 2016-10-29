@@ -2,6 +2,8 @@ extern crate byteorder;
 #[macro_use]
 extern crate log;
 
+use std::io::Cursor;
+
 pub mod consistency;
 pub mod frame;
 pub mod frame_query;
@@ -29,4 +31,8 @@ pub trait AsByte {
 
 pub trait FromSingleByte {
     fn from_byte(u8) -> Self;
+}
+
+pub trait FromCursor {
+    fn from_cursor(&mut Cursor<Vec<u8>>) -> Self;
 }

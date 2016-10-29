@@ -1,4 +1,5 @@
-use super::{IntoBytes, FromBytes};
+use std::io::{Cursor, Read};
+use super::{IntoBytes, FromBytes, FromCursor};
 use super::types::*;
 
 pub struct BodyResResultRows {
@@ -12,13 +13,46 @@ pub struct BodyResResultRows {
 }
 
 pub struct RowsMetadata {
-    pub flags: Vec<RowsMetadataFlag>,
+    pub flags: i32,
     pub columns_count: i32,
     pub paging_state: Option<Vec<u8>>,
     // In fact by specification Vec should have only two elements representing the
     // (unique) keyspace name and table name the columns belong to
     pub global_table_space: Option<Vec<String>>,
     pub col_specs: Vec<ColSpec>,
+}
+
+impl FromBytes for RowsMetadata {
+    fn from_bytes(bytes: Vec<u8>) -> RowsMetadata {
+        let mut cursor = Cursor::new(bytes);
+        let mut flags_bytes = [0; INT_LEN];
+        let mut columns_count_bytes = [0; INT_LEN];
+
+        // NOTE: order of reads does matter
+        if let Err(err) = cursor.read(&mut flags_bytes) {
+            error!("Read Cassandra rows metadata flag: {}", err);
+            panic!(err);
+        }
+        if let Err(err) = cursor.read(&mut columns_count_bytes) {
+            error!("Read Cassandra rows metadata column count: {}", err);
+            panic!(err);
+        }
+
+        let flags: i32 = from_bytes(flags_bytes.to_vec()) as i32;
+        let columns_count: i32 = from_bytes(columns_count_bytes.to_vec()) as i32;
+        let mut paging_state: Option<Vec<u8>> = None;
+        if RowsMetadataFlag::has_has_more_pages(flags) {
+            paging_state = Some(Vec::from_cursor(&mut cursor))
+        }
+
+        return RowsMetadata {
+            flags: flags,
+            columns_count: columns_count,
+            paging_state: paging_state,
+            global_table_space: None,
+            col_specs: vec![]
+        }
+    }
 }
 
 const GLOBAL_TABLE_SPACE: i32 = 0x0001;

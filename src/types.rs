@@ -1,5 +1,3 @@
-use super::{FromBytes, IntoBytes};
-
 // TODO: create Cassandra types
 
 /// Cassandra types
@@ -8,8 +6,9 @@ pub const LONG_STR_LEN: usize = 4;
 pub const SHORT_LEN: usize = 2;
 pub const INT_LEN: usize = 4;
 
-use std::io::Cursor;
+use std::io::{Cursor, Read};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use super::{FromBytes, IntoBytes, FromCursor};
 
 /// Converts u64 numerical value into array of n bytes
 pub fn to_n_bytes(int: u64, n: usize) -> Vec<u8> {
@@ -68,6 +67,25 @@ impl FromBytes for String {
 }
 
 /**/
+// TODO: create cassandra bytes type instead of patching Vec
+impl FromCursor for Vec<u8> {
+    fn from_cursor(cursor: &mut Cursor<Vec<u8>>) -> Vec<u8> {
+        let mut len_bytes = [0; SHORT_LEN];
+        if let Err(err) = cursor.read(&mut len_bytes) {
+            error!("Read Cassandra bytes error: {}", err);
+            panic!(err);
+        }
+        let len: usize = from_bytes(len_bytes.to_vec()) as usize;
+        let mut body_bytes = Vec::new();
+        if let Err(err) = cursor.read_exact(&mut body_bytes) {
+            error!("Read Cassandra bytes error: {}", err);
+            panic!(err);
+        }
+        body_bytes.truncate(len);
+        return body_bytes.to_vec();
+    }
+}
+
 // Use extended Rust Vec<u8> as Cassandra [bytes]
 impl IntoBytes for Vec<u8> {
     fn into_cbytes(&self) -> Vec<u8> {
@@ -76,5 +94,25 @@ impl IntoBytes for Vec<u8> {
         v.extend_from_slice(to_short(l).as_slice());
         v.extend_from_slice(self.as_slice());
         return v;
+    }
+}
+
+// Use extended Rust Vec<u8> as Cassandra [bytes]
+impl FromBytes for Vec<u8> {
+    fn from_bytes(bytes: Vec<u8>) -> Vec<u8> {
+        let mut cursor = Cursor::new(bytes);
+        let mut len_bytes = [0; SHORT_LEN];
+        if let Err(err) = cursor.read(&mut len_bytes) {
+            error!("Read Cassandra bytes error: {}", err);
+            panic!(err);
+        }
+        let len: usize = from_bytes(len_bytes.to_vec()) as usize;
+        let mut body_bytes = Vec::new();
+        if let Err(err) = cursor.read_exact(&mut body_bytes) {
+            error!("Read Cassandra bytes error: {}", err);
+            panic!(err);
+        }
+        body_bytes.truncate(len);
+        return body_bytes.to_vec();
     }
 }
