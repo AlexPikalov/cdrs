@@ -1,5 +1,5 @@
 #![warn(missing_docs)]
-//! It module contains Rust representation of Cassandra consistency levels.
+//! The module contains Rust representation of Cassandra consistency levels.
 use super::{IntoBytes};
 use super::types::*;
 use super::FromBytes;
