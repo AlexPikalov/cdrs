@@ -2,9 +2,11 @@
 extern crate byteorder;
 #[macro_use]
 extern crate log;
+extern crate tokio_core;
 
 use std::io::Cursor;
 
+pub mod client;
 pub mod consistency;
 pub mod frame;
 pub mod frame_query;
