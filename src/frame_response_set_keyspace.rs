@@ -1,4 +1,6 @@
+use std::io::Cursor;
 use super::FromBytes;
+use super::FromCursor;
 use super::types::*;
 
 pub struct BodyResResultSetKeyspace {
@@ -18,5 +20,11 @@ impl FromBytes for BodyResResultSetKeyspace {
     /// Bytes is Cassandra's [string]
     fn from_bytes(bytes: Vec<u8>) -> BodyResResultSetKeyspace {
         return BodyResResultSetKeyspace::new(CString::from_bytes(bytes));
+    }
+}
+
+impl FromCursor for BodyResResultSetKeyspace {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResResultSetKeyspace {
+        return BodyResResultSetKeyspace::new(CString::from_cursor(&mut cursor));
     }
 }

@@ -1,18 +1,31 @@
+#![warn(missing_docs)]
 use super::{IntoBytes};
 use super::types::*;
 use super::FromBytes;
 
+/// `Consistency` is an enum which represents Cassandra's consistency levels.
 pub enum Consistency {
+    #[allow(missing_docs)]
     Any,
+    #[allow(missing_docs)]
     One,
+    #[allow(missing_docs)]
     Two,
+    #[allow(missing_docs)]
     Three,
+    #[allow(missing_docs)]
     Quorum,
+    #[allow(missing_docs)]
     All,
+    #[allow(missing_docs)]
     LocalQuorum,
+    #[allow(missing_docs)]
     EachQuorum,
+    #[allow(missing_docs)]
     Serial,
+    #[allow(missing_docs)]
     LocalSerial,
+    #[allow(missing_docs)]
     LocalOne
 }
 

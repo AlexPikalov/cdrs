@@ -1,12 +1,24 @@
+use std::io::Cursor;
+
 use super::IntoBytes;
 use super::FromBytes;
+use super::FromCursor;
 use super::types::*;
+use super::frame_response_void::*;
+use super::frame_response_rows::*;
+use super::frame_response_set_keyspace::*;
 
+/// `ResultKind` is enum which represents types of result.
 pub enum ResultKind {
+    /// Void result.
     Void,
+    /// Rows result.
     Rows,
+    /// Set keyspace result.
     SetKeyspace,
+    /// Prepeared result.
     Prepared,
+    /// Schema change result.
     SchemaChange
 }
 
@@ -34,6 +46,30 @@ impl FromBytes for ResultKind {
                 error!("Unexpected Cassandra result kind: {:?}", bytes);
                 panic!("Unexpected Cassandra result kind: {:?}", bytes);
             }
+        };
+    }
+}
+
+/// ResponseBody is a generalized enum that represents all types of responses. Each of enum
+/// option wraps related body type.
+pub enum ResponseBody {
+    /// Void response body. It's an empty stuct.
+    Void(BodyResResultVoid),
+    /// Rows response body. It represents a body of response which contains rows.
+    Rows(BodyResResultRows),
+    /// Set keyspace body. It represents a body of set_keyspace query and usually contains
+    /// a name of just set namespace.
+    SetKeyspace(BodyResResultSetKeyspace)
+}
+
+impl ResponseBody {
+    pub fn parse_body(body_bytes: Vec<u8>, result_kind: ResultKind) -> ResponseBody {
+        let mut cursor = Cursor::new(body_bytes);
+        return match result_kind {
+            ResultKind::Void => ResponseBody::Void(BodyResResultVoid::from_cursor(&mut cursor)),
+            ResultKind::Rows => ResponseBody::Rows(BodyResResultRows::from_cursor(&mut cursor)),
+            ResultKind::SetKeyspace => ResponseBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)),
+            _ => unimplemented!()
         };
     }
 }

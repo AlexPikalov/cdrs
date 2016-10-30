@@ -1,16 +1,21 @@
+#![warn(missing_docs)]
 use super::frame::*;
 use super::consistency::Consistency;
 use super::{AsByte, IntoBytes};
 use super::value::Value;
-use super::types::to_int;
+use super::types::*;
 
+/// Structure which represents body of Query request
 pub struct BodyReqQuery {
-    pub query: String,
+    /// Query string.
+    pub query: CString,
+    /// Query parameters.
     pub query_params: ParamsReqQuery
 }
 
 impl BodyReqQuery {
-    fn new(query: String,
+    #![warn(missing_docs)]
+    pub fn new(query: String,
             consistency: Consistency,
             values: Option<Vec<Value>>,
             with_names: Option<bool>,
@@ -43,7 +48,7 @@ impl BodyReqQuery {
             let _timestamp = timestamp.unwrap_or(0);
 
             return BodyReqQuery {
-                query: query,
+                query: query as CString,
                 query_params: ParamsReqQuery {
                     consistency: consistency,
                     flags: flags,
@@ -66,13 +71,21 @@ impl IntoBytes for BodyReqQuery {
     }
 }
 
+/// Parameters of Query request.
 pub struct ParamsReqQuery {
+    /// Cassandra consistency level.
     pub consistency: Consistency,
+    /// Array of query flags.
     pub flags: Vec<QueryFlags>,
+    /// Array of values.
     pub values: Vec<Value>,
+    /// Page size.
     pub page_size: i32,
+    /// Array of bytes which represents paging state.
     pub paging_state: Vec<u8>,
+    /// Serial `Consistency`.
     pub serial_consistency: Consistency,
+    /// Timestamp.
     pub timestamp: i64
 }
 
@@ -141,14 +154,15 @@ impl IntoBytes for ParamsReqQuery {
     }
 }
 
-pub const FLAGS_VALUE: u8 = 0x01;
-pub const FLAGS_SKIP_METADATA: u8 = 0x02;
-pub const WITH_PAGE_SIZE: u8 = 0x04;
-pub const WITH_PAGING_STATE: u8 = 0x08;
-pub const WITH_SERIAL_CONSISTENCY: u8 = 0x10;
-pub const WITH_DEFAULT_TIMESTAMP: u8 = 0x20;
-pub const WITH_NAME_FOR_VALUES: u8 = 0x40;
+const FLAGS_VALUE: u8 = 0x01;
+const FLAGS_SKIP_METADATA: u8 = 0x02;
+const WITH_PAGE_SIZE: u8 = 0x04;
+const WITH_PAGING_STATE: u8 = 0x08;
+const WITH_SERIAL_CONSISTENCY: u8 = 0x10;
+const WITH_DEFAULT_TIMESTAMP: u8 = 0x20;
+const WITH_NAME_FOR_VALUES: u8 = 0x40;
 
+/// Cassandra Query Flags.
 pub enum QueryFlags {
     Value,
     SkipMetadata,
@@ -160,58 +174,72 @@ pub enum QueryFlags {
 }
 
 impl QueryFlags {
+    #[doc(hidden)]
     pub fn has_value(byte: u8) -> bool {
         return (byte & FLAGS_VALUE) != 0;
     }
 
+    #[doc(hidden)]
     pub fn set_value(byte: u8) -> u8 {
         return byte | FLAGS_VALUE;
     }
 
+    #[doc(hidden)]
     pub fn has_skip_metadata(byte: u8) -> bool {
         return (byte & FLAGS_SKIP_METADATA) != 0;
     }
 
+    #[doc(hidden)]
     pub fn set_skip_metadata(byte: u8) -> u8 {
         return byte | FLAGS_SKIP_METADATA;
     }
 
+    #[doc(hidden)]
     pub fn has_page_size(byte: u8) -> bool {
         return (byte & WITH_PAGE_SIZE) != 0;
     }
 
+    #[doc(hidden)]
     pub fn set_page_size(byte: u8) -> u8 {
         return byte | WITH_PAGE_SIZE;
     }
 
+    #[doc(hidden)]
     pub fn has_with_paging_state(byte: u8) -> bool {
         return (byte & WITH_PAGING_STATE) != 0;
     }
 
+    #[doc(hidden)]
     pub fn set_with_paging_state(byte: u8) -> u8 {
         return byte | WITH_PAGING_STATE;
     }
 
+    #[doc(hidden)]
     pub fn has_with_serial_consistency(byte: u8) -> bool {
         return (byte & WITH_SERIAL_CONSISTENCY) != 0;
     }
 
+    #[doc(hidden)]
     pub fn set_with_serial_consistency(byte: u8) -> u8 {
         return byte | WITH_SERIAL_CONSISTENCY;
     }
 
+    #[doc(hidden)]
     pub fn has_with_default_timestamp(byte: u8) -> bool {
         return (byte & WITH_DEFAULT_TIMESTAMP) != 0;
     }
 
+    #[doc(hidden)]
     pub fn set_with_default_timestamp(byte: u8) -> u8 {
         return byte | WITH_DEFAULT_TIMESTAMP;
     }
 
+    #[doc(hidden)]
     pub fn has_with_names_for_values(byte: u8) -> bool {
         return (byte & WITH_NAME_FOR_VALUES) != 0;
     }
 
+    #[doc(hidden)]
     pub fn set_with_names_for_values(byte: u8) -> u8 {
         return byte | WITH_NAME_FOR_VALUES;
     }
