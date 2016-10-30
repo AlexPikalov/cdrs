@@ -18,7 +18,7 @@ impl BodyResResultRows {
         for _ in 0..rows_count {
             let mut row: Vec<CBytes> = Vec::new();
             for _ in 0..columns_count {
-                row.push(Vec::from_cursor(&mut cursor) as CBytes);
+                row.push(CBytes::from_cursor(&mut cursor) as CBytes);
             }
             v.push(row);
         }
@@ -47,10 +47,10 @@ impl FromCursor for BodyResResultRows {
 pub struct RowsMetadata {
     pub flags: i32,
     pub columns_count: i32,
-    pub paging_state: Option<Vec<u8>>,
+    pub paging_state: Option<CBytes>,
     // In fact by specification Vec should have only two elements representing the
     // (unique) keyspace name and table name the columns belong to
-    pub global_table_space: Option<Vec<String>>,
+    pub global_table_space: Option<Vec<CString>>,
     pub col_specs: Vec<ColSpec>,
 }
 
@@ -73,16 +73,16 @@ impl FromCursor for RowsMetadata {
         let flags: i32 = from_bytes(flags_bytes.to_vec()) as i32;
         let columns_count: i32 = from_bytes(columns_count_bytes.to_vec()) as i32;
 
-        let mut paging_state: Option<Vec<u8>> = None;
+        let mut paging_state: Option<CBytes> = None;
         if RowsMetadataFlag::has_has_more_pages(flags) {
-            paging_state = Some(Vec::from_cursor(&mut cursor))
+            paging_state = Some(CBytes::from_cursor(&mut cursor))
         }
 
-        let mut global_table_space: Option<Vec<String>> = None;
+        let mut global_table_space: Option<Vec<CString>> = None;
         let has_global_table_space = RowsMetadataFlag::has_global_table_space(flags);
         if has_global_table_space {
-            let keyspace = String::from_cursor(&mut cursor);
-            let tablename = String::from_cursor(&mut cursor);
+            let keyspace = CString::from_cursor(&mut cursor);
+            let tablename = CString::from_cursor(&mut cursor);
             global_table_space = Some(vec![keyspace, tablename])
         }
 
@@ -167,12 +167,12 @@ impl FromBytes for RowsMetadataFlag {
 pub struct ColSpec {
     /// The initial <ksname> is a [string] and is only present
     /// if the Global_tables_spec flag is NOT set
-    pub ksname: Option<String>,
+    pub ksname: Option<CString>,
     /// The initial <tablename> is a [string] and is present
     /// if the Global_tables_spec flag is NOT set
-    pub tablename: Option<String>,
+    pub tablename: Option<CString>,
     /// Column name
-    pub name: String,
+    pub name: CString,
     /// Column type defined in spec in 4.2.5.2
     pub col_type: ColType
 }
@@ -186,15 +186,15 @@ impl ColSpec {
             let mut v: Vec<ColSpec> = vec![];
 
             for _ in 0..column_count {
-                let mut ksname: Option<String> = None;
+                let mut ksname: Option<CString> = None;
 
-                let mut tablename: Option<String> = None;
+                let mut tablename: Option<CString> = None;
                 if !with_globale_table_spec {
-                    ksname = Some(String::from_cursor(&mut cursor));
-                    tablename = Some(String::from_cursor(&mut cursor));
+                    ksname = Some(CString::from_cursor(&mut cursor));
+                    tablename = Some(CString::from_cursor(&mut cursor));
                 }
 
-                let name = String::from_cursor(&mut cursor);
+                let name = CString::from_cursor(&mut cursor);
 
                 let mut col_type_bytes = [0; INT_LEN];
                 if let Err(err) = cursor.read(&mut col_type_bytes) {

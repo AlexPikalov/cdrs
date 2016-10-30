@@ -39,10 +39,11 @@ pub fn to_int(int: i64) -> Vec<u8> {
     return i_to_n_bytes(int, INT_LEN);
 }
 
-// Implementation for Rust std types
+pub type CString = String;
 
+// Implementation for Rust std types
 // Use extended Rust string as Cassandra [string]
-impl IntoBytes for String {
+impl IntoBytes for CString {
     /// Converts into Cassandra byte representation of [string]
     fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
@@ -53,8 +54,8 @@ impl IntoBytes for String {
     }
 }
 
-impl FromBytes for String {
-    fn from_bytes(bytes: Vec<u8>) -> String {
+impl FromBytes for CString {
+    fn from_bytes(bytes: Vec<u8>) -> CString {
         let len: usize = from_bytes(bytes[..SHORT_LEN].to_vec()) as usize;
         return match String::from_utf8(bytes[(SHORT_LEN + 1)..len].to_vec()) {
             Ok(string) => string,
@@ -66,10 +67,10 @@ impl FromBytes for String {
     }
 }
 
-impl FromCursor for String {
+impl FromCursor for CString {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [string].
     /// It reads required number of bytes and returns a String
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> String {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CString {
         let mut len_bytes = [0; SHORT_LEN];
         if let Err(err) = cursor.read(&mut len_bytes) {
             error!("Read Cassandra bytes error: {}", err);
@@ -86,11 +87,10 @@ impl FromCursor for String {
 
 pub type CBytes = Vec<u8>;
 
-// TODO: create cassandra bytes type instead of patching Vec
-impl FromCursor for Vec<u8> {
+impl FromCursor for CBytes {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].
-    /// It reads required number of bytes and returns a Vec<u8>
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> Vec<u8> {
+    /// It reads required number of bytes and returns a CBytes
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CBytes {
         let mut len_bytes = [0; SHORT_LEN];
         if let Err(err) = cursor.read(&mut len_bytes) {
             error!("Read Cassandra bytes error: {}", err);
@@ -102,7 +102,7 @@ impl FromCursor for Vec<u8> {
 }
 
 // Use extended Rust Vec<u8> as Cassandra [bytes]
-impl IntoBytes for Vec<u8> {
+impl IntoBytes for CBytes {
     fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
         let l = self.len() as u64;
