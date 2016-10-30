@@ -1,11 +1,17 @@
+//! `frame` module contains general Frame functionality.
 use std::convert::{From};
 use super::types::to_n_bytes;
 use super::{AsByte, IntoBytes};
 
+/// Number of version bytes in accordance to protocol.
 pub const VERSION_LEN: usize = 1;
+/// Number of flag bytes in accordance to protocol.
 pub const FLAG_LEN: usize = 1;
+/// Number of opcode bytes in accordance to protocol.
 pub const OPCODE_LEN: usize = 1;
+/// Number of stream bytes in accordance to protocol.
 pub const STREAM_LEN: usize = 2;
+/// Number of body length bytes in accordance to protocol.
 pub const LENGTH_LEN: usize = 4;
 
 #[derive(Debug)]

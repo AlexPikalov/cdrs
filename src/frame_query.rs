@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+//! Contains Query Frame related functionality.
 use super::frame::*;
 use super::consistency::Consistency;
 use super::{AsByte, IntoBytes};
@@ -15,6 +16,7 @@ pub struct BodyReqQuery {
 
 impl BodyReqQuery {
     #![warn(missing_docs)]
+    /// **Note:** shold be used by internal stuff only. Fabric function that produces Query request body.
     pub fn new(query: String,
             consistency: Consistency,
             values: Option<Vec<Value>>,
@@ -90,6 +92,7 @@ pub struct ParamsReqQuery {
 }
 
 impl ParamsReqQuery {
+    /// Sets values of Query request params.
     pub fn set_values(&mut self, values: Vec<Value>) {
         self.flags.push(QueryFlags::Value);
         self.values = values;
@@ -164,12 +167,19 @@ const WITH_NAME_FOR_VALUES: u8 = 0x40;
 
 /// Cassandra Query Flags.
 pub enum QueryFlags {
+    /// If set indicates that Query Params contains value.
     Value,
+    /// If set indicates that Query Params does not contain metadata.
     SkipMetadata,
+    /// If set indicates that Query Params contains page size.
     PageSize,
+    /// If set indicates that Query Params contains paging state.
     WithPagingState,
+    /// If set indicates that Query Params contains serial consistency.
     WithSerialConsistency,
+    /// If set indicates that Query Params contains default timestamp.
     WithDefaultTimestamp,
+    /// If set indicates that Query Params values are named ones.
     WithNamesForValues
 }
 
@@ -262,6 +272,7 @@ impl AsByte for QueryFlags {
 // Frame implementation related to BodyReqStartup
 
 impl Frame {
+    /// **Note:** This function should be used internally for building query request frames.
     pub fn new_req_query<'a>(query: String,
             consistency: Consistency,
             values: Option<Vec<Value>>,
