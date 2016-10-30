@@ -83,6 +83,9 @@ impl FromCursor for String {
 }
 
 /**/
+
+pub type CBytes = Vec<u8>;
+
 // TODO: create cassandra bytes type instead of patching Vec
 impl FromCursor for Vec<u8> {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].

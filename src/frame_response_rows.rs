@@ -9,7 +9,39 @@ pub struct BodyResResultRows {
     /// Each <row_i> is composed of <value_1>...<value_n> where n is
     /// <columns_count> and where <value_j> is a [bytes] representing the value
     /// returned for the jth column of the ith row.
-    pub rows_content: Vec<Vec<u8>>
+    pub rows_content: Vec<Vec<CBytes>>
+}
+
+impl BodyResResultRows {
+    fn get_rows_content(mut cursor: &mut Cursor<Vec<u8>>, rows_count: i32, columns_count: i32) -> Vec<Vec<CBytes>> {
+        let mut v: Vec<Vec<CBytes>> = Vec::new();
+        for _ in 0..rows_count {
+            let mut row: Vec<CBytes> = Vec::new();
+            for _ in 0..columns_count {
+                row.push(Vec::from_cursor(&mut cursor) as CBytes);
+            }
+            v.push(row);
+        }
+        return v;
+    }
+}
+
+impl FromCursor for BodyResResultRows {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResResultRows{
+        let metadata = RowsMetadata::from_cursor(&mut cursor);
+        let mut rows_count_bytes = [0; INT_LEN];
+        if let Err(err) = cursor.read(&mut rows_count_bytes) {
+            error!("Read Cassandra rows column count: {}", err);
+            panic!(err);
+        }
+        let rows_count: i32 = from_bytes(rows_count_bytes.to_vec()) as i32;
+        let rows_content: Vec<Vec<CBytes>> = BodyResResultRows::get_rows_content(&mut cursor, rows_count, metadata.columns_count);
+        return BodyResResultRows {
+            metadata: metadata,
+            rows_count: rows_count,
+            rows_content: rows_content
+        };
+    }
 }
 
 pub struct RowsMetadata {
@@ -22,9 +54,9 @@ pub struct RowsMetadata {
     pub col_specs: Vec<ColSpec>,
 }
 
-impl FromBytes for RowsMetadata {
-    fn from_bytes(bytes: Vec<u8>) -> RowsMetadata {
-        let mut cursor = Cursor::new(bytes);
+impl FromCursor for RowsMetadata {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> RowsMetadata {
+        // let mut cursor = Cursor::new(bytes);
         let mut flags_bytes = [0; INT_LEN];
         let mut columns_count_bytes = [0; INT_LEN];
 
@@ -179,7 +211,6 @@ impl ColSpec {
                     col_type: col_type
                 });
             }
-
 
             return v;
         }
