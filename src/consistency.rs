@@ -63,10 +63,7 @@ impl FromBytes for Consistency {
             0x0008 => Consistency::Serial,
             0x0009 => Consistency::LocalSerial,
             0x000A => Consistency::LocalOne,
-            _ => {
-                error!("Unexpected Cassandra consistency: {:?}", bytes);
-                panic!("Unexpected Cassandra consistency: {:?}", bytes);
-            }
+            _ => unreachable!()
         };
     }
 }

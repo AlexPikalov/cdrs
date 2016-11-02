@@ -5,3 +5,7 @@ Cassandra ports:
 * 7001 - TLS Internode communication (used if TLS enabled)
 * 9160 - Thrift client API
 * 9042 - CQL native transport port
+
+```rs
+let client = Client::connect("127.0.0.1");
+```
