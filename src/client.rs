@@ -28,7 +28,6 @@ impl Client {
         let mut core = Core::new().unwrap();
         let handle = core.handle();
         let tcp_stream = core.run(TcpStream::connect(&addr, &handle)).unwrap();
-        println!("client created");
         return Client {
             _handle: handle,
             core: core,

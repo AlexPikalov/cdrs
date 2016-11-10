@@ -126,7 +126,7 @@ impl FromBytes for Vec<u8> {
     }
 }
 
-fn cursor_next_value(cursor: &mut Cursor<Vec<u8>>, len: u64) -> Vec<u8> {
+pub fn cursor_next_value(cursor: &mut Cursor<Vec<u8>>, len: u64) -> Vec<u8> {
     let mut handle = cursor.take(len);
     let mut v = Vec::new();
     if let Err(err) = handle.read(&mut v) {

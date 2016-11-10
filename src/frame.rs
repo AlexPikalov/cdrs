@@ -2,6 +2,7 @@
 use std::convert::{From};
 use super::types::to_n_bytes;
 use super::{AsByte, IntoBytes};
+use super::frame_response::ResponseBody;
 
 /// Number of version bytes in accordance to protocol.
 pub const VERSION_LEN: usize = 1;
@@ -21,6 +22,12 @@ pub struct Frame {
     pub opcode: Opcode,
     pub stream: u64, // we're going to use 0 here until async client is implemented
     pub body: Vec<u8> // change type to Vec<u8>
+}
+
+impl Frame {
+    pub fn get_body(&self) -> ResponseBody {
+        return ResponseBody::from(self.body.clone(), &self.opcode);
+    }
 }
 
 impl<'a> IntoBytes for Frame {

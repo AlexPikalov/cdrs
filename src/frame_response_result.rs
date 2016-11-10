@@ -2,6 +2,148 @@ use std::io::{Cursor, Read};
 use super::{IntoBytes, FromBytes, FromCursor};
 use super::types::*;
 
+/// `ResultKind` is enum which represents types of result.
+pub enum ResultKind {
+    /// Void result.
+    Void,
+    /// Rows result.
+    Rows,
+    /// Set keyspace result.
+    SetKeyspace,
+    /// Prepeared result.
+    Prepared,
+    /// Schema change result.
+    SchemaChange
+}
+
+impl IntoBytes for ResultKind {
+    fn into_cbytes(&self) -> Vec<u8> {
+        return match *self {
+            ResultKind::Void => to_int(0x0001),
+            ResultKind::Rows => to_int(0x0002),
+            ResultKind::SetKeyspace => to_int(0x0003),
+            ResultKind::Prepared => to_int(0x0004),
+            ResultKind::SchemaChange => to_int(0x0005)
+        }
+    }
+}
+
+impl FromBytes for ResultKind {
+    fn from_bytes(bytes: Vec<u8>) -> ResultKind {
+        return match from_bytes(bytes.clone()) {
+            0x0001 => ResultKind::Void,
+            0x0002 => ResultKind::Rows,
+            0x0003 => ResultKind::SetKeyspace,
+            0x0004 => ResultKind::Prepared,
+            0x0005 => ResultKind::SchemaChange,
+            _ => {
+                error!("Unexpected Cassandra result kind: {:?}", bytes);
+                panic!("Unexpected Cassandra result kind: {:?}", bytes);
+            }
+        };
+    }
+}
+
+impl FromCursor for ResultKind {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ResultKind {
+        return ResultKind::from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64));
+    }
+}
+
+/// ResponseBody is a generalized enum that represents all types of responses. Each of enum
+/// option wraps related body type.
+#[derive(Debug)]
+pub enum ResResultBody {
+    /// Void response body. It's an empty stuct.
+    Void(BodyResResultVoid),
+    /// Rows response body. It represents a body of response which contains rows.
+    Rows(BodyResResultRows),
+    /// Set keyspace body. It represents a body of set_keyspace query and usually contains
+    /// a name of just set namespace.
+    SetKeyspace(BodyResResultSetKeyspace)
+}
+
+impl ResResultBody {
+    pub fn parse_body(mut cursor: &mut Cursor<Vec<u8>>, result_kind: ResultKind) -> ResResultBody {
+        return match result_kind {
+            ResultKind::Void => ResResultBody::Void(BodyResResultVoid::from_cursor(&mut cursor)),
+            ResultKind::Rows => ResResultBody::Rows(BodyResResultRows::from_cursor(&mut cursor)),
+            ResultKind::SetKeyspace => ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)),
+            _ => unimplemented!()
+        };
+    }
+
+    pub fn parse_body_from_cursor(mut cursor: &mut Cursor<Vec<u8>>, result_kind: ResultKind) -> ResResultBody {
+        return match result_kind {
+            ResultKind::Void => ResResultBody::Void(BodyResResultVoid::from_cursor(&mut cursor)),
+            ResultKind::Rows => ResResultBody::Rows(BodyResResultRows::from_cursor(&mut cursor)),
+            ResultKind::SetKeyspace => ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)),
+            _ => unimplemented!()
+        };
+    }
+}
+
+impl FromCursor for ResResultBody {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ResResultBody {
+        let result_kind = ResultKind::from_cursor(&mut cursor);
+        return ResResultBody::parse_body(&mut cursor, result_kind);
+    }
+}
+
+/// Body of a response of type Void
+#[derive(Debug)]
+pub struct BodyResResultVoid {}
+
+impl BodyResResultVoid {
+    pub fn new() -> BodyResResultVoid {
+        return BodyResResultVoid {};
+    }
+}
+
+impl FromBytes for BodyResResultVoid {
+    fn from_bytes(_bytes: Vec<u8>) -> BodyResResultVoid {
+        // as it's empty by definition just create BodyResVoid
+        return BodyResResultVoid::new();
+    }
+}
+
+impl FromCursor for BodyResResultVoid {
+    fn from_cursor(mut _cursor: &mut Cursor<Vec<u8>>) -> BodyResResultVoid {
+        return BodyResResultVoid::new();
+    }
+}
+
+//////
+#[derive(Debug)]
+pub struct BodyResResultSetKeyspace {
+    pub body: CString
+}
+
+impl BodyResResultSetKeyspace {
+    pub fn new(body: CString) -> BodyResResultSetKeyspace {
+        return BodyResResultSetKeyspace {
+            body: body
+        }
+    }
+}
+
+impl FromBytes for BodyResResultSetKeyspace {
+    /// Returns BodyResResultSetKeyspace with body provided via bytes
+    /// Bytes is Cassandra's [string]
+    fn from_bytes(bytes: Vec<u8>) -> BodyResResultSetKeyspace {
+        return BodyResResultSetKeyspace::new(CString::from_bytes(bytes));
+    }
+}
+
+impl FromCursor for BodyResResultSetKeyspace {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResResultSetKeyspace {
+        return BodyResResultSetKeyspace::new(CString::from_cursor(&mut cursor));
+    }
+}
+
+
+//////
+#[derive(Debug)]
 pub struct BodyResResultRows {
     pub metadata: RowsMetadata,
     pub rows_count: i32,
@@ -44,6 +186,7 @@ impl FromCursor for BodyResResultRows {
     }
 }
 
+#[derive(Debug)]
 pub struct RowsMetadata {
     pub flags: i32,
     pub columns_count: i32,
@@ -164,6 +307,7 @@ impl FromBytes for RowsMetadataFlag {
     }
 }
 
+#[derive(Debug)]
 pub struct ColSpec {
     /// The initial <ksname> is a [string] and is only present
     /// if the Global_tables_spec flag is NOT set
@@ -216,6 +360,7 @@ impl ColSpec {
         }
 }
 
+#[derive(Debug)]
 pub enum ColType {
     Custom,
     Ascii,
