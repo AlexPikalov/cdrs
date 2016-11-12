@@ -1,6 +1,6 @@
 use std::io::Cursor;
 use super::FromCursor;
-use super::frame_response_result::*;
+use super::frame_result::*;
 use super::frame::Opcode;
 
 #[derive(Debug)]
