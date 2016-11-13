@@ -73,6 +73,7 @@ impl ResResultBody {
         };
     }
 
+    /// It retrieves `ResResultBody` from `io::Cursor` having knowledge about expected kind of result.
     pub fn parse_body_from_cursor(mut cursor: &mut Cursor<Vec<u8>>, result_kind: ResultKind) -> ResResultBody {
         return match result_kind {
             ResultKind::Void => ResResultBody::Void(BodyResResultVoid::from_cursor(&mut cursor)),
@@ -94,6 +95,7 @@ impl FromCursor for ResResultBody {
 #[derive(Debug)]
 pub struct BodyResResultVoid {}
 
+/// Empty result body.
 impl BodyResResultVoid {
     pub fn new() -> BodyResResultVoid {
         return BodyResResultVoid {};
@@ -113,13 +115,15 @@ impl FromCursor for BodyResResultVoid {
     }
 }
 
-//////
+/// It represents set keyspace result body. Body contains keyspace name.
 #[derive(Debug)]
 pub struct BodyResResultSetKeyspace {
+    /// It contains name of keyspace that was set.
     pub body: CString
 }
 
 impl BodyResResultSetKeyspace {
+    /// Factory function that takes body value and returns new instance of `BodyResResultSetKeyspace`.
     pub fn new(body: CString) -> BodyResResultSetKeyspace {
         return BodyResResultSetKeyspace {
             body: body
@@ -134,20 +138,22 @@ impl FromCursor for BodyResResultSetKeyspace {
 }
 
 
-//////
+/// Structure that represents result of type [rows](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L533).
 #[derive(Debug)]
 pub struct BodyResResultRows {
+    /// Rows metadata
     pub metadata: RowsMetadata,
+    /// Number of rows.
     pub rows_count: CInt,
-    /// From spec: it is composed of <row_1>...<row_m> where m is <rows_count>.
-    /// Each <row_i> is composed of <value_1>...<value_n> where n is
-    /// <columns_count> and where <value_j> is a [bytes] representing the value
-    /// returned for the jth column of the ith row.
+    /// From spec: it is composed of `rows_count` of rows.
     pub rows_content: Vec<Vec<CBytes>>
 }
 
 impl BodyResResultRows {
-    fn get_rows_content(mut cursor: &mut Cursor<Vec<u8>>, rows_count: i32, columns_count: i32) -> Vec<Vec<CBytes>> {
+    /// It retrieves rows content having knowledge about number of rows and columns.
+    fn get_rows_content(mut cursor: &mut Cursor<Vec<u8>>,
+        rows_count: i32,
+        columns_count: i32) -> Vec<Vec<CBytes>> {
         return (0..rows_count).map(|_| {
             return (0..columns_count).map(|_| CBytes::from_cursor(&mut cursor) as CBytes).collect();
         }).collect();
@@ -167,14 +173,20 @@ impl FromCursor for BodyResResultRows {
     }
 }
 
+/// Rows metadata.
 #[derive(Debug)]
 pub struct RowsMetadata {
+    /// Flags. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L541)
     pub flags: i32,
+    /// Number of columns.
     pub columns_count: i32,
+    /// Paging state.
     pub paging_state: Option<CBytes>,
     // In fact by specification Vec should have only two elements representing the
     // (unique) keyspace name and table name the columns belong to
+    /// `Option` that may contain global table space.
     pub global_table_space: Option<Vec<CString>>,
+    /// List of column specifications.
     pub col_specs: Vec<ColSpec>,
 }
 
@@ -212,6 +224,7 @@ const GLOBAL_TABLE_SPACE: i32 = 0x0001;
 const HAS_MORE_PAGES: i32 = 0x0002;
 const NO_METADATA: i32 = 0x0004;
 
+/// Enum that represent a set of possible row metadata flags that could be set.
 pub enum RowsMetadataFlag {
     GlobalTableSpace,
     HasMorePages,
@@ -274,6 +287,7 @@ impl FromBytes for RowsMetadataFlag {
     }
 }
 
+/// Single column specification.
 #[derive(Debug)]
 pub struct ColSpec {
     /// The initial <ksname> is a [string] and is only present
@@ -314,6 +328,7 @@ impl ColSpec {
         }
 }
 
+/// Cassandra data types which clould be returned by a server.
 #[derive(Debug)]
 pub enum ColType {
     Custom,
@@ -346,7 +361,6 @@ pub enum ColType {
 
 impl FromBytes for ColType {
     fn from_bytes(bytes: Vec<u8>) -> ColType {
-        // XXX wrong! it is an [option]
         return match from_bytes(bytes.clone()) {
             0x0000 => ColType::Custom,
             0x0001 => ColType::Ascii,
@@ -386,9 +400,12 @@ impl FromCursor for ColType {
     }
 }
 
+/// Cassandra option that represent column type.
 #[derive(Debug)]
 pub struct ColTypeOption {
+    /// Id refers to `ColType`.
     id: ColType,
+    /// Values depends on column type. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L569)
     value: Option<ColTypeOptionValue>
 }
 
@@ -400,6 +417,10 @@ impl FromCursor for ColTypeOption {
             ColType::Set => {
                 let col_type = ColTypeOption::from_cursor(&mut cursor);
                 Some(ColTypeOptionValue::CSet(Box::new(col_type)))
+            },
+            ColType::List => {
+                let col_type = ColTypeOption::from_cursor(&mut cursor);
+                Some(ColTypeOptionValue::CList(Box::new(col_type)))
             },
             ColType::Udt => Some(ColTypeOptionValue::UdtType(CUdt::from_cursor(&mut cursor))),
             ColType::Map => {
@@ -417,20 +438,25 @@ impl FromCursor for ColTypeOption {
     }
 }
 
+/// Enum that represents all possible types of `value` of `ColTypeOption`.
 #[derive(Debug)]
 pub enum ColTypeOptionValue {
     CString(CString),
     ColType(ColType),
     CSet(Box<ColTypeOption>),
+    CList(Box<ColTypeOption>),
     UdtType(CUdt),
     CMap((Box<ColTypeOption>, Box<ColTypeOption>))
 }
 
-///
+/// User defined type. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L608)
 #[derive(Debug)]
 pub struct CUdt {
+    /// Keyspace name.
     pub ks: CString,
+    /// UDT name
     pub udt_name: CString,
+    /// List of pairs `(name, type)` where name is field name and type is type of field.
     pub descriptions: Vec<(CString, ColTypeOption)>
 }
 
