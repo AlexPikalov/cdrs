@@ -2,6 +2,7 @@ use std::net;
 use std::io;
 use std::io::Write;
 
+use super::consistency::Consistency;
 use super::frame::*;
 use super::IntoBytes;
 use super::parser::parse_frame;
@@ -22,6 +23,14 @@ impl CDRS {
         let startup_frame = Frame::new_req_startup(compression).into_cbytes();
 
         try!(tcp.write(startup_frame.as_slice()));
+        return parse_frame(tcp);
+    }
+
+    pub fn query(&self, q: String) -> io::Result<Frame> {
+        let mut tcp = try!(self.tcp.try_clone());
+        let query_frame = Frame::new_req_query(q.clone(), Consistency::Any, None, None, None, None, None, None).into_cbytes();
+
+        try!(tcp.write(query_frame.as_slice()));
         return parse_frame(tcp);
     }
 }

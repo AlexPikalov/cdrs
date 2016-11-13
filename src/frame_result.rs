@@ -46,7 +46,7 @@ impl FromBytes for ResultKind {
 
 impl FromCursor for ResultKind {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ResultKind {
-        return ResultKind::from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64));
+        return ResultKind::from_bytes(cursor_next_value(&mut cursor, INT_LEN as u64));
     }
 }
 
