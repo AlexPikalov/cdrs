@@ -1,4 +1,4 @@
-use std::io::{Cursor, Read};
+use std::io::Cursor;
 use super::{IntoBytes, FromBytes, FromCursor};
 use super::types::*;
 
@@ -138,7 +138,7 @@ impl FromCursor for BodyResResultSetKeyspace {
 #[derive(Debug)]
 pub struct BodyResResultRows {
     pub metadata: RowsMetadata,
-    pub rows_count: i32,
+    pub rows_count: CInt,
     /// From spec: it is composed of <row_1>...<row_m> where m is <rows_count>.
     /// Each <row_i> is composed of <value_1>...<value_n> where n is
     /// <columns_count> and where <value_j> is a [bytes] representing the value
@@ -148,27 +148,16 @@ pub struct BodyResResultRows {
 
 impl BodyResResultRows {
     fn get_rows_content(mut cursor: &mut Cursor<Vec<u8>>, rows_count: i32, columns_count: i32) -> Vec<Vec<CBytes>> {
-        let mut v: Vec<Vec<CBytes>> = Vec::new();
-        for _ in 0..rows_count {
-            let mut row: Vec<CBytes> = Vec::new();
-            for _ in 0..columns_count {
-                row.push(CBytes::from_cursor(&mut cursor) as CBytes);
-            }
-            v.push(row);
-        }
-        return v;
+        return (0..rows_count).map(|_| {
+            return (0..columns_count).map(|_| CBytes::from_cursor(&mut cursor) as CBytes).collect();
+        }).collect();
     }
 }
 
 impl FromCursor for BodyResResultRows {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResResultRows{
         let metadata = RowsMetadata::from_cursor(&mut cursor);
-        let mut rows_count_bytes = [0; INT_LEN];
-        if let Err(err) = cursor.read(&mut rows_count_bytes) {
-            error!("Read Cassandra rows column count: {}", err);
-            panic!(err);
-        }
-        let rows_count: i32 = from_bytes(rows_count_bytes.to_vec()) as i32;
+        let rows_count = CInt::from_cursor(&mut cursor);
         let rows_content: Vec<Vec<CBytes>> = BodyResResultRows::get_rows_content(&mut cursor, rows_count, metadata.columns_count);
         return BodyResResultRows {
             metadata: metadata,
@@ -191,22 +180,8 @@ pub struct RowsMetadata {
 
 impl FromCursor for RowsMetadata {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> RowsMetadata {
-        // let mut cursor = Cursor::new(bytes);
-        let mut flags_bytes = [0; INT_LEN];
-        let mut columns_count_bytes = [0; INT_LEN];
-
-        // NOTE: order of reads does matter
-        if let Err(err) = cursor.read(&mut flags_bytes) {
-            error!("Read Cassandra rows metadata flag: {}", err);
-            panic!(err);
-        }
-        if let Err(err) = cursor.read(&mut columns_count_bytes) {
-            error!("Read Cassandra rows metadata column count: {}", err);
-            panic!(err);
-        }
-
-        let flags: i32 = from_bytes(flags_bytes.to_vec()) as i32;
-        let columns_count: i32 = from_bytes(columns_count_bytes.to_vec()) as i32;
+        let flags = CInt::from_cursor(&mut cursor);
+        let columns_count = CInt::from_cursor(&mut cursor);
 
         let mut paging_state: Option<CBytes> = None;
         if RowsMetadataFlag::has_has_more_pages(flags) {
@@ -310,7 +285,7 @@ pub struct ColSpec {
     /// Column name
     pub name: CString,
     /// Column type defined in spec in 4.2.5.2
-    pub col_type: ColType
+    pub col_type: ColTypeOption
 }
 
 impl ColSpec {
@@ -319,36 +294,23 @@ impl ColSpec {
     pub fn parse_colspecs(mut cursor: &mut Cursor<Vec<u8>>,
         column_count: i32,
         with_globale_table_spec: bool) -> Vec<ColSpec> {
-            let mut v: Vec<ColSpec> = vec![];
-
-            for _ in 0..column_count {
+            return (0..column_count).map(|_| {
                 let mut ksname: Option<CString> = None;
-
                 let mut tablename: Option<CString> = None;
                 if !with_globale_table_spec {
                     ksname = Some(CString::from_cursor(&mut cursor));
                     tablename = Some(CString::from_cursor(&mut cursor));
                 }
-
                 let name = CString::from_cursor(&mut cursor);
+                let col_type = ColTypeOption::from_cursor(&mut cursor);
 
-                let mut col_type_bytes = [0; INT_LEN];
-                if let Err(err) = cursor.read(&mut col_type_bytes) {
-                    error!("Read Cassandra column type error: {}", err);
-                    panic!(err);
-                }
-
-                let col_type = ColType::from_bytes(col_type_bytes.to_vec());
-
-                v.push(ColSpec {
+                return ColSpec {
                     ksname: ksname,
                     tablename: tablename,
                     name: name,
                     col_type: col_type
-                });
-            }
-
-            return v;
+                };
+            }).collect();
         }
 }
 
@@ -378,11 +340,13 @@ pub enum ColType {
     Map,
     Set,
     Udt,
-    Tuple
+    Tuple,
+    Null
 }
 
 impl FromBytes for ColType {
     fn from_bytes(bytes: Vec<u8>) -> ColType {
+        // XXX wrong! it is an [option]
         return match from_bytes(bytes.clone()) {
             0x0000 => ColType::Custom,
             0x0001 => ColType::Ascii,
@@ -409,10 +373,82 @@ impl FromBytes for ColType {
             0x0022 => ColType::Set,
             0x0030 => ColType::Udt,
             0x0031 => ColType::Tuple,
-            _ => {
-                error!("Unexpected Cassandra column type: {:?}", bytes);
-                panic!("Unexpected Cassandra column type: {:?}", bytes);
-            }
+            _ => unreachable!()
         };
+    }
+}
+
+impl FromCursor for ColType {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ColType {
+        let option_id_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
+        let col_type = ColType::from_bytes(option_id_bytes);
+        return col_type;
+    }
+}
+
+#[derive(Debug)]
+pub struct ColTypeOption {
+    id: ColType,
+    value: Option<ColTypeOptionValue>
+}
+
+impl FromCursor for ColTypeOption {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ColTypeOption {
+        let id = ColType::from_cursor(&mut cursor);
+        let value = match id {
+            ColType::Custom => Some(ColTypeOptionValue::CString(CString::from_cursor(&mut cursor))),
+            ColType::Set => {
+                let col_type = ColTypeOption::from_cursor(&mut cursor);
+                Some(ColTypeOptionValue::CSet(Box::new(col_type)))
+            },
+            ColType::Udt => Some(ColTypeOptionValue::UdtType(CUdt::from_cursor(&mut cursor))),
+            ColType::Map => {
+                let name_type = ColTypeOption::from_cursor(&mut cursor);
+                let value_type = ColTypeOption::from_cursor(&mut cursor);
+                Some(ColTypeOptionValue::CMap((Box::new(name_type), Box::new(value_type))))
+            }
+            _ => None
+        };
+
+        return ColTypeOption {
+            id: id,
+            value: value
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum ColTypeOptionValue {
+    CString(CString),
+    ColType(ColType),
+    CSet(Box<ColTypeOption>),
+    UdtType(CUdt),
+    CMap((Box<ColTypeOption>, Box<ColTypeOption>))
+}
+
+///
+#[derive(Debug)]
+pub struct CUdt {
+    pub ks: CString,
+    pub udt_name: CString,
+    pub descriptions: Vec<(CString, ColTypeOption)>
+}
+
+impl FromCursor for CUdt {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CUdt {
+        let ks = CString::from_cursor(&mut cursor);
+        let udt_name = CString::from_cursor(&mut cursor);
+        let n = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64));
+        let descriptions: Vec<(CString, ColTypeOption)> = (0..n).map(|_| {
+            let name = CString::from_cursor(&mut cursor);
+            let col_type = ColTypeOption::from_cursor(&mut cursor);
+            return (name, col_type);
+        }).collect();
+
+        return CUdt {
+            ks: ks,
+            udt_name: udt_name,
+            descriptions: descriptions
+        }
     }
 }

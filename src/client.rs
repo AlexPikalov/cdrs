@@ -28,7 +28,7 @@ impl CDRS {
 
     pub fn query(&self, q: String) -> io::Result<Frame> {
         let mut tcp = try!(self.tcp.try_clone());
-        let query_frame = Frame::new_req_query(q.clone(), Consistency::Any, None, None, None, None, None, None).into_cbytes();
+        let query_frame = Frame::new_req_query(q.clone(), Consistency::One, None, None, None, None, None, None).into_cbytes();
 
         try!(tcp.write(query_frame.as_slice()));
         return parse_frame(tcp);
