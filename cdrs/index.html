@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `cdrs` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, cdrs">
+
+    <title>cdrs - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'cdrs', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>cdrs</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-0' class='srclink' href='../src/cdrs/src/lib.rs.html#1-51' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p><strong>cdrs</strong> is a native Cassandra DB client written in Rust. It&#39;s under a hard development as of now.</p>
+</div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='client/index.html'
+                                  title='cdrs::client'>client</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='consistency/index.html'
+                                  title='cdrs::consistency'>consistency</a></td>
+                           <td class='docblock short'>
+                                <p>The module contains Rust representation of Cassandra consistency levels.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='error/index.html'
+                                  title='cdrs::error'>error</a></td>
+                           <td class='docblock short'>
+                                <p>This modules contains <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1011">Cassandra&#39;s errors</a>
+which server could respond to client.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='frame/index.html'
+                                  title='cdrs::frame'>frame</a></td>
+                           <td class='docblock short'>
+                                <p><code>frame</code> module contains general Frame functionality.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='frame_query/index.html'
+                                  title='cdrs::frame_query'>frame_query</a></td>
+                           <td class='docblock short'>
+                                <p>Contains Query Frame related functionality.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='frame_ready/index.html'
+                                  title='cdrs::frame_ready'>frame_ready</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='frame_response/index.html'
+                                  title='cdrs::frame_response'>frame_response</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='frame_result/index.html'
+                                  title='cdrs::frame_result'>frame_result</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='frame_startup/index.html'
+                                  title='cdrs::frame_startup'>frame_startup</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='types/index.html'
+                                  title='cdrs::types'>types</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='value/index.html'
+                                  title='cdrs::value'>value</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.AsByte.html'
+                                  title='cdrs::AsByte'>AsByte</a></td>
+                           <td class='docblock short'>
+                                <p><code>AsBytes</code> should be used to convert a value into a single byte.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.FromBytes.html'
+                                  title='cdrs::FromBytes'>FromBytes</a></td>
+                           <td class='docblock short'>
+                                <p><code>FromBytes</code> should be used to parse an array of bytes into a structure.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.FromCursor.html'
+                                  title='cdrs::FromCursor'>FromCursor</a></td>
+                           <td class='docblock short'>
+                                <p><code>FromCursor</code> should be used to get parsed structure from an <code>io:Cursor</code>
+wich bound to an array of bytes.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.FromSingleByte.html'
+                                  title='cdrs::FromSingleByte'>FromSingleByte</a></td>
+                           <td class='docblock short'>
+                                <p><code>FromSingleByte</code> should be used to convert a single byte into a value.
+It is opposite to <code>AsByte</code>.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.IntoBytes.html'
+                                  title='cdrs::IntoBytes'>IntoBytes</a></td>
+                           <td class='docblock short'>
+                                <p><code>IntoBytes</code> should be used to convert a structure into array of bytes.</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "cdrs";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

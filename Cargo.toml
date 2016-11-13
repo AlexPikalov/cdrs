@@ -1,8 +1,0 @@
-[package]
-name = "cdrs"
-version = "0.1.0"
-authors = ["Alex Pikalov <alex.pikalov.khar@gmail.com>"]
-
-[dependencies]
-byteorder = "0.5.3"
-log = "*"

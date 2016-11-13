@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `error` mod in crate `cdrs`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, error">
+
+    <title>cdrs::error - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../index.html'>cdrs</a></p><script>window.sidebarCurrent = {name: 'error', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>cdrs</a>::<wbr><a class='mod' href=''>error</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-90' class='srclink' href='../../src/cdrs/src/error.rs.html#1-356' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>This modules contains <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1011">Cassandra&#39;s errors</a>
+which server could respond to client.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.AlreadyExistsError.html'
+                                  title='cdrs::error::AlreadyExistsError'>AlreadyExistsError</a></td>
+                           <td class='docblock short'>
+                                <p>The query attempted to create a keyspace or a table that was already existing.
+<a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1140">Read more...</a></p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.CDRSError.html'
+                                  title='cdrs::error::CDRSError'>CDRSError</a></td>
+                           <td class='docblock short'>
+                                <p>CDRS error which could be returned by Cassandra server as a response. As it goes
+from the specification it contains an error code and an error message. Apart of those
+depending of type of error it could contain an additional information about an error.
+This additional information is represented by <code>additional_info</code> property which is <code>ErrorKind</code>.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.FunctionFailureError.html'
+                                  title='cdrs::error::FunctionFailureError'>FunctionFailureError</a></td>
+                           <td class='docblock short'>
+                                <p>A (user defined) function failed during execution.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.ReadFailureError.html'
+                                  title='cdrs::error::ReadFailureError'>ReadFailureError</a></td>
+                           <td class='docblock short'>
+                                <p>A non-timeout exception during a read request.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.ReadTimeoutError.html'
+                                  title='cdrs::error::ReadTimeoutError'>ReadTimeoutError</a></td>
+                           <td class='docblock short'>
+                                <p>Timeout exception during a read request.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.SimpleError.html'
+                                  title='cdrs::error::SimpleError'>SimpleError</a></td>
+                           <td class='docblock short'>
+                                <p>Is used if error does not contain any additional info.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.UnavailableError.html'
+                                  title='cdrs::error::UnavailableError'>UnavailableError</a></td>
+                           <td class='docblock short'>
+                                <p>Additional info about <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1025">unavailable exception</a></p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.UnpreparedError.html'
+                                  title='cdrs::error::UnpreparedError'>UnpreparedError</a></td>
+                           <td class='docblock short'>
+                                <p>Can be thrown while a prepared statement tries to be
+executed if the provided prepared statement ID is not known by
+this host. <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1150">Read more...</a></p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.WriteFailureError.html'
+                                  title='cdrs::error::WriteFailureError'>WriteFailureError</a></td>
+                           <td class='docblock short'>
+                                <p>A non-timeout exception during a write request. <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1106">Read more...</a></p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.WriteTimeoutError.html'
+                                  title='cdrs::error::WriteTimeoutError'>WriteTimeoutError</a></td>
+                           <td class='docblock short'>
+                                <p>Timeout exception during a write request.</p>
+                           </td>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.AdditionalErrorInfo.html'
+                                  title='cdrs::error::AdditionalErrorInfo'>AdditionalErrorInfo</a></td>
+                           <td class='docblock short'>
+                                <p>Additional error info in accordance to <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1011">Cassandra protocol v4</a>.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.WriteType.html'
+                                  title='cdrs::error::WriteType'>WriteType</a></td>
+                           <td class='docblock short'>
+                                <p>Describes the type of the write that failed. <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1118">Read more...</a></p>
+                           </td>
+                       </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.Result.html'
+                                  title='cdrs::error::Result'>Result</a></td>
+                           <td class='docblock short'>
+                                <p>CDRS specific <code>Result</code> which contains a <a href="../frame/struct.Frame.html"><code>Frame</code></a> in case of <code>Ok</code> and <code>CDRSError</code> if <code>Err</code>.</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "cdrs";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

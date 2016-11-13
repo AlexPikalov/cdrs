@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["QueryFlags","Cassandra Query Flags."]],"struct":[["BodyReqQuery","Structure which represents body of Query request"],["ParamsReqQuery","Parameters of Query request."]]});
