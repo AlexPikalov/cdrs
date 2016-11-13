@@ -1,5 +1,4 @@
 // TODO: create Cassandra types
-
 /// Cassandra types
 
 pub const LONG_STR_LEN: usize = 4;
@@ -71,15 +70,11 @@ impl FromCursor for CString {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [string].
     /// It reads required number of bytes and returns a String
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CString {
-        let mut len_bytes = [0; SHORT_LEN];
-        if let Err(err) = cursor.read(&mut len_bytes) {
-            error!("Read Cassandra bytes error: {}", err);
-            panic!(err);
-        }
+        let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
         let len: u64 = from_bytes(len_bytes.to_vec());
         let body_bytes = cursor_next_value(&mut cursor, len);
 
-        return String::from_bytes(body_bytes);
+        return String::from_utf8(body_bytes).unwrap();
     }
 }
 
@@ -93,9 +88,6 @@ impl FromCursor for CStringList {
             panic!(err);
         }
         let len: u64 = from_bytes(len_bytes.to_vec());
-
-        // let list: CStringList = (0..len).map(|_| CString::from_cursor(&mut cursor)).collect();
-
         return (0..len).map(|_| CString::from_cursor(&mut cursor)).collect();
     }
 }
@@ -134,9 +126,8 @@ pub type CInt = i32;
 
 impl FromCursor for CInt {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CInt {
-        let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64).to_vec();
-        let len: u64 = from_bytes(len_bytes.to_vec());
-        return from_bytes(cursor_next_value(&mut cursor, len)) as CInt;
+        let bytes = cursor_next_value(&mut cursor, INT_LEN as u64);
+        return from_bytes(bytes) as CInt;
     }
 }
 
@@ -144,18 +135,23 @@ impl FromCursor for CInt {
 impl FromBytes for Vec<u8> {
     fn from_bytes(bytes: Vec<u8>) -> Vec<u8> {
         let mut cursor = Cursor::new(bytes);
-        let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64).to_vec();
-        let len: u64 = from_bytes(len_bytes.to_vec());
-        return cursor_next_value(&mut cursor, len).to_vec();
+        let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
+        let len: u64 = from_bytes(len_bytes);
+        return cursor_next_value(&mut cursor, len);
     }
 }
 
-pub fn cursor_next_value(cursor: &mut Cursor<Vec<u8>>, len: u64) -> Vec<u8> {
-    let mut handle = cursor.take(len);
-    let mut v = Vec::new();
-    if let Err(err) = handle.read(&mut v) {
+pub fn cursor_next_value(mut cursor: &mut Cursor<Vec<u8>>, len: u64) -> Vec<u8> {
+    let l = len as usize;
+    let current_position = cursor.position();
+    let mut buff: Vec<u8> = Vec::with_capacity(l);
+    unsafe {
+        buff.set_len(l);
+    }
+    if let Err(err) = cursor.read(&mut buff) {
         error!("Read from cursor error: {}", err);
         panic!(err);
     }
-    return v;
+    cursor.set_position(current_position + len);
+    return buff;
 }
