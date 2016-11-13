@@ -53,19 +53,6 @@ impl IntoBytes for CString {
     }
 }
 
-impl FromBytes for CString {
-    fn from_bytes(bytes: Vec<u8>) -> CString {
-        let len: usize = from_bytes(bytes[..SHORT_LEN].to_vec()) as usize;
-        return match String::from_utf8(bytes[(SHORT_LEN + 1)..len].to_vec()) {
-            Ok(string) => string,
-            Err(err) => {
-                error!("Parsing string error {:?}", err);
-                panic!("Parsing string error {:?}", err);
-            }
-        };
-    }
-}
-
 impl FromCursor for CString {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [string].
     /// It reads required number of bytes and returns a String
