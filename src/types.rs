@@ -83,6 +83,23 @@ impl FromCursor for CString {
     }
 }
 
+pub type CStringList = Vec<CString>;
+
+impl FromCursor for CStringList {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CStringList {
+        let mut len_bytes = [0; SHORT_LEN];
+        if let Err(err) = cursor.read(&mut len_bytes) {
+            error!("Read Cassandra bytes error: {}", err);
+            panic!(err);
+        }
+        let len: u64 = from_bytes(len_bytes.to_vec());
+
+        // let list: CStringList = (0..len).map(|_| CString::from_cursor(&mut cursor)).collect();
+
+        return (0..len).map(|_| CString::from_cursor(&mut cursor)).collect();
+    }
+}
+
 /**/
 
 pub type CBytes = Vec<u8>;
@@ -112,15 +129,22 @@ impl IntoBytes for CBytes {
     }
 }
 
+/// Cassandra int type.
+pub type CInt = i32;
+
+impl FromCursor for CInt {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CInt {
+        let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64).to_vec();
+        let len: u64 = from_bytes(len_bytes.to_vec());
+        return from_bytes(cursor_next_value(&mut cursor, len)) as CInt;
+    }
+}
+
 // Use extended Rust Vec<u8> as Cassandra [bytes]
 impl FromBytes for Vec<u8> {
     fn from_bytes(bytes: Vec<u8>) -> Vec<u8> {
         let mut cursor = Cursor::new(bytes);
-        let mut len_bytes = [0; SHORT_LEN];
-        if let Err(err) = cursor.read(&mut len_bytes) {
-            error!("Read Cassandra bytes error: {}", err);
-            panic!(err);
-        }
+        let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64).to_vec();
         let len: u64 = from_bytes(len_bytes.to_vec());
         return cursor_next_value(&mut cursor, len).to_vec();
     }

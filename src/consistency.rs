@@ -1,11 +1,14 @@
 #![warn(missing_docs)]
 //! The module contains Rust representation of Cassandra consistency levels.
-use super::{IntoBytes};
+use std::io;
+use std::convert::From;
+use super::{IntoBytes, FromCursor};
 use super::types::*;
 use super::FromBytes;
 
 /// `Consistency` is an enum which represents Cassandra's consistency levels.
 /// To find more details about each consistency level please refer to Cassandra official docs.
+#[derive(Debug)]
 pub enum Consistency {
     #[allow(missing_docs)]
     Any,
@@ -49,6 +52,25 @@ impl IntoBytes for Consistency {
     }
 }
 
+impl From<i32> for Consistency {
+    fn from(bytes: i32) -> Consistency {
+        return match bytes {
+            0x0000 => Consistency::Any,
+            0x0001 => Consistency::One,
+            0x0002 => Consistency::Two,
+            0x0003 => Consistency::Three,
+            0x0004 => Consistency::Quorum,
+            0x0005 => Consistency::All,
+            0x0006 => Consistency::LocalQuorum,
+            0x0007 => Consistency::EachQuorum,
+            0x0008 => Consistency::Serial,
+            0x0009 => Consistency::LocalSerial,
+            0x000A => Consistency::LocalOne,
+            _ => unreachable!()
+        };
+    }
+}
+
 impl FromBytes for Consistency {
     fn from_bytes(bytes: Vec<u8>) -> Consistency {
         return match from_bytes(bytes.clone()) {
@@ -65,5 +87,12 @@ impl FromBytes for Consistency {
             0x000A => Consistency::LocalOne,
             _ => unreachable!()
         };
+    }
+}
+
+impl FromCursor for Consistency {
+    fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> Consistency {
+        let consistency_num = CInt::from_cursor(&mut cursor) as i32;
+        return Consistency::from(consistency_num);
     }
 }

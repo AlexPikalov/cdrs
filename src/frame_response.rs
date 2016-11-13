@@ -2,10 +2,11 @@ use std::io::Cursor;
 use super::FromCursor;
 use super::frame_result::*;
 use super::frame::Opcode;
+use super::error::CDRSError;
 
 #[derive(Debug)]
 pub enum ResponseBody {
-    Error,
+    Error(CDRSError),
     Startup,
     Ready(BodyResResultVoid),
     Authenticate,
@@ -27,7 +28,7 @@ impl ResponseBody {
     pub fn from(bytes: Vec<u8>, response_type: &Opcode) -> ResponseBody {
         let mut cursor: Cursor<Vec<u8>> = Cursor::new(bytes);
         return match response_type {
-            &Opcode::Error => unimplemented!(),
+            &Opcode::Error => ResponseBody::Error(CDRSError::from_cursor(&mut cursor)),
             &Opcode::Startup => unimplemented!(),
             &Opcode::Ready => ResponseBody::Ready(BodyResResultVoid::from_cursor(&mut cursor)),
             &Opcode::Authenticate => unimplemented!(),
