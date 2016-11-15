@@ -1,4 +1,5 @@
 use std::io::Cursor;
+use std::slice::Iter;
 use super::FromCursor;
 use super::frame_result::*;
 use super::frame::Opcode;
@@ -46,4 +47,19 @@ impl ResponseBody {
             &Opcode::AuthSuccess => unimplemented!()
         }
     }
+
+    pub fn as_rows_iter(&self) -> Option<Iter<Vec<Vec<u8>>>> {
+        match self {
+            &ResponseBody::Result(ref res) => {
+                match res {
+                    &ResResultBody::Rows(ref rows) => Some(rows.rows_content.iter()),
+                    _ => None
+                }
+            },
+            _ => None
+        }
+    }
+
+    // TODO: create method result_rows_iter which would return an Option<Iterator>,
+    // Iterator should iterate over result rows' rows_content
 }

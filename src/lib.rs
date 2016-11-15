@@ -7,6 +7,7 @@ use std::io::Cursor;
 
 pub mod client;
 pub mod consistency;
+pub mod data_serialization_types;
 pub mod error;
 pub mod frame;
 pub mod frame_query;

@@ -5,6 +5,7 @@ pub const LONG_STR_LEN: usize = 4;
 pub const SHORT_LEN: usize = 2;
 pub const INT_LEN: usize = 4;
 
+use std::io;
 use std::io::{Cursor, Read};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use super::{FromBytes, IntoBytes, FromCursor};
@@ -22,10 +23,15 @@ pub fn i_to_n_bytes(int: i64, n: usize) -> Vec<u8> {
     return bytes;
 }
 
+///
+pub fn try_from_bytes(bytes: Vec<u8>) -> Result<u64, io::Error> {
+    let mut c = Cursor::new(bytes.clone());
+    return c.read_uint::<BigEndian>(bytes.len());
+}
+
 /// Converts byte-array into u64
 pub fn from_bytes(bytes: Vec<u8>) -> u64 {
-    let mut c = Cursor::new(bytes.clone());
-    return c.read_uint::<BigEndian>(bytes.len()).unwrap()
+    return try_from_bytes(bytes).unwrap();
 }
 
 /// Converts number u64 into Cassandra's [short].
@@ -87,7 +93,7 @@ impl FromCursor for CBytes {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].
     /// It reads required number of bytes and returns a CBytes
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CBytes {
-        let mut len_bytes = [0; SHORT_LEN];
+        let mut len_bytes = [0; INT_LEN];
         if let Err(err) = cursor.read(&mut len_bytes) {
             error!("Read Cassandra bytes error: {}", err);
             panic!(err);
