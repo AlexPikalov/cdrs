@@ -6,3 +6,4 @@ authors = ["Alex Pikalov <alex.pikalov.khar@gmail.com>"]
 [dependencies]
 byteorder = "0.5.3"
 log = "*"
+uuid = "0.2"

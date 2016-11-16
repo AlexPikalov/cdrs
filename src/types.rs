@@ -42,6 +42,12 @@ pub fn try_i_from_bytes(bytes: Vec<u8>) -> Result<i64, io::Error> {
 }
 
 ///
+pub fn try_i32_from_bytes(bytes: Vec<u8>) -> Result<i32, io::Error> {
+    let mut c = Cursor::new(bytes.clone());
+    return c.read_i32::<BigEndian>();
+}
+
+///
 pub fn try_f32_from_bytes(bytes: Vec<u8>) -> Result<f32, io::Error> {
     let mut c = Cursor::new(bytes.clone());
     return c.read_f32::<BigEndian>();
@@ -127,12 +133,7 @@ impl FromCursor for CBytes {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].
     /// It reads required number of bytes and returns a CBytes
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CBytes {
-        let mut len_bytes = [0; INT_LEN];
-        if let Err(err) = cursor.read(&mut len_bytes) {
-            error!("Read Cassandra bytes error: {}", err);
-            panic!(err);
-        }
-        let len: u64 = from_bytes(len_bytes.to_vec());
+        let len: u64 = CInt::from_cursor(&mut cursor) as u64;
         return cursor_next_value(&mut cursor, len);
     }
 }
