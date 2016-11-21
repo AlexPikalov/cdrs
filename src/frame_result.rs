@@ -336,7 +336,7 @@ pub enum ColType {
     Bigint,
     Blob,
     Boolean,
-    Cunter,
+    Counter,
     Decimal,
     Double,
     Float,
@@ -367,7 +367,7 @@ impl FromBytes for ColType {
             0x0002 => ColType::Bigint,
             0x0003 => ColType::Blob,
             0x0004 => ColType::Boolean,
-            0x0005 => ColType::Cunter,
+            0x0005 => ColType::Counter,
             0x0006 => ColType::Decimal,
             0x0007 => ColType::Double,
             0x0008 => ColType::Float,
@@ -405,7 +405,7 @@ impl FromCursor for ColType {
 pub struct ColTypeOption {
     /// Id refers to `ColType`.
     id: ColType,
-    /// Values depends on column type. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L569)
+    /// Values depending on column type. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L569)
     value: Option<ColTypeOptionValue>
 }
 
