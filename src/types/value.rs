@@ -1,5 +1,5 @@
-use super::IntoBytes;
-use super::types::to_int;
+use super::super::IntoBytes;
+use super::to_int;
 
 pub enum ValueType {
     Normal(i32),

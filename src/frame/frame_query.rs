@@ -4,8 +4,8 @@
 use super::*;
 use super::super::consistency::Consistency;
 use super::super::{AsByte, IntoBytes};
-use super::super::value::Value;
 use super::super::types::*;
+use super::super::types::value::*;
 
 /// Structure which represents body of Query request
 pub struct BodyReqQuery {

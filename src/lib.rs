@@ -8,12 +8,10 @@ use std::io::Cursor;
 
 pub mod client;
 pub mod consistency;
-pub mod data_serialization_types;
 pub mod error;
 pub mod frame;
 mod parser;
 pub mod types;
-pub mod value;
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.
 pub trait IntoBytes {
