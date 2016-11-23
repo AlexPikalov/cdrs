@@ -1,10 +1,10 @@
 use std::io::Cursor;
 use std::slice::Iter;
-use super::types::*;
-use super::FromCursor;
+use super::super::types::*;
+use super::super::FromCursor;
 use super::frame_result::*;
-use super::frame::Opcode;
-use super::error::CDRSError;
+use super::super::frame::*;
+use super::super::error::CDRSError;
 
 #[derive(Debug)]
 pub enum ResponseBody {

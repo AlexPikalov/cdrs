@@ -1,6 +1,6 @@
 use std::io::Cursor;
-use super::{IntoBytes, FromBytes, FromCursor};
-use super::types::*;
+use super::super::{IntoBytes, FromBytes, FromCursor};
+use super::super::types::*;
 
 /// `ResultKind` is enum which represents types of result.
 pub enum ResultKind {
@@ -158,6 +158,18 @@ impl BodyResResultRows {
             return (0..columns_count).map(|_| CBytes::from_cursor(&mut cursor) as CBytes).collect();
         }).collect();
     }
+
+    /// Returns a list of tuples `(CBytes, ColType)` with value and type of values respectively.
+    /// `n` is a number of row.
+    pub fn nth_row_val_types(&self, n: usize) -> Vec<(CBytes, ColType)> {
+        let col_types = self.metadata.col_specs
+            .iter()
+            .map(|col_spec| col_spec.col_type.id.clone());
+        return self.rows_content[n].iter()
+            .map(|cbyte| cbyte.clone())
+            .zip(col_types)
+            .collect();
+    }
 }
 
 impl FromCursor for BodyResResultRows {
@@ -174,7 +186,7 @@ impl FromCursor for BodyResResultRows {
 }
 
 /// Rows metadata.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RowsMetadata {
     /// Flags. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L541)
     pub flags: i32,
@@ -288,7 +300,7 @@ impl FromBytes for RowsMetadataFlag {
 }
 
 /// Single column specification.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ColSpec {
     /// The initial <ksname> is a [string] and is only present
     /// if the Global_tables_spec flag is NOT set
@@ -329,7 +341,7 @@ impl ColSpec {
 }
 
 /// Cassandra data types which clould be returned by a server.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ColType {
     Custom,
     Ascii,
@@ -401,7 +413,7 @@ impl FromCursor for ColType {
 }
 
 /// Cassandra option that represent column type.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ColTypeOption {
     /// Id refers to `ColType`.
     id: ColType,
@@ -439,7 +451,7 @@ impl FromCursor for ColTypeOption {
 }
 
 /// Enum that represents all possible types of `value` of `ColTypeOption`.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ColTypeOptionValue {
     CString(CString),
     ColType(ColType),
@@ -450,7 +462,7 @@ pub enum ColTypeOptionValue {
 }
 
 /// User defined type. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L608)
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CUdt {
     /// Keyspace name.
     pub ks: CString,

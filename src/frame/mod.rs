@@ -2,7 +2,7 @@
 use std::convert::{From};
 use super::types::to_n_bytes;
 use super::{AsByte, IntoBytes};
-use super::frame_response::ResponseBody;
+use self::frame_response::ResponseBody;
 
 /// Number of version bytes in accordance to protocol.
 pub const VERSION_LEN: usize = 1;
@@ -14,6 +14,13 @@ pub const OPCODE_LEN: usize = 1;
 pub const STREAM_LEN: usize = 2;
 /// Number of body length bytes in accordance to protocol.
 pub const LENGTH_LEN: usize = 4;
+
+mod frame_query;
+mod frame_ready;
+mod frame_response;
+mod frame_result;
+mod frame_startup;
+// mod frame;
 
 #[derive(Debug)]
 pub struct Frame {

@@ -3,7 +3,7 @@ use std::io;
 use std::io::Write;
 
 use super::consistency::Consistency;
-use super::frame::*;
+use super::frame::Frame;
 use super::IntoBytes;
 use super::parser::parse_frame;
 

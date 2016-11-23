@@ -1,10 +1,11 @@
 #![warn(missing_docs)]
 //! Contains Query Frame related functionality.
-use super::frame::*;
-use super::consistency::Consistency;
-use super::{AsByte, IntoBytes};
-use super::value::Value;
-use super::types::*;
+// use self::frame::*;
+use super::*;
+use super::super::consistency::Consistency;
+use super::super::{AsByte, IntoBytes};
+use super::super::value::Value;
+use super::super::types::*;
 
 /// Structure which represents body of Query request
 pub struct BodyReqQuery {
