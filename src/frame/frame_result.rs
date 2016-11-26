@@ -60,7 +60,9 @@ pub enum ResResultBody {
     Rows(BodyResResultRows),
     /// Set keyspace body. It represents a body of set_keyspace query and usually contains
     /// a name of just set namespace.
-    SetKeyspace(BodyResResultSetKeyspace)
+    SetKeyspace(BodyResResultSetKeyspace),
+    /// Prepared response body.
+    Prepared(BodyResResultPrepared)
 }
 
 impl ResResultBody {
@@ -69,6 +71,7 @@ impl ResResultBody {
             ResultKind::Void => ResResultBody::Void(BodyResResultVoid::from_cursor(&mut cursor)),
             ResultKind::Rows => ResResultBody::Rows(BodyResResultRows::from_cursor(&mut cursor)),
             ResultKind::SetKeyspace => ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)),
+            ResultKind::Prepared => ResResultBody::Prepared(BodyResResultPrepared::from_cursor(&mut cursor)),
             _ => unreachable!()
         };
     }
@@ -488,5 +491,73 @@ impl FromCursor for CUdt {
             udt_name: udt_name,
             descriptions: descriptions
         }
+    }
+}
+
+/// The structure represents a body of a response frame of type `prepared`
+#[derive(Debug)]
+pub struct BodyResResultPrepared {
+    /// id of prepared request
+    pub id: Vec<u8>,
+    /// metadata
+    pub metadata: PreparedMetadata,
+    /// It is defined exactly the same as <metadata> in the Rows
+    /// documentation.
+    pub result_metadata: RowsMetadata
+}
+
+impl FromCursor for BodyResResultPrepared {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResResultPrepared {
+        let id = cursor_next_value(&mut cursor, SHORT_LEN as u64);
+        let metadata = PreparedMetadata::from_cursor(&mut cursor);
+        let result_metadata = RowsMetadata::from_cursor(&mut cursor);
+
+        return BodyResResultPrepared {
+            id: id,
+            metadata: metadata,
+            result_metadata: result_metadata
+        };
+    }
+}
+
+/// The structure that represents metadata of prepared response.
+#[derive(Debug)]
+pub struct PreparedMetadata {
+    pub flags: i32,
+    pub columns_count: i32,
+    pub pk_count: i32,
+    pub pk_indexes: Vec<i16>,
+    pub global_table_spec: Option<(CString, CString)>,
+    pub col_specs: Vec<ColSpec>
+}
+
+impl FromCursor for PreparedMetadata {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> PreparedMetadata {
+        let flags = CInt::from_cursor(&mut cursor);
+        let columns_count = CInt::from_cursor(&mut cursor);
+        let pk_count = CInt::from_cursor(&mut cursor);
+        let pk_indexes: Vec<i16> = (0..pk_count)
+            .fold(vec![], |mut acc, _| {
+                let idx = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)) as i16;
+                acc.push(idx);
+                return acc;
+            });
+        let mut global_table_space: Option<(CString, CString)> = None;
+        let has_global_table_space = RowsMetadataFlag::has_global_table_space(flags);
+        if has_global_table_space {
+            let keyspace = CString::from_cursor(&mut cursor);
+            let tablename = CString::from_cursor(&mut cursor);
+            global_table_space = Some((keyspace, tablename))
+        }
+        let col_specs = ColSpec::parse_colspecs(&mut cursor, columns_count, has_global_table_space);
+
+        return PreparedMetadata {
+            flags: flags,
+            columns_count: columns_count,
+            pk_count: pk_count,
+            pk_indexes: pk_indexes,
+            global_table_spec: global_table_space,
+            col_specs: col_specs
+        };
     }
 }

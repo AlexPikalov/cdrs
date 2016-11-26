@@ -34,6 +34,14 @@ impl CDRS {
         return parse_frame(tcp);
     }
 
+    pub fn prepare(&self, query: String) -> io::Result<Frame> {
+        let mut tcp = try!(self.tcp.try_clone());
+        let options_frame = Frame::new_req_prepare(query).into_cbytes();
+
+        try!(tcp.write(options_frame.as_slice()));
+        return parse_frame(tcp);
+    }
+
     pub fn query(&self, q: String) -> io::Result<Frame> {
         let mut tcp = try!(self.tcp.try_clone());
         let query_frame = Frame::new_req_query(q.clone(), Consistency::One, None, None, None, None, None, None).into_cbytes();

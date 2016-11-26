@@ -29,7 +29,7 @@ impl Frame {
         let flag = Flag::Ignore;
         // sync client
         let stream: u64 = 0;
-        let opcode = Opcode::Query;
+        let opcode = Opcode::Prepare;
         let body = BodyReqPrepare::new(query);
 
         return Frame {
