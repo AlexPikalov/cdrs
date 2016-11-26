@@ -5,6 +5,7 @@ use super::super::FromCursor;
 use super::frame_result::*;
 use super::super::frame::*;
 use super::super::error::CDRSError;
+use super::frame_supported::*;
 
 #[derive(Debug)]
 pub enum ResponseBody {
@@ -13,7 +14,7 @@ pub enum ResponseBody {
     Ready(BodyResResultVoid),
     Authenticate,
     Options,
-    Supported,
+    Supported(BodyResSupported),
     Query,
     Result(ResResultBody),
     Prepare,
@@ -31,12 +32,15 @@ impl ResponseBody {
         let mut cursor: Cursor<Vec<u8>> = Cursor::new(bytes);
         return match response_type {
             &Opcode::Error => ResponseBody::Error(CDRSError::from_cursor(&mut cursor)),
-            &Opcode::Startup => unimplemented!(),
+            // request frame
+            &Opcode::Startup => unreachable!(),
             &Opcode::Ready => ResponseBody::Ready(BodyResResultVoid::from_cursor(&mut cursor)),
             &Opcode::Authenticate => unimplemented!(),
-            &Opcode::Options => unimplemented!(),
-            &Opcode::Supported => unimplemented!(),
-            &Opcode::Query => unimplemented!(),
+            // request frame
+            &Opcode::Options => unreachable!(),
+            &Opcode::Supported => ResponseBody::Supported(BodyResSupported::from_cursor(&mut cursor)),
+            // request frame
+            &Opcode::Query => unreachable!(),
             &Opcode::Result => ResponseBody::Result(ResResultBody::from_cursor(&mut cursor)),
             &Opcode::Prepare => unimplemented!(),
             &Opcode::Execute => unimplemented!(),

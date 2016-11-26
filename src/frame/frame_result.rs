@@ -69,7 +69,7 @@ impl ResResultBody {
             ResultKind::Void => ResResultBody::Void(BodyResResultVoid::from_cursor(&mut cursor)),
             ResultKind::Rows => ResResultBody::Rows(BodyResResultRows::from_cursor(&mut cursor)),
             ResultKind::SetKeyspace => ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)),
-            _ => unimplemented!()
+            _ => unreachable!()
         };
     }
 

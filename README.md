@@ -34,7 +34,7 @@ TBD
 - [x] ERROR
 - [x] READY
 - [ ] AUTHENTICATE
-- [ ] SUPPORTED
+- [x] SUPPORTED
 - [x] RESULT (Void)
 - [x] RESULT (Rows)
 - [x] RESULT (Set_keyspace)

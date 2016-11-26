@@ -21,6 +21,7 @@ pub mod frame_ready;
 pub mod frame_response;
 pub mod frame_result;
 pub mod frame_startup;
+pub mod frame_supported;
 pub mod parser;
 
 #[derive(Debug)]
