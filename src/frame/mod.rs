@@ -15,12 +15,12 @@ pub const STREAM_LEN: usize = 2;
 /// Number of body length bytes in accordance to protocol.
 pub const LENGTH_LEN: usize = 4;
 
-mod frame_query;
-mod frame_ready;
-mod frame_response;
-mod frame_result;
-mod frame_startup;
-// mod frame;
+pub mod frame_query;
+pub mod frame_ready;
+pub mod frame_response;
+pub mod frame_result;
+pub mod frame_startup;
+pub mod parser;
 
 #[derive(Debug)]
 pub struct Frame {

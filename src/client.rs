@@ -5,7 +5,7 @@ use std::io::Write;
 use super::consistency::Consistency;
 use super::frame::Frame;
 use super::IntoBytes;
-use super::parser::parse_frame;
+use super::frame::parser::parse_frame;
 
 pub struct CDRS {
     tcp: net::TcpStream

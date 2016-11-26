@@ -416,9 +416,9 @@ impl FromCursor for ColType {
 #[derive(Debug, Clone)]
 pub struct ColTypeOption {
     /// Id refers to `ColType`.
-    id: ColType,
+    pub id: ColType,
     /// Values depending on column type. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L569)
-    value: Option<ColTypeOptionValue>
+    pub value: Option<ColTypeOptionValue>
 }
 
 impl FromCursor for ColTypeOption {

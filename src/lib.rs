@@ -6,12 +6,12 @@ extern crate uuid;
 
 use std::io::Cursor;
 
+pub mod frame;
+pub mod types;
+
 pub mod client;
 pub mod consistency;
 pub mod error;
-pub mod frame;
-mod parser;
-pub mod types;
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.
 pub trait IntoBytes {

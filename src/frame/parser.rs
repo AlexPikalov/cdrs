@@ -2,8 +2,8 @@ use std::io;
 use std::io::Read;
 use std::net;
 
-use super::frame::*;
-use super::types::from_bytes;
+use super::*;
+use super::super::types::from_bytes;
 
 pub fn parse_frame(mut cursor: net::TcpStream) -> io::Result<Frame> {
     // let mut cursor = io::Cursor::new(vec);

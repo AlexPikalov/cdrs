@@ -16,7 +16,6 @@ pub struct BodyReqQuery {
 }
 
 impl BodyReqQuery {
-    #![warn(missing_docs)]
     /// **Note:** shold be used by internal stuff only. Fabric function that produces Query request body.
     pub fn new(query: String,
             consistency: Consistency,

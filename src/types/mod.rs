@@ -10,7 +10,7 @@ use std::io::{Cursor, Read};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use super::{FromBytes, IntoBytes, FromCursor};
 
-mod data_serialization_types;
+pub mod data_serialization_types;
 pub mod value;
 
 
