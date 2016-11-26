@@ -24,7 +24,7 @@ TBD
 - [ ] AUTH_RESPONSE
 - [x] OPTIONS
 - [x] QUERY
-- [ ] PREPARE
+- [x] PREPARE
 - [ ] EXECUTE
 - [ ] BATCH
 - [ ] REGISTER

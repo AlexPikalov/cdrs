@@ -16,6 +16,7 @@ pub const STREAM_LEN: usize = 2;
 pub const LENGTH_LEN: usize = 4;
 
 pub mod frame_options;
+pub mod frame_prepare;
 pub mod frame_query;
 pub mod frame_ready;
 pub mod frame_response;
