@@ -16,6 +16,34 @@ protocol](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.
 ### Supported features
 TBD
 
+### Frames
+
+#### Request
+
+- [x] STARTUP
+- [ ] AUTH_RESPONSE
+- [ ] OPTIONS
+- [x] QUERY
+- [ ] PREPARE
+- [ ] EXECUTE
+- [ ] BATCH
+- [ ] REGISTER
+
+#### Response
+
+- [x] ERROR
+- [x] READY
+- [ ] AUTHENTICATE
+- [ ] SUPPORTED
+- [x] RESULT (Void)
+- [x] RESULT (Rows)
+- [x] RESULT (Set_keyspace)
+- [ ] RESULT (Prepared)
+- [ ] RESULT (Schema_change)
+- [ ] EVENT
+- [ ] AUTH_CHALLENGE
+- [ ] AUTH_SUCCESS
+
 ### Examples
 
 ```rs
