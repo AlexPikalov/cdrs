@@ -22,7 +22,7 @@ TBD
 
 - [x] STARTUP
 - [ ] AUTH_RESPONSE
-- [ ] OPTIONS
+- [x] OPTIONS
 - [x] QUERY
 - [ ] PREPARE
 - [ ] EXECUTE

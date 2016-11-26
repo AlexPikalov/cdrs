@@ -59,6 +59,7 @@ impl IntoBytes for BodyReqStartup {
 // Frame implementation related to BodyReqStartup
 
 impl Frame {
+    /// Creates new frame of type `startup`.
     pub fn new_req_startup(compression: Option<String>) -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
