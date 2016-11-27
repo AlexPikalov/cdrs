@@ -498,7 +498,7 @@ impl FromCursor for CUdt {
 #[derive(Debug)]
 pub struct BodyResResultPrepared {
     /// id of prepared request
-    pub id: Vec<u8>,
+    pub id: CBytesShort,
     /// metadata
     pub metadata: PreparedMetadata,
     /// It is defined exactly the same as <metadata> in the Rows
@@ -508,7 +508,7 @@ pub struct BodyResResultPrepared {
 
 impl FromCursor for BodyResResultPrepared {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResResultPrepared {
-        let id = cursor_next_value(&mut cursor, SHORT_LEN as u64);
+        let id = CBytesShort::from_cursor(&mut cursor);
         let metadata = PreparedMetadata::from_cursor(&mut cursor);
         let result_metadata = RowsMetadata::from_cursor(&mut cursor);
 

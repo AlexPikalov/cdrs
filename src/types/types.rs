@@ -149,6 +149,28 @@ impl IntoBytes for CBytes {
     }
 }
 
+pub type CBytesShort = Vec<u8>;
+
+impl FromCursor for CBytesShort {
+    /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].
+    /// It reads required number of bytes and returns a CBytes
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CBytes {
+        let len: u64 = CIntShort::from_cursor(&mut cursor) as u64;
+        return cursor_next_value(&mut cursor, len);
+    }
+}
+
+// Use extended Rust Vec<u8> as Cassandra [bytes]
+impl IntoBytes for CBytesShort {
+    fn into_cbytes(&self) -> Vec<u8> {
+        let mut v: Vec<u8> = vec![];
+        let l = self.len() as u64;
+        v.extend_from_slice(to_short(l).as_slice());
+        v.extend_from_slice(self.as_slice());
+        return v;
+    }
+}
+
 /// Cassandra int type.
 pub type CInt = i32;
 
@@ -166,6 +188,16 @@ impl FromBytes for Vec<u8> {
         let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
         let len: u64 = from_bytes(len_bytes);
         return cursor_next_value(&mut cursor, len);
+    }
+}
+
+/// Cassandra int short type.
+pub type CIntShort = i16;
+
+impl FromCursor for CIntShort {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CIntShort {
+        let bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
+        return from_bytes(bytes) as CIntShort;
     }
 }
 

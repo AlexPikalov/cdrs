@@ -11,7 +11,7 @@ impl BodyReqPrepare {
     /// Creates new body of a frame of type `prepare` that prepares query `query`.
     pub fn new(query: String) -> BodyReqPrepare {
         return BodyReqPrepare {
-            query: query as CString
+            query: CString::new(query)
         }
     }
 }

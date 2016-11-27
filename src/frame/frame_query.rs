@@ -22,7 +22,7 @@ impl BodyReqQuery {
             values: Option<Vec<Value>>,
             with_names: Option<bool>,
             page_size: Option<i32>,
-            paging_state: Option<Vec<u8>>,
+            paging_state: Option<CBytes>,
             serial_consistency: Option<Consistency>,
             timestamp: Option<i64>) -> BodyReqQuery {
 
@@ -50,13 +50,13 @@ impl BodyReqQuery {
             let _timestamp = timestamp.unwrap_or(0);
 
             return BodyReqQuery {
-                query: query as CString,
+                query: CString::new(query),
                 query_params: ParamsReqQuery {
                     consistency: consistency,
                     flags: flags,
                     values: _values,
                     page_size: _page_size,
-                    paging_state: _paging_state,
+                    paging_state: CBytes::new(_paging_state),
                     serial_consistency: _serial_consistency,
                     timestamp: _timestamp
                 }
@@ -84,7 +84,7 @@ pub struct ParamsReqQuery {
     /// Page size.
     pub page_size: i32,
     /// Array of bytes which represents paging state.
-    pub paging_state: Vec<u8>,
+    pub paging_state: CBytes,
     /// Serial `Consistency`.
     pub serial_consistency: Consistency,
     /// Timestamp.
@@ -278,7 +278,7 @@ impl Frame {
             values: Option<Vec<Value>>,
             with_names: Option<bool>,
             page_size: Option<i32>,
-            paging_state: Option<Vec<u8>>,
+            paging_state: Option<CBytes>,
             serial_consistency: Option<Consistency>,
             timestamp: Option<i64>) -> Frame {
         let version = Version::Request;
