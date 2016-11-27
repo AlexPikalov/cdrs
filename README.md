@@ -25,7 +25,7 @@ TBD
 - [x] OPTIONS
 - [x] QUERY
 - [x] PREPARE
-- [ ] EXECUTE
+- [x] EXECUTE
 - [ ] BATCH
 - [ ] REGISTER
 

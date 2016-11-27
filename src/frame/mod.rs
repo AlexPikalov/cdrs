@@ -15,6 +15,7 @@ pub const STREAM_LEN: usize = 2;
 /// Number of body length bytes in accordance to protocol.
 pub const LENGTH_LEN: usize = 4;
 
+pub mod frame_execute;
 pub mod frame_options;
 pub mod frame_prepare;
 pub mod frame_query;

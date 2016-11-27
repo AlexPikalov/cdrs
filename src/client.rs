@@ -6,6 +6,8 @@ use super::consistency::Consistency;
 use super::frame::Frame;
 use super::IntoBytes;
 use super::frame::parser::parse_frame;
+use types::*;
+use frame::frame_query::*;
 
 pub struct CDRS {
     tcp: net::TcpStream
@@ -37,6 +39,14 @@ impl CDRS {
     pub fn prepare(&self, query: String) -> io::Result<Frame> {
         let mut tcp = try!(self.tcp.try_clone());
         let options_frame = Frame::new_req_prepare(query).into_cbytes();
+
+        try!(tcp.write(options_frame.as_slice()));
+        return parse_frame(tcp);
+    }
+
+    pub fn execute(&self, id: CBytesShort, query_parameters: ParamsReqQuery) -> io::Result<Frame> {
+        let mut tcp = try!(self.tcp.try_clone());
+        let options_frame = Frame::new_req_execute(id, query_parameters).into_cbytes();
 
         try!(tcp.write(options_frame.as_slice()));
         return parse_frame(tcp);
