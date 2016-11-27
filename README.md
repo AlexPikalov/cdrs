@@ -1,5 +1,5 @@
-**CDRS** is a native Cassandra client written in [Rust](https://www.rust-lang.org).
-The motivation to write new Cassandra client in Rust is a lack of native one.
+**CDRS** is a native Cassandra driver written in [Rust](https://www.rust-lang.org).
+The motivation to write it in Rust is a lack of native one.
 Existing ones are bindings to C clients.
 
 [Documentation](https://alexpikalov.github.io/cdrs/cdrs/index.html)
@@ -9,9 +9,9 @@ features and API may not be stable (but in case of any breaking changes
 we will update a major version of the package in accordance to common practices
 of versioning).
 
-At the moment **CDRS** is not an ORM but rather a kind of quite low level driver
-which deals with different kind of frames. It supports 4-th version of [Cassandra
-protocol](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec).
+At the moment **CDRS** is not an ORM and a client in usual meaning
+but rather a kind of quite low level driver which deals with different kind of frames.
+It supports 4-th version of [Cassandra protocol](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec).
 
 ### Supported features
 TBD
