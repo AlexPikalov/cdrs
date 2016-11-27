@@ -38,7 +38,7 @@ TBD
 - [x] RESULT (Void)
 - [x] RESULT (Rows)
 - [x] RESULT (Set_keyspace)
-- [ ] RESULT (Prepared)
+- [x] RESULT (Prepared)
 - [ ] RESULT (Schema_change)
 - [ ] EVENT
 - [ ] AUTH_CHALLENGE
