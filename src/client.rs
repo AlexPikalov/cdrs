@@ -7,6 +7,7 @@ use super::frame::Frame;
 use super::IntoBytes;
 use super::frame::parser::parse_frame;
 use types::*;
+use types::value::*;
 use frame::frame_query::*;
 
 pub struct CDRS {
@@ -52,9 +53,25 @@ impl CDRS {
         return parse_frame(tcp);
     }
 
-    pub fn query(&self, q: String) -> io::Result<Frame> {
+    pub fn query(&self,
+            query: String,
+            consistency: Consistency,
+            values: Option<Vec<Value>>,
+            with_names: Option<bool>,
+            page_size: Option<i32>,
+            paging_state: Option<CBytes>,
+            serial_consistency: Option<Consistency>,
+            timestamp: Option<i64>) -> io::Result<Frame> {
+
         let mut tcp = try!(self.tcp.try_clone());
-        let query_frame = Frame::new_req_query(q.clone(), Consistency::One, None, None, None, None, None, None).into_cbytes();
+        let query_frame = Frame::new_req_query(query.clone(),
+            consistency,
+            values,
+            with_names,
+            page_size,
+            paging_state,
+            serial_consistency,
+            timestamp).into_cbytes();
 
         try!(tcp.write(query_frame.as_slice()));
         return parse_frame(tcp);
