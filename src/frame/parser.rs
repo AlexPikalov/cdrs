@@ -21,9 +21,9 @@ pub fn parse_frame(mut cursor: net::TcpStream) -> io::Result<Frame> {
     try!(cursor.read(&mut length_bytes));
 
     let version = Version::from(version_bytes.to_vec());
-    let flag = Flag::from(flag_bytes.to_vec());
+    let flag = Flag::from(flag_bytes[0]);
     let stream = from_bytes(stream_bytes.to_vec());
-    let opcode = Opcode::from(opcode_bytes.to_vec());
+    let opcode = Opcode::from(opcode_bytes[0]);
     let length = from_bytes(length_bytes.to_vec()) as usize;
 
     let mut body_bytes = Vec::with_capacity(length);
@@ -34,7 +34,7 @@ pub fn parse_frame(mut cursor: net::TcpStream) -> io::Result<Frame> {
 
     return Ok(Frame {
         version: version,
-        flag: flag,
+        flags: vec![flag],
         opcode: opcode,
         stream: stream,
         body: body_bytes

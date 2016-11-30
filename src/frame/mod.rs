@@ -29,7 +29,7 @@ pub mod parser;
 #[derive(Debug)]
 pub struct Frame {
     pub version: Version,
-    pub flag: Flag,
+    pub flags: Vec<Flag>,
     pub opcode: Opcode,
     pub stream: u64, // we're going to use 0 here until async client is implemented
     pub body: Vec<u8> // change type to Vec<u8>
@@ -46,7 +46,7 @@ impl<'a> IntoBytes for Frame {
         let mut v = vec![];
 
         let version_bytes = self.version.as_byte();
-        let flag_bytes = self.flag.as_byte();
+        let flag_bytes = Flag::many_to_cbytes(&self.flags);
         let opcode_bytes = self.opcode.as_byte();
         let body_len = self.body.len();
 
@@ -105,6 +105,35 @@ pub enum Flag {
     Ignore
 }
 
+impl Flag {
+    /// The method converts a serie of `Flag`-s into a single byte.
+    pub fn many_to_cbytes(flags: &Vec<Flag>) -> u8 {
+        return flags
+            .iter()
+            .fold(Flag::Ignore.as_byte(), |acc, f| acc | f.as_byte());
+    }
+
+    /// Indicates if flags contains `Flag::Compression`
+    pub fn has_compression(flags: u8) -> bool {
+        return (flags & Flag::Compression.as_byte()) > 0;
+    }
+
+    /// Indicates if flags contains `Flag::Tracing`
+    pub fn has_tracing(flags: u8) -> bool {
+        return (flags & Flag::Tracing.as_byte()) > 0;
+    }
+
+    /// Indicates if flags contains `Flag::CustomPayload`
+    pub fn has_custom_payload(flags: u8) -> bool {
+        return (flags & Flag::CustomPayload.as_byte()) > 0;
+    }
+
+    /// Indicates if flags contains `Flag::Warning`
+    pub fn has_warning(flags: u8) -> bool {
+        return (flags & Flag::Warning.as_byte()) > 0;
+    }
+}
+
 impl AsByte for Flag {
     fn as_byte(&self) -> u8 {
         return match self {
@@ -117,12 +146,9 @@ impl AsByte for Flag {
     }
 }
 
-impl From<Vec<u8>> for Flag {
-    fn from(f: Vec<u8>) -> Flag {
-        if f.len() != FLAG_LEN {
-            panic!("Unexpected Cassandra flag. Should has {} byte(-s), got {:?}", FLAG_LEN, f);
-        }
-        return match f[0] {
+impl From<u8> for Flag {
+    fn from(f: u8) -> Flag {
+        return match f {
             0x01 => Flag::Compression,
             0x02 => Flag::Tracing,
             0x04 => Flag::CustomPayload,
@@ -175,13 +201,9 @@ impl AsByte for Opcode {
     }
 }
 
-impl From<Vec<u8>> for Opcode {
-    fn from(oc: Vec<u8>) -> Opcode {
-        if oc.len() != OPCODE_LEN {
-            panic!("Unexpected Cassandra opcode. Should has {} byte(-s), got {:?}", OPCODE_LEN, oc);
-        }
-
-        return match oc[0] {
+impl From<u8> for Opcode {
+    fn from(b: u8) -> Opcode {
+        return match b {
             0x00 => Opcode::Error,
             0x01 => Opcode::Startup,
             0x02 => Opcode::Ready,
@@ -198,10 +220,7 @@ impl From<Vec<u8>> for Opcode {
             0x0E => Opcode::AuthChallenge,
             0x0F => Opcode::AuthResponse,
             0x10 => Opcode::AuthSuccess,
-            _ => {
-                error!("Unexpected Cassandra opcode {:?}", oc);
-                panic!("Unexpected Cassandra opcode {:?}", oc);
-            }
+            _ => unreachable!()
         }
     }
 }

@@ -31,7 +31,7 @@ impl Frame {
 
         return Frame {
             version: version,
-            flag: flag,
+            flags: vec![flag],
             stream: stream,
             opcode: opcode,
             body: body.into_cbytes()
