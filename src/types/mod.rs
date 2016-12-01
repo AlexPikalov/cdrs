@@ -207,6 +207,9 @@ pub struct CBytesShort {
 }
 
 impl CBytesShort {
+    pub fn new(bytes: Vec<u8>) -> CBytesShort {
+        return CBytesShort { bytes: bytes };
+    }
     /// Converts `CBytesShort` into plain vector of bytes;
     pub fn into_plain(self) -> Vec<u8> {
         return self.bytes;
