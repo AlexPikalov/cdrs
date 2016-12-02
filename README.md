@@ -48,7 +48,7 @@ TBD
 
 ### Examples
 
-```rs
+```rust
 use cdrs::client::CDRS;
 
 let client = CDRS::new(addr).unwrap();
