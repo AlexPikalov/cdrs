@@ -4,14 +4,14 @@ use super::super::IntoBytes;
 
 /// Struct that represents a body of a frame of type `prepare`
 pub struct BodyReqPrepare {
-    query: CString
+    query: CStringLong
 }
 
 impl BodyReqPrepare {
     /// Creates new body of a frame of type `prepare` that prepares query `query`.
     pub fn new(query: String) -> BodyReqPrepare {
         return BodyReqPrepare {
-            query: CString::new(query)
+            query: CStringLong::new(query)
         }
     }
 }

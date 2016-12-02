@@ -11,6 +11,7 @@ use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use super::{FromBytes, IntoBytes, FromCursor};
 
 pub mod data_serialization_types;
+pub mod generic_types;
 pub mod value;
 
 
@@ -88,7 +89,6 @@ pub fn to_int(int: i64) -> Vec<u8> {
     return i_to_n_bytes(int, INT_LEN);
 }
 
-// pub type CString = String;
 #[derive(Debug, Clone)]
 pub struct CString {
     string: String
@@ -116,8 +116,8 @@ impl IntoBytes for CString {
     /// Converts into Cassandra byte representation of [string]
     fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
-        let l = self.string.len() as i64;
-        v.extend_from_slice(to_int(l).as_slice());
+        let l = self.string.len() as u64;
+        v.extend_from_slice(to_short(l).as_slice());
         v.extend_from_slice(self.string.as_bytes());
         return v;
     }
@@ -132,6 +132,52 @@ impl FromCursor for CString {
         let body_bytes = cursor_next_value(&mut cursor, len);
 
         return CString { string: String::from_utf8(body_bytes).unwrap() };
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct CStringLong {
+    string: String
+}
+
+impl CStringLong {
+    pub fn new(string: String) -> CStringLong {
+        return CStringLong { string: string };
+    }
+
+    /// Converts internal value into pointer of `str`.
+    pub fn as_str<'a>(&'a self) -> &'a str {
+        return self.string.as_str();
+    }
+
+    /// Converts internal value into a plain `String`.
+    pub fn into_plain(self) -> String {
+        return self.string;
+    }
+}
+
+// Implementation for Rust std types
+// Use extended Rust string as Cassandra [string]
+impl IntoBytes for CStringLong {
+    /// Converts into Cassandra byte representation of [string]
+    fn into_cbytes(&self) -> Vec<u8> {
+        let mut v: Vec<u8> = vec![];
+        let l = self.string.len() as i64;
+        v.extend_from_slice(to_int(l).as_slice());
+        v.extend_from_slice(self.string.as_bytes());
+        return v;
+    }
+}
+
+impl FromCursor for CStringLong {
+    /// from_cursor gets Cursor who's position is set such that it should be a start of a [string].
+    /// It reads required number of bytes and returns a String
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CStringLong {
+        let len_bytes = cursor_next_value(&mut cursor, INT_LEN as u64);
+        let len: u64 = from_bytes(len_bytes.to_vec());
+        let body_bytes = cursor_next_value(&mut cursor, len);
+
+        return CStringLong { string: String::from_utf8(body_bytes).unwrap() };
     }
 }
 
@@ -193,8 +239,8 @@ impl FromCursor for CBytes {
 impl IntoBytes for CBytes {
     fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
-        let l = self.bytes.len() as u64;
-        v.extend_from_slice(to_short(l).as_slice());
+        let l = self.bytes.len() as i64;
+        v.extend_from_slice(to_int(l).as_slice());
         v.extend_from_slice(self.bytes.as_slice());
         return v;
     }

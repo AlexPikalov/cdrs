@@ -10,7 +10,7 @@ use super::super::types::value::*;
 /// Structure which represents body of Query request
 pub struct BodyReqQuery {
     /// Query string.
-    pub query: CString,
+    pub query: CStringLong,
     /// Query parameters.
     pub query_params: ParamsReqQuery
 }
@@ -50,7 +50,7 @@ impl BodyReqQuery {
             let _timestamp = timestamp.unwrap_or(0);
 
             return BodyReqQuery {
-                query: CString::new(query),
+                query: CStringLong::new(query),
                 query_params: ParamsReqQuery {
                     consistency: consistency,
                     flags: flags,

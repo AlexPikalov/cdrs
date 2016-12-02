@@ -30,13 +30,52 @@ fn test_cstring_into_cbytes() {
     let foo = "foo".to_string();
     let cstring = CString::new(foo);
 
-    assert_eq!(cstring.into_cbytes(), vec![0, 0, 0, 3, 102, 111, 111]);
+    assert_eq!(cstring.into_cbytes(), vec![0, 3, 102, 111, 111]);
 }
 
 #[test]
 fn test_cstring_from_cursor() {
     let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 3, 102, 111, 111, 0]);
     let cstring = CString::from_cursor(&mut cursor);
+    println!("{:?}", &cursor);
+    assert_eq!(cstring.as_str(), "foo");
+}
+
+// CStringLong
+#[test]
+fn test_cstringlong_new() {
+    let foo = "foo".to_string();
+    let _ = CStringLong::new(foo);
+}
+
+#[test]
+fn test_cstringlong_as_str() {
+    let foo = "foo".to_string();
+    let cstring = CStringLong::new(foo);
+
+    assert_eq!(cstring.as_str(), "foo");
+}
+
+#[test]
+fn test_cstringlong_into_plain() {
+    let foo = "foo".to_string();
+    let cstring = CStringLong::new(foo);
+
+    assert_eq!(cstring.into_plain(), "foo".to_string());
+}
+
+#[test]
+fn test_cstringlong_into_cbytes() {
+    let foo = "foo".to_string();
+    let cstring = CStringLong::new(foo);
+
+    assert_eq!(cstring.into_cbytes(), vec![0, 0, 0, 3, 102, 111, 111]);
+}
+
+#[test]
+fn test_cstringlong_from_cursor() {
+    let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 0, 0, 3, 102, 111, 111, 0]);
+    let cstring = CStringLong::from_cursor(&mut cursor);
     println!("{:?}", &cursor);
     assert_eq!(cstring.as_str(), "foo");
 }
@@ -77,7 +116,7 @@ fn test_cbytes_from_cursor() {
 fn test_cbytes_into_cbytes() {
     let bytes_vec: Vec<u8> = vec![1, 2, 3];
     let cbytes = CBytes::new(bytes_vec);
-    assert_eq!(cbytes.into_cbytes(), vec![0, 3, 1, 2, 3]);
+    assert_eq!(cbytes.into_cbytes(), vec![0, 0, 0, 3, 1, 2, 3]);
 }
 
 // CBytesShort
