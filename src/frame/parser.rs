@@ -1,12 +1,12 @@
 use std::io;
 use std::io::Read;
 use std::net;
+use compression::Compression;
 
 use super::*;
 use super::super::types::from_bytes;
 
-pub fn parse_frame(mut cursor: net::TcpStream) -> io::Result<Frame> {
-    // let mut cursor = io::Cursor::new(vec);
+pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> io::Result<Frame> {
     let mut version_bytes = [0; VERSION_LEN];
     let mut flag_bytes = [0; FLAG_LEN];
     let mut opcode_bytes = [0; OPCODE_LEN];
@@ -32,11 +32,17 @@ pub fn parse_frame(mut cursor: net::TcpStream) -> io::Result<Frame> {
     }
     try!(cursor.read_exact(&mut body_bytes));
 
+    let body = if flag == Flag::Compression {
+        try!(compressor.decode(body_bytes))
+    } else {
+        try!(Compression::None.decode(body_bytes))
+    };
+
     return Ok(Frame {
         version: version,
         flags: vec![flag],
         opcode: opcode,
         stream: stream,
-        body: body_bytes
+        body: body
     });
 }

@@ -1,5 +1,5 @@
 //! **cdrs** is a native Cassandra DB client written in Rust. It's under a hard development as of now.
-
+extern crate snap;
 extern crate byteorder;
 #[macro_use]
 extern crate log;
@@ -11,6 +11,7 @@ pub mod frame;
 pub mod types;
 
 pub mod client;
+pub mod compression;
 pub mod consistency;
 pub mod error;
 

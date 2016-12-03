@@ -3,6 +3,8 @@ use std::convert::{From};
 use super::types::to_n_bytes;
 use super::{AsByte, IntoBytes};
 use self::frame_response::ResponseBody;
+use compression::Compression;
+use std::io;
 
 /// Number of version bytes in accordance to protocol.
 pub const VERSION_LEN: usize = 1;
@@ -38,6 +40,25 @@ pub struct Frame {
 impl Frame {
     pub fn get_body(&self) -> ResponseBody {
         return ResponseBody::from(self.body.clone(), &self.opcode);
+    }
+
+    pub fn encode_with(self, compressor: Compression) -> io::Result<Vec<u8>> {
+        let mut v = vec![];
+
+        let version_bytes = self.version.as_byte();
+        let flag_bytes = Flag::many_to_cbytes(&self.flags);
+        let opcode_bytes = self.opcode.as_byte();
+        let encoded_body = try!(compressor.encode(self.body));
+        let body_len = encoded_body.len();
+
+        v.push(version_bytes);
+        v.push(flag_bytes);
+        v.extend_from_slice(to_n_bytes(self.stream, STREAM_LEN).as_slice());
+        v.push(opcode_bytes);
+        v.extend_from_slice(to_n_bytes(body_len as u64, LENGTH_LEN).as_slice());
+        v.extend_from_slice(encoded_body.as_slice());
+
+        return Ok(v);
     }
 }
 
@@ -96,7 +117,7 @@ impl From<Vec<u8>> for Version {
 
 /// Frame's flag
 // Is not implemented functionality. Only Igonore works for now
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Flag {
     Compression,
     Tracing,

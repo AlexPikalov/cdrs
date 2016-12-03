@@ -7,3 +7,4 @@ authors = ["Alex Pikalov <alex.pikalov.khar@gmail.com>"]
 byteorder = "0.5.3"
 log = "*"
 uuid = "0.2"
+snap = "0.1.2"
