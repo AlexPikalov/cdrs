@@ -32,8 +32,6 @@ pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> io::
     }
     try!(cursor.read_exact(&mut body_bytes));
 
-    println!("FLAG {:?}", flag);
-
     let body = if flag == Flag::Compression {
         try!(compressor.decode(body_bytes))
     } else {
