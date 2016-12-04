@@ -16,7 +16,7 @@ but rather a kind of quite low level driver which deals with different kind of f
 It supports 4-th version of [Cassandra protocol](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec).
 
 ### Supported features
-- [ ] lz4 decompression
+- [x] lz4 decompression
 - [x] snappy decompression
 
 ### Frames
