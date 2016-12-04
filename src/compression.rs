@@ -1,5 +1,17 @@
 use std::convert::From;
+use std::error::Error;
+use std::result;
+use std::io;
 use snap;
+use lz4_compress as lz4;
+
+#[derive(Debug)]
+pub enum CompressionError {
+    Snappy(snap::Error),
+    Lz4
+}
+
+type Result<T> = result::Result<T, CompressionError>;
 
 /// Enum which represents a type of compression. Only non-startup frame's body can be compressen.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -14,18 +26,18 @@ pub enum Compression {
 
 impl Compression {
     /// It encodes `bytes` basing on type of compression.
-    pub fn encode(&self, bytes: Vec<u8>) -> snap::Result<Vec<u8>> {
+    pub fn encode(&self, bytes: Vec<u8>) -> io::Result<Vec<u8>> {
         return match self {
-            &Compression::Lz4 => unimplemented!(),
+            &Compression::Lz4 => Compression::encode_lz4(bytes),
             &Compression::Snappy => Compression::encode_snappy(bytes),
             &Compression::None => Ok(bytes)
         };
     }
 
     /// It decodes `bytes` basing on type of compression.
-    pub fn decode(&self, bytes: Vec<u8>) -> snap::Result<Vec<u8>> {
+    pub fn decode(&self, bytes: Vec<u8>) -> io::Result<Vec<u8>> {
         return match self {
-            &Compression::Lz4 => unimplemented!(),
+            &Compression::Lz4 => Compression::decode_lz4(bytes),
             &Compression::Snappy => Compression::decode_snappy(bytes),
             &Compression::None => Ok(bytes)
         };
@@ -40,14 +52,34 @@ impl Compression {
         };
     }
 
-    fn encode_snappy(bytes: Vec<u8>) -> snap::Result<Vec<u8>> {
+    fn encode_snappy(bytes: Vec<u8>) -> io::Result<Vec<u8>> {
         let mut encoder = snap::Encoder::new();
-        return encoder.compress_vec(bytes.as_slice());
+        return encoder
+            .compress_vec(bytes.as_slice())
+            .map_err(|err| {
+                let desc = err.description();
+                return io::Error::new(io::ErrorKind::InvalidData, desc);
+            });
     }
 
-    fn decode_snappy(bytes: Vec<u8>) -> snap::Result<Vec<u8>> {
+    fn decode_snappy(bytes: Vec<u8>) -> io::Result<Vec<u8>> {
         let mut decoder = snap::Decoder::new();
-        return decoder.decompress_vec(bytes.as_slice());
+        return decoder
+            .decompress_vec(bytes.as_slice())
+            .map_err(|err| {
+                let desc = err.description();
+                return io::Error::new(io::ErrorKind::InvalidData, desc);
+            });
+    }
+
+    fn encode_lz4(bytes: Vec<u8>) -> io::Result<Vec<u8>> {
+        return Ok(lz4::compress(bytes.as_slice()));
+    }
+
+    fn decode_lz4(bytes: Vec<u8>) -> io::Result<Vec<u8>> {
+        // skip first 4 bytes in accordance to
+        // https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L805
+        return lz4::decompress(&bytes[4..]);
     }
 }
 

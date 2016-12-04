@@ -25,7 +25,6 @@ fn test_compression_from_string() {
 fn test_compression_encode_snappy() {
     let snappy_compression = Compression::Snappy;
     let bytes = String::from("Hello World").into_bytes().to_vec();
-    let bytes2 = String::from("Hello World Hello World").into_bytes().to_vec();
     snappy_compression.encode(bytes.clone()).expect("Should work without exceptions");
 }
 
@@ -35,4 +34,22 @@ fn test_compression_decode_snappy() {
     let bytes = String::from("Hello World").into_bytes().to_vec();
     let encoded = snappy_compression.encode(bytes.clone()).unwrap();
     assert_eq!(snappy_compression.decode(encoded).unwrap(), bytes);
+}
+
+#[test]
+fn test_compression_encode_lz4() {
+    let snappy_compression = Compression::Lz4;
+    let bytes = String::from("Hello World").into_bytes().to_vec();
+    snappy_compression.encode(bytes.clone()).expect("Should work without exceptions");
+}
+
+#[test]
+fn test_compression_decode_lz4() {
+    let snappy_compression = Compression::Lz4;
+    let bytes = String::from("Hello World").into_bytes().to_vec();
+    let encoded = snappy_compression.encode(bytes.clone()).unwrap();
+    let len = encoded.len() as u8;
+    let mut input = vec![0, 0, 0, len];
+    input.extend_from_slice(encoded.as_slice());
+    assert_eq!(snappy_compression.decode(input).unwrap(), bytes);
 }
