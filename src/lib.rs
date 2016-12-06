@@ -11,6 +11,7 @@ use std::io::Cursor;
 pub mod frame;
 pub mod types;
 
+pub mod authenticators;
 pub mod client;
 pub mod compression;
 pub mod consistency;

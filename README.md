@@ -18,13 +18,14 @@ It supports 4-th version of [Cassandra protocol](https://github.com/apache/cassa
 ### Supported features
 - [x] lz4 decompression
 - [x] snappy decompression
+- [x] password authorization
 
 ### Frames
 
 #### Request
 
 - [x] STARTUP
-- [ ] AUTH_RESPONSE
+- [x] AUTH_RESPONSE
 - [x] OPTIONS
 - [x] QUERY
 - [x] PREPARE
@@ -36,7 +37,7 @@ It supports 4-th version of [Cassandra protocol](https://github.com/apache/cassa
 
 - [x] ERROR
 - [x] READY
-- [ ] AUTHENTICATE
+- [x] AUTHENTICATE
 - [x] SUPPORTED
 - [x] RESULT (Void)
 - [x] RESULT (Rows)
@@ -44,8 +45,8 @@ It supports 4-th version of [Cassandra protocol](https://github.com/apache/cassa
 - [x] RESULT (Prepared)
 - [ ] RESULT (Schema_change)
 - [ ] EVENT
-- [ ] AUTH_CHALLENGE
-- [ ] AUTH_SUCCESS
+- [x] AUTH_CHALLENGE
+- [x] AUTH_SUCCESS
 
 ### Examples
 

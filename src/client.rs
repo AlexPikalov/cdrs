@@ -10,6 +10,7 @@ use types::*;
 use types::value::*;
 use frame::frame_query::*;
 use compression::Compression;
+use authenticators::Authenticator;
 
 #[derive(Clone, Debug)]
 pub struct Credentials {
@@ -17,19 +18,19 @@ pub struct Credentials {
     pub password: String
 }
 
-pub struct CDRS {
+pub struct CDRS<T: Authenticator> {
     tcp: net::TcpStream,
     compressor: Compression,
-    credentials: Option<Credentials>
+    authenticator: T
 }
 
-impl CDRS {
-    pub fn new(addr: String, credentials: Option<Credentials>) -> io::Result<CDRS> {
+impl<T: Authenticator> CDRS<T> {
+    pub fn new(addr: String, authenticator: T) -> io::Result<CDRS<T>> {
         return net::TcpStream::connect(format!("{}:9042", addr).as_str())
             .map(|socket| CDRS {
                 tcp: socket,
                 compressor: Compression::None,
-                credentials: credentials
+                authenticator: authenticator
             });
     }
 
@@ -47,22 +48,11 @@ impl CDRS {
 
         if start_response.opcode == Opcode::Authenticate {
             let body = start_response.get_body();
-
             let authenticator = body.get_authenticator().unwrap();
-            if authenticator.as_str() == "org.apache.cassandra.auth.PasswordAuthenticator" {
+
+            if authenticator.as_str() == self.authenticator.get_cassandra_name() {
                 let mut tcp_auth = try!(self.tcp.try_clone());
-
-                let credentials = self.credentials.clone().ok_or(io::Error::new(
-                    io::ErrorKind::NotFound,
-                    "Credetials required, but not found"
-                ))?;
-
-                let mut token = vec![0];
-                token.extend_from_slice(credentials.username.into_bytes().as_slice());
-                token.push(0);
-                token.extend_from_slice(credentials.password.into_bytes().as_slice());
-                let auth_token_bytes = CBytes::new(token).into_cbytes();
-
+                let auth_token_bytes = self.authenticator.get_auth_token().into_cbytes();
                 try!(tcp_auth.write(Frame::new_req_auth_response(auth_token_bytes).into_cbytes().as_slice()));
                 let auth_response = try!(parse_frame(tcp_auth, &compressor));
 
@@ -70,8 +60,31 @@ impl CDRS {
             } else {
                 return Err(io::Error::new(
                     io::ErrorKind::NotFound,
-                    format!("Unsupported type of authenticator. {:?} got, but PasswordAuthenticator is supported.", authenticator)));
+                    format!("Unsupported type of authenticator. {:?} got, but {} is supported.",
+                        authenticator,
+                        self.authenticator.get_cassandra_name())));
             }
+            // if authenticator.as_str() == "org.apache.cassandra.auth.PasswordAuthenticator" {
+            //     let mut tcp_auth = try!(self.tcp.try_clone());
+            //
+            //     let credentials = self.credentials.clone().ok_or(io::Error::new(
+            //         io::ErrorKind::NotFound,
+            //         "Credetials required, but not found"
+            //     ))?;
+            //
+            //     let mut token = vec![0];
+            //     token.extend_from_slice(credentials.username.into_bytes().as_slice());
+            //     token.push(0);
+            //     token.extend_from_slice(credentials.password.into_bytes().as_slice());
+            //     let auth_token_bytes = CBytes::new(token).into_cbytes();
+            //
+            //     try!(tcp_auth.write(Frame::new_req_auth_response(auth_token_bytes).into_cbytes().as_slice()));
+            //     let auth_response = try!(parse_frame(tcp_auth, &compressor));
+            //
+            //     return Ok(auth_response);
+            // } else {
+            //
+            // }
         }
 
         unimplemented!();
