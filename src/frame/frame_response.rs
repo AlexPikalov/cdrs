@@ -6,13 +6,16 @@ use super::frame_result::*;
 use super::super::frame::*;
 use super::super::error::CDRSError;
 use super::frame_supported::*;
+use super::frame_auth_challenge::*;
+use super::frame_authenticate::BodyResAuthenticate;
+use super::frame_auth_success::BodyReqAuthSuccess;
 
 #[derive(Debug)]
 pub enum ResponseBody {
     Error(CDRSError),
     Startup,
     Ready(BodyResResultVoid),
-    Authenticate,
+    Authenticate(BodyResAuthenticate),
     Options,
     Supported(BodyResSupported),
     Query,
@@ -22,9 +25,9 @@ pub enum ResponseBody {
     Register,
     Event,
     Batch,
-    AuthChallenge,
+    AuthChallenge(BodyResAuthChallenge),
     AuthResponse,
-    AuthSuccess
+    AuthSuccess(BodyReqAuthSuccess)
 }
 
 impl ResponseBody {
@@ -35,7 +38,7 @@ impl ResponseBody {
             // request frame
             &Opcode::Startup => unreachable!(),
             &Opcode::Ready => ResponseBody::Ready(BodyResResultVoid::from_cursor(&mut cursor)),
-            &Opcode::Authenticate => unimplemented!(),
+            &Opcode::Authenticate => ResponseBody::Authenticate(BodyResAuthenticate::from_cursor(&mut cursor)),
             // request frame
             &Opcode::Options => unreachable!(),
             &Opcode::Supported => ResponseBody::Supported(BodyResSupported::from_cursor(&mut cursor)),
@@ -47,9 +50,9 @@ impl ResponseBody {
             &Opcode::Register => unimplemented!(),
             &Opcode::Event => unimplemented!(),
             &Opcode::Batch => unimplemented!(),
-            &Opcode::AuthChallenge => unimplemented!(),
+            &Opcode::AuthChallenge => ResponseBody::AuthChallenge(BodyResAuthChallenge::from_cursor(&mut cursor)),
             &Opcode::AuthResponse => unimplemented!(),
-            &Opcode::AuthSuccess => unimplemented!()
+            &Opcode::AuthSuccess => ResponseBody::AuthSuccess(BodyReqAuthSuccess::from_cursor(&mut cursor))
         }
     }
 
@@ -72,6 +75,15 @@ impl ResponseBody {
                     &ResResultBody::Rows(ref rows) => Some(rows),
                     _ => None
                 }
+            },
+            _ => None
+        }
+    }
+
+    pub fn get_authenticator(&self) -> Option<String> {
+        match self {
+            &ResponseBody::Authenticate(ref auth) => {
+                Some(auth.data.clone().into_plain())
             },
             _ => None
         }

@@ -17,6 +17,10 @@ pub const STREAM_LEN: usize = 2;
 /// Number of body length bytes in accordance to protocol.
 pub const LENGTH_LEN: usize = 4;
 
+pub mod frame_auth_challenge;
+pub mod frame_auth_response;
+pub mod frame_auth_success;
+pub mod frame_authenticate;
 pub mod frame_execute;
 pub mod frame_options;
 pub mod frame_prepare;
@@ -179,7 +183,7 @@ impl From<u8> for Flag {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Opcode {
     Error,
     Startup,
