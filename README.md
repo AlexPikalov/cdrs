@@ -50,28 +50,26 @@ It supports 4-th version of [Cassandra protocol](https://github.com/apache/cassa
 
 ### Examples
 
+#### Creating new connection and authorization
+
+To use password authenticator, just include the one implemented in
+`cdrs::authenticators`.
+
 ```rust
 use cdrs::client::CDRS;
+use cdrs::authenticators::PasswordAuthenticator;
+```
 
-let client = CDRS::new(addr).unwrap();
-let use_query = String::from("SELECT * FROM loghub.syslogs;");
+After that you can create a new instace of `CDRS` and establish new connection:
 
-// start new session
-match client.start() {
-    Ok(parsed) => println!("OK: {:?} {:?}", parsed, parsed.get_body()),
-    Err(err) => println!("Err: {:?}", err)
-}
+```rust
+let user = "user".to_string();
+let pass = "pass".to_string();
+let authenticator = PasswordAuthenticator::new(user, pass);
 
-// this will receive an error because session is already started
-match client.start() {
-    Ok(parsed) => println!("OK: {:?} {:?}", parsed, parsed.get_body()),
-    Err(err) => println!("Err: {:?}", err)
-}
-
-// this will execute a query.
-match client.query(use_query) {
-    Ok(parsed) => println!("OK 3: {:?} {:?}", parsed, parsed.get_body),
-    Err(err) => println!("Err 3: {:?}", err)
-}
-
+// pass authenticator into CDRS' constructor
+let client = CDRS::new(addr, authenticator).unwrap();
+use cdrs::compression;
+// without compression
+let response_frame = try!(client.start(compression::None));
 ```
