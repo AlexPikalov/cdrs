@@ -73,3 +73,8 @@ use cdrs::compression;
 // without compression
 let response_frame = try!(client.start(compression::None));
 ```
+
+If Server does not require authorization `authenticator` won't be used, but is still
+required for the constructor (most probably it will be refactored in future).
+
+Rest of examples TBD.
