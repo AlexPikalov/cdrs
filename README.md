@@ -112,7 +112,7 @@ match client.query(use_query) {
 As a response to select query CDRS returns a result frame of type Rows with
 data items (columns) encoded in Cassandra's way. Currently there are decode
 helpers only, but no helper methods which could easily map results into
-Rust structures. This is a goal of first stable version of CDRS.
+Rust structures. To have them is a goal of first stable version of CDRS.
 
 ```rust
 let select_query = String::from("SELECT * FROM ks.table;");
