@@ -8,7 +8,7 @@ documentation = "https://alexpikalov.github.io/cdrs/cdrs/index.html"
 homepage = "https://github.com/AlexPikalov/cdrs"
 repository = "https://github.com/AlexPikalov/cdrs"
 readme = "https://github.com/AlexPikalov/cdrs/blob/master/README.md"
-keywords = ["cassandra", "driver", "client", "cassandradb", "DB"];
+keywords = ["cassandra", "driver", "client", "cassandradb", "DB"]
 license = "MIT"
 license-file = "https://github.com/AlexPikalov/cdrs/blob/master/license.txt"
 
