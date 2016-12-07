@@ -14,7 +14,7 @@ license-file = "./license.txt"
 
 [dependencies]
 byteorder = "0.5.3"
-log = "*"
+log = "0.3.6"
 uuid = "0.2"
 snap = "0.1.2"
 lz4-compress = "0.1.0"
