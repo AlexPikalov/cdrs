@@ -77,7 +77,7 @@ let response_frame = try!(client.start(compression::None));
 If Server does not require authorization `authenticator` won't be used, but is still
 required for the constructor (most probably it will be refactored in future).
 
-### Using compression
+#### Using compression
 
 Two types of compression are supported - [snappy](https://code.google.com/p/snappy/)
 and [lz4](https://code.google.com/p/lz4/). To use compression just start connection
@@ -92,4 +92,46 @@ client.start(compression::Lz4);
 client.start(compression::Snappy);
 ```
 
-Rest of examples TBD.
+#### Query execution
+
+##### Use Query:
+
+```rust
+let use_query = String::from("USE my_namespace;");
+
+match client.query(use_query) {
+    Ok(set_keyspace) => {
+        // use_keyspace is a result frame of type SetKeyspace
+    },
+    Err(err) => log!(err)
+}
+```
+
+##### Select Query:
+
+As a response to select query CDRS returns a result frame of type Rows with
+data items (columns) encoded in Cassandra's way. Currently there are decode
+helpers only, but no helper methods which could easily map results into
+Rust structures. This is a goal of first stable version of CDRS.
+
+```rust
+let select_query = String::from("SELECT * FROM ks.table;");
+
+match client.query(select_query) {
+    Ok(res) => println!("Result frame: {:?},\nparsed body: {:?}", res, res.get_body());,
+    Err(err) => log!(err)
+}
+
+```
+
+### License
+
+The MIT License (MIT)
+
+Copyright (c) 2016 Alex Pikalov
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
