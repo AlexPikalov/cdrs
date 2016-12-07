@@ -7,10 +7,10 @@ description = "Cassandra DB driver written in Rust"
 documentation = "https://alexpikalov.github.io/cdrs/cdrs/index.html"
 homepage = "https://github.com/AlexPikalov/cdrs"
 repository = "https://github.com/AlexPikalov/cdrs"
-readme = "https://github.com/AlexPikalov/cdrs/blob/master/README.md"
+readme = "./README.md"
 keywords = ["cassandra", "driver", "client", "cassandradb", "DB"]
 license = "MIT"
-license-file = "https://github.com/AlexPikalov/cdrs/blob/master/license.txt"
+license-file = "./license.txt"
 
 [dependencies]
 byteorder = "0.5.3"
