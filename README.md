@@ -77,4 +77,19 @@ let response_frame = try!(client.start(compression::None));
 If Server does not require authorization `authenticator` won't be used, but is still
 required for the constructor (most probably it will be refactored in future).
 
+### Using compression
+
+Two types of compression are supported - [snappy](https://code.google.com/p/snappy/)
+and [lz4](https://code.google.com/p/lz4/). To use compression just start connection
+with desired type:
+
+```rust
+// client without compression
+client.start(compression::None);
+// client  lz4 compression
+client.start(compression::Lz4);
+// client with snappy compression
+client.start(compression::Snappy);
+```
+
 Rest of examples TBD.
