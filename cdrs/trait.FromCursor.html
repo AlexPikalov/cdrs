@@ -47,7 +47,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-1254' class='srclink' href='../src/cdrs/src/lib.rs.html#48-51' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-1969' class='srclink' href='../src/cdrs/src/lib.rs.html#47-50' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait FromCursor {
     fn <a href='#tymethod.from_cursor' class='fnname'>from_cursor</a>(&amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html' title='std::io::cursor::Cursor'>Cursor</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;&gt;) -&gt; Self;
 }</pre><div class='docblock'><p><code>FromCursor</code> should be used to get parsed structure from an <code>io:Cursor</code>
@@ -55,11 +55,33 @@ wich bound to an array of bytes.</p>
 </div>
             <h2 id='required-methods'>Required Methods</h2>
             <div class='methods'>
-        <h3 id='tymethod.from_cursor' class='method stab '><code>fn <a href='#tymethod.from_cursor' class='fnname'>from_cursor</a>(&amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html' title='std::io::cursor::Cursor'>Cursor</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;&gt;) -&gt; Self</code></h3><div class='docblock'><p>It should return an implementor from an <code>io::Cursor</code> over an array of bytes.</p>
+        <h3 id='tymethod.from_cursor' class='method stab '><span id='from_cursor.v' class='invisible'><code>fn <a href='#tymethod.from_cursor' class='fnname'>from_cursor</a>(&amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html' title='std::io::cursor::Cursor'>Cursor</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;&gt;) -&gt; Self</code></span></h3><div class='docblock'><p>It should return an implementor from an <code>io::Cursor</code> over an array of bytes.</p>
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl FromCursor for <a class='enum' href='../cdrs/consistency/enum.Consistency.html' title='cdrs::consistency::Consistency'>Consistency</a></code></li>
+    <li><code>impl FromCursor for <a class='struct' href='../cdrs/frame/frame_auth_challenge/struct.BodyResAuthChallenge.html' title='cdrs::frame::frame_auth_challenge::BodyResAuthChallenge'>BodyResAuthChallenge</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame/frame_auth_success/struct.BodyReqAuthSuccess.html' title='cdrs::frame::frame_auth_success::BodyReqAuthSuccess'>BodyReqAuthSuccess</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame/frame_authenticate/struct.BodyResAuthenticate.html' title='cdrs::frame::frame_authenticate::BodyResAuthenticate'>BodyResAuthenticate</a></code></li>
+<li><code>impl FromCursor for <a class='enum' href='../cdrs/frame/frame_result/enum.ResultKind.html' title='cdrs::frame::frame_result::ResultKind'>ResultKind</a></code></li>
+<li><code>impl FromCursor for <a class='enum' href='../cdrs/frame/frame_result/enum.ResResultBody.html' title='cdrs::frame::frame_result::ResResultBody'>ResResultBody</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame/frame_result/struct.BodyResResultVoid.html' title='cdrs::frame::frame_result::BodyResResultVoid'>BodyResResultVoid</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame/frame_result/struct.BodyResResultSetKeyspace.html' title='cdrs::frame::frame_result::BodyResResultSetKeyspace'>BodyResResultSetKeyspace</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame/frame_result/struct.BodyResResultRows.html' title='cdrs::frame::frame_result::BodyResResultRows'>BodyResResultRows</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame/frame_result/struct.RowsMetadata.html' title='cdrs::frame::frame_result::RowsMetadata'>RowsMetadata</a></code></li>
+<li><code>impl FromCursor for <a class='enum' href='../cdrs/frame/frame_result/enum.ColType.html' title='cdrs::frame::frame_result::ColType'>ColType</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame/frame_result/struct.ColTypeOption.html' title='cdrs::frame::frame_result::ColTypeOption'>ColTypeOption</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame/frame_result/struct.CUdt.html' title='cdrs::frame::frame_result::CUdt'>CUdt</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame/frame_result/struct.BodyResResultPrepared.html' title='cdrs::frame::frame_result::BodyResResultPrepared'>BodyResResultPrepared</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame/frame_result/struct.PreparedMetadata.html' title='cdrs::frame::frame_result::PreparedMetadata'>PreparedMetadata</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame/frame_supported/struct.BodyResSupported.html' title='cdrs::frame::frame_supported::BodyResSupported'>BodyResSupported</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/types/struct.CString.html' title='cdrs::types::CString'>CString</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/types/struct.CStringLong.html' title='cdrs::types::CStringLong'>CStringLong</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/types/struct.CStringList.html' title='cdrs::types::CStringList'>CStringList</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/types/struct.CBytes.html' title='cdrs::types::CBytes'>CBytes</a></code></li>
+<li><code>impl FromCursor for <a class='struct' href='../cdrs/types/struct.CBytesShort.html' title='cdrs::types::CBytesShort'>CBytesShort</a></code></li>
+<li><code>impl FromCursor for <a class='type' href='../cdrs/types/type.CInt.html' title='cdrs::types::CInt'>CInt</a></code></li>
+<li><code>impl FromCursor for <a class='type' href='../cdrs/types/type.CIntShort.html' title='cdrs::types::CIntShort'>CIntShort</a></code></li>
+<li><code>impl FromCursor for <a class='enum' href='../cdrs/consistency/enum.Consistency.html' title='cdrs::consistency::Consistency'>Consistency</a></code></li>
 <li><code>impl FromCursor for <a class='struct' href='../cdrs/error/struct.CDRSError.html' title='cdrs::error::CDRSError'>CDRSError</a></code></li>
 <li><code>impl FromCursor for <a class='struct' href='../cdrs/error/struct.SimpleError.html' title='cdrs::error::SimpleError'>SimpleError</a></code></li>
 <li><code>impl FromCursor for <a class='struct' href='../cdrs/error/struct.UnavailableError.html' title='cdrs::error::UnavailableError'>UnavailableError</a></code></li>
@@ -71,19 +93,6 @@ wich bound to an array of bytes.</p>
 <li><code>impl FromCursor for <a class='enum' href='../cdrs/error/enum.WriteType.html' title='cdrs::error::WriteType'>WriteType</a></code></li>
 <li><code>impl FromCursor for <a class='struct' href='../cdrs/error/struct.AlreadyExistsError.html' title='cdrs::error::AlreadyExistsError'>AlreadyExistsError</a></code></li>
 <li><code>impl FromCursor for <a class='struct' href='../cdrs/error/struct.UnpreparedError.html' title='cdrs::error::UnpreparedError'>UnpreparedError</a></code></li>
-<li><code>impl FromCursor for <a class='enum' href='../cdrs/frame_result/enum.ResultKind.html' title='cdrs::frame_result::ResultKind'>ResultKind</a></code></li>
-<li><code>impl FromCursor for <a class='enum' href='../cdrs/frame_result/enum.ResResultBody.html' title='cdrs::frame_result::ResResultBody'>ResResultBody</a></code></li>
-<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame_result/struct.BodyResResultVoid.html' title='cdrs::frame_result::BodyResResultVoid'>BodyResResultVoid</a></code></li>
-<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame_result/struct.BodyResResultSetKeyspace.html' title='cdrs::frame_result::BodyResResultSetKeyspace'>BodyResResultSetKeyspace</a></code></li>
-<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame_result/struct.BodyResResultRows.html' title='cdrs::frame_result::BodyResResultRows'>BodyResResultRows</a></code></li>
-<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame_result/struct.RowsMetadata.html' title='cdrs::frame_result::RowsMetadata'>RowsMetadata</a></code></li>
-<li><code>impl FromCursor for <a class='enum' href='../cdrs/frame_result/enum.ColType.html' title='cdrs::frame_result::ColType'>ColType</a></code></li>
-<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame_result/struct.ColTypeOption.html' title='cdrs::frame_result::ColTypeOption'>ColTypeOption</a></code></li>
-<li><code>impl FromCursor for <a class='struct' href='../cdrs/frame_result/struct.CUdt.html' title='cdrs::frame_result::CUdt'>CUdt</a></code></li>
-<li><code>impl FromCursor for <a class='type' href='../cdrs/types/type.CString.html' title='cdrs::types::CString'>CString</a></code></li>
-<li><code>impl FromCursor for <a class='type' href='../cdrs/types/type.CStringList.html' title='cdrs::types::CStringList'>CStringList</a></code></li>
-<li><code>impl FromCursor for <a class='type' href='../cdrs/types/type.CBytes.html' title='cdrs::types::CBytes'>CBytes</a></code></li>
-<li><code>impl FromCursor for <a class='type' href='../cdrs/types/type.CInt.html' title='cdrs::types::CInt'>CInt</a></code></li>
 </ul><script type="text/javascript" async
                          src="../implementors/cdrs/trait.FromCursor.js">
                  </script></section>

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["BodyReqExecute","The structure that represents a body of a frame of type `execute`."]]});

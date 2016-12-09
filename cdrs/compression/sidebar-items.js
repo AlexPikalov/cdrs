@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Compression","Enum which represents a type of compression. Only non-startup frame's body can be compressen."],["CompressionError",""]]});

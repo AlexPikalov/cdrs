@@ -47,27 +47,78 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-1128' class='srclink' href='../../src/cdrs/src/types.rs.html#2-144' title='goto source code'>[src]</a></span></h1>
-<h2 id='constants' class='section-header'><a href="#constants">Constants</a></h2>
+               </span><a id='src-1065' class='srclink' href='../../src/cdrs/src/types/mod.rs.html#2-329' title='goto source code'>[src]</a></span></h1>
+<h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='data_serialization_types/index.html'
+                                  title='cdrs::types::data_serialization_types'>data_serialization_types</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='value/index.html'
+                                  title='cdrs::types::value'>value</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.CBytes.html'
+                                  title='cdrs::types::CBytes'>CBytes</a></td>
+                           <td class='docblock-short'>
+                                <p>The structure that represents Cassandra byte type</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.CBytesShort.html'
+                                  title='cdrs::types::CBytesShort'>CBytesShort</a></td>
+                           <td class='docblock-short'>
+                                <p>Cassandra short bytes</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.CString.html'
+                                  title='cdrs::types::CString'>CString</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.CStringList.html'
+                                  title='cdrs::types::CStringList'>CStringList</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.CStringLong.html'
+                                  title='cdrs::types::CStringLong'>CStringLong</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr></table><h2 id='constants' class='section-header'><a href="#constants">Constants</a></h2>
 <table>
                        <tr class=' module-item'>
                            <td><a class='constant' href='constant.INT_LEN.html'
                                   title='cdrs::types::INT_LEN'>INT_LEN</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='constant' href='constant.LONG_STR_LEN.html'
                                   title='cdrs::types::LONG_STR_LEN'>LONG_STR_LEN</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>Cassandra types</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='constant' href='constant.SHORT_LEN.html'
                                   title='cdrs::types::SHORT_LEN'>SHORT_LEN</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 
                            </td>
                        </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
@@ -75,72 +126,114 @@
                        <tr class=' module-item'>
                            <td><a class='fn' href='fn.cursor_next_value.html'
                                   title='cdrs::types::cursor_next_value'>cursor_next_value</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='fn' href='fn.from_bytes.html'
                                   title='cdrs::types::from_bytes'>from_bytes</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>Converts byte-array into u64</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.from_i_bytes.html'
+                                  title='cdrs::types::from_i_bytes'>from_i_bytes</a></td>
+                           <td class='docblock-short'>
+                                <p>Converts byte-array into i64</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.from_u16_bytes.html'
+                                  title='cdrs::types::from_u16_bytes'>from_u16_bytes</a></td>
+                           <td class='docblock-short'>
+                                <p>Converts byte-array into u16</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='fn' href='fn.i_to_n_bytes.html'
                                   title='cdrs::types::i_to_n_bytes'>i_to_n_bytes</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='fn' href='fn.to_int.html'
                                   title='cdrs::types::to_int'>to_int</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>Convers integer into Cassandra&#39;s [int]</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='fn' href='fn.to_n_bytes.html'
                                   title='cdrs::types::to_n_bytes'>to_n_bytes</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>Converts u64 numerical value into array of n bytes</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='fn' href='fn.to_short.html'
                                   title='cdrs::types::to_short'>to_short</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>Converts number u64 into Cassandra&#39;s [short].</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.try_f32_from_bytes.html'
+                                  title='cdrs::types::try_f32_from_bytes'>try_f32_from_bytes</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.try_f64_from_bytes.html'
+                                  title='cdrs::types::try_f64_from_bytes'>try_f64_from_bytes</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.try_from_bytes.html'
+                                  title='cdrs::types::try_from_bytes'>try_from_bytes</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.try_i32_from_bytes.html'
+                                  title='cdrs::types::try_i32_from_bytes'>try_i32_from_bytes</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.try_i_from_bytes.html'
+                                  title='cdrs::types::try_i_from_bytes'>try_i_from_bytes</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.try_u16_from_bytes.html'
+                                  title='cdrs::types::try_u16_from_bytes'>try_u16_from_bytes</a></td>
+                           <td class='docblock-short'>
+                                
                            </td>
                        </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
 <table>
                        <tr class=' module-item'>
-                           <td><a class='type' href='type.CBytes.html'
-                                  title='cdrs::types::CBytes'>CBytes</a></td>
-                           <td class='docblock short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
                            <td><a class='type' href='type.CInt.html'
                                   title='cdrs::types::CInt'>CInt</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>Cassandra int type.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='type' href='type.CString.html'
-                                  title='cdrs::types::CString'>CString</a></td>
-                           <td class='docblock short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class='type' href='type.CStringList.html'
-                                  title='cdrs::types::CStringList'>CStringList</a></td>
-                           <td class='docblock short'>
-                                
+                           <td><a class='type' href='type.CIntShort.html'
+                                  title='cdrs::types::CIntShort'>CIntShort</a></td>
+                           <td class='docblock-short'>
+                                <p>Cassandra int short type.</p>
                            </td>
                        </tr></table></section>
     <section id='search' class="content hidden"></section>

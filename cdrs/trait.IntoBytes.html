@@ -47,29 +47,35 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-1242' class='srclink' href='../src/cdrs/src/lib.rs.html#22-25' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-1957' class='srclink' href='../src/cdrs/src/lib.rs.html#21-24' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait IntoBytes {
     fn <a href='#tymethod.into_cbytes' class='fnname'>into_cbytes</a>(&amp;self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;;
 }</pre><div class='docblock'><p><code>IntoBytes</code> should be used to convert a structure into array of bytes.</p>
 </div>
             <h2 id='required-methods'>Required Methods</h2>
             <div class='methods'>
-        <h3 id='tymethod.into_cbytes' class='method stab '><code>fn <a href='#tymethod.into_cbytes' class='fnname'>into_cbytes</a>(&amp;self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;</code></h3><div class='docblock'><p>It should convert a struct into an array of bytes.</p>
+        <h3 id='tymethod.into_cbytes' class='method stab '><span id='into_cbytes.v' class='invisible'><code>fn <a href='#tymethod.into_cbytes' class='fnname'>into_cbytes</a>(&amp;self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;</code></span></h3><div class='docblock'><p>It should convert a struct into an array of bytes.</p>
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl IntoBytes for <a class='enum' href='../cdrs/consistency/enum.Consistency.html' title='cdrs::consistency::Consistency'>Consistency</a></code></li>
+    <li><code>impl IntoBytes for <a class='struct' href='../cdrs/frame/frame_auth_response/struct.BodyReqAuthResponse.html' title='cdrs::frame::frame_auth_response::BodyReqAuthResponse'>BodyReqAuthResponse</a></code></li>
+<li><code>impl IntoBytes for <a class='struct' href='../cdrs/frame/frame_execute/struct.BodyReqExecute.html' title='cdrs::frame::frame_execute::BodyReqExecute'>BodyReqExecute</a></code></li>
+<li><code>impl IntoBytes for <a class='struct' href='../cdrs/frame/frame_options/struct.BodyReqOptions.html' title='cdrs::frame::frame_options::BodyReqOptions'>BodyReqOptions</a></code></li>
+<li><code>impl IntoBytes for <a class='struct' href='../cdrs/frame/frame_prepare/struct.BodyReqPrepare.html' title='cdrs::frame::frame_prepare::BodyReqPrepare'>BodyReqPrepare</a></code></li>
+<li><code>impl IntoBytes for <a class='struct' href='../cdrs/frame/frame_query/struct.BodyReqQuery.html' title='cdrs::frame::frame_query::BodyReqQuery'>BodyReqQuery</a></code></li>
+<li><code>impl IntoBytes for <a class='struct' href='../cdrs/frame/frame_query/struct.ParamsReqQuery.html' title='cdrs::frame::frame_query::ParamsReqQuery'>ParamsReqQuery</a></code></li>
+<li><code>impl IntoBytes for <a class='struct' href='../cdrs/frame/frame_ready/struct.BodyResReady.html' title='cdrs::frame::frame_ready::BodyResReady'>BodyResReady</a></code></li>
+<li><code>impl IntoBytes for <a class='enum' href='../cdrs/frame/frame_result/enum.ResultKind.html' title='cdrs::frame::frame_result::ResultKind'>ResultKind</a></code></li>
+<li><code>impl IntoBytes for <a class='enum' href='../cdrs/frame/frame_result/enum.RowsMetadataFlag.html' title='cdrs::frame::frame_result::RowsMetadataFlag'>RowsMetadataFlag</a></code></li>
+<li><code>impl IntoBytes for <a class='struct' href='../cdrs/frame/frame_startup/struct.BodyReqStartup.html' title='cdrs::frame::frame_startup::BodyReqStartup'>BodyReqStartup</a></code></li>
 <li><code>impl&lt;'a&gt; IntoBytes for <a class='struct' href='../cdrs/frame/struct.Frame.html' title='cdrs::frame::Frame'>Frame</a></code></li>
-<li><code>impl IntoBytes for <a class='struct' href='../cdrs/frame_query/struct.BodyReqQuery.html' title='cdrs::frame_query::BodyReqQuery'>BodyReqQuery</a></code></li>
-<li><code>impl IntoBytes for <a class='struct' href='../cdrs/frame_query/struct.ParamsReqQuery.html' title='cdrs::frame_query::ParamsReqQuery'>ParamsReqQuery</a></code></li>
-<li><code>impl IntoBytes for <a class='struct' href='../cdrs/frame_ready/struct.BodyResReady.html' title='cdrs::frame_ready::BodyResReady'>BodyResReady</a></code></li>
-<li><code>impl IntoBytes for <a class='enum' href='../cdrs/frame_result/enum.ResultKind.html' title='cdrs::frame_result::ResultKind'>ResultKind</a></code></li>
-<li><code>impl IntoBytes for <a class='enum' href='../cdrs/frame_result/enum.RowsMetadataFlag.html' title='cdrs::frame_result::RowsMetadataFlag'>RowsMetadataFlag</a></code></li>
-<li><code>impl IntoBytes for <a class='struct' href='../cdrs/frame_startup/struct.BodyReqStartup.html' title='cdrs::frame_startup::BodyReqStartup'>BodyReqStartup</a></code></li>
-<li><code>impl IntoBytes for <a class='type' href='../cdrs/types/type.CString.html' title='cdrs::types::CString'>CString</a></code></li>
-<li><code>impl IntoBytes for <a class='type' href='../cdrs/types/type.CBytes.html' title='cdrs::types::CBytes'>CBytes</a></code></li>
-<li><code>impl IntoBytes for <a class='enum' href='../cdrs/value/enum.ValueType.html' title='cdrs::value::ValueType'>ValueType</a></code></li>
-<li><code>impl IntoBytes for <a class='struct' href='../cdrs/value/struct.Value.html' title='cdrs::value::Value'>Value</a></code></li>
+<li><code>impl IntoBytes for <a class='enum' href='../cdrs/types/value/enum.ValueType.html' title='cdrs::types::value::ValueType'>ValueType</a></code></li>
+<li><code>impl IntoBytes for <a class='struct' href='../cdrs/types/value/struct.Value.html' title='cdrs::types::value::Value'>Value</a></code></li>
+<li><code>impl IntoBytes for <a class='struct' href='../cdrs/types/struct.CString.html' title='cdrs::types::CString'>CString</a></code></li>
+<li><code>impl IntoBytes for <a class='struct' href='../cdrs/types/struct.CStringLong.html' title='cdrs::types::CStringLong'>CStringLong</a></code></li>
+<li><code>impl IntoBytes for <a class='struct' href='../cdrs/types/struct.CBytes.html' title='cdrs::types::CBytes'>CBytes</a></code></li>
+<li><code>impl IntoBytes for <a class='struct' href='../cdrs/types/struct.CBytesShort.html' title='cdrs::types::CBytesShort'>CBytesShort</a></code></li>
+<li><code>impl IntoBytes for <a class='enum' href='../cdrs/consistency/enum.Consistency.html' title='cdrs::consistency::Consistency'>Consistency</a></code></li>
 </ul><script type="text/javascript" async
                          src="../implementors/cdrs/trait.IntoBytes.js">
                  </script></section>

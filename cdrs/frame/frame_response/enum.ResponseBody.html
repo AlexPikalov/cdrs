@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `ResponseBody` enum in crate `cdrs`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, ResponseBody">
+
+    <title>cdrs::frame::frame_response::ResponseBody - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../../index.html'>cdrs</a>::<wbr><a href='../index.html'>frame</a>::<wbr><a href='index.html'>frame_response</a></p><script>window.sidebarCurrent = {name: 'ResponseBody', ty: 'enum', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content enum">
+<h1 class='fqn'><span class='in-band'>Enum <a href='../../index.html'>cdrs</a>::<wbr><a href='../index.html'>frame</a>::<wbr><a href='index.html'>frame_response</a>::<wbr><a class='enum' href=''>ResponseBody</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-296' class='srclink' href='../../../src/cdrs/src/frame/frame_response.rs.html#14-31' title='goto source code'>[src]</a></span></h1>
+<pre class='rust enum'>pub enum ResponseBody {
+    Error(<a class='struct' href='../../../cdrs/error/struct.CDRSError.html' title='cdrs::error::CDRSError'>CDRSError</a>),
+    Startup,
+    Ready(<a class='struct' href='../../../cdrs/frame/frame_result/struct.BodyResResultVoid.html' title='cdrs::frame::frame_result::BodyResResultVoid'>BodyResResultVoid</a>),
+    Authenticate(<a class='struct' href='../../../cdrs/frame/frame_authenticate/struct.BodyResAuthenticate.html' title='cdrs::frame::frame_authenticate::BodyResAuthenticate'>BodyResAuthenticate</a>),
+    Options,
+    Supported(<a class='struct' href='../../../cdrs/frame/frame_supported/struct.BodyResSupported.html' title='cdrs::frame::frame_supported::BodyResSupported'>BodyResSupported</a>),
+    Query,
+    Result(<a class='enum' href='../../../cdrs/frame/frame_result/enum.ResResultBody.html' title='cdrs::frame::frame_result::ResResultBody'>ResResultBody</a>),
+    Prepare,
+    Execute,
+    Register,
+    Event,
+    Batch,
+    AuthChallenge(<a class='struct' href='../../../cdrs/frame/frame_auth_challenge/struct.BodyResAuthChallenge.html' title='cdrs::frame::frame_auth_challenge::BodyResAuthChallenge'>BodyResAuthChallenge</a>),
+    AuthResponse,
+    AuthSuccess(<a class='struct' href='../../../cdrs/frame/frame_auth_success/struct.BodyReqAuthSuccess.html' title='cdrs::frame::frame_auth_success::BodyReqAuthSuccess'>BodyReqAuthSuccess</a>),
+}</pre><h2 class='variants'>Variants</h2>
+<span id='variant.Error' class='variant'><span id='Error.v' class='invisible'><code>Error(<a class='struct' href='../../../cdrs/error/struct.CDRSError.html' title='cdrs::error::CDRSError'>CDRSError</a>)</code></span></span><span id='variant.Startup' class='variant'><span id='Startup.v' class='invisible'><code>Startup</code></span></span><span id='variant.Ready' class='variant'><span id='Ready.v' class='invisible'><code>Ready(<a class='struct' href='../../../cdrs/frame/frame_result/struct.BodyResResultVoid.html' title='cdrs::frame::frame_result::BodyResResultVoid'>BodyResResultVoid</a>)</code></span></span><span id='variant.Authenticate' class='variant'><span id='Authenticate.v' class='invisible'><code>Authenticate(<a class='struct' href='../../../cdrs/frame/frame_authenticate/struct.BodyResAuthenticate.html' title='cdrs::frame::frame_authenticate::BodyResAuthenticate'>BodyResAuthenticate</a>)</code></span></span><span id='variant.Options' class='variant'><span id='Options.v' class='invisible'><code>Options</code></span></span><span id='variant.Supported' class='variant'><span id='Supported.v' class='invisible'><code>Supported(<a class='struct' href='../../../cdrs/frame/frame_supported/struct.BodyResSupported.html' title='cdrs::frame::frame_supported::BodyResSupported'>BodyResSupported</a>)</code></span></span><span id='variant.Query' class='variant'><span id='Query.v' class='invisible'><code>Query</code></span></span><span id='variant.Result' class='variant'><span id='Result.v' class='invisible'><code>Result(<a class='enum' href='../../../cdrs/frame/frame_result/enum.ResResultBody.html' title='cdrs::frame::frame_result::ResResultBody'>ResResultBody</a>)</code></span></span><span id='variant.Prepare' class='variant'><span id='Prepare.v' class='invisible'><code>Prepare</code></span></span><span id='variant.Execute' class='variant'><span id='Execute.v' class='invisible'><code>Execute</code></span></span><span id='variant.Register' class='variant'><span id='Register.v' class='invisible'><code>Register</code></span></span><span id='variant.Event' class='variant'><span id='Event.v' class='invisible'><code>Event</code></span></span><span id='variant.Batch' class='variant'><span id='Batch.v' class='invisible'><code>Batch</code></span></span><span id='variant.AuthChallenge' class='variant'><span id='AuthChallenge.v' class='invisible'><code>AuthChallenge(<a class='struct' href='../../../cdrs/frame/frame_auth_challenge/struct.BodyResAuthChallenge.html' title='cdrs::frame::frame_auth_challenge::BodyResAuthChallenge'>BodyResAuthChallenge</a>)</code></span></span><span id='variant.AuthResponse' class='variant'><span id='AuthResponse.v' class='invisible'><code>AuthResponse</code></span></span><span id='variant.AuthSuccess' class='variant'><span id='AuthSuccess.v' class='invisible'><code>AuthSuccess(<a class='struct' href='../../../cdrs/frame/frame_auth_success/struct.BodyReqAuthSuccess.html' title='cdrs::frame::frame_auth_success::BodyReqAuthSuccess'>BodyReqAuthSuccess</a>)</code></span></span><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='enum' href='../../../cdrs/frame/frame_response/enum.ResponseBody.html' title='cdrs::frame::frame_response::ResponseBody'>ResponseBody</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-347' class='srclink' href='../../../src/cdrs/src/frame/frame_response.rs.html#33-91' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from' class='method'><span id='from.v' class='invisible'><code>fn <a href='#method.from' class='fnname'>from</a>(bytes: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;, response_type: &amp;<a class='enum' href='../../../cdrs/frame/enum.Opcode.html' title='cdrs::frame::Opcode'>Opcode</a>) -&gt; <a class='enum' href='../../../cdrs/frame/frame_response/enum.ResponseBody.html' title='cdrs::frame::frame_response::ResponseBody'>ResponseBody</a></code></span></h4>
+<h4 id='method.as_rows_iter' class='method'><span id='as_rows_iter.v' class='invisible'><code>fn <a href='#method.as_rows_iter' class='fnname'>as_rows_iter</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/core/slice/struct.Iter.html' title='core::slice::Iter'>Iter</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='struct' href='../../../cdrs/types/struct.CBytes.html' title='cdrs::types::CBytes'>CBytes</a>&gt;&gt;&gt;</code></span></h4>
+<h4 id='method.as_cols' class='method'><span id='as_cols.v' class='invisible'><code>fn <a href='#method.as_cols' class='fnname'>as_cols</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a class='struct' href='../../../cdrs/frame/frame_result/struct.BodyResResultRows.html' title='cdrs::frame::frame_result::BodyResResultRows'>BodyResResultRows</a>&gt;</code></span></h4>
+<h4 id='method.get_authenticator' class='method'><span id='get_authenticator.v' class='invisible'><code>fn <a href='#method.get_authenticator' class='fnname'>get_authenticator</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code></span></h4>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='enum' href='../../../cdrs/frame/frame_response/enum.ResponseBody.html' title='cdrs::frame::frame_response::ResponseBody'>ResponseBody</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-320' class='srclink' href='../../../src/cdrs/src/frame/frame_response.rs.html#13' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../../";
+        window.currentCrate = "cdrs";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../../jquery.js"></script>
+    <script src="../../../main.js"></script>
+    
+    <script defer src="../../../search-index.js"></script>
+</body>
+</html>

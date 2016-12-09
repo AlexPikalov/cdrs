@@ -47,26 +47,32 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-106' class='srclink' href='../../src/cdrs/src/error.rs.html#21-28' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-1670' class='srclink' href='../../src/cdrs/src/error.rs.html#21-28' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct CDRSError {
     pub error_code: <a class='type' href='../../cdrs/types/type.CInt.html' title='cdrs::types::CInt'>CInt</a>,
-    pub message: <a class='type' href='../../cdrs/types/type.CString.html' title='cdrs::types::CString'>CString</a>,
+    pub message: <a class='struct' href='../../cdrs/types/struct.CString.html' title='cdrs::types::CString'>CString</a>,
     pub additional_info: <a class='enum' href='../../cdrs/error/enum.AdditionalErrorInfo.html' title='cdrs::error::AdditionalErrorInfo'>AdditionalErrorInfo</a>,
 }</pre><div class='docblock'><p>CDRS error which could be returned by Cassandra server as a response. As it goes
 from the specification it contains an error code and an error message. Apart of those
 depending of type of error it could contain an additional information about an error.
 This additional information is represented by <code>additional_info</code> property which is <code>ErrorKind</code>.</p>
-</div><h2 class='fields'>Fields</h2><span id='structfield.error_code' class='structfield'><code>error_code: <a class='type' href='../../cdrs/types/type.CInt.html' title='cdrs::types::CInt'>CInt</a></code>
-                           </span><span class='stab '></span><div class='docblock'><p><code>i32</code> that points to a type of error.</p>
-</div><span id='structfield.message' class='structfield'><code>message: <a class='type' href='../../cdrs/types/type.CString.html' title='cdrs::types::CString'>CString</a></code>
-                           </span><span class='stab '></span><div class='docblock'><p>Error message string.</p>
-</div><span id='structfield.additional_info' class='structfield'><code>additional_info: <a class='enum' href='../../cdrs/error/enum.AdditionalErrorInfo.html' title='cdrs::error::AdditionalErrorInfo'>AdditionalErrorInfo</a></code>
-                           </span><span class='stab '></span><div class='docblock'><p>Additional information.</p>
-</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../../cdrs/error/struct.CDRSError.html' title='cdrs::error::CDRSError'>CDRSError</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-98' class='srclink' href='../../src/cdrs/src/error.rs.html#20' title='goto source code'>[src]</a></span></h3>
-<div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+</div><h2 class='fields'>Fields</h2><span id='structfield.error_code' class='structfield'>
+                           <span id='error_code.v' class='invisible'>
+                           <code>error_code: <a class='type' href='../../cdrs/types/type.CInt.html' title='cdrs::types::CInt'>CInt</a></code>
+                           </span></span><span class='stab '></span><div class='docblock'><p><code>i32</code> that points to a type of error.</p>
+</div><span id='structfield.message' class='structfield'>
+                           <span id='message.v' class='invisible'>
+                           <code>message: <a class='struct' href='../../cdrs/types/struct.CString.html' title='cdrs::types::CString'>CString</a></code>
+                           </span></span><span class='stab '></span><div class='docblock'><p>Error message string.</p>
+</div><span id='structfield.additional_info' class='structfield'>
+                           <span id='additional_info.v' class='invisible'>
+                           <code>additional_info: <a class='enum' href='../../cdrs/error/enum.AdditionalErrorInfo.html' title='cdrs::error::AdditionalErrorInfo'>AdditionalErrorInfo</a></code>
+                           </span></span><span class='stab '></span><div class='docblock'><p>Additional information.</p>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../../cdrs/error/struct.CDRSError.html' title='cdrs::error::CDRSError'>CDRSError</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1674' class='srclink' href='../../src/cdrs/src/error.rs.html#20' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></span></h4>
 <div class='docblock'><p>Formats the value using the given formatter.</p>
-</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='../../cdrs/trait.FromCursor.html' title='cdrs::FromCursor'>FromCursor</a> for <a class='struct' href='../../cdrs/error/struct.CDRSError.html' title='cdrs::error::CDRSError'>CDRSError</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-110' class='srclink' href='../../src/cdrs/src/error.rs.html#30-41' title='goto source code'>[src]</a></span></h3>
-<div class='impl-items'><h4 id='method.from_cursor' class='method'><code>fn <a href='../../cdrs/trait.FromCursor.html#tymethod.from_cursor' class='fnname'>from_cursor</a>(cursor: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html' title='std::io::cursor::Cursor'>Cursor</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;&gt;) -&gt; <a class='struct' href='../../cdrs/error/struct.CDRSError.html' title='cdrs::error::CDRSError'>CDRSError</a></code></h4>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='../../cdrs/trait.FromCursor.html' title='cdrs::FromCursor'>FromCursor</a> for <a class='struct' href='../../cdrs/error/struct.CDRSError.html' title='cdrs::error::CDRSError'>CDRSError</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1682' class='srclink' href='../../src/cdrs/src/error.rs.html#30-41' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from_cursor' class='method'><span id='from_cursor.v' class='invisible'><code>fn <a href='../../cdrs/trait.FromCursor.html#tymethod.from_cursor' class='fnname'>from_cursor</a>(cursor: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html' title='std::io::cursor::Cursor'>Cursor</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;&gt;) -&gt; <a class='struct' href='../../cdrs/error/struct.CDRSError.html' title='cdrs::error::CDRSError'>CDRSError</a></code></span></h4>
 <div class='docblock'><p>It should return an implementor from an <code>io::Cursor</code> over an array of bytes.</p>
 </div></div></section>
     <section id='search' class="content hidden"></section>

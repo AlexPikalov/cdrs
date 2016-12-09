@@ -47,7 +47,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-90' class='srclink' href='../../src/cdrs/src/error.rs.html#1-356' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-1662' class='srclink' href='../../src/cdrs/src/error.rs.html#1-356' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>This modules contains <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1011">Cassandra&#39;s errors</a>
 which server could respond to client.</p>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
@@ -55,7 +55,7 @@ which server could respond to client.</p>
                        <tr class=' module-item'>
                            <td><a class='struct' href='struct.AlreadyExistsError.html'
                                   title='cdrs::error::AlreadyExistsError'>AlreadyExistsError</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>The query attempted to create a keyspace or a table that was already existing.
 <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1140">Read more...</a></p>
                            </td>
@@ -63,7 +63,7 @@ which server could respond to client.</p>
                        <tr class=' module-item'>
                            <td><a class='struct' href='struct.CDRSError.html'
                                   title='cdrs::error::CDRSError'>CDRSError</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>CDRS error which could be returned by Cassandra server as a response. As it goes
 from the specification it contains an error code and an error message. Apart of those
 depending of type of error it could contain an additional information about an error.
@@ -73,42 +73,42 @@ This additional information is represented by <code>additional_info</code> prope
                        <tr class=' module-item'>
                            <td><a class='struct' href='struct.FunctionFailureError.html'
                                   title='cdrs::error::FunctionFailureError'>FunctionFailureError</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>A (user defined) function failed during execution.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='struct' href='struct.ReadFailureError.html'
                                   title='cdrs::error::ReadFailureError'>ReadFailureError</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>A non-timeout exception during a read request.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='struct' href='struct.ReadTimeoutError.html'
                                   title='cdrs::error::ReadTimeoutError'>ReadTimeoutError</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>Timeout exception during a read request.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='struct' href='struct.SimpleError.html'
                                   title='cdrs::error::SimpleError'>SimpleError</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>Is used if error does not contain any additional info.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='struct' href='struct.UnavailableError.html'
                                   title='cdrs::error::UnavailableError'>UnavailableError</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>Additional info about <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1025">unavailable exception</a></p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='struct' href='struct.UnpreparedError.html'
                                   title='cdrs::error::UnpreparedError'>UnpreparedError</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>Can be thrown while a prepared statement tries to be
 executed if the provided prepared statement ID is not known by
 this host. <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1150">Read more...</a></p>
@@ -117,14 +117,14 @@ this host. <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_pr
                        <tr class=' module-item'>
                            <td><a class='struct' href='struct.WriteFailureError.html'
                                   title='cdrs::error::WriteFailureError'>WriteFailureError</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>A non-timeout exception during a write request. <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1106">Read more...</a></p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='struct' href='struct.WriteTimeoutError.html'
                                   title='cdrs::error::WriteTimeoutError'>WriteTimeoutError</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>Timeout exception during a write request.</p>
                            </td>
                        </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
@@ -132,14 +132,14 @@ this host. <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_pr
                        <tr class=' module-item'>
                            <td><a class='enum' href='enum.AdditionalErrorInfo.html'
                                   title='cdrs::error::AdditionalErrorInfo'>AdditionalErrorInfo</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>Additional error info in accordance to <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1011">Cassandra protocol v4</a>.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class='enum' href='enum.WriteType.html'
                                   title='cdrs::error::WriteType'>WriteType</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>Describes the type of the write that failed. <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1118">Read more...</a></p>
                            </td>
                        </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
@@ -147,7 +147,7 @@ this host. <a href="https://github.com/apache/cassandra/blob/trunk/doc/native_pr
                        <tr class=' module-item'>
                            <td><a class='type' href='type.Result.html'
                                   title='cdrs::error::Result'>Result</a></td>
-                           <td class='docblock short'>
+                           <td class='docblock-short'>
                                 <p>CDRS specific <code>Result</code> which contains a <a href="../frame/struct.Frame.html"><code>Frame</code></a> in case of <code>Ok</code> and <code>CDRSError</code> if <code>Err</code>.</p>
                            </td>
                        </tr></table></section>

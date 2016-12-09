@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["BodyReqOptions","The structure which represents a body of a frame of type `options`."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["BodyReqAuthSuccess","`BodyReqAuthSuccess` is a frame that represents a successfull authentication response."]]});

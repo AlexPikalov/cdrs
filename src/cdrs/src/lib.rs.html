@@ -92,27 +92,25 @@
 <span id="48">48</span>
 <span id="49">49</span>
 <span id="50">50</span>
-<span id="51">51</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! **cdrs** is a native Cassandra DB client written in Rust. It&#39;s under a hard development as of now.</span>
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>snap</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>byteorder</span>;
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>log</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>lz4_compress</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>uuid</span>;
 
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Cursor</span>;
 
+<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>frame</span>;
+<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>types</span>;
+
+<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>authenticators</span>;
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>client</span>;
+<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>compression</span>;
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>consistency</span>;
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>error</span>;
-<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>frame</span>;
-<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>frame_query</span>;
-<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>frame_ready</span>;
-<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>frame_response</span>;
-<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>frame_result</span>;
-<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>frame_startup</span>;
-<span class='kw'>mod</span> <span class='ident'>parser</span>;
-<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>types</span>;
-<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>value</span>;
 
 <span class='doccomment'>/// `IntoBytes` should be used to convert a structure into array of bytes.</span>
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>IntoBytes</span> {

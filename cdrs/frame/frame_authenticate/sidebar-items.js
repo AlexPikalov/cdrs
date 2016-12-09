@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["BodyResAuthenticate","A server authentication challenge."]]});

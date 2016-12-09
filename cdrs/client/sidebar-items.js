@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CDRS",""]]});
+initSidebarItems({"struct":[["CDRS",""],["Credentials",""]]});
