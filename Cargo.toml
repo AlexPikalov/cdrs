@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Alex Pikalov <alex.pikalov.khar@gmail.com>"]
 
 description = "Cassandra DB driver written in Rust"
-documentation = "https://alexpikalov.github.io/cdrs/cdrs/index.html"
+documentation = "https://docs.rs/cdrs"
 homepage = "https://github.com/AlexPikalov/cdrs"
 repository = "https://github.com/AlexPikalov/cdrs"
 readme = "./README.md"
