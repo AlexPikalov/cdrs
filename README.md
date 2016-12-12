@@ -4,7 +4,7 @@
 The motivation to write it in Rust is a lack of native one.
 Existing ones are bindings to C clients.
 
-[Documentation](https://alexpikalov.github.io/cdrs/cdrs/index.html)
+[Documentation](https://docs.rs/cdrs)
 
 CDRS is under active development at the moment, so there is a lack of many
 features and API may not be stable (but in case of any breaking changes
