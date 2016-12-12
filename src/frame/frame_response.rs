@@ -1,10 +1,11 @@
 use std::io::Cursor;
 use std::slice::Iter;
-use super::super::types::*;
-use super::super::FromCursor;
-use super::frame_result::*;
-use super::super::frame::*;
-use super::super::error::CDRSError;
+
+use FromCursor;
+use types::*;
+use frame::*;
+use frame::frame_result::*;
+use frame::frame_error::CDRSError;
 use super::frame_supported::*;
 use super::frame_auth_challenge::*;
 use super::frame_authenticate::BodyResAuthenticate;

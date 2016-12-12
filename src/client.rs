@@ -1,23 +1,32 @@
+//! The modules which contains CDRS Cassandra client.
 use std::net;
 use std::io;
 use std::io::Write;
 
-use super::consistency::Consistency;
-use super::frame::{Frame, Opcode};
-use super::IntoBytes;
-use super::frame::parser::parse_frame;
+use consistency::Consistency;
+use frame::{Frame, Opcode};
+use IntoBytes;
+use frame::parser::parse_frame;
 use types::*;
 use types::value::*;
+
 use frame::frame_query::*;
 use compression::Compression;
 use authenticators::Authenticator;
+use error;
 
+/// DB user's credentials.
 #[derive(Clone, Debug)]
 pub struct Credentials {
+    /// DB user's username
     pub username: String,
+    /// DB user's password
     pub password: String
 }
 
+/// CDRS driver structure that provides a basic functionality to work with DB including
+/// establishing new connection, getting supported options, preparing and executing CQL
+/// queries, using compression and others.
 pub struct CDRS<T: Authenticator> {
     tcp: net::TcpStream,
     compressor: Compression,
@@ -25,16 +34,29 @@ pub struct CDRS<T: Authenticator> {
 }
 
 impl<T: Authenticator> CDRS<T> {
-    pub fn new(addr: String, authenticator: T) -> io::Result<CDRS<T>> {
+    /// The method creates new instance of CDRS driver. At this step an instance doesn't
+    /// connected to DB Server. To create new instance two parameters are needed to be
+    /// provided - `addr` is IP address of DB Server, `authenticator` is a selected authenticator
+    /// that is supported by particular DB Server. There are few authenticators already
+    /// provided by this trait.
+    pub fn new(addr: String, authenticator: T) -> error::Result<CDRS<T>> {
         return net::TcpStream::connect(format!("{}:9042", addr).as_str())
             .map(|socket| CDRS {
                 tcp: socket,
                 compressor: Compression::None,
                 authenticator: authenticator
-            });
+            })
+            .map_err(|err| error::Error::Io(err));
     }
 
-    pub fn start(&mut self, compressor: Compression) -> io::Result<Frame> {
+    /// The method establishes connection to the server which address was provided on previous
+    /// step. To create connection it's required to provide a compression method from a list
+    /// of supported ones. In 4-th version of Cassandra protocol lz4 (`Compression::Lz4`)
+    /// and snappy (`Compression::Snappy`) are supported. There is also one special compression
+    /// method provided by CRDR driver, it's `Compression::None` that tells drivers that it
+    /// should work without compression. If compression is provided then incomming frames
+    /// will be decompressed automatically.
+    pub fn start(&mut self, compressor: Compression) -> error::Result<Frame> {
         self.compressor = compressor;
         let mut tcp = try!(self.tcp.try_clone());
         let startup_frame = Frame::new_req_startup(compressor.into_string()).into_cbytes();
@@ -58,39 +80,21 @@ impl<T: Authenticator> CDRS<T> {
 
                 return Ok(auth_response);
             } else {
-                return Err(io::Error::new(
+                let io_err = io::Error::new(
                     io::ErrorKind::NotFound,
                     format!("Unsupported type of authenticator. {:?} got, but {} is supported.",
                         authenticator,
-                        self.authenticator.get_cassandra_name())));
+                        self.authenticator.get_cassandra_name()));
+                return Err(error::Error::Io(io_err));
             }
-            // if authenticator.as_str() == "org.apache.cassandra.auth.PasswordAuthenticator" {
-            //     let mut tcp_auth = try!(self.tcp.try_clone());
-            //
-            //     let credentials = self.credentials.clone().ok_or(io::Error::new(
-            //         io::ErrorKind::NotFound,
-            //         "Credetials required, but not found"
-            //     ))?;
-            //
-            //     let mut token = vec![0];
-            //     token.extend_from_slice(credentials.username.into_bytes().as_slice());
-            //     token.push(0);
-            //     token.extend_from_slice(credentials.password.into_bytes().as_slice());
-            //     let auth_token_bytes = CBytes::new(token).into_cbytes();
-            //
-            //     try!(tcp_auth.write(Frame::new_req_auth_response(auth_token_bytes).into_cbytes().as_slice()));
-            //     let auth_response = try!(parse_frame(tcp_auth, &compressor));
-            //
-            //     return Ok(auth_response);
-            // } else {
-            //
-            // }
         }
 
         unimplemented!();
     }
 
-    pub fn options(&self) -> io::Result<Frame> {
+    /// The method makes an Option request to DB Server. As a response the server returns
+    /// a map of supported options. A result is wrapped into original frame.
+    pub fn options(&self) -> error::Result<Frame> {
         let mut tcp = try!(self.tcp.try_clone());
         let options_frame = Frame::new_req_options().into_cbytes();
 
@@ -98,7 +102,8 @@ impl<T: Authenticator> CDRS<T> {
         return parse_frame(tcp, &self.compressor);
     }
 
-    pub fn prepare(&self, query: String) -> io::Result<Frame> {
+    /// The method makes a request to DB Server to prepare provided query.
+    pub fn prepare(&self, query: String) -> error::Result<Frame> {
         let mut tcp = try!(self.tcp.try_clone());
         let options_frame = Frame::new_req_prepare(query).into_cbytes();
 
@@ -106,7 +111,10 @@ impl<T: Authenticator> CDRS<T> {
         return parse_frame(tcp, &self.compressor);
     }
 
-    pub fn execute(&self, id: CBytesShort, query_parameters: ParamsReqQuery) -> io::Result<Frame> {
+    /// The method makes a request to DB Server to execute a query with provided id
+    /// using provided query parameters. `id` is an ID of a query which Server
+    /// returns back to a driver as a response to `prepare` request.
+    pub fn execute(&self, id: CBytesShort, query_parameters: ParamsReqQuery) -> error::Result<Frame> {
         let mut tcp = try!(self.tcp.try_clone());
         let options_frame = Frame::new_req_execute(id, query_parameters).into_cbytes();
 
@@ -114,6 +122,9 @@ impl<T: Authenticator> CDRS<T> {
         return parse_frame(tcp, &self.compressor);
     }
 
+    /// The method makes a request to DB Server to execute a query provided in `query` argument.
+    /// The rest of parameters are the same to ones described in [Cassandra v4 protocol]
+    /// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L304)
     pub fn query(&self,
             query: String,
             consistency: Consistency,
@@ -122,7 +133,7 @@ impl<T: Authenticator> CDRS<T> {
             page_size: Option<i32>,
             paging_state: Option<CBytes>,
             serial_consistency: Option<Consistency>,
-            timestamp: Option<i64>) -> io::Result<Frame> {
+            timestamp: Option<i64>) -> error::Result<Frame> {
 
         let mut tcp = try!(self.tcp.try_clone());
         let query_frame = Frame::new_req_query(query.clone(),

@@ -14,18 +14,28 @@ pub mod data_serialization_types;
 pub mod generic_types;
 pub mod value;
 
+/// Tries to converts u64 numerical value into array of n bytes.
+pub fn try_to_n_bytes(int: u64, n: usize) -> io::Result<Vec<u8>> {
+    let mut bytes = vec![];
+    try!(bytes.write_uint::<BigEndian>(int, n));
+
+    return Ok(bytes);
+}
 
 /// Converts u64 numerical value into array of n bytes
 pub fn to_n_bytes(int: u64, n: usize) -> Vec<u8> {
+    return try_to_n_bytes(int, n).unwrap();
+}
+
+pub fn try_i_to_n_bytes(int: i64, n: usize) -> io::Result<Vec<u8>> {
     let mut bytes = vec![];
-    bytes.write_uint::<BigEndian>(int, n).unwrap();
-    return bytes;
+    try!(bytes.write_int::<BigEndian>(int, n));
+
+    return Ok(bytes);
 }
 
 pub fn i_to_n_bytes(int: i64, n: usize) -> Vec<u8> {
-    let mut bytes = vec![];
-    bytes.write_int::<BigEndian>(int, n).unwrap();
-    return bytes;
+    return try_i_to_n_bytes(int, n).unwrap();
 }
 
 ///

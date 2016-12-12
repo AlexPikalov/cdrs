@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Alex Pikalov <alex.pikalov.khar@gmail.com>"]
 
 description = "Cassandra DB driver written in Rust"
-documentation = "https://alexpikalov.github.io/cdrs/cdrs/index.html"
+documentation = "https://docs.rs/cdrs"
 homepage = "https://github.com/AlexPikalov/cdrs"
 repository = "https://github.com/AlexPikalov/cdrs"
 readme = "./README.md"
@@ -14,7 +14,7 @@ license-file = "./license.txt"
 
 [dependencies]
 byteorder = "0.5.3"
-log = "*"
+log = "0.3.6"
 uuid = "0.2"
 snap = "0.1.2"
 lz4-compress = "0.1.0"

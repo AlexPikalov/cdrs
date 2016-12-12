@@ -1,12 +1,13 @@
-use std::io;
 use std::io::Read;
 use std::net;
 use compression::Compression;
+use frame::frame_response::ResponseBody;
 
 use super::*;
 use super::super::types::from_bytes;
+use error;
 
-pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> io::Result<Frame> {
+pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> error::Result<Frame> {
     let mut version_bytes = [0; VERSION_LEN];
     let mut flag_bytes = [0; FLAG_LEN];
     let mut opcode_bytes = [0; OPCODE_LEN];
@@ -38,11 +39,23 @@ pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> io::
         try!(Compression::None.decode(body_bytes))
     };
 
-    return Ok(Frame {
+    let frame = Frame {
         version: version,
         flags: vec![flag],
         opcode: opcode,
         stream: stream,
         body: body
-    });
+    };
+
+    return conver_frame_into_result(frame);
+}
+
+fn conver_frame_into_result(frame: Frame) -> error::Result<Frame> {
+    match frame.opcode {
+        Opcode::Error => match frame.get_body() {
+            ResponseBody::Error(err) => Err(error::Error::Server(err)),
+            _ => unreachable!()
+        },
+        _ => Ok(frame)
+    }
 }
