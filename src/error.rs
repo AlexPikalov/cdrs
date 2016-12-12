@@ -6,9 +6,16 @@ use frame::frame_error::CDRSError;
 
 pub type Result<T> = result::Result<T, Error>;
 
+/// CDRS custom error type. CDRS expects two types of error - errors returned by Server
+/// and internal erros occured within the driver itself. Ocassionaly `io::Error`
+/// is a type that represent internal error because due to implementation IO errors only
+/// can be raised by CDRS driver. `Server` error is an error which are ones returned by
+/// a Server via result error frames.
 #[derive(Debug)]
 pub enum Error {
+    /// Internal IO error.
     Io(io::Error),
+    /// Server error.
     Server(CDRSError)
 }
 
@@ -33,5 +40,11 @@ impl error::Error for Error {
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {
         return Error::Io(err);
+    }
+}
+
+impl From<CDRSError> for Error {
+    fn from(err: CDRSError) -> Error {
+        return Error::Server(err);
     }
 }
