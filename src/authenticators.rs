@@ -5,13 +5,13 @@ pub trait Authenticator {
     fn get_cassandra_name(&self) -> &str;
 }
 
-pub struct PasswordAuthenticator {
-    username: String,
-    password: String
+pub struct PasswordAuthenticator<'a> {
+    username: &'a str,
+    password: &'a str
 }
 
-impl PasswordAuthenticator {
-    pub fn new(username: String, password: String) -> PasswordAuthenticator {
+impl<'a> PasswordAuthenticator<'a> {
+    pub fn new<'b>(username: &'b str, password: &'b str) -> PasswordAuthenticator<'b> {
         return PasswordAuthenticator {
             username: username,
             password: password
@@ -19,12 +19,12 @@ impl PasswordAuthenticator {
     }
 }
 
-impl Authenticator for PasswordAuthenticator {
+impl<'a> Authenticator for PasswordAuthenticator<'a> {
     fn get_auth_token(&self) -> CBytes {
         let mut token = vec![0];
-        token.extend_from_slice(self.username.clone().into_bytes().as_slice());
+        token.extend_from_slice(self.username.as_bytes());
         token.push(0);
-        token.extend_from_slice(self.password.clone().into_bytes().as_slice());
+        token.extend_from_slice(self.password.as_bytes());
 
         return CBytes::new(token);
     }
