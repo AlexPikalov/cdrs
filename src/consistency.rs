@@ -8,7 +8,7 @@ use super::FromBytes;
 
 /// `Consistency` is an enum which represents Cassandra's consistency levels.
 /// To find more details about each consistency level please refer to Cassandra official docs.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Consistency {
     #[allow(missing_docs)]
     Any,
@@ -92,7 +92,7 @@ impl FromBytes for Consistency {
 
 impl FromCursor for Consistency {
     fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> Consistency {
-        let consistency_num = CInt::from_cursor(&mut cursor) as i32;
+        let consistency_num = CIntShort::from_cursor(&mut cursor) as i32;
         return Consistency::from(consistency_num);
     }
 }
