@@ -63,9 +63,7 @@ use cdrs::authenticators::PasswordAuthenticator;
 After that you can create a new instace of `CDRS` and establish new connection:
 
 ```rust
-let user = "user".to_string();
-let pass = "pass".to_string();
-let authenticator = PasswordAuthenticator::new(user, pass);
+let authenticator = PasswordAuthenticator::new("user", "pass");
 
 // pass authenticator into CDRS' constructor
 let client = CDRS::new(addr, authenticator).unwrap();
