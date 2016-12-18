@@ -113,9 +113,28 @@ helpers only, but no helper methods which could easily map results into
 Rust structures. To have them is a goal of first stable version of CDRS.
 
 ```rust
-let select_query = String::from("SELECT * FROM ks.table;");
+use cdrs::consistency::Consistency;
+use cdrs::types::CBytes;
 
-match client.query(select_query) {
+let select_query = String::from("SELECT * FROM ks.table;");
+// Query parameters:
+let consistency = Consistency::One;
+let values: Option<Vec<Value>> = None;
+let with_names: Option<bool> = None;
+let page_size: Option<i32> = None;
+let paging_state Option<CBytes> = None;
+let serial_consistency: Option<Consistency> = None;
+let timestamp: Option<i64> = None;
+
+match client.query(select_query,
+    consistency,
+    values,
+    with_names,
+    page_size,
+    paging_state,
+    serial_consistency,
+    timestamp) {
+
     Ok(res) => println!("Result frame: {:?},\nparsed body: {:?}", res, res.get_body());,
     Err(err) => log!(err)
 }
