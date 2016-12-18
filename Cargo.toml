@@ -9,7 +9,6 @@ homepage = "https://github.com/AlexPikalov/cdrs"
 repository = "https://github.com/AlexPikalov/cdrs"
 readme = "./README.md"
 keywords = ["cassandra", "driver", "client", "cassandradb", "DB"]
-license = "MIT"
 license-file = "./license.txt"
 
 [dependencies]

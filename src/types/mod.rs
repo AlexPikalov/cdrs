@@ -11,7 +11,6 @@ use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use super::{FromBytes, IntoBytes, FromCursor};
 
 pub mod data_serialization_types;
-pub mod generic_types;
 pub mod value;
 
 /// Tries to converts u64 numerical value into array of n bytes.

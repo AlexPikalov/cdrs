@@ -4,7 +4,6 @@ use super::types::to_n_bytes;
 use super::{AsByte, IntoBytes};
 use self::frame_response::ResponseBody;
 use compression::Compression;
-use std::io;
 
 /// Number of version bytes in accordance to protocol.
 pub const VERSION_LEN: usize = 1;
@@ -33,6 +32,8 @@ pub mod frame_startup;
 pub mod frame_supported;
 pub mod parser;
 
+use error;
+
 #[derive(Debug)]
 pub struct Frame {
     pub version: Version,
@@ -47,7 +48,7 @@ impl Frame {
         return ResponseBody::from(self.body.clone(), &self.opcode);
     }
 
-    pub fn encode_with(self, compressor: Compression) -> io::Result<Vec<u8>> {
+    pub fn encode_with(self, compressor: Compression) -> error::Result<Vec<u8>> {
         let mut v = vec![];
 
         let version_bytes = self.version.as_byte();

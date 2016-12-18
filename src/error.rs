@@ -3,6 +3,7 @@ use std::fmt;
 use std::io;
 use std::result;
 use frame::frame_error::CDRSError;
+use compression::CompressionError;
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -15,6 +16,8 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     /// Internal IO error.
     Io(io::Error),
+    /// Compression/Decompression error
+    Compression(CompressionError),
     /// Server error.
     Server(CDRSError)
 }
@@ -23,6 +26,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Error::Io(ref err) => write!(f, "IO error: {}", err),
+            Error::Compression(ref err) => write!(f, "Compressor error: {}", err),
             Error::Server(ref err) => write!(f, "Server error: {:?}", err.message),
         }
     }
@@ -32,6 +36,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::Io(ref err) => err.description(),
+            Error::Compression(ref err) => err.description(),
             Error::Server(ref err) => err.message.as_str(),
         }
     }
@@ -46,5 +51,11 @@ impl From<io::Error> for Error {
 impl From<CDRSError> for Error {
     fn from(err: CDRSError) -> Error {
         return Error::Server(err);
+    }
+}
+
+impl From<CompressionError> for Error {
+    fn from(err: CompressionError) -> Error {
+        return Error::Compression(err);
     }
 }
