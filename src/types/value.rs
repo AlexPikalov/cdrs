@@ -1,6 +1,7 @@
 use super::super::IntoBytes;
 use super::*;
 
+/// Types of Cassandra value: normal value (bits), null value and not-set value
 pub enum ValueType {
     Normal(i32),
     Null,
@@ -17,12 +18,14 @@ impl IntoBytes for ValueType {
     }
 }
 
+/// Cassandra value which could be an array of bytes, null and non-set values.
 pub struct Value {
     pub body: Vec<u8>,
     pub value_type: ValueType
 }
 
 impl Value {
+    /// The factory method which creates a normal type value basing on provided bytes.
     pub fn new_normal(body: Vec<u8>) -> Value {
         let l = body.len() as i32;
         return Value {
@@ -31,6 +34,7 @@ impl Value {
         };
     }
 
+    /// The factory method which creates null Cassandra value.
     pub fn new_null() -> Value {
         return Value {
             body: vec![],
@@ -38,6 +42,7 @@ impl Value {
         };
     }
 
+    /// The factory method which creates non-set Cassandra value.
     pub fn new_not_set() -> Value {
         return Value {
             body: vec![],
