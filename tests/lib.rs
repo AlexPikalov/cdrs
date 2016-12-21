@@ -1,4 +1,5 @@
 extern crate cdrs;
+extern crate byteorder;
 
 mod types;
 

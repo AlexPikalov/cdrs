@@ -1,6 +1,16 @@
 use std::io::Cursor;
 use cdrs::*;
-use cdrs::types::*;
+use cdrs::types::{
+    CString,
+    CStringLong,
+    CStringList,
+    CBytes,
+    CBytesShort,
+    CInt,
+    CIntShort,
+    cursor_next_value};
+
+mod value;
 
 // CString
 #[test]

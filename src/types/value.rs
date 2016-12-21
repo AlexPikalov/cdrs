@@ -1,5 +1,5 @@
 use super::super::IntoBytes;
-use super::to_int;
+use super::*;
 
 pub enum ValueType {
     Normal(i32),
@@ -11,8 +11,8 @@ impl IntoBytes for ValueType {
     fn into_cbytes(&self) -> Vec<u8> {
         return match *self {
             ValueType::Normal(n) => to_int(n as i64),
-            ValueType::Null => to_int(-1),
-            ValueType::NotSet => to_int(-2)
+            ValueType::Null => i_to_n_bytes(-1, INT_LEN),
+            ValueType::NotSet => i_to_n_bytes(-2, INT_LEN)
         };
     }
 }

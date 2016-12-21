@@ -7,7 +7,7 @@ pub const INT_LEN: usize = 4;
 
 use std::io;
 use std::io::{Cursor, Read};
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt, ByteOrder};
 use super::{FromBytes, IntoBytes, FromCursor};
 
 pub mod data_serialization_types;
@@ -27,8 +27,11 @@ pub fn to_n_bytes(int: u64, n: usize) -> Vec<u8> {
 }
 
 pub fn try_i_to_n_bytes(int: i64, n: usize) -> io::Result<Vec<u8>> {
-    let mut bytes = vec![];
-    try!(bytes.write_int::<BigEndian>(int, n));
+    let mut bytes = Vec::with_capacity(n);
+    unsafe {
+        bytes.set_len(n);
+    }
+    BigEndian::write_int(&mut bytes, int, n);
 
     return Ok(bytes);
 }
