@@ -175,10 +175,3 @@ pub fn decode_udt(bytes: Vec<u8>) -> Result<Vec<CBytes>, io::Error> {
     let list = (0..l).map(|_| CBytes::from_cursor(&mut cursor)).collect();
     return Ok(list);
 }
-
-#[macro_export]
-macro_rules! hi {
-    () => {
-        println!("hi!!");
-    };
-}

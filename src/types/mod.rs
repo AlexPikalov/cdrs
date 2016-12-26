@@ -11,7 +11,13 @@ use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt, ByteOrder};
 use super::{FromBytes, IntoBytes, FromCursor};
 
 pub mod data_serialization_types;
+pub mod list;
+pub mod rows;
 pub mod value;
+
+pub trait AsRust<T> {
+    fn as_rust(&self) -> Option<T>;
+}
 
 /// Tries to converts u64 numerical value into array of n bytes.
 pub fn try_to_n_bytes(int: u64, n: usize) -> io::Result<Vec<u8>> {
@@ -235,6 +241,9 @@ impl CBytes {
     /// Converts `CBytes` into a plain array of bytes
     pub fn into_plain(self) -> Vec<u8> {
         return self.bytes;
+    }
+    pub fn as_plain(&self) -> Vec<u8> {
+        return self.bytes.clone();
     }
 }
 

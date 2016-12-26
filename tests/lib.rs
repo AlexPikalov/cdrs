@@ -6,3 +6,4 @@ mod types;
 mod authenticators;
 mod compression;
 mod consistency;
+mod rows;
