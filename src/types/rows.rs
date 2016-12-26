@@ -1,8 +1,9 @@
 use std::net;
 
-use frame::frame_result::{RowsMetadata, ColType, BodyResResultRows};
+use frame::frame_result::{RowsMetadata, ColType, ColSpec, BodyResResultRows};
 use types::{CBytes};
 use types::data_serialization_types::*;
+use types::list::List;
 
 pub trait IntoRustByName<R> {
     fn get_by_name(&self, name: &str) -> Option<R>;
@@ -32,6 +33,17 @@ impl Row {
         let i = i_opt.unwrap();
         let ref data: CBytes = self.row_content[i];
         let ref cassandra_type: ColType = self.metadata.col_specs[i].col_type.id;
+        return Some((cassandra_type, data));
+    }
+
+    fn get_col_spec_by_name(&self, name: &str) -> Option<(&ColSpec, &CBytes)> {
+        let i_opt = self.metadata.col_specs.iter().position(|spec| spec.name.as_str() == name);
+        if !i_opt.is_some() {
+            return None;
+        }
+        let i = i_opt.unwrap();
+        let ref data: CBytes = self.row_content[i];
+        let ref cassandra_type: ColSpec = self.metadata.col_specs[i];
         return Some((cassandra_type, data));
     }
 }
@@ -191,18 +203,21 @@ impl IntoRustByName<net::IpAddr> for Row {
     }
 }
 
-// impl IntoRustByName<Vec<T>> for Row {
-//     fn get_by_name(&self, name: &str) -> Option<net::IpAddr> {
-//         let col = self.get_col_by_name(name);
-//         if col.is_none() {
-//             return None;
-//         }
-//         let (cassandra_type, cbytes) = col.unwrap();
-//         let bytes = cbytes.as_plain().clone();
-//
-//         return match cassandra_type {
-//             &ColType::Inet => decode_inet(bytes).ok(),
-//             _ => None
-//         }
-//     }
-// }
+impl IntoRustByName<List> for Row {
+    fn get_by_name(&self, name: &str) -> Option<List> {
+        let col = self.get_col_spec_by_name(name);
+        if col.is_none() {
+            return None;
+        }
+        let (cassandra_type, cbytes) = col.unwrap();
+        let bytes = cbytes.as_plain().clone();
+
+        return match cassandra_type.col_type.id {
+            ColType::List => Some(List::new(decode_list(bytes).unwrap(), cassandra_type.col_type.clone())),
+            ColType::Set => Some(List::new(decode_set(bytes).unwrap(), cassandra_type.col_type.clone())),
+            _ => None
+        }
+    }
+}
+
+//TODO: add map and udt
