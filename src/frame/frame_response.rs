@@ -6,10 +6,11 @@ use types::*;
 use frame::*;
 use frame::frame_result::*;
 use frame::frame_error::CDRSError;
-use super::frame_supported::*;
-use super::frame_auth_challenge::*;
-use super::frame_authenticate::BodyResAuthenticate;
-use super::frame_auth_success::BodyReqAuthSuccess;
+use frame::frame_supported::*;
+use frame::frame_auth_challenge::*;
+use frame::frame_authenticate::BodyResAuthenticate;
+use frame::frame_auth_success::BodyReqAuthSuccess;
+use types::rows::Row;
 
 #[derive(Debug)]
 pub enum ResponseBody {
@@ -65,6 +66,13 @@ impl ResponseBody {
                     _ => None
                 }
             },
+            _ => None
+        }
+    }
+
+    pub fn into_rows(self) -> Option<Vec<Row>> {
+        match self {
+            ResponseBody::Result(res) => res.into_rows(),
             _ => None
         }
     }

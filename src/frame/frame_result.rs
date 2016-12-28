@@ -1,6 +1,8 @@
 use std::io::Cursor;
-use super::super::{IntoBytes, FromBytes, FromCursor};
-use super::super::types::*;
+use {IntoBytes, FromBytes, FromCursor};
+use types::*;
+use types::rows::Row;
+
 
 /// `ResultKind` is enum which represents types of result.
 pub enum ResultKind {
@@ -84,6 +86,14 @@ impl ResResultBody {
             ResultKind::SetKeyspace => ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)),
             _ => unimplemented!()
         };
+    }
+
+    /// It converts body into `Vec<Row>` if body's type is `Row` and returns `None` otherwise.
+    pub fn into_rows(self) -> Option<Vec<Row>> {
+        return match self {
+            ResResultBody::Rows(rows_body) => Some(Row::from_frame_body(rows_body)),
+            _ => None
+        }
     }
 }
 
