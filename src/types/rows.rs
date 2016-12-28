@@ -1,10 +1,11 @@
 use std::net;
 
-use frame::frame_result::{RowsMetadata, ColType, ColSpec, BodyResResultRows};
+use frame::frame_result::{RowsMetadata, ColType, ColSpec, BodyResResultRows, ColTypeOptionValue};
 use types::{CBytes, IntoRustByName};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
+use types::udt::UDT;
 
 pub struct Row {
     metadata: RowsMetadata,
@@ -233,4 +234,24 @@ impl IntoRustByName<Map> for Row {
     }
 }
 
-//TODO: add udt
+impl IntoRustByName<UDT> for Row {
+    fn get_by_name(&self, name: &str) -> Option<UDT> {
+        let col = self.get_col_spec_by_name(name);
+        if col.is_none() {
+            return None;
+        }
+        let (cassandra_type, cbytes) = col.unwrap();
+        let bytes = cbytes.as_plain().clone();
+        let cudt = match cassandra_type.col_type.value {
+            Some(ColTypeOptionValue::UdtType(ref t)) => t.clone(),
+            _ => return None
+        };
+
+        return match cassandra_type.col_type.id {
+            ColType::Map => Some(UDT::new(decode_udt(bytes).unwrap(), cudt)),
+            _ => None
+        }
+    }
+}
+
+//TODO: add uuid

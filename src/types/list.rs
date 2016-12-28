@@ -3,8 +3,9 @@ use frame::frame_result::{ColType, ColTypeOptionValue, ColTypeOption};
 use types::{CBytes, AsRust};
 use types::data_serialization_types::*;
 use types::map::Map;
+use types::udt::UDT;
 
-
+// TODO: consider using pointers to ColTypeOption and Vec<CBytes> instead of owning them.
 pub struct List {
     /// column spec of the list, i.e. id should be List as it's a list and value should contain
     /// a type of list items.
@@ -434,4 +435,55 @@ impl AsRust<Vec<Map>> for List {
     }
 }
 
-// TODO: implement for list of UDTs
+impl AsRust<Vec<UDT>> for List {
+    /// Converts cassandra list of Inet values into Rust `Vec<List>`
+    fn as_rust(&self) -> Option<Vec<UDT>> {
+        if self.metadata.value.is_none() {
+            return None;
+        }
+
+        match self.metadata.value.clone().unwrap() {
+            // convert CList of T-s into List of T-s
+            ColTypeOptionValue::CList(ref type_option) => {
+                let ref id = type_option.id;
+                let list_type_option_box: Box<ColTypeOption> = type_option.clone();
+                let list_type_option = match list_type_option_box.value {
+                    Some(ColTypeOptionValue::UdtType(t)) => t,
+                    _ => return None
+                };
+                match id {
+                    // T is Udt
+                    &ColType::Udt => Some(
+                        self.map(|bytes| UDT::new(
+                            decode_udt(bytes.as_plain()).unwrap(),
+                            list_type_option.clone())
+                        )
+                    ),
+                    _ => None
+                }
+            },
+            // convert CSet of T-s into List of T-s
+            ColTypeOptionValue::CSet(ref type_option) => {
+                let ref id = type_option.id;
+                let list_type_option_box: Box<ColTypeOption> = type_option.clone();
+                let list_type_option = match list_type_option_box.value {
+                    Some(ColTypeOptionValue::UdtType(t)) => t,
+                    _ => return None
+                };
+                match id {
+                    // T is Udt
+                    &ColType::Udt => Some(
+                        self.map(|bytes| UDT::new(
+                            decode_udt(bytes.as_plain()).unwrap(),
+                            list_type_option.clone())
+                        )
+                    ),
+                    _ => None
+                }
+            }
+            _ => None
+        }
+    }
+}
+
+// TODO: implement for list of uuid

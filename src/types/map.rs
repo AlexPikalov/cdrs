@@ -4,6 +4,7 @@ use types::{AsRust, CBytes};
 use frame::frame_result::{ColTypeOption, ColTypeOptionValue, ColType};
 use types::data_serialization_types::*;
 use types::list::List;
+use types::udt::UDT;
 
 pub struct Map {
     metadata: ColTypeOption,
@@ -434,4 +435,40 @@ impl AsRust<HashMap<String, Map>> for Map {
     }
 }
 
-// TODO: sRust<HashMap<String, UDT>>
+impl AsRust<HashMap<String, UDT>> for Map {
+    /// Converts `Map` into `HashMap<String, Map>` for Map address values.
+    fn as_rust(&self) -> Option<HashMap<String, UDT>> {
+        if self.metadata.value.is_none() {
+            return None;
+        }
+
+        let map: HashMap<String, UDT> = HashMap::new();
+
+        match self.metadata.value.clone().unwrap() {
+            ColTypeOptionValue::CMap((_, value_type_option)) => {
+                let list_type_option = match value_type_option.value {
+                    Some(ColTypeOptionValue::UdtType(ref t)) => t,
+                    _ => return None
+                };
+
+                match value_type_option.id {
+                    ColType::Udt => Some(
+                        self.data
+                            .iter()
+                            .fold(map, |mut acc, (k, vb)| {
+                                let list = UDT::new(
+                                    decode_udt(vb.as_plain()).unwrap(),
+                                    list_type_option.clone());
+                                acc.insert(k.clone(), list);
+                                return acc;
+                            })
+                    ),
+                    _ => None
+                }
+            },
+            _ => None
+        }
+    }
+}
+
+// TODO: uuid

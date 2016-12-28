@@ -14,6 +14,7 @@ pub mod data_serialization_types;
 pub mod list;
 pub mod map;
 pub mod rows;
+pub mod udt;
 pub mod value;
 
 /// Should be used to represent a single column as a Rust value.
@@ -133,6 +134,11 @@ impl CString {
     /// Converts internal value into a plain `String`.
     pub fn into_plain(self) -> String {
         return self.string;
+    }
+
+    /// Represents internal value as a `String`.
+    pub fn as_plain(&self) -> String {
+        return self.string.clone();
     }
 }
 
