@@ -141,6 +141,72 @@ match client.query(select_query,
 
 ```
 
+##### Select Query (mapping results):
+
+Once CDRS got response to `SELECT` query you can map rows encapsulated within
+`Result` frame into Rust values or into `List`, `Map` or `UDT` helper structures
+which provide a way to convert wrapped values into plain ones.
+
+As an example let's consider a case when application gets a collection
+of messages of following format:
+
+```rust
+
+struct Message {
+    pub author: String,
+    pub text: String
+}
+
+```
+
+To get a collection of messages `Vec<Message>` let's convert a result of query
+into collection of rows `Vec<cdrs::types::row::Row>` and then convert each column
+into appropriate Rust type:
+
+```rust
+let res_body = parsed.get_body();
+let rows = res_body.into_rows().unwrap();
+let messages: Vec<Message> = rows
+    .iter()
+    .map(|row| Message {
+        author: row.get_by_name("author").unwrap(),
+        text: row.get_by_name("text").unwrap()
+    })
+    .collect();
+
+```
+
+There is no difference between Cassandra's List and Sets in terms of Rust.
+They could be represented as `Vec<T>`. To convert a frame into a structure
+that contains a collection of elements do as follows:
+
+```rust
+
+struct Author {
+    pub name: String,
+    pub messages: Vec<String>
+}
+
+//...
+
+let res_body = parsed.get_body();
+let rows = res_body.into_rows().unwrap();
+let messages: Vec<Author> = rows
+    .iter()
+    .map(|row| {
+        let name: String = row.get_by_name("name").unwrap();
+        let messages: Vec<String> = row
+            .get_by_name("messages").unwrap()
+            .as_rust().unwrap();
+        return Author {
+            author: name,
+            text: messages
+        }
+    })
+    .collect();
+
+```
+
 ### License
 
 The MIT License (MIT)
