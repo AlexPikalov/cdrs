@@ -1,14 +1,10 @@
 use std::net;
 
 use frame::frame_result::{RowsMetadata, ColType, ColSpec, BodyResResultRows};
-use types::{CBytes};
+use types::{CBytes, IntoRustByName};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
-
-pub trait IntoRustByName<R> {
-    fn get_by_name(&self, name: &str) -> Option<R>;
-}
 
 pub struct Row {
     metadata: RowsMetadata,

@@ -16,8 +16,15 @@ pub mod map;
 pub mod rows;
 pub mod value;
 
+/// Should be used to represent a single column as a Rust value.
+// TODO: change Option to Result, create a new type of error for that.
 pub trait AsRust<T> {
     fn as_rust(&self) -> Option<T>;
+}
+
+/// Should be used to return a single column as Rust value by its name.
+pub trait IntoRustByName<R> {
+    fn get_by_name(&self, name: &str) -> Option<R>;
 }
 
 /// Tries to converts u64 numerical value into array of n bytes.
