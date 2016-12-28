@@ -12,6 +12,7 @@ use super::{FromBytes, IntoBytes, FromCursor};
 
 pub mod data_serialization_types;
 pub mod list;
+pub mod map;
 pub mod rows;
 pub mod value;
 

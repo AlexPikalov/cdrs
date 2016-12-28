@@ -2,6 +2,7 @@ use std::net;
 use frame::frame_result::{ColType, ColTypeOptionValue, ColTypeOption};
 use types::{CBytes, AsRust};
 use types::data_serialization_types::*;
+use types::map::Map;
 
 
 pub struct List {
@@ -43,6 +44,14 @@ impl AsRust<Vec<Vec<u8>>> for List {
                     _ => None
                 }
             },
+            ColTypeOptionValue::CSet(ref type_option) => {
+                match type_option.id {
+                    ColType::Blob => Some(
+                        self.map(|bytes| decode_blob(bytes.as_plain()).unwrap())
+                    ),
+                    _ => None
+                }
+            },
             _ => None
         }
     }
@@ -57,6 +66,20 @@ impl AsRust<Vec<String>> for List {
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
+                match type_option.id {
+                    ColType::Custom => Some(
+                        self.map(|bytes| decode_custom(bytes.as_plain()).unwrap())
+                    ),
+                    ColType::Ascii => Some(
+                        self.map(|bytes| decode_ascii(bytes.as_plain()).unwrap())
+                    ),
+                    ColType::Varchar => Some(
+                        self.map(|bytes| decode_varchar(bytes.as_plain()).unwrap())
+                    ),
+                    _ => None
+                }
+            },
+            ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
                     ColType::Custom => Some(
                         self.map(|bytes| decode_custom(bytes.as_plain()).unwrap())
@@ -91,6 +114,14 @@ impl AsRust<Vec<bool>> for List {
                     _ => None
                 }
             },
+            ColTypeOptionValue::CSet(ref type_option) => {
+                match type_option.id {
+                    ColType::Boolean => Some(
+                        self.map(|bytes| decode_boolean(bytes.as_plain()).unwrap())
+                    ),
+                    _ => None
+                }
+            },
             _ => None
         }
     }
@@ -105,6 +136,23 @@ impl AsRust<Vec<i64>> for List {
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
+                match type_option.id {
+                    ColType::Bigint => Some(
+                        self.map(|bytes| decode_bigint(bytes.as_plain()).unwrap())
+                    ),
+                    ColType::Timestamp => Some(
+                        self.map(|bytes| decode_timestamp(bytes.as_plain()).unwrap())
+                    ),
+                    ColType::Time => Some(
+                        self.map(|bytes| decode_time(bytes.as_plain()).unwrap())
+                    ),
+                    ColType::Varint => Some(
+                        self.map(|bytes| decode_varint(bytes.as_plain()).unwrap())
+                    ),
+                    _ => None
+                }
+            },
+            ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
                     ColType::Bigint => Some(
                         self.map(|bytes| decode_bigint(bytes.as_plain()).unwrap())
@@ -145,6 +193,17 @@ impl AsRust<Vec<i32>> for List {
                     _ => None
                 }
             },
+            ColTypeOptionValue::CSet(ref type_option) => {
+                match type_option.id {
+                    ColType::Int => Some(
+                        self.map(|bytes| decode_int(bytes.as_plain()).unwrap())
+                    ),
+                    ColType::Date => Some(
+                        self.map(|bytes| decode_date(bytes.as_plain()).unwrap())
+                    ),
+                    _ => None
+                }
+            },
             _ => None
         }
     }
@@ -166,6 +225,14 @@ impl AsRust<Vec<i16>> for List {
                     _ => None
                 }
             },
+            ColTypeOptionValue::CSet(ref type_option) => {
+                match type_option.id {
+                    ColType::Smallint => Some(
+                        self.map(|bytes| decode_smallint(bytes.as_plain()).unwrap())
+                    ),
+                    _ => None
+                }
+            },
             _ => None
         }
     }
@@ -180,6 +247,14 @@ impl AsRust<Vec<f64>> for List {
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
+                match type_option.id {
+                    ColType::Double => Some(
+                        self.map(|bytes| decode_double(bytes.as_plain()).unwrap())
+                    ),
+                    _ => None
+                }
+            },
+            ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
                     ColType::Double => Some(
                         self.map(|bytes| decode_double(bytes.as_plain()).unwrap())
@@ -211,6 +286,17 @@ impl AsRust<Vec<f32>> for List {
                     _ => None
                 }
             },
+            ColTypeOptionValue::CSet(ref type_option) => {
+                match type_option.id {
+                    ColType::Decimal => Some(
+                        self.map(|bytes| decode_decimal(bytes.as_plain()).unwrap())
+                    ),
+                    ColType::Float => Some(
+                        self.map(|bytes| decode_float(bytes.as_plain()).unwrap())
+                    ),
+                    _ => None
+                }
+            },
             _ => None
         }
     }
@@ -225,6 +311,14 @@ impl AsRust<Vec<net::IpAddr>> for List {
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
+                match type_option.id {
+                    ColType::Inet => Some(
+                        self.map(|bytes| decode_inet(bytes.as_plain()).unwrap())
+                    ),
+                    _ => None
+                }
+            },
+            ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
                     ColType::Inet => Some(
                         self.map(|bytes| decode_inet(bytes.as_plain()).unwrap())
@@ -295,4 +389,49 @@ impl AsRust<Vec<List>> for List {
     }
 }
 
-// TODO: implement for list maps and UDTs
+impl AsRust<Vec<Map>> for List {
+    /// Converts cassandra list of Inet values into Rust `Vec<List>`
+    fn as_rust(&self) -> Option<Vec<Map>> {
+        if self.metadata.value.is_none() {
+            return None;
+        }
+
+        match self.metadata.value.clone().unwrap() {
+            // convert CList of T-s into List of T-s
+            ColTypeOptionValue::CList(ref type_option) => {
+                let ref id = type_option.id;
+                let list_type_option_box: Box<ColTypeOption> = type_option.clone();
+                let list_type_option: &ColTypeOption = list_type_option_box.as_ref();
+                match id {
+                    // T is Map
+                    &ColType::Map => Some(
+                        self.map(|bytes| Map::new(
+                            decode_map(bytes.as_plain()).unwrap(),
+                            list_type_option.clone())
+                        )
+                    ),
+                    _ => None
+                }
+            },
+            // convert CSet of T-s into List of T-s
+            ColTypeOptionValue::CSet(ref type_option) => {
+                let ref id = type_option.id;
+                let list_type_option_box: Box<ColTypeOption> = type_option.clone();
+                let list_type_option: &ColTypeOption = list_type_option_box.as_ref();
+                match id {
+                    // T is Map
+                    &ColType::Map => Some(
+                        self.map(|bytes| Map::new(
+                            decode_map(bytes.as_plain()).unwrap(),
+                            list_type_option.clone())
+                        )
+                    ),
+                    _ => None
+                }
+            }
+            _ => None
+        }
+    }
+}
+
+// TODO: implement for list of UDTs

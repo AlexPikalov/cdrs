@@ -4,6 +4,7 @@ use frame::frame_result::{RowsMetadata, ColType, ColSpec, BodyResResultRows};
 use types::{CBytes};
 use types::data_serialization_types::*;
 use types::list::List;
+use types::map::Map;
 
 pub trait IntoRustByName<R> {
     fn get_by_name(&self, name: &str) -> Option<R>;
@@ -220,4 +221,20 @@ impl IntoRustByName<List> for Row {
     }
 }
 
-//TODO: add map and udt
+impl IntoRustByName<Map> for Row {
+    fn get_by_name(&self, name: &str) -> Option<Map> {
+        let col = self.get_col_spec_by_name(name);
+        if col.is_none() {
+            return None;
+        }
+        let (cassandra_type, cbytes) = col.unwrap();
+        let bytes = cbytes.as_plain().clone();
+
+        return match cassandra_type.col_type.id {
+            ColType::Map => Some(Map::new(decode_map(bytes).unwrap(), cassandra_type.col_type.clone())),
+            _ => None
+        }
+    }
+}
+
+//TODO: add udt
