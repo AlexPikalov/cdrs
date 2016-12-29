@@ -33,7 +33,7 @@ pub struct CDRS<T: Authenticator> {
     authenticator: T
 }
 
-impl<T: Authenticator> CDRS<T> {
+impl<'a, T: Authenticator + 'a> CDRS<T> {
     /// The method creates new instance of CDRS driver. At this step an instance doesn't
     /// connected to DB Server. To create new instance two parameters are needed to be
     /// provided - `addr` is IP address of DB Server, `authenticator` is a selected authenticator
@@ -56,7 +56,7 @@ impl<T: Authenticator> CDRS<T> {
     /// method provided by CRDR driver, it's `Compression::None` that tells drivers that it
     /// should work without compression. If compression is provided then incomming frames
     /// will be decompressed automatically.
-    pub fn start(&mut self, compressor: Compression) -> error::Result<Frame> {
+    pub fn start(mut self, compressor: Compression) -> error::Result<Session<T>> {
         self.compressor = compressor;
         let mut tcp = try!(self.tcp.try_clone());
         let startup_frame = Frame::new_req_startup(compressor.into_string()).into_cbytes();
@@ -65,7 +65,7 @@ impl<T: Authenticator> CDRS<T> {
         let start_response = try!(parse_frame(tcp, &compressor));
 
         if start_response.opcode == Opcode::Ready {
-            return Ok(start_response);
+            return Ok(Session::start(self));
         }
 
         if start_response.opcode == Opcode::Authenticate {
@@ -76,9 +76,9 @@ impl<T: Authenticator> CDRS<T> {
                 let mut tcp_auth = try!(self.tcp.try_clone());
                 let auth_token_bytes = self.authenticator.get_auth_token().into_cbytes();
                 try!(tcp_auth.write(Frame::new_req_auth_response(auth_token_bytes).into_cbytes().as_slice()));
-                let auth_response = try!(parse_frame(tcp_auth, &compressor));
+                try!(parse_frame(tcp_auth, &compressor));
 
-                return Ok(auth_response);
+                return Ok(Session::start(self));
             } else {
                 let io_err = io::Error::new(
                     io::ErrorKind::NotFound,
@@ -92,34 +92,60 @@ impl<T: Authenticator> CDRS<T> {
         unimplemented!();
     }
 
+    pub fn drop_connection(&self) -> error::Result<()> {
+        return self.tcp.shutdown(net::Shutdown::Both)
+            .map_err(|err| error::Error::Io(err));
+    }
+}
+
+pub struct Session<T: Authenticator> {
+    started: bool,
+    cdrs: CDRS<T>
+}
+
+impl<T: Authenticator> Session<T> {
+    pub fn start(cdrs: CDRS<T>) -> Session<T> {
+        return Session {
+            cdrs: cdrs,
+            started: true
+        };
+    }
+
+    pub fn end(&mut self) {
+        if self.started {
+            self.started = false;
+            self.cdrs.drop_connection().expect("should not fail during ending session");
+        }
+    }
+
     /// The method makes an Option request to DB Server. As a response the server returns
     /// a map of supported options. A result is wrapped into original frame.
     pub fn options(&self) -> error::Result<Frame> {
-        let mut tcp = try!(self.tcp.try_clone());
+        let mut tcp = try!(self.cdrs.tcp.try_clone());
         let options_frame = Frame::new_req_options().into_cbytes();
 
         try!(tcp.write(options_frame.as_slice()));
-        return parse_frame(tcp, &self.compressor);
+        return parse_frame(tcp, &self.cdrs.compressor);
     }
 
     /// The method makes a request to DB Server to prepare provided query.
     pub fn prepare(&self, query: String) -> error::Result<Frame> {
-        let mut tcp = try!(self.tcp.try_clone());
+        let mut tcp = try!(self.cdrs.tcp.try_clone());
         let options_frame = Frame::new_req_prepare(query).into_cbytes();
 
         try!(tcp.write(options_frame.as_slice()));
-        return parse_frame(tcp, &self.compressor);
+        return parse_frame(tcp, &self.cdrs.compressor);
     }
 
     /// The method makes a request to DB Server to execute a query with provided id
     /// using provided query parameters. `id` is an ID of a query which Server
     /// returns back to a driver as a response to `prepare` request.
     pub fn execute(&self, id: CBytesShort, query_parameters: ParamsReqQuery) -> error::Result<Frame> {
-        let mut tcp = try!(self.tcp.try_clone());
+        let mut tcp = try!(self.cdrs.tcp.try_clone());
         let options_frame = Frame::new_req_execute(id, query_parameters).into_cbytes();
 
         try!(tcp.write(options_frame.as_slice()));
-        return parse_frame(tcp, &self.compressor);
+        return parse_frame(tcp, &self.cdrs.compressor);
     }
 
     /// The method makes a request to DB Server to execute a query provided in `query` argument.
@@ -135,7 +161,7 @@ impl<T: Authenticator> CDRS<T> {
             serial_consistency: Option<Consistency>,
             timestamp: Option<i64>) -> error::Result<Frame> {
 
-        let mut tcp = try!(self.tcp.try_clone());
+        let mut tcp = try!(self.cdrs.tcp.try_clone());
         let query_frame = Frame::new_req_query(query.clone(),
             consistency,
             values,
@@ -146,6 +172,6 @@ impl<T: Authenticator> CDRS<T> {
             timestamp).into_cbytes();
 
         try!(tcp.write(query_frame.as_slice()));
-        return parse_frame(tcp, &self.compressor);
+        return parse_frame(tcp, &self.cdrs.compressor);
     }
 }

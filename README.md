@@ -64,8 +64,8 @@ let authenticator = PasswordAuthenticator::new("user", "pass");
 // pass authenticator into CDRS' constructor
 let client = CDRS::new(addr, authenticator).unwrap();
 use cdrs::compression;
-// without compression
-let response_frame = try!(client.start(compression::None));
+// start session without compression
+let mut session = try!(client.start(compression::None));
 ```
 
 If Server does not require authorization `authenticator` won't be used, but is still
@@ -78,12 +78,12 @@ and [lz4](https://code.google.com/p/lz4/). To use compression just start connect
 with desired type:
 
 ```rust
-// client without compression
-client.start(compression::None);
-// client  lz4 compression
-client.start(compression::Lz4);
-// client with snappy compression
-client.start(compression::Snappy);
+// session without compression
+let mut session_res = client.start(compression::None);
+// session  lz4 compression
+let mut session_res = client.start(compression::Lz4);
+// v with snappy compression
+let mut session_res = client.start(compression::Snappy);
 ```
 
 #### Query execution
@@ -93,7 +93,7 @@ client.start(compression::Snappy);
 ```rust
 let use_query = String::from("USE my_namespace;");
 
-match client.query(use_query) {
+match session.query(use_query) {
     Ok(set_keyspace) => {
         // use_keyspace is a result frame of type SetKeyspace
     },
@@ -122,7 +122,7 @@ let paging_state Option<CBytes> = None;
 let serial_consistency: Option<Consistency> = None;
 let timestamp: Option<i64> = None;
 
-match client.query(select_query,
+match session.query(select_query,
     consistency,
     values,
     with_names,
