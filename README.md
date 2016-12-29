@@ -88,6 +88,9 @@ let mut session_res = client.start(compression::Snappy);
 
 #### Query execution
 
+Query execution is provided in scope of Session. So to start executing queries
+you need to start Session first. 
+
 ##### Use Query:
 
 ```rust
