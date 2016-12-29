@@ -1,4 +1,5 @@
 use std::net;
+use uuid::Uuid;
 
 use frame::frame_result::{RowsMetadata, ColType, ColSpec, BodyResResultRows, ColTypeOptionValue};
 use types::{CBytes, IntoRustByName};
@@ -196,6 +197,23 @@ impl IntoRustByName<net::IpAddr> for Row {
 
         return match cassandra_type {
             &ColType::Inet => decode_inet(bytes).ok(),
+            _ => None
+        }
+    }
+}
+
+impl IntoRustByName<Uuid> for Row {
+    fn get_by_name(&self, name: &str) -> Option<Uuid> {
+        let col = self.get_col_by_name(name);
+        if col.is_none() {
+            return None;
+        }
+        let (cassandra_type, cbytes) = col.unwrap();
+        let bytes = cbytes.as_plain().clone();
+
+        return match cassandra_type {
+            &ColType::Uuid => decode_timeuuid(bytes).ok(),
+            &ColType::Timeuuid => decode_timeuuid(bytes).ok(),
             _ => None
         }
     }

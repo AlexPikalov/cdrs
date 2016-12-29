@@ -1,5 +1,7 @@
 use std::net;
 use std::collections::HashMap;
+use uuid::Uuid;
+
 use frame::frame_result::{ColTypeOption, CUdt, ColType, ColTypeOptionValue};
 use types::{CBytes, IntoRustByName};
 use types::data_serialization_types::*;
@@ -140,6 +142,19 @@ impl IntoRustByName<net::IpAddr> for UDT {
             let &(ref col_type, ref bytes) = v;
             return match col_type.id {
                 ColType::Inet => decode_inet(bytes.as_plain()).ok(),
+                _ => None
+            }
+        });
+    }
+}
+
+impl IntoRustByName<Uuid> for UDT {
+    fn get_by_name(&self, name: &str) -> Option<Uuid> {
+        return self.data.get(name).and_then(|v| {
+            let &(ref col_type, ref bytes) = v;
+            return match col_type.id {
+                ColType::Uuid => decode_timeuuid(bytes.as_plain()).ok(),
+                ColType::Timeuuid => decode_timeuuid(bytes.as_plain()).ok(),
                 _ => None
             }
         });

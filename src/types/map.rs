@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 use std::net;
+use uuid::Uuid;
+
 use types::{AsRust, CBytes};
 use frame::frame_result::{ColTypeOption, ColTypeOptionValue, ColType};
 use types::data_serialization_types::*;
@@ -351,6 +353,42 @@ impl AsRust<HashMap<String, net::IpAddr>> for Map {
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
                                 acc.insert(k.clone(), decode_inet(vb.as_plain()).unwrap());
+                                return acc;
+                            })
+                    ),
+                    _ => None
+                }
+            },
+            _ => None
+        }
+    }
+}
+
+impl AsRust<HashMap<String, Uuid>> for Map {
+    /// Converts `Map` into `HashMap<String, Uuid>` for IP address values.
+    fn as_rust(&self) -> Option<HashMap<String, Uuid>> {
+        if self.metadata.value.is_none() {
+            return None;
+        }
+
+        let map: HashMap<String, Uuid> = HashMap::new();
+
+        match self.metadata.value.clone().unwrap() {
+            ColTypeOptionValue::CMap((_, value_type_option)) => {
+                match value_type_option.id {
+                    ColType::Uuid => Some(
+                        self.data
+                            .iter()
+                            .fold(map, |mut acc, (k, vb)| {
+                                acc.insert(k.clone(), decode_timeuuid(vb.as_plain()).unwrap());
+                                return acc;
+                            })
+                    ),
+                    ColType::Timeuuid => Some(
+                        self.data
+                            .iter()
+                            .fold(map, |mut acc, (k, vb)| {
+                                acc.insert(k.clone(), decode_timeuuid(vb.as_plain()).unwrap());
                                 return acc;
                             })
                     ),

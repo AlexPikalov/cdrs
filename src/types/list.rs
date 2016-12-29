@@ -1,4 +1,5 @@
 use std::net;
+use uuid::Uuid;
 use frame::frame_result::{ColType, ColTypeOptionValue, ColTypeOption};
 use types::{CBytes, AsRust};
 use types::data_serialization_types::*;
@@ -323,6 +324,41 @@ impl AsRust<Vec<net::IpAddr>> for List {
                 match type_option.id {
                     ColType::Inet => Some(
                         self.map(|bytes| decode_inet(bytes.as_plain()).unwrap())
+                    ),
+                    _ => None
+                }
+            },
+            _ => None
+        }
+    }
+}
+
+impl AsRust<Vec<Uuid>> for List {
+    /// Converts cassandra list of UUID values into Rust `Vec<uuid::Uuid>`
+    fn as_rust(&self) -> Option<Vec<Uuid>> {
+        if self.metadata.value.is_none() {
+            return None;
+        }
+
+        match self.metadata.value.clone().unwrap() {
+            ColTypeOptionValue::CList(ref type_option) => {
+                match type_option.id {
+                    ColType::Uuid => Some(
+                        self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap())
+                    ),
+                    ColType::Timeuuid => Some(
+                        self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap())
+                    ),
+                    _ => None
+                }
+            },
+            ColTypeOptionValue::CSet(ref type_option) => {
+                match type_option.id {
+                    ColType::Uuid => Some(
+                        self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap())
+                    ),
+                    ColType::Timeuuid => Some(
+                        self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap())
                     ),
                     _ => None
                 }
