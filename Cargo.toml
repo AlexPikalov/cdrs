@@ -9,7 +9,7 @@ homepage = "https://github.com/AlexPikalov/cdrs"
 repository = "https://github.com/AlexPikalov/cdrs"
 readme = "./README.md"
 keywords = ["cassandra", "driver", "client", "cassandradb", "DB"]
-license-file = "./license.txt"
+license = "MIT"
 
 [dependencies]
 byteorder = "0.5.3"
