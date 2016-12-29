@@ -6,14 +6,10 @@ Existing ones are bindings to C clients.
 
 [Documentation](https://docs.rs/cdrs)
 
-CDRS is under active development at the moment, so there is a lack of many
-features and API may not be stable (but in case of any breaking changes
-we will update a major version of the package in accordance to common practices
-of versioning).
+CDRS is under active development at the moment, so API may not be stable.
 
-At the moment **CDRS** is not an ORM or a client in usual meaning
-but rather a kind of quite low level driver which deals with different kind of frames.
-It supports 4-th version of [Cassandra protocol](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec).
+As well **CDRS** provides tools for [mapping results](#select-query-mapping-results)
+into Rust structures It supports 4-th version of [Cassandra protocol](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec).
 
 ### Supported features
 - [x] lz4 decompression
