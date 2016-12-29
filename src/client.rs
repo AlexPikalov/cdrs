@@ -39,8 +39,8 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
     /// provided - `addr` is IP address of DB Server, `authenticator` is a selected authenticator
     /// that is supported by particular DB Server. There are few authenticators already
     /// provided by this trait.
-    pub fn new(addr: String, authenticator: T) -> error::Result<CDRS<T>> {
-        return net::TcpStream::connect(format!("{}:9042", addr).as_str())
+    pub fn new(addr: &str, authenticator: T) -> error::Result<CDRS<T>> {
+        return net::TcpStream::connect(addr)
             .map(|socket| CDRS {
                 tcp: socket,
                 compressor: Compression::None,

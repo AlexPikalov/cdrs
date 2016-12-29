@@ -60,6 +60,7 @@ After that you can create a new instace of `CDRS` and establish new connection:
 
 ```rust
 let authenticator = PasswordAuthenticator::new("user", "pass");
+let addr = "127.0.0.1:9042";
 
 // pass authenticator into CDRS' constructor
 let client = CDRS::new(addr, authenticator).unwrap();
@@ -89,7 +90,7 @@ let mut session_res = client.start(compression::Snappy);
 #### Query execution
 
 Query execution is provided in scope of Session. So to start executing queries
-you need to start Session first. 
+you need to start Session first.
 
 ##### Use Query:
 
