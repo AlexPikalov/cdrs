@@ -63,14 +63,11 @@ impl<'a, T: Authenticator + Clone + 'a> CDRS<T> {
         try!(tcp.write(options_frame.as_slice()));
 
         return parse_frame(tcp, &self.compressor)
-            .map(|frame| {
-                let body = frame.get_body();
-                return match body {
-                    ResponseBody::Supported(ref supported_body) => {
-                        return supported_body.data.clone();
-                    },
-                    _ => unreachable!()
-                };
+            .map(|frame| match frame.get_body() {
+                ResponseBody::Supported(ref supported_body) => {
+                    return supported_body.data.clone();
+                },
+                _ => unreachable!()
             });
     }
 
