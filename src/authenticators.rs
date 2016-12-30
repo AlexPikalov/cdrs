@@ -5,6 +5,7 @@ pub trait Authenticator {
     fn get_cassandra_name(&self) -> &str;
 }
 
+#[derive(Clone)]
 pub struct PasswordAuthenticator<'a> {
     username: &'a str,
     password: &'a str
