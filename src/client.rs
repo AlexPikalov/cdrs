@@ -35,7 +35,7 @@ pub struct CDRS<T: Authenticator + Clone> {
     authenticator: T
 }
 
-/// Mapa of options supported by Cassandra server.
+/// Map of options supported by Cassandra server.
 type CassandraOptions = HashMap<String, Vec<String>>;
 
 impl<'a, T: Authenticator + Clone + 'a> CDRS<T> {
