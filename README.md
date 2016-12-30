@@ -72,6 +72,20 @@ let mut session = try!(client.start(compression::None));
 If Server does not require authorization `authenticator` won't be used, but is still
 required for the constructor (most probably it will be refactored in future).
 
+### Getting supported options
+
+Before session established an application may want to know which options are
+supported by a server (for instance to figure out which compression to use).
+That's why `CDRS` instance has a method `get_options` which could be called
+before session get started. Options are presented as `HashMap<String, Vec<String>>`.
+
+```rust
+let options = try!(client.get_options());
+```
+
+**This should be called before session started** to let you know which compression
+to choose and because session object borrows `CDRS` instance.
+
 #### Using compression
 
 Two types of compression are supported - [snappy](https://code.google.com/p/snappy/)

@@ -2,9 +2,11 @@
 use std::net;
 use std::io;
 use std::io::Write;
+use std::collections::HashMap;
 
 use consistency::Consistency;
 use frame::{Frame, Opcode};
+use frame::frame_response::ResponseBody;
 use IntoBytes;
 use frame::parser::parse_frame;
 use types::*;
@@ -33,6 +35,9 @@ pub struct CDRS<T: Authenticator + Clone> {
     authenticator: T
 }
 
+/// Map of options supported by Cassandra server.
+type CassandraOptions = HashMap<String, Vec<String>>;
+
 impl<'a, T: Authenticator + Clone + 'a> CDRS<T> {
     /// The method creates new instance of CDRS driver. At this step an instance doesn't
     /// connected to DB Server. To create new instance two parameters are needed to be
@@ -47,6 +52,23 @@ impl<'a, T: Authenticator + Clone + 'a> CDRS<T> {
                 authenticator: authenticator
             })
             .map_err(|err| error::Error::Io(err));
+    }
+
+    /// The method makes an Option request to DB Server. As a response the server returns
+    /// a map of supported options.
+    pub fn get_options(&self) -> error::Result<CassandraOptions> {
+        let mut tcp = try!(self.tcp.try_clone());
+        let options_frame = Frame::new_req_options().into_cbytes();
+
+        try!(tcp.write(options_frame.as_slice()));
+
+        return parse_frame(tcp, &self.compressor)
+            .map(|frame| match frame.get_body() {
+                ResponseBody::Supported(ref supported_body) => {
+                    return supported_body.data.clone();
+                },
+                _ => unreachable!()
+            });
     }
 
     /// The method establishes connection to the server which address was provided on previous
@@ -144,16 +166,6 @@ impl<T: Authenticator + Clone> Session<T> {
             self.started = false;
             self.cdrs.drop_connection().expect("should not fail during ending session");
         }
-    }
-
-    /// The method makes an Option request to DB Server. As a response the server returns
-    /// a map of supported options. A result is wrapped into original frame.
-    pub fn options(&self) -> error::Result<Frame> {
-        let mut tcp = try!(self.cdrs.tcp.try_clone());
-        let options_frame = Frame::new_req_options().into_cbytes();
-
-        try!(tcp.write(options_frame.as_slice()));
-        return parse_frame(tcp, &self.cdrs.compressor);
     }
 
     /// The method makes a request to DB Server to prepare provided query.
