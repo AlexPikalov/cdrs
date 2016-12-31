@@ -29,7 +29,7 @@ macro_rules! builder_field {
 
 /// Query Builder
 #[derive(Debug,Default)]
-pub struct QueryBuilder {
+pub struct Query {
     query: Option<String>,
     consistency: Option<Consistency>,
     values: Option<Vec<Value>>,
@@ -40,7 +40,7 @@ pub struct QueryBuilder {
     timestamp: Option<i64>
 }
 
-impl QueryBuilder {
+impl Query {
     builder_field!(query, String);
     builder_field!(consistency, Consistency);
     builder_field!(values, Vec<Value>);
@@ -255,7 +255,7 @@ impl<T: Authenticator + Clone> Session<T> {
     /// let qb = QueryBuilder::new().query("select * from emp").consistency(Consistency::One).page_size(Some(4));
     /// session.query_with_builder(qb);
     ///
-    pub fn query_with_builder(&self,qb : QueryBuilder) -> error::Result<Frame> {
+    pub fn query_with_builder(&self, qb: Query) -> error::Result<Frame> {
         let mut tcp = try!(self.cdrs.tcp.try_clone());
         let consistency = match qb.consistency {
             Some(cs) => cs,
