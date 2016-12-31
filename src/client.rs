@@ -17,6 +17,90 @@ use compression::Compression;
 use authenticators::Authenticator;
 use error;
 
+
+
+/// Query Builder
+#[derive(Debug)]
+pub struct QueryBuilder {
+    query: String,
+    consistency: Consistency,
+    values: Option<Vec<Value>>,
+    with_names: Option<bool>,
+    page_size: Option<i32>,
+    paging_state: Option<CBytes>,
+    serial_consistency: Option<Consistency>,
+    timestamp: Option<i64>
+}
+
+impl QueryBuilder {
+    pub fn new(query: String) -> QueryBuilder {
+        QueryBuilder {
+            query: query,
+            consistency: Consistency::One,
+            values: None,
+            with_names: None,
+            page_size: None,
+            paging_state: None,
+            serial_consistency :None,
+            timestamp :None
+        }
+    }
+
+    pub fn consistency<'a>(&'a mut self, consistency: Consistency) -> &'a mut  QueryBuilder {
+        self.consistency = consistency;
+        self
+    }
+
+
+    pub fn values<'a>( &'a mut self, vals: Vec<Value>) ->  &'a mut QueryBuilder {
+        self.values = Some(vals);
+        self
+    }
+
+
+    pub fn with_names<'a>( &'a mut self, with_names: bool) -> &'a mut QueryBuilder {
+        self.with_names = Some(with_names);
+        self
+    }
+
+
+    pub fn page_size<'a>(&'a mut self, page_size: i32) -> &'a mut QueryBuilder {
+        self.page_size = Some(page_size);
+        self
+    }
+
+    pub fn paging_state<'a>(&'a mut self, paging_state: CBytes) -> &'a mut QueryBuilder {
+        self.paging_state = Some(paging_state);
+        self
+    }
+
+    pub fn serial_consistency<'a>(&'a mut self, serial_consistency: Consistency) -> &'a mut QueryBuilder {
+        self.serial_consistency = Some(serial_consistency);
+        self
+    }
+
+    pub fn timestamp<'a>(&'a mut self, timestamp: i64) -> &'a mut QueryBuilder {
+        self.timestamp = Some(timestamp);
+        self
+    }
+
+    pub fn finalize(&self) -> QueryBuilder {
+        QueryBuilder { 
+            query: self.query,
+            consistency: self.consistency,
+            values: self.values,
+            with_names: self.with_names,
+            page_size: self.page_size,
+            paging_state: self.paging_state,
+            serial_consistency :self.serial_consistency,
+            timestamp :self.timestamp
+        }
+    }
+
+   
+}
+
+
 /// DB user's credentials.
 #[derive(Clone, Debug)]
 pub struct Credentials {
