@@ -26,13 +26,9 @@ fn main() {
     let serial_consistency: Option<Consistency> = None;
     let timestamp: Option<i64> = None;
 
-    let use_query = String::from("USE my_namespace;");
     match client.start(Compression::None) {
         Ok(session) => {
-            match session.prepare(use_query) {
-                Ok(set_keyspace) => {
-                    // use_keyspace is a result frame of type SetKeyspace
-                    let query_op = session.query(select_query,
+          let query_op = session.query(select_query,
                                                 consistency,
                                                 values,
                                                 with_names,
@@ -50,9 +46,6 @@ fn main() {
                         }
                         Err(err) => println!("{:?}", err),
                     }
-                }
-                Err(err) => println!("{:?}", err),
-            }
 
         }
         Err(err) => println!("{:?}", err),
