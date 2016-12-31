@@ -3,7 +3,8 @@ use cdrs::authenticators::{Authenticator, PasswordAuthenticator};
 
 #[test]
 fn test_password_authenticator_trait_impl() {
-    let _ = authenticator_tester(Box::new(PasswordAuthenticator::new("a", "a")));
+    let authenticator = PasswordAuthenticator::new("a", "a");
+    let _ = authenticator_tester(Box::new(authenticator));
 }
 
 #[test]
@@ -28,4 +29,4 @@ fn test_password_authenticator_get_auth_token() {
     assert_eq!(auth.get_auth_token().into_plain(), expected_token);
 }
 
-fn authenticator_tester(_authenticator: Box<Authenticator>) {}
+fn authenticator_tester<A: Authenticator>(_authenticator: Box<A>) {}

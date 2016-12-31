@@ -29,7 +29,7 @@ pub struct Credentials {
 /// CDRS driver structure that provides a basic functionality to work with DB including
 /// establishing new connection, getting supported options, preparing and executing CQL
 /// queries, using compression and others.
-pub struct CDRS<T: Authenticator + Clone> {
+pub struct CDRS<T: Authenticator> {
     tcp: net::TcpStream,
     compressor: Compression,
     authenticator: T
@@ -38,7 +38,7 @@ pub struct CDRS<T: Authenticator + Clone> {
 /// Map of options supported by Cassandra server.
 type CassandraOptions = HashMap<String, Vec<String>>;
 
-impl<'a, T: Authenticator + Clone + 'a> CDRS<T> {
+impl<'a, T: Authenticator + 'a> CDRS<T> {
     /// The method creates new instance of CDRS driver. At this step an instance doesn't
     /// connected to DB Server. To create new instance two parameters are needed to be
     /// provided - `addr` is IP address of DB Server, `authenticator` is a selected authenticator
@@ -120,18 +120,7 @@ impl<'a, T: Authenticator + Clone + 'a> CDRS<T> {
     }
 }
 
-impl<T: Authenticator + Clone> Drop for CDRS<T> {
-    fn drop(&mut self) {
-        match self.drop_connection() {
-            Ok(_) => (),
-            Err(err) => {
-                println!("Error occured during dropping CDRS {:?}", err);
-            }
-        }
-    }
-}
-
-impl<T: Authenticator + Clone> Clone for CDRS<T> {
+impl<T: Authenticator> Clone for CDRS<T> {
     /// Creates a clone of CDRS instance
     /// # Panics
     /// It panics if tcp.try_clone() returns an error.
@@ -145,12 +134,12 @@ impl<T: Authenticator + Clone> Clone for CDRS<T> {
 }
 
 /// The object that provides functionality for communication with Cassandra server.
-pub struct Session<T: Authenticator + Clone> {
+pub struct Session<T: Authenticator> {
     started: bool,
     cdrs: CDRS<T>
 }
 
-impl<T: Authenticator + Clone> Session<T> {
+impl<T: Authenticator> Session<T> {
     /// Creates new session basing on CDRS instance.
     pub fn start(cdrs: CDRS<T>) -> Session<T> {
         return Session {
@@ -164,7 +153,12 @@ impl<T: Authenticator + Clone> Session<T> {
     pub fn end(&mut self) {
         if self.started {
             self.started = false;
-            self.cdrs.drop_connection().expect("should not fail during ending session");
+            match self.cdrs.drop_connection() {
+                Ok(_) => (),
+                Err(err) => {
+                    println!("Error occured during dropping CDRS {:?}", err);
+                }
+            }
         }
     }
 
@@ -213,11 +207,5 @@ impl<T: Authenticator + Clone> Session<T> {
 
         try!(tcp.write(query_frame.as_slice()));
         return parse_frame(tcp, &self.cdrs.compressor);
-    }
-}
-
-impl<T: Authenticator + Clone> Drop for Session<T> {
-    fn drop(&mut self) {
-        self.end();
     }
 }

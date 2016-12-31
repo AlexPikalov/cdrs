@@ -1,6 +1,6 @@
 use types::CBytes;
 
-pub trait Authenticator {
+pub trait Authenticator: Clone {
     fn get_auth_token(&self) -> CBytes;
     fn get_cassandra_name(&self) -> &str;
 }
