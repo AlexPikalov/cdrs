@@ -17,13 +17,21 @@ use compression::Compression;
 use authenticators::Authenticator;
 use error;
 
-
+macro_rules! builder_field {
+    ($field:ident, $field_type:ty) => {
+        pub fn $field<'a>(&'a mut self,
+                          $field: $field_type) -> &'a mut Self {
+            self.$field = Some($field);
+            self
+        }
+    };
+}
 
 /// Query Builder
-#[derive(Debug)]
+#[derive(Debug,Default)]
 pub struct QueryBuilder {
-    query: String,
-    consistency: Consistency,
+    query: Option<String>,
+    consistency: Option<Consistency>,
     values: Option<Vec<Value>>,
     with_names: Option<bool>,
     page_size: Option<i32>,
@@ -33,73 +41,16 @@ pub struct QueryBuilder {
 }
 
 impl QueryBuilder {
-    pub fn new(query: String) -> QueryBuilder {
-        QueryBuilder {
-            query: query,
-            consistency: Consistency::One,
-            values: None,
-            with_names: None,
-            page_size: None,
-            paging_state: None,
-            serial_consistency :None,
-            timestamp :None
-        }
-    }
-
-    pub fn consistency<'a>(&'a mut self, consistency: Consistency) -> &'a mut  QueryBuilder {
-        self.consistency = consistency;
-        self
-    }
-
-
-    pub fn values<'a>( &'a mut self, vals: Vec<Value>) ->  &'a mut QueryBuilder {
-        self.values = Some(vals);
-        self
-    }
-
-
-    pub fn with_names<'a>( &'a mut self, with_names: bool) -> &'a mut QueryBuilder {
-        self.with_names = Some(with_names);
-        self
-    }
-
-
-    pub fn page_size<'a>(&'a mut self, page_size: i32) -> &'a mut QueryBuilder {
-        self.page_size = Some(page_size);
-        self
-    }
-
-    pub fn paging_state<'a>(&'a mut self, paging_state: CBytes) -> &'a mut QueryBuilder {
-        self.paging_state = Some(paging_state);
-        self
-    }
-
-    pub fn serial_consistency<'a>(&'a mut self, serial_consistency: Consistency) -> &'a mut QueryBuilder {
-        self.serial_consistency = Some(serial_consistency);
-        self
-    }
-
-    pub fn timestamp<'a>(&'a mut self, timestamp: i64) -> &'a mut QueryBuilder {
-        self.timestamp = Some(timestamp);
-        self
-    }
-
-    pub fn finalize(&self) -> QueryBuilder {
-        QueryBuilder { 
-            query: self.query,
-            consistency: self.consistency,
-            values: self.values,
-            with_names: self.with_names,
-            page_size: self.page_size,
-            paging_state: self.paging_state,
-            serial_consistency :self.serial_consistency,
-            timestamp :self.timestamp
-        }
-    }
-
+    builder_field!(query, String);
+    builder_field!(consistency, Consistency);
+    builder_field!(values, Vec<Value>);
+    builder_field!(with_names, bool);
+    builder_field!(page_size, i32);
+    builder_field!(paging_state, CBytes);
+    builder_field!(serial_consistency, Consistency);
+    builder_field!(timestamp, i64);
    
 }
-
 
 /// DB user's credentials.
 #[derive(Clone, Debug)]
@@ -294,6 +245,36 @@ impl<T: Authenticator + Clone> Session<T> {
             paging_state,
             serial_consistency,
             timestamp).into_cbytes();
+
+        try!(tcp.write(query_frame.as_slice()));
+        return parse_frame(tcp, &self.cdrs.compressor);
+    }
+
+    /// The method makes a request to DB Server to execute a query provided in `query` argument.
+    /// you can build the query with QueryBuilder
+    /// let qb = QueryBuilder::new().query("select * from emp").consistency(Consistency::One).page_size(Some(4));
+    /// session.query_with_builder(qb);
+    ///
+    pub fn query_with_builder(&self,qb : QueryBuilder) -> error::Result<Frame> {
+        let mut tcp = try!(self.cdrs.tcp.try_clone());
+        let consistency = match qb.consistency {
+            Some(cs) => cs,
+            None => Consistency::One,
+        };
+
+        let query = match qb.query {
+            Some(cs) => (&*cs).to_string(),
+            None => panic!(" the query is empty {:?}",qb.query ),
+        };
+        
+        let query_frame = Frame::new_req_query(query,
+            consistency,
+            qb.values,
+            qb.with_names,
+            qb.page_size,
+            qb.paging_state,
+            qb.serial_consistency,
+            qb.timestamp).into_cbytes();
 
         try!(tcp.write(query_frame.as_slice()));
         return parse_frame(tcp, &self.cdrs.compressor);
