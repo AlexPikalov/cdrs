@@ -155,6 +155,22 @@ match session.query(select_query,
 
 ```
 
+or with simplified one (available starting from 0.4.1)
+
+```rust
+use std::default::Default;
+use cdrs::client::Query;
+use cdrs::consistency::Consistency;
+
+let mut select_query: Query = Default::default();
+        select_query.query(use_query.clone()).consistency(Consistency::One);
+
+match session.query_with_builder(select_query) {
+    Ok(res) => println!("Result frame: {:?},\nparsed body: {:?}", res, res.get_body());,
+    Err(err) => log!(err)
+}
+```
+
 ##### Select Query (mapping results):
 
 Once CDRS got response to `SELECT` query you can map rows encapsulated within
@@ -215,7 +231,7 @@ let messages: Vec<Author> = rows
         return Author {
             author: name,
             text: messages
-        }
+        };
     })
     .collect();
 

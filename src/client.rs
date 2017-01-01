@@ -3,6 +3,7 @@ use std::net;
 use std::io;
 use std::io::Write;
 use std::collections::HashMap;
+use std::default::Default;
 
 use consistency::Consistency;
 use frame::{Frame, Opcode};
@@ -52,6 +53,14 @@ pub struct Query {
 }
 
 impl Query {
+    /// Factory function that takes CQL `String` as an argument and returns new `Query`
+    pub fn new(query: String) -> Query {
+        return Query {
+            query: Some(query),
+            ..Default::default()
+        };
+    }
+
     builder_field!(query, String);
     builder_field!(consistency, Consistency);
     builder_field!(values, Vec<Value>);
@@ -60,7 +69,7 @@ impl Query {
     builder_field!(paging_state, CBytes);
     builder_field!(serial_consistency, Consistency);
     builder_field!(timestamp, i64);
-   
+
 }
 
 /// DB user's credentials.
@@ -271,7 +280,7 @@ impl<T: Authenticator> Session<T> {
             Some(cs) => (&*cs).to_string(),
             None => panic!(" the query is empty {:?}",qb.query ),
         };
-        
+
         let query_frame = Frame::new_req_query(query,
             consistency,
             qb.values,
