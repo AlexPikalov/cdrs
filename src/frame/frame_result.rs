@@ -38,10 +38,7 @@ impl FromBytes for ResultKind {
             0x0003 => ResultKind::SetKeyspace,
             0x0004 => ResultKind::Prepared,
             0x0005 => ResultKind::SchemaChange,
-            _ => {
-                error!("Unexpected Cassandra result kind: {:?}", bytes);
-                panic!("Unexpected Cassandra result kind: {:?}", bytes);
-            }
+            _ => unreachable!()
         };
     }
 }
@@ -64,7 +61,9 @@ pub enum ResResultBody {
     /// a name of just set namespace.
     SetKeyspace(BodyResResultSetKeyspace),
     /// Prepared response body.
-    Prepared(BodyResResultPrepared)
+    Prepared(BodyResResultPrepared),
+    /// Schema change body
+    SchemaChange(BodyResResultSchemaChange)
 }
 
 impl ResResultBody {
@@ -74,7 +73,7 @@ impl ResResultBody {
             ResultKind::Rows => ResResultBody::Rows(BodyResResultRows::from_cursor(&mut cursor)),
             ResultKind::SetKeyspace => ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)),
             ResultKind::Prepared => ResResultBody::Prepared(BodyResResultPrepared::from_cursor(&mut cursor)),
-            _ => unreachable!()
+            ResultKind::SchemaChange => ResResultBody::SchemaChange(BodyResResultSchemaChange::from_cursor(&mut cursor))
         };
     }
 
@@ -569,5 +568,98 @@ impl FromCursor for PreparedMetadata {
             global_table_spec: global_table_space,
             col_specs: col_specs
         };
+    }
+}
+
+#[derive(Debug)]
+pub struct BodyResResultSchemaChange {
+    pub change_type: ChangeType,
+    pub target: Target,
+    pub options: ChangeSchemeOptions
+}
+
+impl FromCursor for BodyResResultSchemaChange {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResResultSchemaChange {
+        let change_type = ChangeType::from_cursor(&mut cursor);
+        let target = Target::from_cursor(&mut cursor);
+        let options = ChangeSchemeOptions::from_cursor_and_target(&mut cursor, &target);
+
+        return BodyResResultSchemaChange {
+            change_type: change_type,
+            target: target,
+            options: options
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum ChangeType {
+    Created,
+    Updated,
+    Dropped
+}
+
+impl FromCursor for ChangeType {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeType {
+        return match CString::from_cursor(&mut cursor).as_str() {
+            "CREATED" => ChangeType::Created,
+            "UPDATED" => ChangeType::Updated,
+            "DROPPED" => ChangeType::Dropped,
+            _ => unreachable!()
+        };
+    }
+}
+
+#[derive(Debug)]
+pub enum Target {
+    Keyspace,
+    Table,
+    Type,
+    Function,
+    Aggregate
+}
+
+impl FromCursor for Target {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> Target {
+        return match CString::from_cursor(&mut cursor).as_str() {
+            "KEYSPACE" => Target::Keyspace,
+            "TABLE" => Target::Table,
+            "TYPE" => Target::Type,
+            "FUNCTION" => Target::Function,
+            "AGGREGATE" => Target::Aggregate,
+            _ => unreachable!()
+        };
+    }
+}
+
+#[derive(Debug)]
+pub enum ChangeSchemeOptions {
+    Keyspace(String),
+    Table((String, String)),
+    Function
+}
+
+impl ChangeSchemeOptions {
+    fn from_cursor_and_target(mut cursor: &mut Cursor<Vec<u8>>, target: &Target)
+        -> ChangeSchemeOptions {
+        return match target {
+            &Target::Keyspace => ChangeSchemeOptions::from_cursor_keyspace(&mut cursor),
+            &Target::Table | &Target::Type => ChangeSchemeOptions::from_cursor_table(&mut cursor),
+            &Target::Function | &Target::Aggregate => ChangeSchemeOptions::from_cursor_function(&mut cursor)
+        };
+    }
+
+    fn from_cursor_keyspace(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeSchemeOptions {
+        return ChangeSchemeOptions::Keyspace(CString::from_cursor(&mut cursor).into_plain());
+    }
+
+    fn from_cursor_table(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeSchemeOptions {
+        let keyspace = CString::from_cursor(&mut cursor).into_plain();
+        let name = CString::from_cursor(&mut cursor).into_plain();
+        return ChangeSchemeOptions::Table((keyspace, name));
+    }
+
+    fn from_cursor_function(mut _cursor: &mut Cursor<Vec<u8>>) -> ChangeSchemeOptions {
+        unimplemented!()
     }
 }

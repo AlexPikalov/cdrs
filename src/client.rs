@@ -53,10 +53,10 @@ pub struct Query {
 }
 
 impl Query {
-    /// Factory function that takes CQL `String` as an argument and returns new `Query`
-    pub fn new(query: String) -> Query {
+    /// Factory function that takes CQL `&str` as an argument and returns new `Query`
+    pub fn new(query: &str) -> Query {
         return Query {
-            query: Some(query),
+            query: Some(String::from(query)),
             ..Default::default()
         };
     }
