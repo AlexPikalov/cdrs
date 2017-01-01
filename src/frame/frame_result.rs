@@ -592,6 +592,7 @@ impl FromCursor for BodyResResultSchemaChange {
     }
 }
 
+/// Represents type of changes.
 #[derive(Debug)]
 pub enum ChangeType {
     Created,
@@ -610,6 +611,7 @@ impl FromCursor for ChangeType {
     }
 }
 
+/// Refers to a target of changes were made.
 #[derive(Debug)]
 pub enum Target {
     Keyspace,
@@ -632,10 +634,14 @@ impl FromCursor for Target {
     }
 }
 
+/// Option that contains an information about changes were made.
 #[derive(Debug)]
 pub enum ChangeSchemeOptions {
+    /// Changes related to keyspaces. Contains keyspace name.
     Keyspace(String),
+    /// Changes related to tables. Contains keyspace and table names.
     Table((String, String)),
+    /// Not implemented
     Function
 }
 
