@@ -17,6 +17,52 @@ use compression::Compression;
 use authenticators::Authenticator;
 use error;
 
+/// instead of writing functions which resemble
+/// `
+/// pub fn query<'a> (&'a mut self,query: String) -> &'a mut Self{
+///     self.query = Some(query);
+///            self
+/// }
+/// `
+/// and repeating it for all the attributes; it is extracted out as a macro so that code is more concise
+/// see @https://doc.rust-lang.org/book/method-syntax.html
+///
+///
+macro_rules! builder_field {
+    ($field:ident, $field_type:ty) => {
+        pub fn $field<'a>(&'a mut self,
+                          $field: $field_type) -> &'a mut Self {
+            self.$field = Some($field);
+            self
+        }
+    };
+}
+
+/// Query Builder
+#[derive(Debug,Default)]
+pub struct Query {
+    query: Option<String>,
+    consistency: Option<Consistency>,
+    values: Option<Vec<Value>>,
+    with_names: Option<bool>,
+    page_size: Option<i32>,
+    paging_state: Option<CBytes>,
+    serial_consistency: Option<Consistency>,
+    timestamp: Option<i64>
+}
+
+impl Query {
+    builder_field!(query, String);
+    builder_field!(consistency, Consistency);
+    builder_field!(values, Vec<Value>);
+    builder_field!(with_names, bool);
+    builder_field!(page_size, i32);
+    builder_field!(paging_state, CBytes);
+    builder_field!(serial_consistency, Consistency);
+    builder_field!(timestamp, i64);
+   
+}
+
 /// DB user's credentials.
 #[derive(Clone, Debug)]
 pub struct Credentials {
@@ -204,6 +250,36 @@ impl<T: Authenticator> Session<T> {
             paging_state,
             serial_consistency,
             timestamp).into_cbytes();
+
+        try!(tcp.write(query_frame.as_slice()));
+        return parse_frame(tcp, &self.cdrs.compressor);
+    }
+
+    /// The method makes a request to DB Server to execute a query provided in `query` argument.
+    /// you can build the query with QueryBuilder
+    /// let qb = QueryBuilder::new().query("select * from emp").consistency(Consistency::One).page_size(Some(4));
+    /// session.query_with_builder(qb);
+    ///
+    pub fn query_with_builder(&self, qb: Query) -> error::Result<Frame> {
+        let mut tcp = try!(self.cdrs.tcp.try_clone());
+        let consistency = match qb.consistency {
+            Some(cs) => cs,
+            None => Consistency::One,
+        };
+
+        let query = match qb.query {
+            Some(cs) => (&*cs).to_string(),
+            None => panic!(" the query is empty {:?}",qb.query ),
+        };
+        
+        let query_frame = Frame::new_req_query(query,
+            consistency,
+            qb.values,
+            qb.with_names,
+            qb.page_size,
+            qb.paging_state,
+            qb.serial_consistency,
+            qb.timestamp).into_cbytes();
 
         try!(tcp.write(query_frame.as_slice()));
         return parse_frame(tcp, &self.cdrs.compressor);

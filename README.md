@@ -111,7 +111,7 @@ you need to start Session first.
 ```rust
 let use_query = String::from("USE my_namespace;");
 
-match session.query(use_query) {
+match session.prepare(use_query) {
     Ok(set_keyspace) => {
         // use_keyspace is a result frame of type SetKeyspace
     },
@@ -136,7 +136,7 @@ let consistency = Consistency::One;
 let values: Option<Vec<Value>> = None;
 let with_names: Option<bool> = None;
 let page_size: Option<i32> = None;
-let paging_state Option<CBytes> = None;
+let paging_state: Option<CBytes> = None;
 let serial_consistency: Option<Consistency> = None;
 let timestamp: Option<i64> = None;
 
