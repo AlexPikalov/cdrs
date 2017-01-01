@@ -40,6 +40,16 @@ into Rust structures It supports 4-th version of [Cassandra protocol](https://gi
 - [x] RESULT (Set_keyspace)
 - [x] RESULT (Prepared)
 - [ ] RESULT (Schema_change)
+
+* - [x] Target KEYSPACE
+
+* - [x] Target TABLE
+
+* - [x] Target TYPE
+
+* - [ ] Target FUNCTION
+
+* - [ ] Target AGGREGATE
 - [ ] EVENT
 - [x] AUTH_CHALLENGE
 - [x] AUTH_SUCCESS
@@ -117,6 +127,30 @@ match session.prepare(use_query) {
     },
     Err(err) => log!(err)
 }
+```
+
+##### Create Query:
+
+Creating new table could be performed via `session.query`. In case of success
+method return Schema Change frame that contains Change Type, Target and options
+that contain namespace and a name of created table.
+
+```rust
+use std::default::Default;
+use cdrs::client::Query;
+use cdrs::consistency::Consistency;
+
+let mut select_query: Query = Query::new("CREATE TABLE loghub.emp3 (
+    empID int,
+    deptID int,
+    first_name varchar,
+    last_name varchar,
+    PRIMARY KEY (empID, deptID)
+    );");
+    select_query.consistency(Consistency::One);
+
+let table_created = session.query_with_builder(select_query).is_ok();
+
 ```
 
 ##### Select Query:
