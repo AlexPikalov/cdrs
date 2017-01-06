@@ -1,12 +1,8 @@
 
 extern crate cdrs;
-use cdrs::client::CDRS;
+use cdrs::client::{CDRS, QueryBuilder};
 use cdrs::authenticators::PasswordAuthenticator;
-use cdrs::consistency::Consistency;
-use cdrs::types::CBytes;
 use cdrs::compression::Compression;
-use cdrs::types::value::Value;
-use cdrs::types::rows::Row;
 use cdrs::types::IntoRustByName;
 
 /// this example is to pull employee records from emp table
@@ -50,27 +46,11 @@ fn main() {
     let client = CDRS::new(addr, authenticator).unwrap();
 
     // start session without compression
-    let select_query = String::from("SELECT * FROM my_namespace.emp;");
-    // Query parameters:
-    let consistency = Consistency::One;
-    let values: Option<Vec<Value>> = None;
-    let with_names: Option<bool> = None;
-    let page_size: Option<i32> = None;
-    let paging_state: Option<CBytes> = None;
-    let serial_consistency: Option<Consistency> = None;
-    let timestamp: Option<i64> = None;
-
+    let select_query = QueryBuilder::new("SELECT * FROM my_namespace.emp;").finalize();
 
     match client.start(Compression::None) {
         Ok(session) => {
-            let query_op = session.query(select_query,
-                                         consistency,
-                                         values,
-                                         with_names,
-                                         page_size,
-                                         paging_state,
-                                         serial_consistency,
-                                         timestamp);
+            let query_op = session.query(select_query);
 
             match query_op {
                 Ok(res) => {

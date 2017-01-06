@@ -39,8 +39,9 @@ macro_rules! builder_field {
     };
 }
 
-/// Query Builder
-#[derive(Debug,Default)]
+/// Structure that represents CQL query and parameters which will be applied during
+/// its execution
+#[derive(Debug, Default)]
 pub struct Query {
     query: Option<String>,
     consistency: Option<Consistency>,
@@ -52,24 +53,68 @@ pub struct Query {
     timestamp: Option<i64>
 }
 
-impl Query {
-    /// Factory function that takes CQL `&str` as an argument and returns new `Query`
-    pub fn new(query: &str) -> Query {
-        return Query {
-            query: Some(String::from(query)),
+/// QueryBuilder is a helper sturcture that helps to construct `Query`. `Query` itself
+/// consists of CQL query string and list of parameters.
+/// Parameters are the same as ones described in [Cassandra v4 protocol]
+/// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L304)
+#[derive(Debug, Default)]
+pub struct QueryBuilder {
+    query: Option<String>,
+    consistency: Option<Consistency>,
+    values: Option<Vec<Value>>,
+    with_names: Option<bool>,
+    page_size: Option<i32>,
+    paging_state: Option<CBytes>,
+    serial_consistency: Option<Consistency>,
+    timestamp: Option<i64>
+}
+
+impl QueryBuilder {
+    /// Factory function that takes CQL `&str` as an argument and returns new `QueryBuilder`
+    pub fn new(query: &str) -> QueryBuilder {
+        return QueryBuilder {
+            query: Some(query.to_string()),
             ..Default::default()
         };
     }
 
+    /// Sets new query CQL string
     builder_field!(query, String);
+
+    /// Sets new query consistency
     builder_field!(consistency, Consistency);
+
+    /// Sets new query values
     builder_field!(values, Vec<Value>);
+
+    /// Sets new query with_names
     builder_field!(with_names, bool);
+
+    /// Sets new query pagesize
     builder_field!(page_size, i32);
+
+    /// Sets new query pagin state
     builder_field!(paging_state, CBytes);
+
+    /// Sets new query serial_consistency
     builder_field!(serial_consistency, Consistency);
+
+    /// Sets new quey timestamp
     builder_field!(timestamp, i64);
 
+    /// Finalizes query building process and returns query itself
+    pub fn finalize(&self) -> Query {
+        return Query {
+            query: self.query.clone(),
+            consistency: self.consistency.clone(),
+            values: self.values.clone(),
+            with_names: self.with_names.clone(),
+            page_size: self.page_size.clone(),
+            paging_state: self.paging_state.clone(),
+            serial_consistency: self.serial_consistency.clone(),
+            timestamp: self.timestamp.clone()
+        };
+    }
 }
 
 /// DB user's credentials.
@@ -238,57 +283,30 @@ impl<T: Authenticator> Session<T> {
     }
 
     /// The method makes a request to DB Server to execute a query provided in `query` argument.
-    /// The rest of parameters are the same to ones described in [Cassandra v4 protocol]
-    /// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L304)
-    pub fn query(&self,
-            query: String,
-            consistency: Consistency,
-            values: Option<Vec<Value>>,
-            with_names: Option<bool>,
-            page_size: Option<i32>,
-            paging_state: Option<CBytes>,
-            serial_consistency: Option<Consistency>,
-            timestamp: Option<i64>) -> error::Result<Frame> {
-
-        let mut tcp = try!(self.cdrs.tcp.try_clone());
-        let query_frame = Frame::new_req_query(query.clone(),
-            consistency,
-            values,
-            with_names,
-            page_size,
-            paging_state,
-            serial_consistency,
-            timestamp).into_cbytes();
-
-        try!(tcp.write(query_frame.as_slice()));
-        return parse_frame(tcp, &self.cdrs.compressor);
-    }
-
-    /// The method makes a request to DB Server to execute a query provided in `query` argument.
     /// you can build the query with QueryBuilder
     /// let qb = QueryBuilder::new().query("select * from emp").consistency(Consistency::One).page_size(Some(4));
     /// session.query_with_builder(qb);
     ///
-    pub fn query_with_builder(&self, qb: Query) -> error::Result<Frame> {
+    pub fn query(&self, query: Query) -> error::Result<Frame> {
         let mut tcp = try!(self.cdrs.tcp.try_clone());
-        let consistency = match qb.consistency {
+        let consistency = match query.consistency {
             Some(cs) => cs,
             None => Consistency::One,
         };
 
-        let query = match qb.query {
+        let cql = match query.query {
             Some(cs) => (&*cs).to_string(),
-            None => panic!(" the query is empty {:?}",qb.query ),
+            None => panic!(" the query is empty {:?}",query.query ),
         };
 
-        let query_frame = Frame::new_req_query(query,
+        let query_frame = Frame::new_req_query(cql,
             consistency,
-            qb.values,
-            qb.with_names,
-            qb.page_size,
-            qb.paging_state,
-            qb.serial_consistency,
-            qb.timestamp).into_cbytes();
+            query.values,
+            query.with_names,
+            query.page_size,
+            query.paging_state,
+            query.serial_consistency,
+            query.timestamp).into_cbytes();
 
         try!(tcp.write(query_frame.as_slice()));
         return parse_frame(tcp, &self.cdrs.compressor);
