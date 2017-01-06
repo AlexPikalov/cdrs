@@ -641,8 +641,11 @@ pub enum ChangeSchemeOptions {
     Keyspace(String),
     /// Changes related to tables. Contains keyspace and table names.
     Table((String, String)),
-    /// Not implemented
-    Function
+    /// Changes related to functions and aggregations. Contains:
+    /// * keyspace containing the user defined function / aggregate
+    /// * the function/aggregate name
+    /// * list of strings, one string for each argument type (as CQL type)
+    Function((String, String, Vec<String>))
 }
 
 impl ChangeSchemeOptions {
@@ -665,7 +668,10 @@ impl ChangeSchemeOptions {
         return ChangeSchemeOptions::Table((keyspace, name));
     }
 
-    fn from_cursor_function(mut _cursor: &mut Cursor<Vec<u8>>) -> ChangeSchemeOptions {
-        unimplemented!()
+    fn from_cursor_function(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeSchemeOptions {
+        let keyspace = CString::from_cursor(&mut cursor).into_plain();
+        let name = CString::from_cursor(&mut cursor).into_plain();
+        let types = CStringList::from_cursor(&mut cursor).into_plain();
+        return ChangeSchemeOptions::Function((keyspace, name, types));
     }
 }
