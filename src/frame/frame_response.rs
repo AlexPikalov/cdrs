@@ -47,13 +47,15 @@ impl ResponseBody {
             // request frame
             &Opcode::Query => unreachable!(),
             &Opcode::Result => ResponseBody::Result(ResResultBody::from_cursor(&mut cursor)),
-            &Opcode::Prepare => unimplemented!(),
-            &Opcode::Execute => unimplemented!(),
-            &Opcode::Register => unimplemented!(),
-            &Opcode::Event => unimplemented!(),
-            &Opcode::Batch => unimplemented!(),
+            // request frames
+            &Opcode::Prepare => unreachable!(),
+            &Opcode::Execute => unreachable!(),
+            &Opcode::Register => unreachable!(),
+            &Opcode::Event => unreachable!(),
+            &Opcode::Batch => unreachable!(),
             &Opcode::AuthChallenge => ResponseBody::AuthChallenge(BodyResAuthChallenge::from_cursor(&mut cursor)),
-            &Opcode::AuthResponse => unimplemented!(),
+            // request frame
+            &Opcode::AuthResponse => unreachable!(),
             &Opcode::AuthSuccess => ResponseBody::AuthSuccess(BodyReqAuthSuccess::from_cursor(&mut cursor))
         }
     }
