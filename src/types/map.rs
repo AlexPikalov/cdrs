@@ -7,6 +7,7 @@ use frame::frame_result::{ColTypeOption, ColTypeOptionValue, ColType};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::udt::UDT;
+use error::Result;
 
 pub struct Map {
     metadata: ColTypeOption,
@@ -58,17 +59,13 @@ impl Map {
 // into hash map which values are blobs
 impl AsRust<HashMap<String, Vec<u8>>> for Map {
     /// Converts `Map` into `HashMap<String, Vec<u8>>` for blob values.
-    fn as_rust(&self) -> Option<HashMap<String, Vec<u8>>> {
-        if self.metadata.value.is_none() {
-            return None;
-        }
-
+    fn as_rust(&self) -> Result<HashMap<String, Vec<u8>>> {
         let map: HashMap<String, Vec<u8>> = HashMap::new();
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CMap((_, value_type_option)) => {
                 match value_type_option.id {
-                    ColType::Blob => Some(
+                    ColType::Blob => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -76,27 +73,23 @@ impl AsRust<HashMap<String, Vec<u8>>> for Map {
                                 return acc;
                             })
                     ),
-                    _ => None
+                    _ => unreachable!()
                 }
             },
-            _ => None
+            _ => unreachable!()
         }
     }
 }
 
 impl AsRust<HashMap<String, String>> for Map {
     /// Converts `Map` into `HashMap<String, String>` for string-like values.
-    fn as_rust(&self) -> Option<HashMap<String, String>> {
-        if self.metadata.value.is_none() {
-            return None;
-        }
-
+    fn as_rust(&self) -> Result<HashMap<String, String>> {
         let map: HashMap<String, String> = HashMap::new();
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CMap((_, value_type_option)) => {
                 match value_type_option.id {
-                    ColType::Custom => Some(
+                    ColType::Custom => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -104,7 +97,7 @@ impl AsRust<HashMap<String, String>> for Map {
                                 return acc;
                             })
                     ),
-                    ColType::Ascii => Some(
+                    ColType::Ascii => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -112,7 +105,7 @@ impl AsRust<HashMap<String, String>> for Map {
                                 return acc;
                             })
                     ),
-                    ColType::Varchar => Some(
+                    ColType::Varchar => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -120,27 +113,23 @@ impl AsRust<HashMap<String, String>> for Map {
                                 return acc;
                             })
                     ),
-                    _ => None
+                    _ => unreachable!()
                 }
             },
-            _ => None
+            _ => unreachable!()
         }
     }
 }
 
 impl AsRust<HashMap<String, bool>> for Map {
     /// Converts `Map` into `HashMap<String, bool>` for boolean values.
-    fn as_rust(&self) -> Option<HashMap<String, bool>> {
-        if self.metadata.value.is_none() {
-            return None;
-        }
-
+    fn as_rust(&self) -> Result<HashMap<String, bool>> {
         let map: HashMap<String, bool> = HashMap::new();
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CMap((_, value_type_option)) => {
                 match value_type_option.id {
-                    ColType::Boolean => Some(
+                    ColType::Boolean => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -148,27 +137,23 @@ impl AsRust<HashMap<String, bool>> for Map {
                                 return acc;
                             })
                     ),
-                    _ => None
+                    _ => unreachable!()
                 }
             },
-            _ => None
+            _ => unreachable!()
         }
     }
 }
 
 impl AsRust<HashMap<String, i64>> for Map {
     /// Converts `Map` into `HashMap<String, i64>` for numerical values.
-    fn as_rust(&self) -> Option<HashMap<String, i64>> {
-        if self.metadata.value.is_none() {
-            return None;
-        }
-
+    fn as_rust(&self) -> Result<HashMap<String, i64>> {
         let map: HashMap<String, i64> = HashMap::new();
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CMap((_, value_type_option)) => {
                 match value_type_option.id {
-                    ColType::Bigint => Some(
+                    ColType::Bigint => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -176,7 +161,7 @@ impl AsRust<HashMap<String, i64>> for Map {
                                 return acc;
                             })
                     ),
-                    ColType::Timestamp => Some(
+                    ColType::Timestamp => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -184,7 +169,7 @@ impl AsRust<HashMap<String, i64>> for Map {
                                 return acc;
                             })
                     ),
-                    ColType::Time => Some(
+                    ColType::Time => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -192,7 +177,7 @@ impl AsRust<HashMap<String, i64>> for Map {
                                 return acc;
                             })
                     ),
-                    ColType::Varint => Some(
+                    ColType::Varint => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -200,27 +185,23 @@ impl AsRust<HashMap<String, i64>> for Map {
                                 return acc;
                             })
                     ),
-                    _ => None
+                    _ => unreachable!()
                 }
             },
-            _ => None
+            _ => unreachable!()
         }
     }
 }
 
 impl AsRust<HashMap<String, i32>> for Map {
     /// Converts `Map` into `HashMap<String, i32>` for numerical values.
-    fn as_rust(&self) -> Option<HashMap<String, i32>> {
-        if self.metadata.value.is_none() {
-            return None;
-        }
-
+    fn as_rust(&self) -> Result<HashMap<String, i32>> {
         let map: HashMap<String, i32> = HashMap::new();
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CMap((_, value_type_option)) => {
                 match value_type_option.id {
-                    ColType::Int => Some(
+                    ColType::Int => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -228,7 +209,7 @@ impl AsRust<HashMap<String, i32>> for Map {
                                 return acc;
                             })
                     ),
-                    ColType::Date => Some(
+                    ColType::Date => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -236,27 +217,23 @@ impl AsRust<HashMap<String, i32>> for Map {
                                 return acc;
                             })
                     ),
-                    _ => None
+                    _ => unreachable!()
                 }
             },
-            _ => None
+            _ => unreachable!()
         }
     }
 }
 
 impl AsRust<HashMap<String, i16>> for Map {
     /// Converts `Map` into `HashMap<String, i16>` for numerical values.
-    fn as_rust(&self) -> Option<HashMap<String, i16>> {
-        if self.metadata.value.is_none() {
-            return None;
-        }
-
+    fn as_rust(&self) -> Result<HashMap<String, i16>> {
         let map: HashMap<String, i16> = HashMap::new();
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CMap((_, value_type_option)) => {
                 match value_type_option.id {
-                    ColType::Smallint => Some(
+                    ColType::Smallint => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -264,27 +241,23 @@ impl AsRust<HashMap<String, i16>> for Map {
                                 return acc;
                             })
                     ),
-                    _ => None
+                    _ => unreachable!()
                 }
             },
-            _ => None
+            _ => unreachable!()
         }
     }
 }
 
 impl AsRust<HashMap<String, f64>> for Map {
     /// Converts `Map` into `HashMap<String, f64>` for numerical values.
-    fn as_rust(&self) -> Option<HashMap<String, f64>> {
-        if self.metadata.value.is_none() {
-            return None;
-        }
-
+    fn as_rust(&self) -> Result<HashMap<String, f64>> {
         let map: HashMap<String, f64> = HashMap::new();
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CMap((_, value_type_option)) => {
                 match value_type_option.id {
-                    ColType::Double => Some(
+                    ColType::Double => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -292,27 +265,23 @@ impl AsRust<HashMap<String, f64>> for Map {
                                 return acc;
                             })
                     ),
-                    _ => None
+                    _ => unreachable!()
                 }
             },
-            _ => None
+            _ => unreachable!()
         }
     }
 }
 
 impl AsRust<HashMap<String, f32>> for Map {
     /// Converts `Map` into `HashMap<String, f32>` for numerical values.
-    fn as_rust(&self) -> Option<HashMap<String, f32>> {
-        if self.metadata.value.is_none() {
-            return None;
-        }
-
+    fn as_rust(&self) -> Result<HashMap<String, f32>> {
         let map: HashMap<String, f32> = HashMap::new();
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CMap((_, value_type_option)) => {
                 match value_type_option.id {
-                    ColType::Decimal => Some(
+                    ColType::Decimal => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -320,7 +289,7 @@ impl AsRust<HashMap<String, f32>> for Map {
                                 return acc;
                             })
                     ),
-                    ColType::Float => Some(
+                    ColType::Float => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -328,27 +297,23 @@ impl AsRust<HashMap<String, f32>> for Map {
                                 return acc;
                             })
                     ),
-                    _ => None
+                    _ => unreachable!()
                 }
             },
-            _ => None
+            _ => unreachable!()
         }
     }
 }
 
 impl AsRust<HashMap<String, net::IpAddr>> for Map {
     /// Converts `Map` into `HashMap<String, net::IpAddr>` for IP address values.
-    fn as_rust(&self) -> Option<HashMap<String, net::IpAddr>> {
-        if self.metadata.value.is_none() {
-            return None;
-        }
-
+    fn as_rust(&self) -> Result<HashMap<String, net::IpAddr>> {
         let map: HashMap<String, net::IpAddr> = HashMap::new();
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CMap((_, value_type_option)) => {
                 match value_type_option.id {
-                    ColType::Inet => Some(
+                    ColType::Inet => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -356,27 +321,23 @@ impl AsRust<HashMap<String, net::IpAddr>> for Map {
                                 return acc;
                             })
                     ),
-                    _ => None
+                    _ => unreachable!()
                 }
             },
-            _ => None
+            _ => unreachable!()
         }
     }
 }
 
 impl AsRust<HashMap<String, Uuid>> for Map {
     /// Converts `Map` into `HashMap<String, Uuid>` for IP address values.
-    fn as_rust(&self) -> Option<HashMap<String, Uuid>> {
-        if self.metadata.value.is_none() {
-            return None;
-        }
-
+    fn as_rust(&self) -> Result<HashMap<String, Uuid>> {
         let map: HashMap<String, Uuid> = HashMap::new();
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CMap((_, value_type_option)) => {
                 match value_type_option.id {
-                    ColType::Uuid => Some(
+                    ColType::Uuid => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -384,7 +345,7 @@ impl AsRust<HashMap<String, Uuid>> for Map {
                                 return acc;
                             })
                     ),
-                    ColType::Timeuuid => Some(
+                    ColType::Timeuuid => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -392,27 +353,23 @@ impl AsRust<HashMap<String, Uuid>> for Map {
                                 return acc;
                             })
                     ),
-                    _ => None
+                    _ => unreachable!()
                 }
             },
-            _ => None
+            _ => unreachable!()
         }
     }
 }
 
 impl AsRust<HashMap<String, List>> for Map {
     /// Converts `Map` into `HashMap<String, List>` for List address values.
-    fn as_rust(&self) -> Option<HashMap<String, List>> {
-        if self.metadata.value.is_none() {
-            return None;
-        }
-
+    fn as_rust(&self) -> Result<HashMap<String, List>> {
         let map: HashMap<String, List> = HashMap::new();
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CMap((_, value_type_option)) => {
                 match value_type_option.id {
-                    ColType::List => Some(
+                    ColType::List => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -423,7 +380,7 @@ impl AsRust<HashMap<String, List>> for Map {
                                 return acc;
                             })
                     ),
-                    ColType::Set => Some(
+                    ColType::Set => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -434,27 +391,23 @@ impl AsRust<HashMap<String, List>> for Map {
                                 return acc;
                             })
                     ),
-                    _ => None
+                    _ => unreachable!()
                 }
             },
-            _ => None
+            _ => unreachable!()
         }
     }
 }
 
 impl AsRust<HashMap<String, Map>> for Map {
     /// Converts `Map` into `HashMap<String, Map>` for Map address values.
-    fn as_rust(&self) -> Option<HashMap<String, Map>> {
-        if self.metadata.value.is_none() {
-            return None;
-        }
-
+    fn as_rust(&self) -> Result<HashMap<String, Map>> {
         let map: HashMap<String, Map> = HashMap::new();
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CMap((_, value_type_option)) => {
                 match value_type_option.id {
-                    ColType::Map => Some(
+                    ColType::Map => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -465,32 +418,28 @@ impl AsRust<HashMap<String, Map>> for Map {
                                 return acc;
                             })
                     ),
-                    _ => None
+                    _ => unreachable!()
                 }
             },
-            _ => None
+            _ => unreachable!()
         }
     }
 }
 
 impl AsRust<HashMap<String, UDT>> for Map {
     /// Converts `Map` into `HashMap<String, Map>` for Map address values.
-    fn as_rust(&self) -> Option<HashMap<String, UDT>> {
-        if self.metadata.value.is_none() {
-            return None;
-        }
-
+    fn as_rust(&self) -> Result<HashMap<String, UDT>> {
         let map: HashMap<String, UDT> = HashMap::new();
 
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CMap((_, value_type_option)) => {
                 let list_type_option = match value_type_option.value {
                     Some(ColTypeOptionValue::UdtType(ref t)) => t,
-                    _ => return None
+                    _ => unreachable!()
                 };
 
                 match value_type_option.id {
-                    ColType::Udt => Some(
+                    ColType::Udt => Ok(
                         self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
@@ -501,10 +450,10 @@ impl AsRust<HashMap<String, UDT>> for Map {
                                 return acc;
                             })
                     ),
-                    _ => None
+                    _ => unreachable!()
                 }
             },
-            _ => None
+            _ => unreachable!()
         }
     }
 }

@@ -7,6 +7,7 @@ use types::{CBytes, IntoRustByName};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
+use error::Result;
 
 pub struct UDT {
     data: HashMap<String, (ColTypeOption, CBytes)>
@@ -34,183 +35,192 @@ impl UDT {
 }
 
 impl IntoRustByName<Vec<u8>> for UDT {
-    fn get_by_name(&self, name: &str) -> Option<Vec<u8>> {
-        return self.data.get(name).and_then(|v| {
+    fn get_by_name(&self, name: &str) -> Option<Result<Vec<u8>>> {
+        return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
             return match col_type.id {
-                ColType::Blob => decode_blob(bytes.as_plain()).ok(),
-                _ => None
+                ColType::Blob => decode_blob(bytes.as_plain()).map_err(|err| err.into()),
+                _ => unreachable!()
             }
         });
     }
 }
 
 impl IntoRustByName<String> for UDT {
-    fn get_by_name(&self, name: &str) -> Option<String> {
-        return self.data.get(name).and_then(|v| {
+    fn get_by_name(&self, name: &str) -> Option<Result<String>> {
+        return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
-            return match col_type.id {
-                ColType::Custom => decode_custom(bytes.as_plain()).ok(),
-                ColType::Ascii => decode_ascii(bytes.as_plain()).ok(),
-                ColType::Varchar => decode_varchar(bytes.as_plain()).ok(),
-                _ => None
-            }
+            let converted = match col_type.id {
+                ColType::Custom => decode_custom(bytes.as_plain()),
+                ColType::Ascii => decode_ascii(bytes.as_plain()),
+                ColType::Varchar => decode_varchar(bytes.as_plain()),
+                _ => unreachable!()
+            };
+            return converted.map_err(|err| err.into());
         });
     }
 }
 
 impl IntoRustByName<bool> for UDT {
-    fn get_by_name(&self, name: &str) -> Option<bool> {
-        return self.data.get(name).and_then(|v| {
+    fn get_by_name(&self, name: &str) -> Option<Result<bool>> {
+        return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
-            return match col_type.id {
-                ColType::Boolean => decode_boolean(bytes.as_plain()).ok(),
-                _ => None
-            }
+            let converted = match col_type.id {
+                ColType::Boolean => decode_boolean(bytes.as_plain()),
+                _ => unreachable!()
+            };
+            return converted.map_err(|err| err.into());
         });
     }
 }
 
 impl IntoRustByName<i64> for UDT {
-    fn get_by_name(&self, name: &str) -> Option<i64> {
-        return self.data.get(name).and_then(|v| {
+    fn get_by_name(&self, name: &str) -> Option<Result<i64>> {
+        return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
-            return match col_type.id {
-                ColType::Bigint => decode_bigint(bytes.as_plain()).ok(),
-                ColType::Timestamp => decode_timestamp(bytes.as_plain()).ok(),
-                ColType::Time => decode_time(bytes.as_plain()).ok(),
-                ColType::Varint => decode_varint(bytes.as_plain()).ok(),
-                _ => None
-            }
+            let converted = match col_type.id {
+                ColType::Bigint => decode_bigint(bytes.as_plain()),
+                ColType::Timestamp => decode_timestamp(bytes.as_plain()),
+                ColType::Time => decode_time(bytes.as_plain()),
+                ColType::Varint => decode_varint(bytes.as_plain()),
+                _ => unreachable!()
+            };
+            return converted.map_err(|err| err.into());
         });
     }
 }
 
 impl IntoRustByName<i32> for UDT {
-    fn get_by_name(&self, name: &str) -> Option<i32> {
-        return self.data.get(name).and_then(|v| {
+    fn get_by_name(&self, name: &str) -> Option<Result<i32>> {
+        return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
-            return match col_type.id {
-                ColType::Int => decode_int(bytes.as_plain()).ok(),
-                ColType::Date => decode_date(bytes.as_plain()).ok(),
-                _ => None
-            }
+            let converted = match col_type.id {
+                ColType::Int => decode_int(bytes.as_plain()),
+                ColType::Date => decode_date(bytes.as_plain()),
+                _ => unreachable!()
+            };
+            return converted.map_err(|err| err.into());
         });
     }
 }
 
 impl IntoRustByName<i16> for UDT {
-    fn get_by_name(&self, name: &str) -> Option<i16> {
-        return self.data.get(name).and_then(|v| {
+    fn get_by_name(&self, name: &str) -> Option<Result<i16>> {
+        return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
-            return match col_type.id {
-                ColType::Smallint => decode_smallint(bytes.as_plain()).ok(),
-                _ => None
-            }
+            let converted = match col_type.id {
+                ColType::Smallint => decode_smallint(bytes.as_plain()),
+                _ => unreachable!()
+            };
+            return converted.map_err(|err| err.into());
         });
     }
 }
 
 impl IntoRustByName<f64> for UDT {
-    fn get_by_name(&self, name: &str) -> Option<f64> {
-        return self.data.get(name).and_then(|v| {
+    fn get_by_name(&self, name: &str) -> Option<Result<f64>> {
+        return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
-            return match col_type.id {
-                ColType::Double => decode_double(bytes.as_plain()).ok(),
-                _ => None
-            }
+            let converted = match col_type.id {
+                ColType::Double => decode_double(bytes.as_plain()),
+                _ => unreachable!()
+            };
+            return converted.map_err(|err| err.into());
         });
     }
 }
 
 impl IntoRustByName<f32> for UDT {
-    fn get_by_name(&self, name: &str) -> Option<f32> {
-        return self.data.get(name).and_then(|v| {
+    fn get_by_name(&self, name: &str) -> Option<Result<f32>> {
+        return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
-            return match col_type.id {
-                ColType::Decimal => decode_decimal(bytes.as_plain()).ok(),
-                ColType::Float => decode_float(bytes.as_plain()).ok(),
-                _ => None
-            }
+            let converted = match col_type.id {
+                ColType::Decimal => decode_decimal(bytes.as_plain()),
+                ColType::Float => decode_float(bytes.as_plain()),
+                _ => unreachable!()
+            };
+            return converted.map_err(|err| err.into());
         });
     }
 }
 
 impl IntoRustByName<net::IpAddr> for UDT {
-    fn get_by_name(&self, name: &str) -> Option<net::IpAddr> {
-        return self.data.get(name).and_then(|v| {
+    fn get_by_name(&self, name: &str) -> Option<Result<net::IpAddr>> {
+        return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
-            return match col_type.id {
-                ColType::Inet => decode_inet(bytes.as_plain()).ok(),
-                _ => None
-            }
+            let converted = match col_type.id {
+                ColType::Inet => decode_inet(bytes.as_plain()),
+                _ => unreachable!()
+            };
+            return converted.map_err(|err| err.into());
         });
     }
 }
 
 impl IntoRustByName<Uuid> for UDT {
-    fn get_by_name(&self, name: &str) -> Option<Uuid> {
-        return self.data.get(name).and_then(|v| {
+    fn get_by_name(&self, name: &str) -> Option<Result<Uuid>> {
+        return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
-            return match col_type.id {
-                ColType::Uuid => decode_timeuuid(bytes.as_plain()).ok(),
-                ColType::Timeuuid => decode_timeuuid(bytes.as_plain()).ok(),
-                _ => None
-            }
+            let converted = match col_type.id {
+                ColType::Uuid => decode_timeuuid(bytes.as_plain()),
+                ColType::Timeuuid => decode_timeuuid(bytes.as_plain()),
+                _ => unreachable!()
+            };
+            return converted.map_err(|err| err.into());
         });
     }
 }
 
 impl IntoRustByName<List> for UDT {
-    fn get_by_name(&self, name: &str) -> Option<List> {
-        return self.data.get(name).and_then(|v| {
+    fn get_by_name(&self, name: &str) -> Option<Result<List>> {
+        return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
             return match col_type.id {
                 ColType::List => {
                     let list_bytes = decode_list(bytes.as_plain()).unwrap();
-                    Some(List::new(list_bytes, col_type.clone().clone()))
+                    Ok(List::new(list_bytes, col_type.clone().clone()))
                 },
                 ColType::Set => {
                     let list_bytes = decode_set(bytes.as_plain()).unwrap();
-                    Some(List::new(list_bytes, col_type.clone().clone()))
+                    Ok(List::new(list_bytes, col_type.clone().clone()))
                 },
-                _ => None
+                _ => unreachable!()
             }
         });
     }
 }
 
 impl IntoRustByName<Map> for UDT {
-    fn get_by_name(&self, name: &str) -> Option<Map> {
-        return self.data.get(name).and_then(|v| {
+    fn get_by_name(&self, name: &str) -> Option<Result<Map>> {
+        return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
             let list_bytes = decode_map(bytes.as_plain()).unwrap();
             return match col_type.id {
-                ColType::Map => Some(Map::new(list_bytes, col_type.clone().clone())),
-                _ => None
+                ColType::Map => Ok(Map::new(list_bytes, col_type.clone().clone())),
+                _ => unreachable!()
             }
         });
     }
 }
 
 impl IntoRustByName<UDT> for UDT {
-    fn get_by_name(&self, name: &str) -> Option<UDT> {
-        return self.data.get(name).and_then(|v| {
+    fn get_by_name(&self, name: &str) -> Option<Result<UDT>> {
+        return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
-            let list_bytes: Vec<CBytes> = decode_udt(bytes.as_plain()).unwrap();
+            let list_bytes: Vec<CBytes> = try!(decode_udt(bytes.as_plain()));
 
             if col_type.value.is_none() {
-                return None;
+                unreachable!();
             }
 
             let col_type_value = match col_type.value.as_ref() {
                 Some(&ColTypeOptionValue::UdtType(ref ctv)) => ctv,
-                _ => return None
+                _ => unreachable!()
             };;
 
             return match col_type.id {
-                ColType::Udt => Some(UDT::new(list_bytes, col_type_value.clone())),
-                _ => None
+                ColType::Udt => Ok(UDT::new(list_bytes, col_type_value.clone())),
+                _ => unreachable!()
             }
         });
     }

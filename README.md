@@ -196,9 +196,11 @@ into collection of rows `Vec<cdrs::types::row::Row>` and then convert each colum
 into appropriate Rust type:
 
 ```rust
+use cdrs::error::{Result as CResult};
+
 let res_body = parsed.get_body();
 let rows = res_body.into_rows().unwrap();
-let messages: Vec<Message> = rows
+let messages: Vec<CResult<Message>> = rows
     .iter()
     .map(|row| Message {
         author: row.get_by_name("author").unwrap(),
@@ -220,15 +222,16 @@ struct Author {
 }
 
 //...
-
+use cdrs::error::{Result as CResult};
 let res_body = parsed.get_body();
 let rows = res_body.into_rows().unwrap();
-let messages: Vec<Author> = rows
+let messages: Vec<CAuthor> = rows
     .iter()
     .map(|row| {
         let name: String = row.get_by_name("name").unwrap();
         let messages: Vec<String> = row
-            .get_by_name("messages").unwrap()
+            // unwrap Option<CResult<T>>, where T implements AsRust
+            .get_by_name("messages").unwrap().unwrap()
             .as_rust().unwrap();
         return Author {
             author: name,
