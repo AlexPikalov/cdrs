@@ -59,23 +59,23 @@ fn main() {
                         let employees: Vec<Employee> = rows.iter()
                             .map(|row| {
                                 let mut employee = Employee { ..Default::default() };
-                                if let Some(id) = row.get_by_name("emp_id") {
+                                if let Some(Ok(id)) = row.get_by_name("emp_id") {
                                     employee.id = id;
                                 }
 
-                                if let Some(emp_name) = row.get_by_name("emp_name") {
+                                if let Some(Ok(emp_name)) = row.get_by_name("emp_name") {
                                     employee.emp_name = emp_name;
                                 }
 
-                                if let Some(emp_city) = row.get_by_name("emp_city") {
+                                if let Some(Ok(emp_city)) = row.get_by_name("emp_city") {
                                     employee.emp_city = emp_city;
                                 }
 
-                                if let Some(emp_sal) = row.get_by_name("emp_sal") {
+                                if let Some(Ok(emp_sal)) = row.get_by_name("emp_sal") {
                                     employee.emp_sal = emp_sal;
                                 }
 
-                                if let Some(emp_phone) = row.get_by_name("emp_phone") {
+                                if let Some(Ok(emp_phone)) = row.get_by_name("emp_phone") {
                                     employee.emp_phone = emp_phone;
                                 }
 

@@ -7,6 +7,7 @@ use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
 use types::udt::UDT;
+use error::Result;
 
 pub struct Row {
     metadata: RowsMetadata,
@@ -48,227 +49,206 @@ impl Row {
 }
 
 impl IntoRustByName<Vec<u8>> for Row {
-    fn get_by_name(&self, name: &str) -> Option<Vec<u8>> {
-        // TODO: create try! for Option and replace following code. Same for other IntoRust impls.
-        let col = self.get_col_by_name(name);
-        if col.is_none() {
-            return None;
-        }
-        let (cassandra_type, cbytes) = col.unwrap();
-        let bytes = cbytes.as_plain().clone();
-
-        return match cassandra_type {
-            &ColType::Blob => decode_blob(bytes).ok(),
-            _ => None
-        }
+    fn get_by_name(&self, name: &str) -> Option<Result<Vec<u8>>> {
+        return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_plain().clone();
+            let converted = match cassandra_type {
+                &ColType::Blob => decode_blob(bytes),
+                _ => unreachable!()
+            };
+            return converted.map_err(|err| err.into());
+        });
     }
 }
 
 impl IntoRustByName<String> for Row {
-    fn get_by_name(&self, name: &str) -> Option<String> {
-        let col = self.get_col_by_name(name);
-        if col.is_none() {
-            return None;
-        }
-        let (cassandra_type, cbytes) = col.unwrap();
-        let bytes = cbytes.as_plain().clone();
+    fn get_by_name(&self, name: &str) -> Option<Result<String>> {
+        return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_plain().clone();
 
-        return match cassandra_type {
-            &ColType::Custom => decode_custom(bytes).ok(),
-            &ColType::Ascii => decode_ascii(bytes).ok(),
-            &ColType::Varchar => decode_varchar(bytes).ok(),
-            // TODO: clarify when to use decode_text.
-            // it's not mentioned in https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L582
-            // &ColType::XXX => decode_text(bytes).ok(),
-            _ => None
-        }
+            let converted = match cassandra_type {
+                &ColType::Custom => decode_custom(bytes),
+                &ColType::Ascii => decode_ascii(bytes),
+                &ColType::Varchar => decode_varchar(bytes),
+                // TODO: clarify when to use decode_text.
+                // it's not mentioned in https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L582
+                // &ColType::XXX => decode_text(bytes).ok(),
+                _ => unreachable!()
+            };
+
+            return converted.map_err(|err| err.into());
+        });
     }
 }
 
 impl IntoRustByName<bool> for Row {
-    fn get_by_name(&self, name: &str) -> Option<bool> {
-        let col = self.get_col_by_name(name);
-        if col.is_none() {
-            return None;
-        }
-        let (cassandra_type, cbytes) = col.unwrap();
-        let bytes = cbytes.as_plain().clone();
+    fn get_by_name(&self, name: &str) -> Option<Result<bool>> {
+        return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_plain().clone();
 
-        return match cassandra_type {
-            &ColType::Boolean => decode_boolean(bytes).ok(),
-            _ => None
-        }
+            let converted = match cassandra_type {
+                &ColType::Boolean => decode_boolean(bytes),
+                _ => unreachable!()
+            };
+
+            return converted.map_err(|err| err.into());
+        });
     }
 }
 
 impl IntoRustByName<i64> for Row {
-    fn get_by_name(&self, name: &str) -> Option<i64> {
-        let col = self.get_col_by_name(name);
-        if col.is_none() {
-            return None;
-        }
-        let (cassandra_type, cbytes) = col.unwrap();
-        let bytes = cbytes.as_plain().clone();
+    fn get_by_name(&self, name: &str) -> Option<Result<i64>> {
+        return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_plain().clone();
 
-        return match cassandra_type {
-            &ColType::Bigint => decode_bigint(bytes).ok(),
-            &ColType::Timestamp => decode_timestamp(bytes).ok(),
-            &ColType::Time => decode_time(bytes).ok(),
-            &ColType::Varint => decode_varint(bytes).ok(),
-            _ => None
-        }
+            let converted = match cassandra_type {
+                &ColType::Bigint => decode_bigint(bytes),
+                &ColType::Timestamp => decode_timestamp(bytes),
+                &ColType::Time => decode_time(bytes),
+                &ColType::Varint => decode_varint(bytes),
+                _ => unreachable!()
+            };
+
+            return converted.map_err(|err| err.into());
+        });
     }
 }
 
 impl IntoRustByName<i32> for Row {
-    fn get_by_name(&self, name: &str) -> Option<i32> {
-        let col = self.get_col_by_name(name);
-        if col.is_none() {
-            return None;
-        }
-        let (cassandra_type, cbytes) = col.unwrap();
-        let bytes = cbytes.as_plain().clone();
+    fn get_by_name(&self, name: &str) -> Option<Result<i32>> {
+        return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_plain().clone();
 
-        return match cassandra_type {
-            &ColType::Int => decode_int(bytes).ok(),
-            &ColType::Date => decode_date(bytes).ok(),
-            _ => None
-        }
+            let converted = match cassandra_type {
+                &ColType::Int => decode_int(bytes),
+                &ColType::Date => decode_date(bytes),
+                _ => unreachable!()
+            };
+
+            return converted.map_err(|err| err.into());
+        });
     }
 }
 
 impl IntoRustByName<i16> for Row {
-    fn get_by_name(&self, name: &str) -> Option<i16> {
-        let col = self.get_col_by_name(name);
-        if col.is_none() {
-            return None;
-        }
-        let (cassandra_type, cbytes) = col.unwrap();
-        let bytes = cbytes.as_plain().clone();
+    fn get_by_name(&self, name: &str) -> Option<Result<i16>> {
+        return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_plain().clone();
 
-        return match cassandra_type {
-            &ColType::Smallint => decode_smallint(bytes).ok(),
-            _ => None
-        }
+            let converted = match cassandra_type {
+                &ColType::Smallint => decode_smallint(bytes),
+                _ => unreachable!()
+            };
+            return converted.map_err(|err| err.into());
+        });
     }
 }
 
 impl IntoRustByName<f64> for Row {
-    fn get_by_name(&self, name: &str) -> Option<f64> {
-        let col = self.get_col_by_name(name);
-        if col.is_none() {
-            return None;
-        }
-        let (cassandra_type, cbytes) = col.unwrap();
-        let bytes = cbytes.as_plain().clone();
+    fn get_by_name(&self, name: &str) -> Option<Result<f64>> {
+        return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_plain().clone();
 
-        return match cassandra_type {
-            &ColType::Double => decode_double(bytes).ok(),
-            _ => None
-        }
+            let converted = match cassandra_type {
+                &ColType::Double => decode_double(bytes),
+                _ => unreachable!()
+            };
+
+            return converted.map_err(|err| err.into());
+        });
     }
 }
 
 impl IntoRustByName<f32> for Row {
-    fn get_by_name(&self, name: &str) -> Option<f32> {
-        let col = self.get_col_by_name(name);
-        if col.is_none() {
-            return None;
-        }
-        let (cassandra_type, cbytes) = col.unwrap();
-        let bytes = cbytes.as_plain().clone();
+    fn get_by_name(&self, name: &str) -> Option<Result<f32>> {
+        return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_plain().clone();
 
-        return match cassandra_type {
-            &ColType::Decimal => decode_decimal(bytes).ok(),
-            &ColType::Float => decode_float(bytes).ok(),
-            _ => None
-        }
+            let converted = match cassandra_type {
+                &ColType::Decimal => decode_decimal(bytes),
+                &ColType::Float => decode_float(bytes),
+                _ => unreachable!()
+            };
+
+            return converted.map_err(|err| err.into());
+        });
     }
 }
 
 impl IntoRustByName<net::IpAddr> for Row {
-    fn get_by_name(&self, name: &str) -> Option<net::IpAddr> {
-        let col = self.get_col_by_name(name);
-        if col.is_none() {
-            return None;
-        }
-        let (cassandra_type, cbytes) = col.unwrap();
-        let bytes = cbytes.as_plain().clone();
+    fn get_by_name(&self, name: &str) -> Option<Result<net::IpAddr>> {
+        return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_plain().clone();
 
-        return match cassandra_type {
-            &ColType::Inet => decode_inet(bytes).ok(),
-            _ => None
-        }
+            let converted = match cassandra_type {
+                &ColType::Inet => decode_inet(bytes),
+                _ => unreachable!()
+            };
+
+            return converted.map_err(|err| err.into());
+        });
     }
 }
 
 impl IntoRustByName<Uuid> for Row {
-    fn get_by_name(&self, name: &str) -> Option<Uuid> {
-        let col = self.get_col_by_name(name);
-        if col.is_none() {
-            return None;
-        }
-        let (cassandra_type, cbytes) = col.unwrap();
-        let bytes = cbytes.as_plain().clone();
+    fn get_by_name(&self, name: &str) -> Option<Result<Uuid>> {
+        return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_plain().clone();
 
-        return match cassandra_type {
-            &ColType::Uuid => decode_timeuuid(bytes).ok(),
-            &ColType::Timeuuid => decode_timeuuid(bytes).ok(),
-            _ => None
-        }
+            let converted = match cassandra_type {
+                &ColType::Uuid => decode_timeuuid(bytes),
+                &ColType::Timeuuid => decode_timeuuid(bytes),
+                _ => unreachable!()
+            };
+
+            return converted.map_err(|err| err.into());
+        });
     }
 }
 
 impl IntoRustByName<List> for Row {
-    fn get_by_name(&self, name: &str) -> Option<List> {
-        let col = self.get_col_spec_by_name(name);
-        if col.is_none() {
-            return None;
-        }
-        let (cassandra_type, cbytes) = col.unwrap();
-        let bytes = cbytes.as_plain().clone();
+    fn get_by_name(&self, name: &str) -> Option<Result<List>> {
+        return self.get_col_spec_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_plain().clone();
 
-        return match cassandra_type.col_type.id {
-            ColType::List => Some(List::new(decode_list(bytes).unwrap(), cassandra_type.col_type.clone())),
-            ColType::Set => Some(List::new(decode_set(bytes).unwrap(), cassandra_type.col_type.clone())),
-            _ => None
-        }
+            return match cassandra_type.col_type.id {
+                // in fact, both decode_list and decode_set return Ok
+                ColType::List => Ok(List::new(decode_list(bytes).unwrap(), cassandra_type.col_type.clone())),
+                ColType::Set => Ok(List::new(decode_set(bytes).unwrap(), cassandra_type.col_type.clone())),
+                _ => unreachable!()
+            };
+        });
     }
 }
 
 impl IntoRustByName<Map> for Row {
-    fn get_by_name(&self, name: &str) -> Option<Map> {
-        let col = self.get_col_spec_by_name(name);
-        if col.is_none() {
-            return None;
-        }
-        let (cassandra_type, cbytes) = col.unwrap();
-        let bytes = cbytes.as_plain().clone();
+    fn get_by_name(&self, name: &str) -> Option<Result<Map>> {
+        return self.get_col_spec_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_plain().clone();
 
-        return match cassandra_type.col_type.id {
-            ColType::Map => Some(Map::new(decode_map(bytes).unwrap(), cassandra_type.col_type.clone())),
-            _ => None
-        }
+            return match cassandra_type.col_type.id {
+                // in fact, both decode_map and decode_set return Ok
+                ColType::Map => Ok(Map::new(decode_map(bytes).unwrap(), cassandra_type.col_type.clone())),
+                _ => unreachable!()
+            }
+        });
     }
 }
 
 impl IntoRustByName<UDT> for Row {
-    fn get_by_name(&self, name: &str) -> Option<UDT> {
-        let col = self.get_col_spec_by_name(name);
-        if col.is_none() {
-            return None;
-        }
-        let (cassandra_type, cbytes) = col.unwrap();
-        let bytes = cbytes.as_plain().clone();
-        let cudt = match cassandra_type.col_type.value {
-            Some(ColTypeOptionValue::UdtType(ref t)) => t.clone(),
-            _ => return None
-        };
+    fn get_by_name(&self, name: &str) -> Option<Result<UDT>> {
+        return self.get_col_spec_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_plain().clone();
+            let cudt = match cassandra_type.col_type.value {
+                Some(ColTypeOptionValue::UdtType(ref t)) => t.clone(),
+                _ => unreachable!()
+            };
 
-        return match cassandra_type.col_type.id {
-            ColType::Map => Some(UDT::new(decode_udt(bytes).unwrap(), cudt)),
-            _ => None
-        }
+            return match cassandra_type.col_type.id {
+                ColType::Map => Ok(UDT::new(decode_udt(bytes).unwrap(), cudt)),
+                _ => unreachable!()
+            }
+        });
     }
 }
 

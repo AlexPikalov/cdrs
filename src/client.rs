@@ -136,7 +136,7 @@ pub struct CDRS<T: Authenticator> {
 }
 
 /// Map of options supported by Cassandra server.
-type CassandraOptions = HashMap<String, Vec<String>>;
+pub type CassandraOptions = HashMap<String, Vec<String>>;
 
 impl<'a, T: Authenticator + 'a> CDRS<T> {
     /// The method creates new instance of CDRS driver. At this step an instance doesn't
