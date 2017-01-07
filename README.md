@@ -123,8 +123,9 @@ you need to start Session first.
 ```rust
 
 let use_query_string = String::from("USE my_namespace;");
+let with_tracing = false;
 
-match session.prepare(use_query_string) {
+match session.prepare(use_query_string, with_tracing) {
     Ok(set_keyspace) => {
         // use_keyspace is a result frame of type SetKeyspace
     },
@@ -152,8 +153,9 @@ let mut select_query: Query = QueryBuilder::new("CREATE TABLE keyspace.emp (
     );")
     .consistency(Consistency::One)
     .finalize();
+let with_tracing = false;
 
-let table_created = session.query(select_query).is_ok();
+let table_created = session.query(select_query, with_tracing).is_ok();
 
 ```
 
@@ -168,8 +170,9 @@ use cdrs::client::Query;
 use cdrs::consistency::Consistency;
 
 let mut select_query: Query = QueryBuilder::new(use_query.clone()).finalize();
+let with_tracing = false;
 
-match session.query(select_query) {
+match session.query(select_query, with_tracing) {
     Ok(res) => println!("Result frame: {:?},\nparsed body: {:?}", res, res.get_body());,
     Err(err) => log!(err)
 }
