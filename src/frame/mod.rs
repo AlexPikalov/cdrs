@@ -1,9 +1,10 @@
 //! `frame` module contains general Frame functionality.
 use std::convert::{From};
-use super::types::to_n_bytes;
-use super::{AsByte, IntoBytes};
+use types::to_n_bytes;
+use {AsByte, IntoBytes};
 use self::frame_response::ResponseBody;
 use compression::Compression;
+use uuid::Uuid;
 
 /// Number of version bytes in accordance to protocol.
 pub const VERSION_LEN: usize = 1;
@@ -40,12 +41,17 @@ pub struct Frame {
     pub flags: Vec<Flag>,
     pub opcode: Opcode,
     pub stream: u64, // we're going to use 0 here until async client is implemented
-    pub body: Vec<u8> // change type to Vec<u8>
+    pub body: Vec<u8>,
+    pub tracing_id: Option<Uuid>
 }
 
 impl Frame {
     pub fn get_body(&self) -> ResponseBody {
         return ResponseBody::from(self.body.clone(), &self.opcode);
+    }
+
+    pub fn tracing_id(&self) -> Option<Uuid> {
+        return self.tracing_id.clone();
     }
 
     pub fn encode_with(self, compressor: Compression) -> error::Result<Vec<u8>> {
@@ -133,6 +139,28 @@ pub enum Flag {
 }
 
 impl Flag {
+    pub fn get_collection(flags: u8) -> Vec<Flag> {
+        let mut found_flags: Vec<Flag> = vec![];
+
+        if Flag::has_compression(flags) {
+            found_flags.push(Flag::Compression);
+        }
+
+        if Flag::has_tracing(flags) {
+            found_flags.push(Flag::Tracing);
+        }
+
+        if Flag::has_custom_payload(flags) {
+            found_flags.push(Flag::CustomPayload);
+        }
+
+        if Flag::has_warning(flags) {
+            found_flags.push(Flag::Warning);
+        }
+
+        return found_flags;
+    }
+
     /// The method converts a serie of `Flag`-s into a single byte.
     pub fn many_to_cbytes(flags: &Vec<Flag>) -> u8 {
         return flags

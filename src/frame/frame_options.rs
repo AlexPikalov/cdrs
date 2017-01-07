@@ -34,7 +34,9 @@ impl Frame {
             flags: vec![flag],
             stream: stream,
             opcode: opcode,
-            body: body.into_cbytes()
+            body: body.into_cbytes(),
+            // for request frames it's always None
+            tracing_id: None
         };
     }
 }

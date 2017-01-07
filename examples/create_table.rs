@@ -27,8 +27,9 @@ fn main() {
     let create_table_query = QueryBuilder::new(create_table_cql)
         .consistency(Consistency::One)
         .finalize();
+    let with_tracing = false;
 
-    match session.query(create_table_query) {
+    match session.query(create_table_query, with_tracing) {
         Ok(ref res) => println!("table created: {:?}", res.get_body()),
         Err(ref err) => println!("Error occured: {:?}", err)
     }

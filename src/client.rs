@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::default::Default;
 
 use consistency::Consistency;
-use frame::{Frame, Opcode};
+use frame::{Frame, Opcode, Flag};
 use frame::frame_response::ResponseBody;
 use IntoBytes;
 use frame::parser::parse_frame;
@@ -19,17 +19,17 @@ use authenticators::Authenticator;
 use error;
 
 /// instead of writing functions which resemble
-/// `
+/// ```
 /// pub fn query<'a> (&'a mut self,query: String) -> &'a mut Self{
 ///     self.query = Some(query);
 ///            self
 /// }
-/// `
+/// ```
 /// and repeating it for all the attributes; it is extracted out as a macro so that code is more concise
 /// see @https://doc.rust-lang.org/book/method-syntax.html
 ///
 ///
-macro_rules! builder_field {
+macro_rules! builder_opt_field {
     ($field:ident, $field_type:ty) => {
         pub fn $field<'a>(&'a mut self,
                           $field: $field_type) -> &'a mut Self {
@@ -43,7 +43,8 @@ macro_rules! builder_field {
 /// its execution
 #[derive(Debug, Default)]
 pub struct Query {
-    query: Option<String>,
+    query: String,
+    // query parameters
     consistency: Option<Consistency>,
     values: Option<Vec<Value>>,
     with_names: Option<bool>,
@@ -59,7 +60,7 @@ pub struct Query {
 /// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L304)
 #[derive(Debug, Default)]
 pub struct QueryBuilder {
-    query: Option<String>,
+    query: String,
     consistency: Option<Consistency>,
     values: Option<Vec<Value>>,
     with_names: Option<bool>,
@@ -73,34 +74,31 @@ impl QueryBuilder {
     /// Factory function that takes CQL `&str` as an argument and returns new `QueryBuilder`
     pub fn new(query: &str) -> QueryBuilder {
         return QueryBuilder {
-            query: Some(query.to_string()),
+            query: query.to_string(),
             ..Default::default()
         };
     }
 
-    /// Sets new query CQL string
-    builder_field!(query, String);
-
     /// Sets new query consistency
-    builder_field!(consistency, Consistency);
+    builder_opt_field!(consistency, Consistency);
 
     /// Sets new query values
-    builder_field!(values, Vec<Value>);
+    builder_opt_field!(values, Vec<Value>);
 
     /// Sets new query with_names
-    builder_field!(with_names, bool);
+    builder_opt_field!(with_names, bool);
 
     /// Sets new query pagesize
-    builder_field!(page_size, i32);
+    builder_opt_field!(page_size, i32);
 
     /// Sets new query pagin state
-    builder_field!(paging_state, CBytes);
+    builder_opt_field!(paging_state, CBytes);
 
     /// Sets new query serial_consistency
-    builder_field!(serial_consistency, Consistency);
+    builder_opt_field!(serial_consistency, Consistency);
 
     /// Sets new quey timestamp
-    builder_field!(timestamp, i64);
+    builder_opt_field!(timestamp, i64);
 
     /// Finalizes query building process and returns query itself
     pub fn finalize(&self) -> Query {
@@ -236,16 +234,25 @@ impl<T: Authenticator> Clone for CDRS<T> {
 /// The object that provides functionality for communication with Cassandra server.
 pub struct Session<T: Authenticator> {
     started: bool,
-    cdrs: CDRS<T>
+    cdrs: CDRS<T>,
+    compressor: Compression
 }
 
 impl<T: Authenticator> Session<T> {
     /// Creates new session basing on CDRS instance.
     pub fn start(cdrs: CDRS<T>) -> Session<T> {
+        let compressor = cdrs.compressor.clone();
         return Session {
             cdrs: cdrs,
-            started: true
+            started: true,
+            compressor: compressor
         };
+    }
+
+    /// The method overrides a compression method of current session
+    pub fn compressor(&mut self, compressor: Compression) -> &mut Self {
+        self.compressor = compressor;
+        return self;
     }
 
     /// Manually ends current session.
@@ -263,23 +270,39 @@ impl<T: Authenticator> Session<T> {
     }
 
     /// The method makes a request to DB Server to prepare provided query.
-    pub fn prepare(&self, query: String) -> error::Result<Frame> {
+    pub fn prepare(&self, query: String, with_tracing: bool) -> error::Result<Frame> {
         let mut tcp = try!(self.cdrs.tcp.try_clone());
-        let options_frame = Frame::new_req_prepare(query).into_cbytes();
+
+        let mut flags = vec![];
+        if with_tracing {
+            flags.push(Flag::Tracing);
+        }
+
+        let options_frame = Frame::new_req_prepare(query, flags).into_cbytes();
 
         try!(tcp.write(options_frame.as_slice()));
-        return parse_frame(tcp, &self.cdrs.compressor);
+        return parse_frame(tcp, &self.compressor);
     }
 
     /// The method makes a request to DB Server to execute a query with provided id
     /// using provided query parameters. `id` is an ID of a query which Server
     /// returns back to a driver as a response to `prepare` request.
-    pub fn execute(&self, id: CBytesShort, query_parameters: ParamsReqQuery) -> error::Result<Frame> {
+    pub fn execute(&self,
+        id: CBytesShort,
+        query_parameters: ParamsReqQuery,
+        with_tracing: bool) -> error::Result<Frame> {
+
         let mut tcp = try!(self.cdrs.tcp.try_clone());
-        let options_frame = Frame::new_req_execute(id, query_parameters).into_cbytes();
+
+        let mut flags = vec![];
+        if with_tracing {
+            flags.push(Flag::Tracing);
+        }
+
+        let options_frame = Frame::new_req_execute(id, query_parameters, flags).into_cbytes();
 
         try!(tcp.write(options_frame.as_slice()));
-        return parse_frame(tcp, &self.cdrs.compressor);
+        return parse_frame(tcp, &self.compressor);
     }
 
     /// The method makes a request to DB Server to execute a query provided in `query` argument.
@@ -287,28 +310,29 @@ impl<T: Authenticator> Session<T> {
     /// let qb = QueryBuilder::new().query("select * from emp").consistency(Consistency::One).page_size(Some(4));
     /// session.query_with_builder(qb);
     ///
-    pub fn query(&self, query: Query) -> error::Result<Frame> {
+    pub fn query(&self, query: Query, with_tracing: bool) -> error::Result<Frame> {
         let mut tcp = try!(self.cdrs.tcp.try_clone());
         let consistency = match query.consistency {
             Some(cs) => cs,
             None => Consistency::One,
         };
 
-        let cql = match query.query {
-            Some(cs) => (&*cs).to_string(),
-            None => panic!(" the query is empty {:?}",query.query ),
-        };
+        let mut flags = vec![];
+        if with_tracing {
+            flags.push(Flag::Tracing);
+        }
 
-        let query_frame = Frame::new_req_query(cql,
+        let query_frame = Frame::new_req_query(query.query,
             consistency,
             query.values,
             query.with_names,
             query.page_size,
             query.paging_state,
             query.serial_consistency,
-            query.timestamp).into_cbytes();
+            query.timestamp,
+            flags).into_cbytes();
 
         try!(tcp.write(query_frame.as_slice()));
-        return parse_frame(tcp, &self.cdrs.compressor);
+        return parse_frame(tcp, &self.compressor);
     }
 }

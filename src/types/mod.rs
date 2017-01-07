@@ -3,6 +3,7 @@
 pub const LONG_STR_LEN: usize = 4;
 pub const SHORT_LEN: usize = 2;
 pub const INT_LEN: usize = 4;
+pub const UUID_LEN: usize = 16;
 
 use std::io;
 use std::io::{Cursor, Read};
