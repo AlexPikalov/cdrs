@@ -4,7 +4,8 @@ use compression::Compression;
 use frame::frame_response::ResponseBody;
 
 use super::*;
-use super::super::types::from_bytes;
+use types::{from_bytes, UUID_LEN};
+use types::data_serialization_types::decode_timeuuid;
 use error;
 
 pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> error::Result<Frame> {
@@ -22,7 +23,7 @@ pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> erro
     try!(cursor.read(&mut length_bytes));
 
     let version = Version::from(version_bytes.to_vec());
-    let flag = Flag::from(flag_bytes[0]);
+    let flags = Flag::get_collection(flag_bytes[0]);
     let stream = from_bytes(stream_bytes.to_vec());
     let opcode = Opcode::from(opcode_bytes[0]);
     let length = from_bytes(length_bytes.to_vec()) as usize;
@@ -33,18 +34,41 @@ pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> erro
     }
     try!(cursor.read_exact(&mut body_bytes));
 
-    let body = if flag == Flag::Compression {
+    let full_body = if flags.iter().any(|flag| flag == &Flag::Compression) {
         try!(compressor.decode(body_bytes))
     } else {
         try!(Compression::None.decode(body_bytes))
     };
 
+    let tracing_id = if flags.iter().any(|flag| flag == &Flag::Tracing) {
+        decode_timeuuid(full_body[..UUID_LEN].to_vec()).ok()
+    } else {
+        None
+    };
+
+    let warning: Option<Vec<String>> = None;
+
+    let body = if tracing_id.is_some() {
+        if warning.is_some() {
+            unimplemented!()
+        } else {
+            full_body[UUID_LEN..].to_vec()
+        }
+    } else {
+        if warning.is_some() {
+            unimplemented!()
+        } else {
+            full_body
+        }
+    };
+
     let frame = Frame {
         version: version,
-        flags: vec![flag],
+        flags: flags,
         opcode: opcode,
         stream: stream,
-        body: body
+        body: body,
+        tracing_id: tracing_id
     };
 
     return conver_frame_into_result(frame);
