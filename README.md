@@ -42,10 +42,15 @@ into Rust structures It supports 4-th version of [Cassandra protocol](https://gi
 - [x] RESULT (Set_keyspace)
 - [x] RESULT (Prepared)
 - [x] RESULT (Schema_change)
+
 * - [x] Target KEYSPACE
+
 * - [x] Target TABLE
+
 * - [x] Target TYPE
+
 * - [x] Target FUNCTION
+
 * - [x] Target AGGREGATE
 - [ ] EVENT
 - [x] AUTH_CHALLENGE
