@@ -16,7 +16,7 @@ into Rust structures It supports 4-th version of [Cassandra protocol](https://gi
 - [x] snappy decompression
 - [x] password authorization
 - [x] tracing information
-- [x] warning information
+- [ ] warning information
 
 ### Frames
 
