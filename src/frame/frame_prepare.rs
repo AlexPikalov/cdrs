@@ -38,7 +38,8 @@ impl Frame {
             opcode: opcode,
             body: body.into_cbytes(),
             // for request frames it's always None
-            tracing_id: None
+            tracing_id: None,
+            warnings: vec![]
         };
     }
 }

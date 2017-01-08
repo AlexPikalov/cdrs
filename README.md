@@ -16,7 +16,7 @@ into Rust structures It supports 4-th version of [Cassandra protocol](https://gi
 - [x] snappy decompression
 - [x] password authorization
 - [x] tracing information
-- [ ] warning information
+- [x] warning information
 
 ### Frames
 
@@ -124,8 +124,9 @@ you need to start Session first.
 
 let use_query_string = String::from("USE my_namespace;");
 let with_tracing = false;
+let with_warnings = false;
 
-match session.prepare(use_query_string, with_tracing) {
+match session.prepare(use_query_string, with_tracing, with_warnings) {
     Ok(set_keyspace) => {
         // use_keyspace is a result frame of type SetKeyspace
     },
@@ -154,8 +155,9 @@ let mut select_query: Query = QueryBuilder::new("CREATE TABLE keyspace.emp (
     .consistency(Consistency::One)
     .finalize();
 let with_tracing = false;
+let with_warnings = false;
 
-let table_created = session.query(select_query, with_tracing).is_ok();
+let table_created = session.query(select_query, with_tracing, with_warnings).is_ok();
 
 ```
 
@@ -171,8 +173,9 @@ use cdrs::consistency::Consistency;
 
 let mut select_query: Query = QueryBuilder::new(use_query.clone()).finalize();
 let with_tracing = false;
+let with_warnings = false;
 
-match session.query(select_query, with_tracing) {
+match session.query(select_query, with_tracing, with_warnings) {
     Ok(res) => println!("Result frame: {:?},\nparsed body: {:?}", res, res.get_body());,
     Err(err) => log!(err)
 }

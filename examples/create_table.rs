@@ -28,8 +28,9 @@ fn main() {
         .consistency(Consistency::One)
         .finalize();
     let with_tracing = false;
+    let with_warnings = false;
 
-    match session.query(create_table_query, with_tracing) {
+    match session.query(create_table_query, with_tracing, with_warnings) {
         Ok(ref res) => println!("table created: {:?}", res.get_body()),
         Err(ref err) => println!("Error occured: {:?}", err)
     }

@@ -42,7 +42,8 @@ pub struct Frame {
     pub opcode: Opcode,
     pub stream: u64, // we're going to use 0 here until async client is implemented
     pub body: Vec<u8>,
-    pub tracing_id: Option<Uuid>
+    pub tracing_id: Option<Uuid>,
+    pub warnings: Vec<String>
 }
 
 impl Frame {
@@ -52,6 +53,10 @@ impl Frame {
 
     pub fn tracing_id(&self) -> Option<Uuid> {
         return self.tracing_id.clone();
+    }
+
+    pub fn warnings(&self) -> Vec<String> {
+        return self.warnings.clone();
     }
 
     pub fn encode_with(self, compressor: Compression) -> error::Result<Vec<u8>> {

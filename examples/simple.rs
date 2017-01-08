@@ -18,7 +18,8 @@ fn main() {
     match client.start(Compression::None) {
         Ok(session) => {
             let with_tracing = false;
-            let query_op = session.query(select_query, with_tracing);
+            let with_warnings = false;
+            let query_op = session.query(select_query, with_tracing, with_warnings);
 
                     match query_op {
 
