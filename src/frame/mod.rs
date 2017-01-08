@@ -100,7 +100,7 @@ impl<'a> IntoBytes for Frame {
 }
 
 /// Frame's version
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Version {
     Request,
     Response

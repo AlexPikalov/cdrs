@@ -1,6 +1,7 @@
 extern crate cdrs;
 extern crate byteorder;
 
+mod frame;
 mod types;
 
 mod authenticators;

@@ -33,6 +33,12 @@ impl Error for CompressionError {
     }
 }
 
+pub trait Compressor {
+    fn encode(&self, bytes: Vec<u8>) -> Result<Vec<u8>>;
+    fn decode(&self, bytes: Vec<u8>) -> Result<Vec<u8>>;
+    fn into_string(&self) -> Option<String>;
+}
+
 /// Enum which represents a type of compression. Only non-startup frame's body can be compressen.
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Compression {
