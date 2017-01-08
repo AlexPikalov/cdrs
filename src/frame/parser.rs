@@ -1,10 +1,11 @@
-use std::io::Read;
+use std::io::{Read, Cursor};
 use std::net;
+
+use FromCursor;
 use compression::Compression;
 use frame::frame_response::ResponseBody;
-
 use super::*;
-use types::{from_bytes, UUID_LEN};
+use types::{from_bytes, UUID_LEN, CStringList};
 use types::data_serialization_types::decode_timeuuid;
 use error;
 
@@ -40,27 +41,44 @@ pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> erro
         try!(Compression::None.decode(body_bytes))
     };
 
+    // TODO: use cursor to get tracing id, warnings and actual body
+    let mut body_cursor = Cursor::new(full_body);
+
     let tracing_id = if flags.iter().any(|flag| flag == &Flag::Tracing) {
-        decode_timeuuid(full_body[..UUID_LEN].to_vec()).ok()
+        let mut tracing_bytes = Vec::with_capacity(UUID_LEN);
+        unsafe {
+            tracing_bytes.set_len(UUID_LEN);
+        }
+        try!(body_cursor.read_exact(&mut tracing_bytes));
+
+        decode_timeuuid(tracing_bytes).ok()
     } else {
         None
     };
 
-    let warning: Option<Vec<String>> = None;
-
-    let body = if tracing_id.is_some() {
-        if warning.is_some() {
-            unimplemented!()
-        } else {
-            full_body[UUID_LEN..].to_vec()
-        }
+    let warnings = if flags.iter().any(|flag| flag == &Flag::Warning) {
+        CStringList::from_cursor(&mut body_cursor).into_plain()
     } else {
-        if warning.is_some() {
-            unimplemented!()
-        } else {
-            full_body
-        }
+        vec![]
     };
+
+    let mut body = vec![];
+
+    try!(body_cursor.read_to_end(&mut body));
+
+    // let body = if tracing_id.is_some() {
+    //     if warning.is_some() {
+    //         unimplemented!()
+    //     } else {
+    //         full_body[UUID_LEN..].to_vec()
+    //     }
+    // } else {
+    //     if warning.is_some() {
+    //         unimplemented!()
+    //     } else {
+    //         full_body
+    //     }
+    // };
 
     let frame = Frame {
         version: version,
@@ -68,7 +86,8 @@ pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> erro
         opcode: opcode,
         stream: stream,
         body: body,
-        tracing_id: tracing_id
+        tracing_id: tracing_id,
+        warnings: warnings
     };
 
     return conver_frame_into_result(frame);

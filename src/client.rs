@@ -270,12 +270,15 @@ impl<T: Authenticator> Session<T> {
     }
 
     /// The method makes a request to DB Server to prepare provided query.
-    pub fn prepare(&self, query: String, with_tracing: bool) -> error::Result<Frame> {
+    pub fn prepare(&self, query: String, with_tracing: bool, with_warnings: bool) -> error::Result<Frame> {
         let mut tcp = try!(self.cdrs.tcp.try_clone());
 
         let mut flags = vec![];
         if with_tracing {
             flags.push(Flag::Tracing);
+        }
+        if with_warnings {
+            flags.push(Flag::Warning);
         }
 
         let options_frame = Frame::new_req_prepare(query, flags).into_cbytes();
@@ -290,13 +293,17 @@ impl<T: Authenticator> Session<T> {
     pub fn execute(&self,
         id: CBytesShort,
         query_parameters: ParamsReqQuery,
-        with_tracing: bool) -> error::Result<Frame> {
+        with_tracing: bool,
+        with_warnings: bool) -> error::Result<Frame> {
 
         let mut tcp = try!(self.cdrs.tcp.try_clone());
 
         let mut flags = vec![];
         if with_tracing {
             flags.push(Flag::Tracing);
+        }
+        if with_warnings {
+            flags.push(Flag::Warning);
         }
 
         let options_frame = Frame::new_req_execute(id, query_parameters, flags).into_cbytes();
@@ -307,10 +314,11 @@ impl<T: Authenticator> Session<T> {
 
     /// The method makes a request to DB Server to execute a query provided in `query` argument.
     /// you can build the query with QueryBuilder
+    /// ```
     /// let qb = QueryBuilder::new().query("select * from emp").consistency(Consistency::One).page_size(Some(4));
     /// session.query_with_builder(qb);
-    ///
-    pub fn query(&self, query: Query, with_tracing: bool) -> error::Result<Frame> {
+    /// ```
+    pub fn query(&self, query: Query, with_tracing: bool, with_warnings: bool) -> error::Result<Frame> {
         let mut tcp = try!(self.cdrs.tcp.try_clone());
         let consistency = match query.consistency {
             Some(cs) => cs,
@@ -320,6 +328,9 @@ impl<T: Authenticator> Session<T> {
         let mut flags = vec![];
         if with_tracing {
             flags.push(Flag::Tracing);
+        }
+        if with_warnings {
+            flags.push(Flag::Warning);
         }
 
         let query_frame = Frame::new_req_query(query.query,
