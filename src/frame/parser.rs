@@ -66,20 +66,6 @@ pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> erro
 
     try!(body_cursor.read_to_end(&mut body));
 
-    // let body = if tracing_id.is_some() {
-    //     if warning.is_some() {
-    //         unimplemented!()
-    //     } else {
-    //         full_body[UUID_LEN..].to_vec()
-    //     }
-    // } else {
-    //     if warning.is_some() {
-    //         unimplemented!()
-    //     } else {
-    //         full_body
-    //     }
-    // };
-
     let frame = Frame {
         version: version,
         flags: flags,

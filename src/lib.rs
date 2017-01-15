@@ -5,6 +5,8 @@ extern crate byteorder;
 extern crate log;
 extern crate lz4_compress;
 extern crate uuid;
+#[cfg(feature = "tls")]
+extern crate rustls;
 
 use std::io::Cursor;
 
@@ -16,6 +18,10 @@ pub mod client;
 pub mod compression;
 pub mod consistency;
 pub mod error;
+#[cfg(not(feature = "tls"))]
+pub mod transport;
+#[cfg(feature = "tls")]
+pub mod transport_ssl;
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.
 pub trait IntoBytes {

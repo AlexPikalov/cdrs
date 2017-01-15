@@ -17,6 +17,10 @@ use frame::frame_query::*;
 use compression::Compression;
 use authenticators::Authenticator;
 use error;
+#[cfg(not(feature = "tls"))]
+use transport::Transport;
+#[cfg(feature = "tls")]
+use transport_ssl::Transport;
 
 /// instead of writing functions which resemble
 /// ```
@@ -126,11 +130,12 @@ pub struct Credentials {
 
 /// CDRS driver structure that provides a basic functionality to work with DB including
 /// establishing new connection, getting supported options, preparing and executing CQL
-/// queries, using compression and others.
+/// queries, using compression and other.
 pub struct CDRS<T: Authenticator> {
     tcp: net::TcpStream,
     compressor: Compression,
-    authenticator: T
+    authenticator: T,
+    transport: Transport
 }
 
 /// Map of options supported by Cassandra server.
@@ -142,12 +147,13 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
     /// provided - `addr` is IP address of DB Server, `authenticator` is a selected authenticator
     /// that is supported by particular DB Server. There are few authenticators already
     /// provided by this trait.
-    pub fn new(addr: &str, authenticator: T) -> error::Result<CDRS<T>> {
+    pub fn new(addr: &str, authenticator: T, transport: Transport) -> error::Result<CDRS<T>> {
         return net::TcpStream::connect(addr)
             .map(|socket| CDRS {
                 tcp: socket,
                 compressor: Compression::None,
-                authenticator: authenticator
+                authenticator: authenticator,
+                transport: transport
             })
             .map_err(|err| error::Error::Io(err));
     }
@@ -218,18 +224,20 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
     }
 }
 
-impl<T: Authenticator> Clone for CDRS<T> {
-    /// Creates a clone of CDRS instance
-    /// # Panics
-    /// It panics if tcp.try_clone() returns an error.
-    fn clone(&self) -> CDRS<T> {
-        return CDRS {
-            tcp: self.tcp.try_clone().unwrap(),
-            compressor: self.compressor.clone(),
-            authenticator: self.authenticator.clone()
-        };
-    }
-}
+// NOTE: is it neccessary to have?
+// impl<T: Authenticator> Clone for CDRS<T> {
+//     /// Creates a clone of CDRS instance
+//     /// # Panics
+//     /// It panics if tcp.try_clone() returns an error.
+//     fn clone(&self) -> CDRS<T> {
+//         return CDRS {
+//             tcp: self.tcp.try_clone().unwrap(),
+//             compressor: self.compressor.clone(),
+//             authenticator: self.authenticator.clone(),
+//             transport: self.transport.clone()
+//         };
+//     }
+// }
 
 /// The object that provides functionality for communication with Cassandra server.
 pub struct Session<T: Authenticator> {
@@ -343,7 +351,14 @@ impl<T: Authenticator> Session<T> {
             query.timestamp,
             flags).into_cbytes();
 
-        try!(tcp.write(query_frame.as_slice()));
+        let bytes_to_send = if cfg!(feature = "tls") {
+            println!("tls encryption ...");
+            query_frame
+        } else {
+            query_frame
+        };
+
+        try!(tcp.write(bytes_to_send.as_slice()));
         return parse_frame(tcp, &self.compressor);
     }
 }
