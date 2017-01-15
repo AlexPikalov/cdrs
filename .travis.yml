@@ -3,6 +3,9 @@ rust:
   - stable
   - beta
   - nightly
+script:
+  - cargo test
+  - cargo test --features tls
 matrix:
   allow_failures:
     - rust: nightly
