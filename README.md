@@ -15,6 +15,8 @@ into Rust structures It supports 4-th version of [Cassandra protocol](https://gi
 - [x] lz4 decompression
 - [x] snappy decompression
 - [x] password authorization
+- [x] tracing information
+- [x] warning information
 
 ### Frames
 
@@ -39,7 +41,7 @@ into Rust structures It supports 4-th version of [Cassandra protocol](https://gi
 - [x] RESULT (Rows)
 - [x] RESULT (Set_keyspace)
 - [x] RESULT (Prepared)
-- [ ] RESULT (Schema_change)
+- [x] RESULT (Schema_change)
 
 * - [x] Target KEYSPACE
 
@@ -47,9 +49,9 @@ into Rust structures It supports 4-th version of [Cassandra protocol](https://gi
 
 * - [x] Target TYPE
 
-* - [ ] Target FUNCTION
+* - [x] Target FUNCTION
 
-* - [ ] Target AGGREGATE
+* - [x] Target AGGREGATE
 - [ ] EVENT
 - [x] AUTH_CHALLENGE
 - [x] AUTH_SUCCESS
@@ -119,9 +121,12 @@ you need to start Session first.
 ##### Use Query:
 
 ```rust
-let use_query = String::from("USE my_namespace;");
 
-match session.prepare(use_query) {
+let use_query_string = String::from("USE my_namespace;");
+let with_tracing = false;
+let with_warnings = false;
+
+match session.prepare(use_query_string, with_tracing, with_warnings) {
     Ok(set_keyspace) => {
         // use_keyspace is a result frame of type SetKeyspace
     },
@@ -137,69 +142,40 @@ that contain namespace and a name of created table.
 
 ```rust
 use std::default::Default;
-use cdrs::client::Query;
+use cdrs::client::{Query, QueryBuilder};
 use cdrs::consistency::Consistency;
 
-let mut select_query: Query = Query::new("CREATE TABLE loghub.emp3 (
+let mut select_query: Query = QueryBuilder::new("CREATE TABLE keyspace.emp (
     empID int,
     deptID int,
     first_name varchar,
     last_name varchar,
     PRIMARY KEY (empID, deptID)
-    );");
-    select_query.consistency(Consistency::One);
+    );")
+    .consistency(Consistency::One)
+    .finalize();
+let with_tracing = false;
+let with_warnings = false;
 
-let table_created = session.query_with_builder(select_query).is_ok();
+let table_created = session.query(select_query, with_tracing, with_warnings).is_ok();
 
 ```
 
 ##### Select Query:
 
 As a response to select query CDRS returns a result frame of type Rows with
-data items (columns) encoded in Cassandra's way. Currently there are decode
-helpers only, but no helper methods which could easily map results into
-Rust structures. To have them is a goal of first stable version of CDRS.
-
-```rust
-use cdrs::consistency::Consistency;
-use cdrs::types::CBytes;
-
-let select_query = String::from("SELECT * FROM ks.table;");
-// Query parameters:
-let consistency = Consistency::One;
-let values: Option<Vec<Value>> = None;
-let with_names: Option<bool> = None;
-let page_size: Option<i32> = None;
-let paging_state: Option<CBytes> = None;
-let serial_consistency: Option<Consistency> = None;
-let timestamp: Option<i64> = None;
-
-match session.query(select_query,
-    consistency,
-    values,
-    with_names,
-    page_size,
-    paging_state,
-    serial_consistency,
-    timestamp) {
-
-    Ok(res) => println!("Result frame: {:?},\nparsed body: {:?}", res, res.get_body());,
-    Err(err) => log!(err)
-}
-
-```
-
-or with simplified one (available starting from 0.4.1)
+data items (columns) encoded in Cassandra's way.
 
 ```rust
 use std::default::Default;
 use cdrs::client::Query;
 use cdrs::consistency::Consistency;
 
-let mut select_query: Query = Default::default();
-        select_query.query(use_query.clone()).consistency(Consistency::One);
+let mut select_query: Query = QueryBuilder::new(use_query.clone()).finalize();
+let with_tracing = false;
+let with_warnings = false;
 
-match session.query_with_builder(select_query) {
+match session.query(select_query, with_tracing, with_warnings) {
     Ok(res) => println!("Result frame: {:?},\nparsed body: {:?}", res, res.get_body());,
     Err(err) => log!(err)
 }
@@ -228,9 +204,11 @@ into collection of rows `Vec<cdrs::types::row::Row>` and then convert each colum
 into appropriate Rust type:
 
 ```rust
+use cdrs::error::{Result as CResult};
+
 let res_body = parsed.get_body();
 let rows = res_body.into_rows().unwrap();
-let messages: Vec<Message> = rows
+let messages: Vec<CResult<Message>> = rows
     .iter()
     .map(|row| Message {
         author: row.get_by_name("author").unwrap(),
@@ -252,15 +230,16 @@ struct Author {
 }
 
 //...
-
+use cdrs::error::{Result as CResult};
 let res_body = parsed.get_body();
 let rows = res_body.into_rows().unwrap();
-let messages: Vec<Author> = rows
+let messages: Vec<CAuthor> = rows
     .iter()
     .map(|row| {
         let name: String = row.get_by_name("name").unwrap();
         let messages: Vec<String> = row
-            .get_by_name("messages").unwrap()
+            // unwrap Option<CResult<T>>, where T implements AsRust
+            .get_by_name("messages").unwrap().unwrap()
             .as_rust().unwrap();
         return Author {
             author: name,

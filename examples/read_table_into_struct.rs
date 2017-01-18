@@ -1,12 +1,8 @@
 
 extern crate cdrs;
-use cdrs::client::CDRS;
+use cdrs::client::{CDRS, QueryBuilder};
 use cdrs::authenticators::PasswordAuthenticator;
-use cdrs::consistency::Consistency;
-use cdrs::types::CBytes;
 use cdrs::compression::Compression;
-use cdrs::types::value::Value;
-use cdrs::types::rows::Row;
 use cdrs::types::IntoRustByName;
 
 /// this example is to pull employee records from emp table
@@ -50,27 +46,13 @@ fn main() {
     let client = CDRS::new(addr, authenticator).unwrap();
 
     // start session without compression
-    let select_query = String::from("SELECT * FROM my_namespace.emp;");
-    // Query parameters:
-    let consistency = Consistency::One;
-    let values: Option<Vec<Value>> = None;
-    let with_names: Option<bool> = None;
-    let page_size: Option<i32> = None;
-    let paging_state: Option<CBytes> = None;
-    let serial_consistency: Option<Consistency> = None;
-    let timestamp: Option<i64> = None;
-
+    let select_query = QueryBuilder::new("SELECT * FROM my_namespace.emp;").finalize();
 
     match client.start(Compression::None) {
         Ok(session) => {
-            let query_op = session.query(select_query,
-                                         consistency,
-                                         values,
-                                         with_names,
-                                         page_size,
-                                         paging_state,
-                                         serial_consistency,
-                                         timestamp);
+            let with_tracing = false;
+            let with_warnings = false;
+            let query_op = session.query(select_query, with_tracing, with_warnings);
 
             match query_op {
                 Ok(res) => {
@@ -79,23 +61,23 @@ fn main() {
                         let employees: Vec<Employee> = rows.iter()
                             .map(|row| {
                                 let mut employee = Employee { ..Default::default() };
-                                if let Some(id) = row.get_by_name("emp_id") {
+                                if let Some(Ok(id)) = row.get_by_name("emp_id") {
                                     employee.id = id;
                                 }
 
-                                if let Some(emp_name) = row.get_by_name("emp_name") {
+                                if let Some(Ok(emp_name)) = row.get_by_name("emp_name") {
                                     employee.emp_name = emp_name;
                                 }
 
-                                if let Some(emp_city) = row.get_by_name("emp_city") {
+                                if let Some(Ok(emp_city)) = row.get_by_name("emp_city") {
                                     employee.emp_city = emp_city;
                                 }
 
-                                if let Some(emp_sal) = row.get_by_name("emp_sal") {
+                                if let Some(Ok(emp_sal)) = row.get_by_name("emp_sal") {
                                     employee.emp_sal = emp_sal;
                                 }
 
-                                if let Some(emp_phone) = row.get_by_name("emp_phone") {
+                                if let Some(Ok(emp_phone)) = row.get_by_name("emp_phone") {
                                     employee.emp_phone = emp_phone;
                                 }
 

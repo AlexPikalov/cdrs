@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::default::Default;
 
 use consistency::Consistency;
-use frame::{Frame, Opcode};
+use frame::{Frame, Opcode, Flag};
 use frame::frame_response::ResponseBody;
 use IntoBytes;
 use frame::parser::parse_frame;
@@ -19,17 +19,17 @@ use authenticators::Authenticator;
 use error;
 
 /// instead of writing functions which resemble
-/// `
+/// ```
 /// pub fn query<'a> (&'a mut self,query: String) -> &'a mut Self{
 ///     self.query = Some(query);
 ///            self
 /// }
-/// `
+/// ```
 /// and repeating it for all the attributes; it is extracted out as a macro so that code is more concise
 /// see @https://doc.rust-lang.org/book/method-syntax.html
 ///
 ///
-macro_rules! builder_field {
+macro_rules! builder_opt_field {
     ($field:ident, $field_type:ty) => {
         pub fn $field<'a>(&'a mut self,
                           $field: $field_type) -> &'a mut Self {
@@ -39,10 +39,12 @@ macro_rules! builder_field {
     };
 }
 
-/// Query Builder
-#[derive(Debug,Default)]
+/// Structure that represents CQL query and parameters which will be applied during
+/// its execution
+#[derive(Debug, Default)]
 pub struct Query {
-    query: Option<String>,
+    query: String,
+    // query parameters
     consistency: Option<Consistency>,
     values: Option<Vec<Value>>,
     with_names: Option<bool>,
@@ -52,24 +54,65 @@ pub struct Query {
     timestamp: Option<i64>
 }
 
-impl Query {
-    /// Factory function that takes CQL `&str` as an argument and returns new `Query`
-    pub fn new(query: &str) -> Query {
-        return Query {
-            query: Some(String::from(query)),
+/// QueryBuilder is a helper sturcture that helps to construct `Query`. `Query` itself
+/// consists of CQL query string and list of parameters.
+/// Parameters are the same as ones described in [Cassandra v4 protocol]
+/// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L304)
+#[derive(Debug, Default)]
+pub struct QueryBuilder {
+    query: String,
+    consistency: Option<Consistency>,
+    values: Option<Vec<Value>>,
+    with_names: Option<bool>,
+    page_size: Option<i32>,
+    paging_state: Option<CBytes>,
+    serial_consistency: Option<Consistency>,
+    timestamp: Option<i64>
+}
+
+impl QueryBuilder {
+    /// Factory function that takes CQL `&str` as an argument and returns new `QueryBuilder`
+    pub fn new(query: &str) -> QueryBuilder {
+        return QueryBuilder {
+            query: query.to_string(),
             ..Default::default()
         };
     }
 
-    builder_field!(query, String);
-    builder_field!(consistency, Consistency);
-    builder_field!(values, Vec<Value>);
-    builder_field!(with_names, bool);
-    builder_field!(page_size, i32);
-    builder_field!(paging_state, CBytes);
-    builder_field!(serial_consistency, Consistency);
-    builder_field!(timestamp, i64);
+    /// Sets new query consistency
+    builder_opt_field!(consistency, Consistency);
 
+    /// Sets new query values
+    builder_opt_field!(values, Vec<Value>);
+
+    /// Sets new query with_names
+    builder_opt_field!(with_names, bool);
+
+    /// Sets new query pagesize
+    builder_opt_field!(page_size, i32);
+
+    /// Sets new query pagin state
+    builder_opt_field!(paging_state, CBytes);
+
+    /// Sets new query serial_consistency
+    builder_opt_field!(serial_consistency, Consistency);
+
+    /// Sets new quey timestamp
+    builder_opt_field!(timestamp, i64);
+
+    /// Finalizes query building process and returns query itself
+    pub fn finalize(&self) -> Query {
+        return Query {
+            query: self.query.clone(),
+            consistency: self.consistency.clone(),
+            values: self.values.clone(),
+            with_names: self.with_names.clone(),
+            page_size: self.page_size.clone(),
+            paging_state: self.paging_state.clone(),
+            serial_consistency: self.serial_consistency.clone(),
+            timestamp: self.timestamp.clone()
+        };
+    }
 }
 
 /// DB user's credentials.
@@ -91,7 +134,7 @@ pub struct CDRS<T: Authenticator> {
 }
 
 /// Map of options supported by Cassandra server.
-type CassandraOptions = HashMap<String, Vec<String>>;
+pub type CassandraOptions = HashMap<String, Vec<String>>;
 
 impl<'a, T: Authenticator + 'a> CDRS<T> {
     /// The method creates new instance of CDRS driver. At this step an instance doesn't
@@ -191,16 +234,25 @@ impl<T: Authenticator> Clone for CDRS<T> {
 /// The object that provides functionality for communication with Cassandra server.
 pub struct Session<T: Authenticator> {
     started: bool,
-    cdrs: CDRS<T>
+    cdrs: CDRS<T>,
+    compressor: Compression
 }
 
 impl<T: Authenticator> Session<T> {
     /// Creates new session basing on CDRS instance.
     pub fn start(cdrs: CDRS<T>) -> Session<T> {
+        let compressor = cdrs.compressor.clone();
         return Session {
             cdrs: cdrs,
-            started: true
+            started: true,
+            compressor: compressor
         };
+    }
+
+    /// The method overrides a compression method of current session
+    pub fn compressor(&mut self, compressor: Compression) -> &mut Self {
+        self.compressor = compressor;
+        return self;
     }
 
     /// Manually ends current session.
@@ -218,79 +270,80 @@ impl<T: Authenticator> Session<T> {
     }
 
     /// The method makes a request to DB Server to prepare provided query.
-    pub fn prepare(&self, query: String) -> error::Result<Frame> {
+    pub fn prepare(&self, query: String, with_tracing: bool, with_warnings: bool) -> error::Result<Frame> {
         let mut tcp = try!(self.cdrs.tcp.try_clone());
-        let options_frame = Frame::new_req_prepare(query).into_cbytes();
+
+        let mut flags = vec![];
+        if with_tracing {
+            flags.push(Flag::Tracing);
+        }
+        if with_warnings {
+            flags.push(Flag::Warning);
+        }
+
+        let options_frame = Frame::new_req_prepare(query, flags).into_cbytes();
 
         try!(tcp.write(options_frame.as_slice()));
-        return parse_frame(tcp, &self.cdrs.compressor);
+        return parse_frame(tcp, &self.compressor);
     }
 
     /// The method makes a request to DB Server to execute a query with provided id
     /// using provided query parameters. `id` is an ID of a query which Server
     /// returns back to a driver as a response to `prepare` request.
-    pub fn execute(&self, id: CBytesShort, query_parameters: ParamsReqQuery) -> error::Result<Frame> {
+    pub fn execute(&self,
+        id: CBytesShort,
+        query_parameters: ParamsReqQuery,
+        with_tracing: bool,
+        with_warnings: bool) -> error::Result<Frame> {
+
         let mut tcp = try!(self.cdrs.tcp.try_clone());
-        let options_frame = Frame::new_req_execute(id, query_parameters).into_cbytes();
+
+        let mut flags = vec![];
+        if with_tracing {
+            flags.push(Flag::Tracing);
+        }
+        if with_warnings {
+            flags.push(Flag::Warning);
+        }
+
+        let options_frame = Frame::new_req_execute(id, query_parameters, flags).into_cbytes();
 
         try!(tcp.write(options_frame.as_slice()));
-        return parse_frame(tcp, &self.cdrs.compressor);
-    }
-
-    /// The method makes a request to DB Server to execute a query provided in `query` argument.
-    /// The rest of parameters are the same to ones described in [Cassandra v4 protocol]
-    /// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L304)
-    pub fn query(&self,
-            query: String,
-            consistency: Consistency,
-            values: Option<Vec<Value>>,
-            with_names: Option<bool>,
-            page_size: Option<i32>,
-            paging_state: Option<CBytes>,
-            serial_consistency: Option<Consistency>,
-            timestamp: Option<i64>) -> error::Result<Frame> {
-
-        let mut tcp = try!(self.cdrs.tcp.try_clone());
-        let query_frame = Frame::new_req_query(query.clone(),
-            consistency,
-            values,
-            with_names,
-            page_size,
-            paging_state,
-            serial_consistency,
-            timestamp).into_cbytes();
-
-        try!(tcp.write(query_frame.as_slice()));
-        return parse_frame(tcp, &self.cdrs.compressor);
+        return parse_frame(tcp, &self.compressor);
     }
 
     /// The method makes a request to DB Server to execute a query provided in `query` argument.
     /// you can build the query with QueryBuilder
+    /// ```
     /// let qb = QueryBuilder::new().query("select * from emp").consistency(Consistency::One).page_size(Some(4));
     /// session.query_with_builder(qb);
-    ///
-    pub fn query_with_builder(&self, qb: Query) -> error::Result<Frame> {
+    /// ```
+    pub fn query(&self, query: Query, with_tracing: bool, with_warnings: bool) -> error::Result<Frame> {
         let mut tcp = try!(self.cdrs.tcp.try_clone());
-        let consistency = match qb.consistency {
+        let consistency = match query.consistency {
             Some(cs) => cs,
             None => Consistency::One,
         };
 
-        let query = match qb.query {
-            Some(cs) => (&*cs).to_string(),
-            None => panic!(" the query is empty {:?}",qb.query ),
-        };
+        let mut flags = vec![];
+        if with_tracing {
+            flags.push(Flag::Tracing);
+        }
+        if with_warnings {
+            flags.push(Flag::Warning);
+        }
 
-        let query_frame = Frame::new_req_query(query,
+        let query_frame = Frame::new_req_query(query.query,
             consistency,
-            qb.values,
-            qb.with_names,
-            qb.page_size,
-            qb.paging_state,
-            qb.serial_consistency,
-            qb.timestamp).into_cbytes();
+            query.values,
+            query.with_names,
+            query.page_size,
+            query.paging_state,
+            query.serial_consistency,
+            query.timestamp,
+            flags).into_cbytes();
 
         try!(tcp.write(query_frame.as_slice()));
-        return parse_frame(tcp, &self.cdrs.compressor);
+        return parse_frame(tcp, &self.compressor);
     }
 }

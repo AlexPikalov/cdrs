@@ -1,14 +1,15 @@
-// TODO: create Cassandra types
 /// Cassandra types
 
 pub const LONG_STR_LEN: usize = 4;
 pub const SHORT_LEN: usize = 2;
 pub const INT_LEN: usize = 4;
+pub const UUID_LEN: usize = 16;
 
 use std::io;
 use std::io::{Cursor, Read};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt, ByteOrder};
-use super::{FromBytes, IntoBytes, FromCursor};
+use {FromBytes, IntoBytes, FromCursor};
+use error::{Result as CDRSResult};
 
 pub mod data_serialization_types;
 pub mod list;
@@ -20,12 +21,12 @@ pub mod value;
 /// Should be used to represent a single column as a Rust value.
 // TODO: change Option to Result, create a new type of error for that.
 pub trait AsRust<T> {
-    fn as_rust(&self) -> Option<T>;
+    fn as_rust(&self) -> CDRSResult<T>;
 }
 
 /// Should be used to return a single column as Rust value by its name.
 pub trait IntoRustByName<R> {
-    fn get_by_name(&self, name: &str) -> Option<R>;
+    fn get_by_name(&self, name: &str) -> Option<CDRSResult<R>>;
 }
 
 /// Tries to converts u64 numerical value into array of n bytes.

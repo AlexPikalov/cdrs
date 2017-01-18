@@ -2,10 +2,10 @@
 //! Contains Query Frame related functionality.
 // use self::frame::*;
 use super::*;
-use super::super::consistency::Consistency;
-use super::super::{AsByte, IntoBytes};
-use super::super::types::*;
-use super::super::types::value::*;
+use consistency::Consistency;
+use {AsByte, IntoBytes};
+use types::*;
+use types::value::*;
 
 /// Structure which represents body of Query request
 pub struct BodyReqQuery {
@@ -280,9 +280,9 @@ impl Frame {
             page_size: Option<i32>,
             paging_state: Option<CBytes>,
             serial_consistency: Option<Consistency>,
-            timestamp: Option<i64>) -> Frame {
+            timestamp: Option<i64>,
+            flags: Vec<Flag>) -> Frame {
         let version = Version::Request;
-        let flag = Flag::Ignore;
         // sync client
         let stream: u64 = 0;
         let opcode = Opcode::Query;
@@ -290,10 +290,13 @@ impl Frame {
 
         return Frame {
             version: version,
-            flags: vec![flag],
+            flags: flags,
             stream: stream,
             opcode: opcode,
-            body: body.into_cbytes()
+            body: body.into_cbytes(),
+            // for request frames it's always None
+            tracing_id: None,
+            warnings: vec![]
         };
     }
 }

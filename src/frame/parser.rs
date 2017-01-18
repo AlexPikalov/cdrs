@@ -1,10 +1,12 @@
-use std::io::Read;
+use std::io::{Read, Cursor};
 use std::net;
+
+use FromCursor;
 use compression::Compression;
 use frame::frame_response::ResponseBody;
-
 use super::*;
-use super::super::types::from_bytes;
+use types::{from_bytes, UUID_LEN, CStringList};
+use types::data_serialization_types::decode_timeuuid;
 use error;
 
 pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> error::Result<Frame> {
@@ -22,7 +24,7 @@ pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> erro
     try!(cursor.read(&mut length_bytes));
 
     let version = Version::from(version_bytes.to_vec());
-    let flag = Flag::from(flag_bytes[0]);
+    let flags = Flag::get_collection(flag_bytes[0]);
     let stream = from_bytes(stream_bytes.to_vec());
     let opcode = Opcode::from(opcode_bytes[0]);
     let length = from_bytes(length_bytes.to_vec()) as usize;
@@ -33,18 +35,59 @@ pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> erro
     }
     try!(cursor.read_exact(&mut body_bytes));
 
-    let body = if flag == Flag::Compression {
+    let full_body = if flags.iter().any(|flag| flag == &Flag::Compression) {
         try!(compressor.decode(body_bytes))
     } else {
         try!(Compression::None.decode(body_bytes))
     };
 
+    // TODO: use cursor to get tracing id, warnings and actual body
+    let mut body_cursor = Cursor::new(full_body);
+
+    let tracing_id = if flags.iter().any(|flag| flag == &Flag::Tracing) {
+        let mut tracing_bytes = Vec::with_capacity(UUID_LEN);
+        unsafe {
+            tracing_bytes.set_len(UUID_LEN);
+        }
+        try!(body_cursor.read_exact(&mut tracing_bytes));
+
+        decode_timeuuid(tracing_bytes).ok()
+    } else {
+        None
+    };
+
+    let warnings = if flags.iter().any(|flag| flag == &Flag::Warning) {
+        CStringList::from_cursor(&mut body_cursor).into_plain()
+    } else {
+        vec![]
+    };
+
+    let mut body = vec![];
+
+    try!(body_cursor.read_to_end(&mut body));
+
+    // let body = if tracing_id.is_some() {
+    //     if warning.is_some() {
+    //         unimplemented!()
+    //     } else {
+    //         full_body[UUID_LEN..].to_vec()
+    //     }
+    // } else {
+    //     if warning.is_some() {
+    //         unimplemented!()
+    //     } else {
+    //         full_body
+    //     }
+    // };
+
     let frame = Frame {
         version: version,
-        flags: vec![flag],
+        flags: flags,
         opcode: opcode,
         stream: stream,
-        body: body
+        body: body,
+        tracing_id: tracing_id,
+        warnings: warnings
     };
 
     return conver_frame_into_result(frame);
