@@ -122,7 +122,7 @@ let mut ssl_connector_builder = SslConnectorBuilder::new(SslMethod::tls()).unwra
 ssl_connector_builder.builder_mut().set_ca_file(path).unwrap();
 let connector = ssl_connector_builder.build();
 
-let ssl_transport = Transport::new(addr).unwrap();
+let ssl_transport = Transport::new(addr, &connector).unwrap();
 
 // pass authenticator and SSL transport into CDRS' constructor
 let client = CDRS::new(ssl_transport, authenticator);
