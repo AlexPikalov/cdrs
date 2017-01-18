@@ -6,7 +6,7 @@ rust:
 script:
   - cargo test
   # disabled because Cargo does not support conditional running of examples
-  # - cargo test --features tls
+  # - cargo test --features ssl
 matrix:
   allow_failures:
     - rust: nightly

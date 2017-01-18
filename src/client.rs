@@ -17,9 +17,9 @@ use frame::frame_query::*;
 use compression::Compression;
 use authenticators::Authenticator;
 use error;
-#[cfg(not(feature = "tls"))]
+#[cfg(not(feature = "ssl"))]
 use transport::Transport;
-#[cfg(feature = "tls")]
+#[cfg(feature = "ssl")]
 use transport_ssl::Transport;
 
 /// instead of writing functions which resemble
