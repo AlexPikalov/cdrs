@@ -1,5 +1,4 @@
 use std::io::{Read, Cursor};
-use std::net;
 
 use FromCursor;
 use compression::Compression;
@@ -9,7 +8,7 @@ use types::{from_bytes, UUID_LEN, CStringList};
 use types::data_serialization_types::decode_timeuuid;
 use error;
 
-pub fn parse_frame(mut cursor: net::TcpStream, compressor: &Compression) -> error::Result<Frame> {
+pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Result<Frame> {
     let mut version_bytes = [0; VERSION_LEN];
     let mut flag_bytes = [0; FLAG_LEN];
     let mut opcode_bytes = [0; OPCODE_LEN];

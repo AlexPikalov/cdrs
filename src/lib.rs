@@ -6,7 +6,7 @@ extern crate log;
 extern crate lz4_compress;
 extern crate uuid;
 #[cfg(feature = "tls")]
-extern crate rustls;
+extern crate openssl;
 
 use std::io::Cursor;
 

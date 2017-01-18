@@ -14,13 +14,9 @@ impl Transport {
                 tcp: socket
             });
     }
-}
 
-impl Clone for Transport {
-    fn clone(&self) -> Transport {
-        return Transport {
-            tcp: self.tcp.try_clone().unwrap()
-        };
+    pub fn close(&mut self, close: net::Shutdown) -> io::Result<()> {
+        return self.tcp.shutdown(close);
     }
 }
 

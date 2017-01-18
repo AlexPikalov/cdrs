@@ -132,7 +132,6 @@ pub struct Credentials {
 /// establishing new connection, getting supported options, preparing and executing CQL
 /// queries, using compression and other.
 pub struct CDRS<T: Authenticator> {
-    tcp: net::TcpStream,
     compressor: Compression,
     authenticator: T,
     transport: Transport
@@ -147,26 +146,22 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
     /// provided - `addr` is IP address of DB Server, `authenticator` is a selected authenticator
     /// that is supported by particular DB Server. There are few authenticators already
     /// provided by this trait.
-    pub fn new(addr: &str, authenticator: T, transport: Transport) -> error::Result<CDRS<T>> {
-        return net::TcpStream::connect(addr)
-            .map(|socket| CDRS {
-                tcp: socket,
-                compressor: Compression::None,
-                authenticator: authenticator,
-                transport: transport
-            })
-            .map_err(|err| error::Error::Io(err));
+    pub fn new(transport: Transport, authenticator: T, ) -> CDRS<T> {
+        return CDRS {
+            compressor: Compression::None,
+            authenticator: authenticator,
+            transport: transport
+        };
     }
 
     /// The method makes an Option request to DB Server. As a response the server returns
     /// a map of supported options.
-    pub fn get_options(&self) -> error::Result<CassandraOptions> {
-        let mut tcp = try!(self.tcp.try_clone());
+    pub fn get_options(&mut self) -> error::Result<CassandraOptions> {
         let options_frame = Frame::new_req_options().into_cbytes();
 
-        try!(tcp.write(options_frame.as_slice()));
+        try!(self.transport.write(options_frame.as_slice()));
 
-        return parse_frame(tcp, &self.compressor)
+        return parse_frame(&mut self.transport, &self.compressor)
             .map(|frame| match frame.get_body() {
                 ResponseBody::Supported(ref supported_body) => {
                     return supported_body.data.clone();
@@ -184,11 +179,10 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
     /// will be decompressed automatically.
     pub fn start(mut self, compressor: Compression) -> error::Result<Session<T>> {
         self.compressor = compressor;
-        let mut tcp = try!(self.tcp.try_clone());
         let startup_frame = Frame::new_req_startup(compressor.into_string()).into_cbytes();
 
-        try!(tcp.write(startup_frame.as_slice()));
-        let start_response = try!(parse_frame(tcp, &compressor));
+        try!(self.transport.write(startup_frame.as_slice()));
+        let start_response = try!(parse_frame(&mut self.transport, &compressor));
 
         if start_response.opcode == Opcode::Ready {
             return Ok(Session::start(self));
@@ -199,10 +193,9 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
             let authenticator = body.get_authenticator().unwrap();
 
             if authenticator.as_str() == self.authenticator.get_cassandra_name() {
-                let mut tcp_auth = try!(self.tcp.try_clone());
                 let auth_token_bytes = self.authenticator.get_auth_token().into_cbytes();
-                try!(tcp_auth.write(Frame::new_req_auth_response(auth_token_bytes).into_cbytes().as_slice()));
-                try!(parse_frame(tcp_auth, &compressor));
+                try!(self.transport.write(Frame::new_req_auth_response(auth_token_bytes).into_cbytes().as_slice()));
+                try!(parse_frame(&mut self.transport, &compressor));
 
                 return Ok(Session::start(self));
             } else {
@@ -218,26 +211,11 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
         unimplemented!();
     }
 
-    fn drop_connection(&self) -> error::Result<()> {
-        return self.tcp.shutdown(net::Shutdown::Both)
+    fn drop_connection(&mut self) -> error::Result<()> {
+        return self.transport.close(net::Shutdown::Both)
             .map_err(|err| error::Error::Io(err));
     }
 }
-
-// NOTE: is it neccessary to have?
-// impl<T: Authenticator> Clone for CDRS<T> {
-//     /// Creates a clone of CDRS instance
-//     /// # Panics
-//     /// It panics if tcp.try_clone() returns an error.
-//     fn clone(&self) -> CDRS<T> {
-//         return CDRS {
-//             tcp: self.tcp.try_clone().unwrap(),
-//             compressor: self.compressor.clone(),
-//             authenticator: self.authenticator.clone(),
-//             transport: self.transport.clone()
-//         };
-//     }
-// }
 
 /// The object that provides functionality for communication with Cassandra server.
 pub struct Session<T: Authenticator> {
@@ -278,9 +256,7 @@ impl<T: Authenticator> Session<T> {
     }
 
     /// The method makes a request to DB Server to prepare provided query.
-    pub fn prepare(&self, query: String, with_tracing: bool, with_warnings: bool) -> error::Result<Frame> {
-        let mut tcp = try!(self.cdrs.tcp.try_clone());
-
+    pub fn prepare(&mut self, query: String, with_tracing: bool, with_warnings: bool) -> error::Result<Frame> {
         let mut flags = vec![];
         if with_tracing {
             flags.push(Flag::Tracing);
@@ -291,20 +267,18 @@ impl<T: Authenticator> Session<T> {
 
         let options_frame = Frame::new_req_prepare(query, flags).into_cbytes();
 
-        try!(tcp.write(options_frame.as_slice()));
-        return parse_frame(tcp, &self.compressor);
+        try!(self.cdrs.transport.write(options_frame.as_slice()));
+        return parse_frame(&mut self.cdrs.transport, &self.compressor);
     }
 
     /// The method makes a request to DB Server to execute a query with provided id
     /// using provided query parameters. `id` is an ID of a query which Server
     /// returns back to a driver as a response to `prepare` request.
-    pub fn execute(&self,
+    pub fn execute(&mut self,
         id: CBytesShort,
         query_parameters: ParamsReqQuery,
         with_tracing: bool,
         with_warnings: bool) -> error::Result<Frame> {
-
-        let mut tcp = try!(self.cdrs.tcp.try_clone());
 
         let mut flags = vec![];
         if with_tracing {
@@ -316,8 +290,8 @@ impl<T: Authenticator> Session<T> {
 
         let options_frame = Frame::new_req_execute(id, query_parameters, flags).into_cbytes();
 
-        try!(tcp.write(options_frame.as_slice()));
-        return parse_frame(tcp, &self.compressor);
+        try!(self.cdrs.transport.write(options_frame.as_slice()));
+        return parse_frame(&mut self.cdrs.transport, &self.compressor);
     }
 
     /// The method makes a request to DB Server to execute a query provided in `query` argument.
@@ -326,8 +300,8 @@ impl<T: Authenticator> Session<T> {
     /// let qb = QueryBuilder::new().query("select * from emp").consistency(Consistency::One).page_size(Some(4));
     /// session.query_with_builder(qb);
     /// ```
-    pub fn query(&self, query: Query, with_tracing: bool, with_warnings: bool) -> error::Result<Frame> {
-        let mut tcp = try!(self.cdrs.tcp.try_clone());
+    pub fn query(&mut self, query: Query, with_tracing: bool, with_warnings: bool)
+        -> error::Result<Frame> {
         let consistency = match query.consistency {
             Some(cs) => cs,
             None => Consistency::One,
@@ -351,14 +325,7 @@ impl<T: Authenticator> Session<T> {
             query.timestamp,
             flags).into_cbytes();
 
-        let bytes_to_send = if cfg!(feature = "tls") {
-            println!("tls encryption ...");
-            query_frame
-        } else {
-            query_frame
-        };
-
-        try!(tcp.write(bytes_to_send.as_slice()));
-        return parse_frame(tcp, &self.compressor);
+        try!(self.cdrs.transport.write(query_frame.as_slice()));
+        return parse_frame(&mut self.cdrs.transport, &self.compressor);
     }
 }
