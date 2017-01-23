@@ -256,7 +256,10 @@ impl<T: Authenticator> Session<T> {
     }
 
     /// The method makes a request to DB Server to prepare provided query.
-    pub fn prepare(&mut self, query: String, with_tracing: bool, with_warnings: bool) -> error::Result<Frame> {
+    pub fn prepare(&mut self,
+        query: String,
+        with_tracing: bool,
+        with_warnings: bool) -> error::Result<Frame> {
         let mut flags = vec![];
         if with_tracing {
             flags.push(Flag::Tracing);

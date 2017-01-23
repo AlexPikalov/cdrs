@@ -7,9 +7,14 @@ use lz4_compress as lz4;
 
 type Result<T> = result::Result<T, CompressionError>;
 
+/// It's an error which may occure during encoding or deconding
+/// frame body. As there are only two types of compressors it
+/// contains two related enum options.
 #[derive(Debug)]
 pub enum CompressionError {
+    /// Snappy error.
     Snappy(Box<Error>),
+    /// Lz4 error.
     Lz4(String)
 }
 
@@ -33,9 +38,18 @@ impl Error for CompressionError {
     }
 }
 
+/// Compressor trait that defines functionality
+/// which should be provided by typical compressor.
 pub trait Compressor {
+    /// Encodes given bytes and returns `Result` that contains either
+    /// encoded data or an error which occures during the transformation.
     fn encode(&self, bytes: Vec<u8>) -> Result<Vec<u8>>;
+    /// Encodes given encoded data and returns `Result` that contains either
+    /// encoded bytes or an error which occures during the transformation.
     fn decode(&self, bytes: Vec<u8>) -> Result<Vec<u8>>;
+    /// Returns a string which is a name of a compressor. This name should be
+    /// exactly the same as one which returns a server in a response to
+    /// `Options` request.
     fn into_string(&self) -> Option<String>;
 }
 
