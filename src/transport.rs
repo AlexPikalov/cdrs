@@ -17,8 +17,8 @@ impl Transport {
 
     /// In opposite to `TcpStream`'s `try_clone` this method
     /// creates absolutely new connection - it gets an address
-    /// of a peer from `Transport` and creates a new instance
-    /// with new TCP stream under hood.
+    /// of a peer from `Transport` and creates a new encrypted
+    /// transport with new TCP stream under hood.
     pub fn try_clone(&self) -> io::Result<Transport> {
         let addr = try!(self.tcp.peer_addr());
 
