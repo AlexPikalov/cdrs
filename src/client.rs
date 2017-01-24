@@ -146,7 +146,7 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
     /// provided - `addr` is IP address of DB Server, `authenticator` is a selected authenticator
     /// that is supported by particular DB Server. There are few authenticators already
     /// provided by this trait.
-    pub fn new(transport: Transport, authenticator: T, ) -> CDRS<T> {
+    pub fn new(transport: Transport, authenticator: T) -> CDRS<T> {
         return CDRS {
             compressor: Compression::None,
             authenticator: authenticator,
