@@ -102,6 +102,7 @@ impl IntoRustByName<i64> for Row {
             let bytes = cbytes.as_plain().clone();
 
             let converted = match cassandra_type {
+                &ColType::Int => decode_bigint(bytes),
                 &ColType::Bigint => decode_bigint(bytes),
                 &ColType::Timestamp => decode_timestamp(bytes),
                 &ColType::Time => decode_time(bytes),

@@ -14,7 +14,7 @@ use cdrs::transport::Transport;
 /// CREATE KEYSPACE my_namespace WITH REPLICATION = { 'class' : 'SimpleStrategy',
 /// 'replication_factor' : 1 };
 
-/// CREATE TABLE emp(
+/// CREATE TABLE my_namespace.emp(
 /// emp_id int PRIMARY KEY,
 /// emp_name text,
 /// emp_city text,
@@ -22,10 +22,10 @@ use cdrs::transport::Transport;
 /// emp_phone varint
 /// );
 
-/// INSERT INTO emp (emp_id, emp_name, emp_city,emp_phone, emp_sal)
-/// VALUES(1,'alex', 'NJ', 9848022338, 50000)
-/// INSERT INTO emp (emp_id, emp_name, emp_city,emp_phone, emp_sal)
-/// VALUES(2,'harry', 'FLL', 9848022338, 50000)
+/// INSERT INTO my_namespace.emp (emp_id, emp_name, emp_city,emp_phone, emp_sal)
+/// VALUES(1,'alex', 'NJ', 9848022338, 50000);
+/// INSERT INTO my_namespace.emp (emp_id, emp_name, emp_city,emp_phone, emp_sal)
+/// VALUES(2,'harry', 'FLL', 9848022338, 50000);
 ///
 ///
 /// ```
