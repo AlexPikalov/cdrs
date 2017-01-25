@@ -8,6 +8,7 @@ extern crate lz4_compress;
 extern crate uuid;
 #[cfg(feature = "ssl")]
 extern crate openssl;
+extern crate r2d2;
 
 use std::io::Cursor;
 
@@ -17,6 +18,7 @@ pub mod types;
 pub mod authenticators;
 pub mod client;
 pub mod compression;
+pub mod connection_manager;
 pub mod consistency;
 pub mod error;
 #[cfg(not(feature = "ssl"))]

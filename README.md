@@ -71,7 +71,7 @@ use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::transport::Transport;
 ```
 
-After that you can create a new instace of `CDRS` and establish new connection:
+After that you can create a new instance of `CDRS` and establish new connection:
 
 ```rust
 let authenticator = PasswordAuthenticator::new("user", "pass");
@@ -110,7 +110,7 @@ use openssl::ssl::{SslConnectorBuilder, SslMethod};
 use std::path::Path;
 ```
 
-After that you can create a new instace of `CDRS` and establish new connection:
+After that you can create a new instance of `CDRS` and establish new connection:
 
 ```rust
 let authenticator = PasswordAuthenticator::new("user", "pass");
@@ -127,6 +127,36 @@ let ssl_transport = Transport::new(addr, &connector).unwrap();
 // pass authenticator and SSL transport into CDRS' constructor
 let client = CDRS::new(ssl_transport, authenticator);
 ```
+
+### Connecting via r2d2 connection pool
+
+There is an option to create [r2d2](https://github.com/sfackler/r2d2) connection pool
+of CDRS connections both plain and SSL-encrypted:
+
+```rust
+use cdrs::connection_manager::ConnectionManager;
+
+let config = r2d2::Config::builder()
+    .pool_size(15)
+    .build();
+let transport = Transport::new(ADDR).unwrap();
+let authenticator = PasswordAuthenticator::new(USER, PASS);
+let manager = ConnectionManager::new(transport, authenticator, Compression::None);
+
+let pool = r2d2::Pool::new(config, manager).unwrap();
+
+for _ in 0..20 {
+    let pool = pool.clone();
+    thread::spawn(move || {
+        let conn = pool.get().unwrap();
+        // use the connection
+        // it will be returned to the pool when it falls out of scope.
+    });
+}
+
+```
+
+There is a related example.
 
 ### Getting supported options
 
