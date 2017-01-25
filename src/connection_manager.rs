@@ -45,7 +45,7 @@ impl<T: Authenticator + Send + Sync + 'static> r2d2::ManageConnection for Connec
     }
 
     fn is_valid(&self, connection: &mut Self::Connection) -> Result<(), Self::Error> {
-        let query = QueryBuilder::new("DESCRIBE keyspaces;").finalize();
+        let query = QueryBuilder::new("SELECT * FROM system.peers;").finalize();
 
         connection.query(query, false, false).map(|_| (()))
     }

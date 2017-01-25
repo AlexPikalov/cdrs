@@ -71,7 +71,7 @@ use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::transport::Transport;
 ```
 
-After that you can create a new instace of `CDRS` and establish new connection:
+After that you can create a new instance of `CDRS` and establish new connection:
 
 ```rust
 let authenticator = PasswordAuthenticator::new("user", "pass");
@@ -110,7 +110,7 @@ use openssl::ssl::{SslConnectorBuilder, SslMethod};
 use std::path::Path;
 ```
 
-After that you can create a new instace of `CDRS` and establish new connection:
+After that you can create a new instance of `CDRS` and establish new connection:
 
 ```rust
 let authenticator = PasswordAuthenticator::new("user", "pass");
