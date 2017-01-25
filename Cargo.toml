@@ -11,9 +11,14 @@ readme = "./README.md"
 keywords = ["cassandra", "driver", "client", "cassandradb", "DB"]
 license = "MIT"
 
+[features]
+default = []
+ssl = ["openssl"]
+
 [dependencies]
 byteorder = "0.5.3"
 log = "0.3.6"
 uuid = "0.2"
 snap = "0.1.2"
 lz4-compress = "0.1.0"
+openssl = { version = "0.9.6", optional = true }

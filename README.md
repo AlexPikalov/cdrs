@@ -17,6 +17,8 @@ into Rust structures It supports 4-th version of [Cassandra protocol](https://gi
 - [x] password authorization
 - [x] tracing information
 - [x] warning information
+- [x] SSL encrypted connection
+- [ ] load balancing / connection pooling
 
 ### Frames
 
@@ -66,6 +68,46 @@ To use password authenticator, just include the one implemented in
 ```rust
 use cdrs::client::CDRS;
 use cdrs::authenticators::PasswordAuthenticator;
+use cdrs::transport::Transport;
+```
+
+After that you can create a new instace of `CDRS` and establish new connection:
+
+```rust
+let authenticator = PasswordAuthenticator::new("user", "pass");
+let addr = "127.0.0.1:9042";
+let tcp_transport = Transport::new(addr).unwrap();
+
+// pass authenticator and transport into CDRS' constructor
+let client = CDRS::new(tcp_transport, authenticator);
+use cdrs::compression;
+// start session without compression
+let mut session = try!(client.start(compression::None));
+```
+
+If Server does not require authorization `authenticator` won't be used, but is still
+required for the constructor (most probably it will be refactored in future).
+
+#### Creating new encrypted connection
+
+To be able to create SSL-encrypted connection CDRS should be used with
+`ssl` feature enabled. Apart of CDRS itself _openssl_ must also be imported.
+
+```toml
+[dependencies]
+openssl = "0.9.6"
+
+[dependencies.cdrs]
+version = "*"
+features = ["ssl"]
+```
+
+```rust
+use cdrs::client::CDRS;
+use cdrs::authenticators::PasswordAuthenticator;
+use cdrs::transport_ssl::Transport;
+use openssl::ssl::{SslConnectorBuilder, SslMethod};
+use std::path::Path;
 ```
 
 After that you can create a new instace of `CDRS` and establish new connection:
@@ -74,15 +116,17 @@ After that you can create a new instace of `CDRS` and establish new connection:
 let authenticator = PasswordAuthenticator::new("user", "pass");
 let addr = "127.0.0.1:9042";
 
-// pass authenticator into CDRS' constructor
-let client = CDRS::new(addr, authenticator).unwrap();
-use cdrs::compression;
-// start session without compression
-let mut session = try!(client.start(compression::None));
-```
+// here needs to be a path of your SSL certificate
+let path = Path::new("./node0.cer.pem");
+let mut ssl_connector_builder = SslConnectorBuilder::new(SslMethod::tls()).unwrap();
+ssl_connector_builder.builder_mut().set_ca_file(path).unwrap();
+let connector = ssl_connector_builder.build();
 
-If Server does not require authorization `authenticator` won't be used, but is still
-required for the constructor (most probably it will be refactored in future).
+let ssl_transport = Transport::new(addr, &connector).unwrap();
+
+// pass authenticator and SSL transport into CDRS' constructor
+let client = CDRS::new(ssl_transport, authenticator);
+```
 
 ### Getting supported options
 

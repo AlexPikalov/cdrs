@@ -20,8 +20,8 @@ pub enum Error {
     Io(io::Error),
     /// Internal error that may be raised during `uuid::Uuid::from_bytes`
     UUIDParse(ParseError),
-    /// General parsing error
-    GeneralParsing(String),
+    /// General error
+    General(String),
     /// Internal error that may be raised during String::from_utf8
     FromUtf8(FromUtf8Error),
     /// Internal Compression/Decompression error
@@ -38,7 +38,7 @@ impl fmt::Display for Error {
             Error::Server(ref err) => write!(f, "Server error: {:?}", err.message),
             Error::FromUtf8(ref err) => write!(f, "FromUtf8Error error: {:?}", err),
             Error::UUIDParse(ref err) => write!(f, "UUIDParse error: {:?}", err),
-            Error::GeneralParsing(ref err) => write!(f, "GeneralParsing error: {:?}", err),
+            Error::General(ref err) => write!(f, "GeneralParsing error: {:?}", err),
         }
     }
 }
@@ -52,7 +52,7 @@ impl error::Error for Error {
             Error::FromUtf8(ref err) => err.description(),
             // FIXME: err.description not found in current scope, std::error::Error not satisfied
             Error::UUIDParse(_) => "UUID Parse Error",
-            Error::GeneralParsing(ref err) => err.as_str()
+            Error::General(ref err) => err.as_str()
         }
     }
 }
@@ -89,6 +89,6 @@ impl From<ParseError> for Error {
 
 impl From<String> for Error {
     fn from(err: String) -> Error {
-        return Error::GeneralParsing(err);
+        return Error::General(err);
     }
 }

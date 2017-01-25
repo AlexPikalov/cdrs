@@ -1,10 +1,13 @@
-//! **cdrs** is a native Cassandra DB client written in Rust. It's under a hard development as of now.
+//! **cdrs** is a native Cassandra DB client written in Rust.
+//! It's under a hard development as of now.
 extern crate snap;
 extern crate byteorder;
 #[macro_use]
 extern crate log;
 extern crate lz4_compress;
 extern crate uuid;
+#[cfg(feature = "ssl")]
+extern crate openssl;
 
 use std::io::Cursor;
 
@@ -16,6 +19,10 @@ pub mod client;
 pub mod compression;
 pub mod consistency;
 pub mod error;
+#[cfg(not(feature = "ssl"))]
+pub mod transport;
+#[cfg(feature = "ssl")]
+pub mod transport_ssl;
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.
 pub trait IntoBytes {

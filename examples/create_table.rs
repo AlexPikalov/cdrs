@@ -4,6 +4,7 @@ use cdrs::client::{CDRS, QueryBuilder};
 use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::compression::Compression;
 use cdrs::consistency::Consistency;
+use cdrs::transport::Transport;
 
 // default credentials
 const USER: &'static str = "cassandra";
@@ -12,8 +13,9 @@ const ADDR: &'static str = "127.0.0.1:9042";
 
 fn main() {
     let authenticator = PasswordAuthenticator::new(USER, PASS);
-    let client = CDRS::new(ADDR, authenticator).unwrap();
-    let session = client.start(Compression::None).unwrap();
+    let tcp_transport = Transport::new(ADDR).unwrap();
+    let client = CDRS::new(tcp_transport, authenticator);
+    let mut session = client.start(Compression::None).unwrap();
 
     // NOTE: keyspace "keyspace" should already exist
     let create_table_cql = "CREATE TABLE keyspace.users (

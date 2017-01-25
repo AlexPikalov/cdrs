@@ -1,7 +1,6 @@
 extern crate cdrs;
 
 use cdrs::AsByte;
-use cdrs::compression::Compression;
 use cdrs::frame::*;
 
 #[test]

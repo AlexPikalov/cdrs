@@ -166,6 +166,7 @@ const WITH_DEFAULT_TIMESTAMP: u8 = 0x20;
 const WITH_NAME_FOR_VALUES: u8 = 0x40;
 
 /// Cassandra Query Flags.
+#[derive(Clone)]
 pub enum QueryFlags {
     /// If set indicates that Query Params contains value.
     Value,
