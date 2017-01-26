@@ -18,7 +18,8 @@ into Rust structures It supports 4-th version of [Cassandra protocol](https://gi
 - [x] tracing information
 - [x] warning information
 - [x] SSL encrypted connection
-- [ ] load balancing / connection pooling
+- [ ] load balancing
+- [x] connection pooling
 
 ### Frames
 
