@@ -200,7 +200,7 @@ let use_query_string = String::from("USE my_namespace;");
 let with_tracing = false;
 let with_warnings = false;
 
-match session.prepare(use_query_string, with_tracing, with_warnings) {
+match session.query(use_query_string, with_tracing, with_warnings) {
     Ok(set_keyspace) => {
         // use_keyspace is a result frame of type SetKeyspace
     },
