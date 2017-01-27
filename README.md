@@ -220,7 +220,7 @@ use std::default::Default;
 use cdrs::client::{Query, QueryBuilder};
 use cdrs::consistency::Consistency;
 
-let mut select_query: Query = QueryBuilder::new("CREATE TABLE keyspace.emp (
+let mut create_query: Query = QueryBuilder::new("CREATE TABLE keyspace.emp (
     empID int,
     deptID int,
     first_name varchar,
@@ -232,7 +232,7 @@ let mut select_query: Query = QueryBuilder::new("CREATE TABLE keyspace.emp (
 let with_tracing = false;
 let with_warnings = false;
 
-let table_created = session.query(select_query, with_tracing, with_warnings).is_ok();
+let table_created = session.query(create_query, with_tracing, with_warnings).is_ok();
 
 ```
 
