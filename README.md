@@ -197,11 +197,11 @@ you need to start Session first.
 
 ```rust
 
-let use_query_string = String::from("USE my_namespace;");
+let create_query: Query = QueryBuilder::new("USE my_namespace;").finalize();
 let with_tracing = false;
 let with_warnings = false;
 
-match session.query(use_query_string, with_tracing, with_warnings) {
+match session.query(create_query, with_tracing, with_warnings) {
     Ok(set_keyspace) => {
         // use_keyspace is a result frame of type SetKeyspace
     },
@@ -217,7 +217,7 @@ that contain namespace and a name of created table.
 
 ```rust
 use std::default::Default;
-use cdrs::client::{Query, QueryBuilder};
+use cdrs::query::{Query, QueryBuilder};
 use cdrs::consistency::Consistency;
 
 let mut create_query: Query = QueryBuilder::new("CREATE TABLE keyspace.emp (
@@ -246,7 +246,7 @@ use std::default::Default;
 use cdrs::client::Query;
 use cdrs::consistency::Consistency;
 
-let mut select_query: Query = QueryBuilder::new(use_query.clone()).finalize();
+let select_query: Query = QueryBuilder::new(use_query.clone()).finalize();
 let with_tracing = false;
 let with_warnings = false;
 
@@ -323,6 +323,33 @@ let messages: Vec<CAuthor> = rows
     })
     .collect();
 
+```
+
+##### Prepare and execute a query:
+
+Prepare-execute query is also supported:
+
+```rust
+  // NOTE: keyspace "keyspace" should already exist
+  let create_table_cql = "USE keyspace;".to_string();
+  let with_tracing = false;
+  let with_warnings = false;
+
+  // prepare a query
+  let prepared = session.prepare(create_table_cql, with_tracing, with_warnings)
+    .unwrap()
+    .get_body()
+    .into_prepared()
+    .unwrap();
+
+  // execute prepared query
+  let execution_params = QueryParamsBuilder::new(Consistency::One).finalize();
+  let query_id = prepared.id;
+  let executed = session.execute(query_id, execution_params, false, false)
+    .unwrap()
+    .get_body()
+    .into_set_keyspace()
+    .unwrap();
 ```
 
 ### License
