@@ -21,6 +21,7 @@ pub mod frame_auth_challenge;
 pub mod frame_auth_response;
 pub mod frame_auth_success;
 pub mod frame_authenticate;
+pub mod frame_batch;
 pub mod frame_error;
 pub mod frame_execute;
 pub mod frame_options;

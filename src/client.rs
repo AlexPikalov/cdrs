@@ -4,7 +4,7 @@ use std::io;
 use std::io::Write;
 use std::collections::HashMap;
 
-use query::{Query, QueryParams};
+use query::{Query, QueryParams, QueryBatch};
 use frame::{Frame, Opcode, Flag};
 use frame::frame_response::ResponseBody;
 use IntoBytes;
@@ -159,7 +159,8 @@ impl<T: Authenticator> Session<T> {
     pub fn prepare(&mut self,
         query: String,
         with_tracing: bool,
-        with_warnings: bool) -> error::Result<Frame> {
+        with_warnings: bool
+    ) -> error::Result<Frame> {
         let mut flags = vec![];
         if with_tracing {
             flags.push(Flag::Tracing);
@@ -182,7 +183,8 @@ impl<T: Authenticator> Session<T> {
         id: CBytesShort,
         query_parameters: QueryParams,
         with_tracing: bool,
-        with_warnings: bool) -> error::Result<Frame> {
+        with_warnings: bool
+    ) -> error::Result<Frame> {
 
         let mut flags = vec![];
         if with_tracing {
@@ -203,18 +205,21 @@ impl<T: Authenticator> Session<T> {
     /// let qb = QueryBuilder::new().query("select * from emp").consistency(Consistency::One).page_size(Some(4));
     /// session.query_with_builder(qb);
     /// ```
-    pub fn query(&mut self, query: Query, with_tracing: bool, with_warnings: bool)
-        -> error::Result<Frame> {
-
+    pub fn query(
+        &mut self,
+        query: Query,
+        with_tracing: bool,
+        with_warnings: bool
+    ) -> error::Result<Frame> {
         let mut flags = vec![];
+
         if with_tracing {
             flags.push(Flag::Tracing);
         }
+
         if with_warnings {
             flags.push(Flag::Warning);
         }
-
-        // let query_frame = Frame::new_req_query(query).into_cbytes();
 
         let query_frame = Frame::new_req_query(query.query,
             query.consistency,
@@ -225,6 +230,27 @@ impl<T: Authenticator> Session<T> {
             query.serial_consistency,
             query.timestamp,
             flags).into_cbytes();
+
+        try!(self.cdrs.transport.write(query_frame.as_slice()));
+        return parse_frame(&mut self.cdrs.transport, &self.compressor);
+    }
+
+    pub fn batch(&mut self,
+        batch_query: QueryBatch,
+        with_tracing: bool,
+        with_warnings: bool
+    ) -> error::Result<Frame> {
+        let mut flags = vec![];
+
+        if with_tracing {
+            flags.push(Flag::Tracing);
+        }
+        
+        if with_warnings {
+            flags.push(Flag::Warning);
+        }
+
+        let query_frame = Frame::new_req_batch(batch_query, flags).into_cbytes();
 
         try!(self.cdrs.transport.write(query_frame.as_slice()));
         return parse_frame(&mut self.cdrs.transport, &self.compressor);
