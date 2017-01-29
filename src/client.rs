@@ -3,17 +3,14 @@ use std::net;
 use std::io;
 use std::io::Write;
 use std::collections::HashMap;
-use std::default::Default;
 
-use consistency::Consistency;
+use query::{Query, QueryParams};
 use frame::{Frame, Opcode, Flag};
 use frame::frame_response::ResponseBody;
 use IntoBytes;
 use frame::parser::parse_frame;
 use types::*;
-use types::value::*;
 
-use frame::frame_query::*;
 use compression::Compression;
 use authenticators::Authenticator;
 use error;
@@ -21,103 +18,6 @@ use error;
 use transport::Transport;
 #[cfg(feature = "ssl")]
 use transport_ssl::Transport;
-
-/// instead of writing functions which resemble
-/// ```
-/// pub fn query<'a> (&'a mut self,query: String) -> &'a mut Self{
-///     self.query = Some(query);
-///            self
-/// }
-/// ```
-/// and repeating it for all the attributes; it is extracted out as a macro so that code is more concise
-/// see @https://doc.rust-lang.org/book/method-syntax.html
-///
-///
-macro_rules! builder_opt_field {
-    ($field:ident, $field_type:ty) => {
-        pub fn $field<'a>(&'a mut self,
-                          $field: $field_type) -> &'a mut Self {
-            self.$field = Some($field);
-            self
-        }
-    };
-}
-
-/// Structure that represents CQL query and parameters which will be applied during
-/// its execution
-#[derive(Debug, Default)]
-pub struct Query {
-    query: String,
-    // query parameters
-    consistency: Option<Consistency>,
-    values: Option<Vec<Value>>,
-    with_names: Option<bool>,
-    page_size: Option<i32>,
-    paging_state: Option<CBytes>,
-    serial_consistency: Option<Consistency>,
-    timestamp: Option<i64>
-}
-
-/// QueryBuilder is a helper sturcture that helps to construct `Query`. `Query` itself
-/// consists of CQL query string and list of parameters.
-/// Parameters are the same as ones described in [Cassandra v4 protocol]
-/// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L304)
-#[derive(Debug, Default)]
-pub struct QueryBuilder {
-    query: String,
-    consistency: Option<Consistency>,
-    values: Option<Vec<Value>>,
-    with_names: Option<bool>,
-    page_size: Option<i32>,
-    paging_state: Option<CBytes>,
-    serial_consistency: Option<Consistency>,
-    timestamp: Option<i64>
-}
-
-impl QueryBuilder {
-    /// Factory function that takes CQL `&str` as an argument and returns new `QueryBuilder`
-    pub fn new(query: &str) -> QueryBuilder {
-        return QueryBuilder {
-            query: query.to_string(),
-            ..Default::default()
-        };
-    }
-
-    /// Sets new query consistency
-    builder_opt_field!(consistency, Consistency);
-
-    /// Sets new query values
-    builder_opt_field!(values, Vec<Value>);
-
-    /// Sets new query with_names
-    builder_opt_field!(with_names, bool);
-
-    /// Sets new query pagesize
-    builder_opt_field!(page_size, i32);
-
-    /// Sets new query pagin state
-    builder_opt_field!(paging_state, CBytes);
-
-    /// Sets new query serial_consistency
-    builder_opt_field!(serial_consistency, Consistency);
-
-    /// Sets new quey timestamp
-    builder_opt_field!(timestamp, i64);
-
-    /// Finalizes query building process and returns query itself
-    pub fn finalize(&self) -> Query {
-        return Query {
-            query: self.query.clone(),
-            consistency: self.consistency.clone(),
-            values: self.values.clone(),
-            with_names: self.with_names.clone(),
-            page_size: self.page_size.clone(),
-            paging_state: self.paging_state.clone(),
-            serial_consistency: self.serial_consistency.clone(),
-            timestamp: self.timestamp.clone()
-        };
-    }
-}
 
 /// DB user's credentials.
 #[derive(Clone, Debug)]
@@ -271,7 +171,8 @@ impl<T: Authenticator> Session<T> {
         let options_frame = Frame::new_req_prepare(query, flags).into_cbytes();
 
         try!(self.cdrs.transport.write(options_frame.as_slice()));
-        return parse_frame(&mut self.cdrs.transport, &self.compressor);
+
+        parse_frame(&mut self.cdrs.transport, &self.compressor)
     }
 
     /// The method makes a request to DB Server to execute a query with provided id
@@ -279,7 +180,7 @@ impl<T: Authenticator> Session<T> {
     /// returns back to a driver as a response to `prepare` request.
     pub fn execute(&mut self,
         id: CBytesShort,
-        query_parameters: ParamsReqQuery,
+        query_parameters: QueryParams,
         with_tracing: bool,
         with_warnings: bool) -> error::Result<Frame> {
 
@@ -290,7 +191,6 @@ impl<T: Authenticator> Session<T> {
         if with_warnings {
             flags.push(Flag::Warning);
         }
-
         let options_frame = Frame::new_req_execute(id, query_parameters, flags).into_cbytes();
 
         try!(self.cdrs.transport.write(options_frame.as_slice()));
@@ -305,10 +205,6 @@ impl<T: Authenticator> Session<T> {
     /// ```
     pub fn query(&mut self, query: Query, with_tracing: bool, with_warnings: bool)
         -> error::Result<Frame> {
-        let consistency = match query.consistency {
-            Some(cs) => cs,
-            None => Consistency::One,
-        };
 
         let mut flags = vec![];
         if with_tracing {
@@ -318,8 +214,10 @@ impl<T: Authenticator> Session<T> {
             flags.push(Flag::Warning);
         }
 
+        // let query_frame = Frame::new_req_query(query).into_cbytes();
+
         let query_frame = Frame::new_req_query(query.query,
-            consistency,
+            query.consistency,
             query.values,
             query.with_names,
             query.page_size,

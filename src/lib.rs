@@ -21,6 +21,7 @@ pub mod compression;
 pub mod connection_manager;
 pub mod consistency;
 pub mod error;
+pub mod query;
 #[cfg(not(feature = "ssl"))]
 pub mod transport;
 #[cfg(feature = "ssl")]

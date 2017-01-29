@@ -5,6 +5,7 @@ use types::rows::Row;
 
 
 /// `ResultKind` is enum which represents types of result.
+#[derive(Debug)]
 pub enum ResultKind {
     /// Void result.
     Void,
@@ -67,22 +68,13 @@ pub enum ResResultBody {
 }
 
 impl ResResultBody {
-    pub fn parse_body(mut cursor: &mut Cursor<Vec<u8>>, result_kind: ResultKind) -> ResResultBody {
+    /// It retrieves `ResResultBody` from `io::Cursor` having knowledge about expected kind of result.
+    fn parse_body_from_cursor(mut cursor: &mut Cursor<Vec<u8>>, result_kind: ResultKind) -> ResResultBody {
         return match result_kind {
             ResultKind::Void => ResResultBody::Void(BodyResResultVoid::from_cursor(&mut cursor)),
             ResultKind::Rows => ResResultBody::Rows(BodyResResultRows::from_cursor(&mut cursor)),
             ResultKind::SetKeyspace => ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)),
             ResultKind::Prepared => ResResultBody::Prepared(BodyResResultPrepared::from_cursor(&mut cursor)),
-            ResultKind::SchemaChange => ResResultBody::SchemaChange(BodyResResultSchemaChange::from_cursor(&mut cursor))
-        };
-    }
-
-    /// It retrieves `ResResultBody` from `io::Cursor` having knowledge about expected kind of result.
-    pub fn parse_body_from_cursor(mut cursor: &mut Cursor<Vec<u8>>, result_kind: ResultKind) -> ResResultBody {
-        return match result_kind {
-            ResultKind::Void => ResResultBody::Void(BodyResResultVoid::from_cursor(&mut cursor)),
-            ResultKind::Rows => ResResultBody::Rows(BodyResResultRows::from_cursor(&mut cursor)),
-            ResultKind::SetKeyspace => ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)),
             _ => unimplemented!()
         };
     }
@@ -94,12 +86,30 @@ impl ResResultBody {
             _ => None
         }
     }
+
+    /// It unwraps body and returns BodyResResultPrepared which contains an exact result of
+    /// PREPARE query.
+    pub fn into_prepared(self) -> Option<BodyResResultPrepared> {
+        match self {
+            ResResultBody::Prepared(p) => Some(p),
+            _ => None
+        }
+    }
+
+    /// It unwraps body and returns BodyResResultSetKeyspace which contains an exact result of
+    /// use keyspace query.
+    pub fn into_set_keyspace(self) -> Option<BodyResResultSetKeyspace> {
+        match self {
+            ResResultBody::SetKeyspace(p) => Some(p),
+            _ => None
+        }
+    }
 }
 
 impl FromCursor for ResResultBody {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ResResultBody {
         let result_kind = ResultKind::from_cursor(&mut cursor);
-        return ResResultBody::parse_body(&mut cursor, result_kind);
+        return ResResultBody::parse_body_from_cursor(&mut cursor, result_kind);
     }
 }
 

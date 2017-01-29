@@ -1,6 +1,7 @@
 
 extern crate cdrs;
-use cdrs::client::{CDRS, QueryBuilder};
+use cdrs::client::CDRS;
+use cdrs::query::QueryBuilder;
 use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::compression::Compression;
 use cdrs::transport::Transport;

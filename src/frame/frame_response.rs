@@ -1,10 +1,14 @@
 use std::io::Cursor;
-use std::slice::Iter;
 
 use FromCursor;
-use types::*;
-use frame::*;
-use frame::frame_result::*;
+use frame::Opcode;
+use frame::frame_result::{
+    BodyResResultVoid,
+    BodyResResultPrepared,
+    BodyResResultRows,
+    BodyResResultSetKeyspace,
+    ResResultBody
+};
 use frame::frame_error::CDRSError;
 use frame::frame_supported::*;
 use frame::frame_auth_challenge::*;
@@ -60,18 +64,6 @@ impl ResponseBody {
         }
     }
 
-    pub fn as_rows_iter(&self) -> Option<Iter<Vec<CBytes>>> {
-        match self {
-            &ResponseBody::Result(ref res) => {
-                match res {
-                    &ResResultBody::Rows(ref rows) => Some(rows.rows_content.iter()),
-                    _ => None
-                }
-            },
-            _ => None
-        }
-    }
-
     pub fn into_rows(self) -> Option<Vec<Row>> {
         match self {
             ResponseBody::Result(res) => res.into_rows(),
@@ -87,6 +79,24 @@ impl ResponseBody {
                     _ => None
                 }
             },
+            _ => None
+        }
+    }
+
+    /// It unwraps body and returns BodyResResultPrepared which contains an exact result of
+    /// PREPARE query. If frame body is not of type `Result` this method returns `None`.
+    pub fn into_prepared(self) -> Option<BodyResResultPrepared> {
+        match self {
+            ResponseBody::Result(res) => res.into_prepared(),
+            _ => None
+        }
+    }
+
+    /// It unwraps body and returns BodyResResultPrepared which contains an exact result of
+    /// use keyspace query. If frame body is not of type `Result` this method returns `None`.
+    pub fn into_set_keyspace(self) -> Option<BodyResResultSetKeyspace> {
+        match self {
+            ResponseBody::Result(res) => res.into_set_keyspace(),
             _ => None
         }
     }

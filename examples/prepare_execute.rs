@@ -1,7 +1,7 @@
 extern crate cdrs;
 
 use cdrs::client::CDRS;
-use cdrs::query::QueryBuilder;
+use cdrs::query::QueryParamsBuilder;
 use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::compression::Compression;
 use cdrs::consistency::Consistency;
@@ -19,22 +19,25 @@ fn main() {
     let mut session = client.start(Compression::None).unwrap();
 
     // NOTE: keyspace "keyspace" should already exist
-    let create_table_cql = "CREATE TABLE keyspace.users (
-        user_name varchar PRIMARY KEY,
-        password varchar,
-        gender varchar,
-        session_token varchar,
-        state varchar,
-        birth_year bigint
-    );";
-    let create_table_query = QueryBuilder::new(create_table_cql)
-        .consistency(Consistency::One)
-        .finalize();
+    let create_table_cql = "USE keyspace;".to_string();
     let with_tracing = false;
     let with_warnings = false;
 
-    match session.query(create_table_query, with_tracing, with_warnings) {
-        Ok(ref res) => println!("table created: {:?}", res.get_body()),
-        Err(ref err) => println!("Error occured: {:?}", err)
-    }
+    let prepared = session.prepare(create_table_cql, with_tracing, with_warnings)
+        .unwrap()
+        .get_body()
+        .into_prepared()
+        .unwrap();
+
+    println!("prepared:\n{:?}", prepared);
+
+    let execution_params = QueryParamsBuilder::new(Consistency::One).finalize();
+    let query_id = prepared.id;
+    let executed = session.execute(query_id, execution_params, false, false)
+        .unwrap()
+        .get_body()
+        .into_set_keyspace()
+        .unwrap();
+
+    println!("executed:\n{:?}", executed);
 }

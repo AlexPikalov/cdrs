@@ -8,6 +8,7 @@ use types::*;
 use types::value::*;
 
 /// Structure which represents body of Query request
+#[derive(Debug)]
 pub struct BodyReqQuery {
     /// Query string.
     pub query: CStringLong,
@@ -16,8 +17,8 @@ pub struct BodyReqQuery {
 }
 
 impl BodyReqQuery {
-    /// **Note:** shold be used by internal stuff only. Fabric function that produces Query request body.
-    pub fn new(query: String,
+    // Fabric function that produces Query request body.
+    fn new(query: String,
             consistency: Consistency,
             values: Option<Vec<Value>>,
             with_names: Option<bool>,
@@ -26,6 +27,7 @@ impl BodyReqQuery {
             serial_consistency: Option<Consistency>,
             timestamp: Option<i64>) -> BodyReqQuery {
 
+            // query flags
             let mut flags: Vec<QueryFlags> = vec![];
             if values.is_some() {
                 flags.push(QueryFlags::Value);
@@ -43,22 +45,16 @@ impl BodyReqQuery {
                 flags.push(QueryFlags::WithDefaultTimestamp);
             }
 
-            let _values = values.unwrap_or(vec![]);
-            let _page_size = page_size.unwrap_or(0);
-            let _paging_state = paging_state.map_or(vec![], |ps| ps.into_cbytes());
-            let _serial_consistency = serial_consistency.unwrap_or(Consistency::Serial);
-            let _timestamp = timestamp.unwrap_or(0);
-
             return BodyReqQuery {
                 query: CStringLong::new(query),
                 query_params: ParamsReqQuery {
                     consistency: consistency,
                     flags: flags,
-                    values: _values,
-                    page_size: _page_size,
-                    paging_state: CBytes::new(_paging_state),
-                    serial_consistency: _serial_consistency,
-                    timestamp: _timestamp
+                    values: values,
+                    page_size: page_size,
+                    paging_state: paging_state,
+                    serial_consistency: serial_consistency,
+                    timestamp: timestamp
                 }
             };
         }
@@ -74,28 +70,29 @@ impl IntoBytes for BodyReqQuery {
 }
 
 /// Parameters of Query request.
+#[derive(Debug)]
 pub struct ParamsReqQuery {
     /// Cassandra consistency level.
     pub consistency: Consistency,
     /// Array of query flags.
     pub flags: Vec<QueryFlags>,
     /// Array of values.
-    pub values: Vec<Value>,
+    pub values: Option<Vec<Value>>,
     /// Page size.
-    pub page_size: i32,
+    pub page_size: Option<i32>,
     /// Array of bytes which represents paging state.
-    pub paging_state: CBytes,
+    pub paging_state: Option<CBytes>,
     /// Serial `Consistency`.
-    pub serial_consistency: Consistency,
+    pub serial_consistency: Option<Consistency>,
     /// Timestamp.
-    pub timestamp: i64
+    pub timestamp: Option<i64>
 }
 
 impl ParamsReqQuery {
     /// Sets values of Query request params.
     pub fn set_values(&mut self, values: Vec<Value>) {
         self.flags.push(QueryFlags::Value);
-        self.values = values;
+        self.values = Some(values);
     }
 
     fn flags_as_byte(&self) -> u8 {
@@ -139,18 +136,21 @@ impl IntoBytes for ParamsReqQuery {
         v.extend_from_slice(self.consistency.into_cbytes().as_slice());
         v.push(self.flags_as_byte());
         if QueryFlags::has_value(self.flags_as_byte()) {
-            for val in self.values.iter() {
+            // XXX clone
+            for val in self.values.clone().unwrap().iter() {
                 v.extend_from_slice(val.into_cbytes().as_slice());
             }
         }
         if QueryFlags::has_with_paging_state(self.flags_as_byte()) {
-            v.extend_from_slice(self.paging_state.into_cbytes().as_slice());
+            // XXX clone
+            v.extend_from_slice(self.paging_state.clone().unwrap().into_cbytes().as_slice());
         }
         if QueryFlags::has_with_serial_consistency(self.flags_as_byte()) {
-            v.extend_from_slice(self.serial_consistency.into_cbytes().as_slice());
+            // XXX clone
+            v.extend_from_slice(self.serial_consistency.clone().unwrap().into_cbytes().as_slice());
         }
         if QueryFlags::has_with_default_timestamp(self.flags_as_byte()) {
-            v.extend_from_slice(to_int(self.timestamp).as_slice());
+            v.extend_from_slice(to_int(self.timestamp.unwrap()).as_slice());
         }
 
         return v;
@@ -166,7 +166,7 @@ const WITH_DEFAULT_TIMESTAMP: u8 = 0x20;
 const WITH_NAME_FOR_VALUES: u8 = 0x40;
 
 /// Cassandra Query Flags.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum QueryFlags {
     /// If set indicates that Query Params contains value.
     Value,
