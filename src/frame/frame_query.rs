@@ -136,7 +136,6 @@ impl IntoBytes for ParamsReqQuery {
         v.extend_from_slice(self.consistency.into_cbytes().as_slice());
         v.push(self.flags_as_byte());
         if QueryFlags::has_value(self.flags_as_byte()) {
-            println!("XXXXXXX {:?}", self.values.clone());
             // XXX clone
             for val in self.values.clone().unwrap().iter() {
                 v.extend_from_slice(val.into_cbytes().as_slice());

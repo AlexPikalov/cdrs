@@ -173,13 +173,6 @@ impl<T: Authenticator> Session<T> {
         try!(self.cdrs.transport.write(options_frame.as_slice()));
 
         parse_frame(&mut self.cdrs.transport, &self.compressor)
-            // .map(|frame| {
-            //     if let ResponseBody::Result(ResResultBody::Prepared(p)) = frame.get_body() {
-            //         p
-            //     } else {
-            //         unreachable!();
-            //     }
-            // })
     }
 
     /// The method makes a request to DB Server to execute a query with provided id
@@ -212,10 +205,6 @@ impl<T: Authenticator> Session<T> {
     /// ```
     pub fn query(&mut self, query: Query, with_tracing: bool, with_warnings: bool)
         -> error::Result<Frame> {
-        // let consistency = match query.consistency {
-        //     Some(cs) => cs,
-        //     None => Consistency::One,
-        // };
 
         let mut flags = vec![];
         if with_tracing {
