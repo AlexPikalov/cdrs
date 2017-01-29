@@ -2,6 +2,7 @@
 //! The module contains Rust representation of Cassandra consistency levels.
 use std::io;
 use std::convert::From;
+use std::default::Default;
 use super::{IntoBytes, FromCursor};
 use super::types::*;
 use super::FromBytes;
@@ -32,6 +33,12 @@ pub enum Consistency {
     LocalSerial,
     #[allow(missing_docs)]
     LocalOne
+}
+
+impl Default for Consistency {
+    fn default() -> Consistency {
+        Consistency::One
+    }
 }
 
 impl IntoBytes for Consistency {

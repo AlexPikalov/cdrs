@@ -8,7 +8,7 @@ use cdrs::connection_manager::ConnectionManager;
 use cdrs::transport::Transport;
 use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::compression::Compression;
-use cdrs::client::QueryBuilder;
+use cdrs::query::QueryBuilder;
 
 // default credentials
 const USER: &'static str = "cassandra";

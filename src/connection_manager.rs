@@ -1,7 +1,8 @@
 //! This modules contains an implementation of [r2d2](https://github.com/sfackler/r2d2)
 //! functionality of connection pools. To get more details about creating r2d2 pools
 //! please refer to original documentation.
-use client::{CDRS, Session, QueryBuilder};
+use query::QueryBuilder;
+use client::{CDRS, Session};
 use error::{Error as CError};
 use authenticators::Authenticator;
 use compression::Compression;

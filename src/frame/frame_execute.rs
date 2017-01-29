@@ -1,7 +1,7 @@
 use types::*;
 use frame::*;
-use super::super::IntoBytes;
-use super::frame_query::ParamsReqQuery;
+use IntoBytes;
+use frame::frame_query::ParamsReqQuery;
 
 /// The structure that represents a body of a frame of type `execute`.
 pub struct BodyReqExecute {
