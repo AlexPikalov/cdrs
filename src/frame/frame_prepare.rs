@@ -1,6 +1,6 @@
 use types::*;
-use super::*;
-use super::super::IntoBytes;
+use frame::*;
+use IntoBytes;
 
 /// Struct that represents a body of a frame of type `prepare`
 pub struct BodyReqPrepare {

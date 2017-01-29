@@ -1,7 +1,9 @@
 use types::*;
 use types::value::*;
+use error::{Result as CResult, Error as CError};
 use consistency::Consistency;
 use frame::frame_query::{ParamsReqQuery, QueryFlags};
+use frame::frame_batch::{BatchType, BatchQuery, BodyReqBatch, BatchQuerySubj};
 
 /// instead of writing functions which resemble
 /// ```
@@ -118,7 +120,7 @@ impl QueryBuilder {
 
 pub type QueryParams = ParamsReqQuery;
 
-
+/// Query parameters builder
 pub struct QueryParamsBuilder {
     consistency: Consistency,
     values: Option<Vec<Value>>,
@@ -181,18 +183,23 @@ impl QueryParamsBuilder {
     pub fn finalize(self) -> QueryParams {
         // query flags
         let mut flags: Vec<QueryFlags> = vec![];
+
         if self.values.is_some() {
             flags.push(QueryFlags::Value);
         }
+
         if self.with_names {
             flags.push(QueryFlags::WithNamesForValues);
         }
+
         if self.page_size.is_some() {
             flags.push(QueryFlags::PageSize);
         }
+
         if self.serial_consistency.is_some() {
             flags.push(QueryFlags::WithSerialConsistency);
         }
+
         if self.timestamp.is_some() {
             flags.push(QueryFlags::WithDefaultTimestamp);
         }
@@ -208,3 +215,126 @@ impl QueryParamsBuilder {
         };
     }
 }
+
+pub type QueryBatch = BodyReqBatch;
+
+pub struct BatchQueryBuilder {
+    batch_type: BatchType,
+    queries: Vec<BatchQuery>,
+    consistency: Consistency,
+    serial_consistency: Option<Consistency>,
+    timestamp: Option<i64>
+}
+
+impl BatchQueryBuilder {
+    pub fn new() -> BatchQueryBuilder {
+        BatchQueryBuilder {
+            batch_type: BatchType::Logged,
+            queries: vec![],
+            consistency: Consistency::One,
+            serial_consistency: None,
+            timestamp: None
+        }
+    }
+
+    pub fn batch_type(&mut self, batch_type: BatchType) -> &mut Self {
+        self.batch_type = batch_type;
+        self
+    }
+
+    /// Add a query (non-prepared one)
+    pub fn add_query(
+        &mut self,
+        query: String,
+        values: Vec<BatchValue>
+    ) -> &mut Self {
+        self.queries.push(BatchQuery {
+            is_prepared: false,
+            subject: BatchQuerySubj::QueryString(CStringLong::new(query)),
+            values: values
+        });
+        self
+    }
+
+    /// Add a query (prepared one)
+    pub fn add_query_prepared(
+        &mut self,
+        query_id: CBytesShort,
+        values: Vec<BatchValue>
+    ) -> &mut Self {
+        self.queries.push(BatchQuery {
+            is_prepared: true,
+            subject: BatchQuerySubj::PreparedId(query_id),
+            values: values
+        });
+        self
+    }
+
+    pub fn clear_queries(&mut self) -> &mut Self {
+        self.queries = vec![];
+        self
+    }
+
+    pub fn consistency(&mut self, consistency: Consistency) -> &mut Self {
+        self.consistency = consistency;
+        self
+    }
+
+    pub fn serial_consistency(
+        &mut self,
+        serial_consistency: Option<Consistency>
+    ) -> &mut Self {
+        self.serial_consistency = serial_consistency;
+        self
+    }
+
+    pub fn timestamp(&mut self, timestamp: Option<i64>) -> &mut Self {
+        self.timestamp = timestamp;
+        self
+    }
+
+    pub fn finalize(&self) -> CResult<BodyReqBatch> {
+        let mut flags = vec![];
+
+        if self.serial_consistency.is_some() {
+            flags.push(QueryFlags::WithSerialConsistency);
+        }
+
+        if self.timestamp.is_some() {
+            flags.push(QueryFlags::WithDefaultTimestamp);
+        }
+
+        let with_names_for_values = self.queries
+            .iter()
+            .all(|q| q.values.iter().all(|v| v.0.is_some()));
+
+        if !with_names_for_values {
+            let some_names_for_values = self.queries
+                .iter()
+                .any(|q| q.values.iter().any(|v| v.0.is_some()));
+
+            if some_names_for_values {
+                return Err(
+                    CError::General(
+                        String::from("Inconsistent query values - mixed with and without names values")
+                    )
+                );
+            }
+        }
+
+        if with_names_for_values {
+            flags.push(QueryFlags::WithNamesForValues);
+        }
+
+        Ok(BodyReqBatch {
+            batch_type: self.batch_type.clone(),
+            queries: self.queries.clone(),
+            query_flags: flags.clone(),
+            consistency: self.consistency.clone(),
+            serial_consistency: self.serial_consistency.clone(),
+            timestamp: self.timestamp.clone()
+        })
+    }
+}
+
+pub type BatchValue = (Option<CString>, Value);
