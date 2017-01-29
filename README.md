@@ -18,7 +18,8 @@ into Rust structures It supports 4-th version of [Cassandra protocol](https://gi
 - [x] tracing information
 - [x] warning information
 - [x] SSL encrypted connection
-- [ ] load balancing / connection pooling
+- [ ] load balancing
+- [x] connection pooling
 
 ### Frames
 
@@ -200,7 +201,7 @@ let use_query_string = String::from("USE my_namespace;");
 let with_tracing = false;
 let with_warnings = false;
 
-match session.prepare(use_query_string, with_tracing, with_warnings) {
+match session.query(use_query_string, with_tracing, with_warnings) {
     Ok(set_keyspace) => {
         // use_keyspace is a result frame of type SetKeyspace
     },
@@ -219,7 +220,7 @@ use std::default::Default;
 use cdrs::client::{Query, QueryBuilder};
 use cdrs::consistency::Consistency;
 
-let mut select_query: Query = QueryBuilder::new("CREATE TABLE keyspace.emp (
+let mut create_query: Query = QueryBuilder::new("CREATE TABLE keyspace.emp (
     empID int,
     deptID int,
     first_name varchar,
@@ -231,7 +232,7 @@ let mut select_query: Query = QueryBuilder::new("CREATE TABLE keyspace.emp (
 let with_tracing = false;
 let with_warnings = false;
 
-let table_created = session.query(select_query, with_tracing, with_warnings).is_ok();
+let table_created = session.query(create_query, with_tracing, with_warnings).is_ok();
 
 ```
 
