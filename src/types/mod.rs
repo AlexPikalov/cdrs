@@ -216,7 +216,7 @@ impl FromCursor for CStringLong {
 
 #[derive(Debug, Clone)]
 pub struct CStringList {
-    list: Vec<CString>
+    pub list: Vec<CString>
 }
 
 impl CStringList {
@@ -225,6 +225,24 @@ impl CStringList {
             .iter()
             .map(|string| string.clone().into_plain())
             .collect();
+    }
+}
+
+impl IntoBytes for CStringList {
+    fn into_cbytes(&self) -> Vec<u8> {
+        let mut bytes = vec![];
+
+        let l = to_short(self.list.len() as u64);
+        bytes.extend_from_slice(l.as_slice());
+
+        bytes = self.list
+            .iter()
+            .fold(bytes, |mut _bytes, cstring| {
+                _bytes.extend_from_slice(cstring.into_cbytes().as_slice());
+                _bytes
+            });
+
+        return bytes;
     }
 }
 

@@ -1,7 +1,7 @@
-extern crate cdrs;
-
 use cdrs::AsByte;
-use cdrs::frame::*;
+use cdrs::frame::{Version, Flag, Opcode};
+
+mod events;
 
 #[test]
 fn test_frame_version_as_byte() {
