@@ -32,7 +32,7 @@ into Rust structures It supports 4-th version of [Cassandra protocol](https://gi
 - [x] PREPARE
 - [x] EXECUTE
 - [ ] BATCH
-- [ ] REGISTER
+- [x] REGISTER
 
 #### Response
 
@@ -55,7 +55,7 @@ into Rust structures It supports 4-th version of [Cassandra protocol](https://gi
 * - [x] Target FUNCTION
 
 * - [x] Target AGGREGATE
-- [ ] EVENT
+- [x] EVENT
 - [x] AUTH_CHALLENGE
 - [x] AUTH_SUCCESS
 
