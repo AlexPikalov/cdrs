@@ -2,8 +2,8 @@ use std::io;
 use std::io::{Read, Write};
 use std::net;
 use std::net::TcpStream;
-
-use openssl::ssl::{SslStream, SslConnector};
+use std::io::{ErrorKind};
+use openssl::ssl::{SslStream, SslConnector,HandshakeError};
 
 pub struct Transport {
     ssl: SslStream<TcpStream>,
@@ -13,11 +13,26 @@ pub struct Transport {
 impl Transport {
     pub fn new(addr: &str, connector: & SslConnector) -> io::Result<Transport> {
         let a: Vec<&str> = addr.split(':').collect();
-        return net::TcpStream::connect(addr)
-            .map(|socket| Transport {
-                ssl: connector.connect(a[0], socket).unwrap(),
-                connector: connector.clone()
-            });
+        let res:Result< Result<Transport,HandshakeError<net::TcpStream>>,io::Error> =  net::TcpStream::connect(addr)
+            .map(|socket|
+                 connector.connect(a[0], socket)
+                 .map(|sslsocket|
+                    Transport {
+                        ssl: sslsocket,
+                        connector: connector.clone()
+                    }
+                 )
+            );
+
+        res.and_then(|res: Result<Transport,HandshakeError<net::TcpStream>>| {
+        // transform `Ok(Result<Transport,HandshakeError<net::TcpStream>>)` into `Ok(Result<Transport, io::Error>)`
+        res
+        // transform n to Transport
+        .map(|n: Transport| n )
+        // transform `HandshakeError` into `'io::Error`
+        .map_err(|e| io::Error::new(io::ErrorKind::Other,e))
+
+        })
     }
 
     /// In opposite to `TcpStream`'s `try_clone` this method
@@ -28,11 +43,14 @@ impl Transport {
         let addr = try!(self.ssl.get_ref().peer_addr());
         let ip_string = format!("{}", addr.ip());
 
-        net::TcpStream::connect(addr)
-            .map(|socket| Transport {
-                ssl: self.connector.connect(ip_string.as_str(), socket).unwrap(),
-                connector: self.connector.clone()
-            })
+        let res =  net::TcpStream::connect(addr)
+            .map(|socket|
+                  self.connector.connect(ip_string.as_str(), socket)
+                      .map(|sslsocket| Transport {ssl: sslsocket, connector: self.connector.clone()}));
+
+        res.and_then(|res| {
+            res.map(|n: Transport| n ).map_err(|e| io::Error::new(io::ErrorKind::Other,e))
+        })
     }
 
     pub fn close(&mut self, _close: net::Shutdown) -> io::Result<()> {
