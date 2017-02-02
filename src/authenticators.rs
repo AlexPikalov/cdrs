@@ -34,3 +34,18 @@ impl<'a> Authenticator for PasswordAuthenticator<'a> {
         return "org.apache.cassandra.auth.PasswordAuthenticator";
     }
 }
+
+#[derive(Clone)]
+pub struct EmptyAuthenticator;
+
+
+impl Authenticator for EmptyAuthenticator {
+    fn get_auth_token(&self) -> CBytes {
+        return CBytes::new(vec![0]);
+    }
+
+    fn get_cassandra_name(&self) -> &str {
+        return "NONE";
+    }
+
+}
