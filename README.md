@@ -31,7 +31,7 @@ into Rust structures It supports 4-th version of [Cassandra protocol](https://gi
 - [x] QUERY
 - [x] PREPARE
 - [x] EXECUTE
-- [ ] BATCH
+- [x] BATCH
 - [x] REGISTER
 
 #### Response
