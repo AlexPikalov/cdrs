@@ -1,5 +1,5 @@
 extern crate cdrs;
-use cdrs::authenticators::{Authenticator, PasswordAuthenticator};
+use cdrs::authenticators::{Authenticator, PasswordAuthenticator,AuthenticatorNone};
 
 #[test]
 fn test_password_authenticator_trait_impl() {
@@ -27,6 +27,13 @@ fn test_password_authenticator_get_auth_token() {
     expected_token.extend_from_slice("bar".as_bytes());
 
     assert_eq!(auth.get_auth_token().into_plain(), expected_token);
+}
+
+#[test]
+fn test_authenticator_none_get_cassandra_name() {
+    let auth = AuthenticatorNone;
+    assert_eq!(auth.get_cassandra_name(), "NONE");
+    assert_eq!(auth.get_auth_token().into_plain(), vec![0]);
 }
 
 fn authenticator_tester<A: Authenticator>(_authenticator: Box<A>) {}
