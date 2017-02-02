@@ -36,10 +36,10 @@ impl<'a> Authenticator for PasswordAuthenticator<'a> {
 }
 
 #[derive(Clone)]
-pub struct EmptyAuthenticator;
+pub struct AuthenticatorNone;
 
 
-impl Authenticator for EmptyAuthenticator {
+impl Authenticator for AuthenticatorNone {
     fn get_auth_token(&self) -> CBytes {
         return CBytes::new(vec![0]);
     }
