@@ -2,7 +2,6 @@ use std::io;
 use std::io::{Read, Write};
 use std::net;
 use std::net::TcpStream;
-use std::io::{ErrorKind};
 use openssl::ssl::{SslStream, SslConnector,HandshakeError};
 
 pub struct Transport {
@@ -54,8 +53,7 @@ impl Transport {
     }
 
     pub fn close(&mut self, _close: net::Shutdown) -> io::Result<()> {
-        self.ssl.shutdown().unwrap();
-        return Ok(());
+        return self.ssl.shutdown().map_err(|e| io::Error::new(io::ErrorKind::Other,e)).and_then(|_| Ok(()));
     }
 }
 
