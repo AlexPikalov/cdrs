@@ -7,9 +7,11 @@ pub const UUID_LEN: usize = 16;
 
 use std::io;
 use std::io::{Cursor, Read};
+use std::net::SocketAddr;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt, ByteOrder};
 use {FromBytes, IntoBytes, FromCursor};
 use error::{Result as CDRSResult};
+use types::data_serialization_types::decode_inet;
 
 pub mod data_serialization_types;
 pub mod list;
@@ -364,6 +366,27 @@ impl FromBytes for Vec<u8> {
         let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
         let len: u64 = from_bytes(len_bytes);
         return cursor_next_value(&mut cursor, len);
+    }
+}
+
+/// The structure wich represets Cassandra [inet]
+/// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L222).
+#[derive(Debug)]
+pub struct CInet {
+    addr: SocketAddr
+}
+
+impl FromCursor for CInet {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CInet {
+        let n = CIntShort::from_cursor(&mut cursor);
+        let bytes = cursor_next_value(&mut cursor, n as u64);
+        let ip = decode_inet(bytes).unwrap();
+        let port = CInt::from_cursor(&mut cursor);
+        let socket_addr = SocketAddr::new(ip, port as u16);
+
+        CInet {
+            addr: socket_addr
+        }
     }
 }
 

@@ -1,8 +1,7 @@
 //! `frame` module contains general Frame functionality.
-use std::convert::{From};
 use types::to_n_bytes;
 use {AsByte, IntoBytes};
-use self::frame_response::ResponseBody;
+use frame::frame_response::ResponseBody;
 use compression::Compression;
 use uuid::Uuid;
 
@@ -24,6 +23,7 @@ pub mod frame_auth_success;
 pub mod frame_authenticate;
 pub mod frame_batch;
 pub mod frame_error;
+pub mod frame_event;
 pub mod frame_execute;
 pub mod frame_options;
 pub mod frame_prepare;

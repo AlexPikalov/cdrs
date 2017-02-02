@@ -10,6 +10,7 @@ use frame::frame_response::ResponseBody;
 use IntoBytes;
 use frame::parser::parse_frame;
 use types::*;
+use frame::events::SimpleServerEvent;
 
 use compression::Compression;
 use authenticators::Authenticator;
@@ -156,7 +157,8 @@ impl<T: Authenticator> Session<T> {
     }
 
     /// The method makes a request to DB Server to prepare provided query.
-    pub fn prepare(&mut self,
+    pub fn prepare(
+        &mut self,
         query: String,
         with_tracing: bool,
         with_warnings: bool
@@ -179,7 +181,8 @@ impl<T: Authenticator> Session<T> {
     /// The method makes a request to DB Server to execute a query with provided id
     /// using provided query parameters. `id` is an ID of a query which Server
     /// returns back to a driver as a response to `prepare` request.
-    pub fn execute(&mut self,
+    pub fn execute(
+        &mut self,
         id: CBytesShort,
         query_parameters: QueryParams,
         with_tracing: bool,
@@ -235,7 +238,8 @@ impl<T: Authenticator> Session<T> {
         return parse_frame(&mut self.cdrs.transport, &self.compressor);
     }
 
-    pub fn batch(&mut self,
+    pub fn batch(
+        &mut self,
         batch_query: QueryBatch,
         with_tracing: bool,
         with_warnings: bool
@@ -245,7 +249,7 @@ impl<T: Authenticator> Session<T> {
         if with_tracing {
             flags.push(Flag::Tracing);
         }
-        
+
         if with_warnings {
             flags.push(Flag::Warning);
         }
@@ -253,6 +257,13 @@ impl<T: Authenticator> Session<T> {
         let query_frame = Frame::new_req_batch(batch_query, flags).into_cbytes();
 
         try!(self.cdrs.transport.write(query_frame.as_slice()));
+        return parse_frame(&mut self.cdrs.transport, &self.compressor);
+    }
+
+    pub fn listen_for(&mut self, events: Vec<SimpleServerEvent>) -> error::Result<Frame> {
+        let query_frame = Frame::new_req_register(events).into_cbytes();
+        try!(self.cdrs.transport.write(query_frame.as_slice()));
+        try!(parse_frame(&mut self.cdrs.transport, &self.compressor));
         return parse_frame(&mut self.cdrs.transport, &self.compressor);
     }
 }

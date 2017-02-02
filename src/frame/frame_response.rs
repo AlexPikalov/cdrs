@@ -9,6 +9,7 @@ use frame::frame_result::{
     BodyResResultSetKeyspace,
     ResResultBody
 };
+use frame::frame_event::BodyResEvent;
 use frame::frame_error::CDRSError;
 use frame::frame_supported::*;
 use frame::frame_auth_challenge::*;
@@ -29,7 +30,7 @@ pub enum ResponseBody {
     Prepare,
     Execute,
     Register,
-    Event,
+    Event(BodyResEvent),
     Batch,
     AuthChallenge(BodyResAuthChallenge),
     AuthResponse,
@@ -40,27 +41,33 @@ impl ResponseBody {
     pub fn from(bytes: Vec<u8>, response_type: &Opcode) -> ResponseBody {
         let mut cursor: Cursor<Vec<u8>> = Cursor::new(bytes);
         return match response_type {
-            &Opcode::Error => ResponseBody::Error(CDRSError::from_cursor(&mut cursor)),
-            // request frame
-            &Opcode::Startup => unreachable!(),
-            &Opcode::Ready => ResponseBody::Ready(BodyResResultVoid::from_cursor(&mut cursor)),
-            &Opcode::Authenticate => ResponseBody::Authenticate(BodyResAuthenticate::from_cursor(&mut cursor)),
-            // request frame
-            &Opcode::Options => unreachable!(),
-            &Opcode::Supported => ResponseBody::Supported(BodyResSupported::from_cursor(&mut cursor)),
-            // request frame
-            &Opcode::Query => unreachable!(),
-            &Opcode::Result => ResponseBody::Result(ResResultBody::from_cursor(&mut cursor)),
             // request frames
+            &Opcode::Startup => unreachable!(),
+            &Opcode::Options => unreachable!(),
+            &Opcode::Query => unreachable!(),
             &Opcode::Prepare => unreachable!(),
             &Opcode::Execute => unreachable!(),
             &Opcode::Register => unreachable!(),
-            &Opcode::Event => unreachable!(),
             &Opcode::Batch => unreachable!(),
-            &Opcode::AuthChallenge => ResponseBody::AuthChallenge(BodyResAuthChallenge::from_cursor(&mut cursor)),
-            // request frame
             &Opcode::AuthResponse => unreachable!(),
-            &Opcode::AuthSuccess => ResponseBody::AuthSuccess(BodyReqAuthSuccess::from_cursor(&mut cursor))
+
+            // response frames
+            &Opcode::Error => ResponseBody::Error(CDRSError::from_cursor(&mut cursor)),
+            &Opcode::Ready => ResponseBody::Ready(BodyResResultVoid::from_cursor(&mut cursor)),
+            &Opcode::Authenticate => ResponseBody::Authenticate(
+                BodyResAuthenticate::from_cursor(&mut cursor)
+            ),
+            &Opcode::Supported => ResponseBody::Supported(
+                BodyResSupported::from_cursor(&mut cursor)
+            ),
+            &Opcode::Result => ResponseBody::Result(ResResultBody::from_cursor(&mut cursor)),
+            &Opcode::Event => ResponseBody::Event(BodyResEvent::from_cursor(&mut cursor)),
+            &Opcode::AuthChallenge => ResponseBody::AuthChallenge(
+                BodyResAuthChallenge::from_cursor(&mut cursor)
+            ),
+            &Opcode::AuthSuccess => ResponseBody::AuthSuccess(
+                BodyReqAuthSuccess::from_cursor(&mut cursor)
+            )
         }
     }
 
