@@ -98,7 +98,7 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
                     format!("No authenticator was provided "));
                 return Err(error::Error::Io(io_err));
 
-            }else if authenticator.as_str() == self.authenticator.get_cassandra_name().to_string() {
+            } else if authenticator.as_str() == self.authenticator.get_cassandra_name().to_string() {
                 let auth_token_bytes = self.authenticator.get_auth_token().into_cbytes();
                 try!(self.transport.write(Frame::new_req_auth_response(auth_token_bytes).into_cbytes().as_slice()));
                 try!(parse_frame(&mut self.transport, &compressor));
