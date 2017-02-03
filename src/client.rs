@@ -31,6 +31,7 @@ pub struct Credentials {
 /// CDRS driver structure that provides a basic functionality to work with DB including
 /// establishing new connection, getting supported options, preparing and executing CQL
 /// queries, using compression and other.
+#[derive(Debug)]
 pub struct CDRS<T: Authenticator> {
     compressor: Compression,
     authenticator: T,
@@ -124,6 +125,7 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
 }
 
 /// The object that provides functionality for communication with Cassandra server.
+#[derive(Debug)]
 pub struct Session<T: Authenticator> {
     started: bool,
     cdrs: CDRS<T>,
