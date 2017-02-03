@@ -8,6 +8,7 @@ use types::udt::UDT;
 use error::Result;
 
 // TODO: consider using pointers to ColTypeOption and Vec<CBytes> instead of owning them.
+#[derive(Debug)]
 pub struct List {
     /// column spec of the list, i.e. id should be List as it's a list and value should contain
     /// a type of list items.

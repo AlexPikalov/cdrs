@@ -3,6 +3,7 @@ use frame::*;
 use IntoBytes;
 
 /// Struct that represents a body of a frame of type `prepare`
+#[derive(Debug)]
 pub struct BodyReqPrepare {
     query: CStringLong
 }

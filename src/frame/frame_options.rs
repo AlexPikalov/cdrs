@@ -2,6 +2,7 @@ use super::super::IntoBytes;
 use frame::*;
 
 /// The structure which represents a body of a frame of type `options`.
+#[derive(Debug)]
 pub struct BodyReqOptions;
 
 impl BodyReqOptions {

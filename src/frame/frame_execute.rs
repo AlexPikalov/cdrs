@@ -4,6 +4,7 @@ use IntoBytes;
 use frame::frame_query::ParamsReqQuery;
 
 /// The structure that represents a body of a frame of type `execute`.
+#[derive(Debug)]
 pub struct BodyReqExecute {
     /// Id of prepared query
     id: CBytesShort,

@@ -4,6 +4,7 @@ use super::*;
 use super::super::types::*;
 use super::super::{IntoBytes};
 
+#[derive(Debug)]
 pub struct BodyReqStartup {
     pub map: HashMap<String, String>
 }

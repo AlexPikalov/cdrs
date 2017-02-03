@@ -6,7 +6,7 @@ use types::value::Value;
 use consistency::Consistency;
 
 /// BodyResReady
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct BodyReqBatch {
     pub batch_type: BatchType,
     pub queries: Vec<BatchQuery>,
@@ -87,7 +87,7 @@ impl AsByte for BatchType {
 }
 
 /// The structure that represents a query to be batched.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct BatchQuery {
     /// It indicates if a query was prepared.
     pub is_prepared: bool,
@@ -104,7 +104,7 @@ pub struct BatchQuery {
 }
 
 /// It contains either an id of prepared query or CQL string.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum BatchQuerySubj {
     PreparedId(CBytesShort),
     QueryString(CStringLong)

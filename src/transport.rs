@@ -3,6 +3,7 @@ use std::io::{Read, Write};
 use std::net;
 use std::net::TcpStream;
 
+#[derive(Debug)]
 pub struct Transport {
     tcp: TcpStream
 }
