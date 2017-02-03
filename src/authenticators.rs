@@ -35,7 +35,7 @@ impl<'a> Authenticator for PasswordAuthenticator<'a> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct AuthenticatorNone;
 
 
