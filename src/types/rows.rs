@@ -8,6 +8,7 @@ use types::list::List;
 use types::map::Map;
 use types::udt::UDT;
 use error::Result;
+use std::io;
 
 #[derive(Debug)]
 pub struct Row {
@@ -89,7 +90,13 @@ impl IntoRustByName<bool> for Row {
 
             let converted = match cassandra_type {
                 &ColType::Boolean => decode_boolean(bytes),
-                _ => unreachable!()
+                _ => {
+                    let io_err = io::Error::new(
+                        io::ErrorKind::NotFound,
+                        format!("Unsupported type of converter. {:?} got, but
+                    (bool ) is only supported.", cassandra_type));
+                    Err(io_err)
+                }
             };
 
             return converted.map_err(|err| err.into());
@@ -101,14 +108,20 @@ impl IntoRustByName<i64> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<i64>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_plain().clone();
-
             let converted = match cassandra_type {
                 &ColType::Int => decode_bigint(bytes),
                 &ColType::Bigint => decode_bigint(bytes),
                 &ColType::Timestamp => decode_timestamp(bytes),
                 &ColType::Time => decode_time(bytes),
                 &ColType::Varint => decode_varint(bytes),
-                _ => unreachable!()
+                &ColType::Float => decode_varint(bytes),
+                _ => {
+                    let io_err = io::Error::new(
+                        io::ErrorKind::NotFound,
+                        format!("Unsupported type of converter. {:?} got, but
+                    (Int,Bigint,Timestamp,Time,Varint,Float ) is only supported.", cassandra_type));
+                    Err(io_err)
+                }
             };
 
             return converted.map_err(|err| err.into());
@@ -124,7 +137,13 @@ impl IntoRustByName<i32> for Row {
             let converted = match cassandra_type {
                 &ColType::Int => decode_int(bytes),
                 &ColType::Date => decode_date(bytes),
-                _ => unreachable!()
+                _ => {
+                    let io_err = io::Error::new(
+                        io::ErrorKind::NotFound,
+                        format!("Unsupported type of converter. {:?} got, but
+                    (Int,date ) is only supported.", cassandra_type));
+                    Err(io_err)
+                }
             };
 
             return converted.map_err(|err| err.into());
@@ -139,7 +158,13 @@ impl IntoRustByName<i16> for Row {
 
             let converted = match cassandra_type {
                 &ColType::Smallint => decode_smallint(bytes),
-                _ => unreachable!()
+                _ => {
+                    let io_err = io::Error::new(
+                        io::ErrorKind::NotFound,
+                        format!("Unsupported type of converter. {:?} got, but
+                    (Smallint) is only supported.", cassandra_type));
+                    Err(io_err)
+                }
             };
             return converted.map_err(|err| err.into());
         });
@@ -153,7 +178,13 @@ impl IntoRustByName<f64> for Row {
 
             let converted = match cassandra_type {
                 &ColType::Double => decode_double(bytes),
-                _ => unreachable!()
+                _ => {
+                    let io_err = io::Error::new(
+                        io::ErrorKind::NotFound,
+                        format!("Unsupported type of converter. {:?} got, but
+                    (Double) is only supported.", cassandra_type));
+                    Err(io_err)
+                }
             };
 
             return converted.map_err(|err| err.into());
@@ -169,7 +200,13 @@ impl IntoRustByName<f32> for Row {
             let converted = match cassandra_type {
                 &ColType::Decimal => decode_decimal(bytes),
                 &ColType::Float => decode_float(bytes),
-                _ => unreachable!()
+                _ => {
+                    let io_err = io::Error::new(
+                        io::ErrorKind::NotFound,
+                        format!("Unsupported type of converter. {:?} got, but
+                    (Float,Decimal) is only supported.", cassandra_type));
+                    Err(io_err)
+                }
             };
 
             return converted.map_err(|err| err.into());
@@ -184,7 +221,13 @@ impl IntoRustByName<net::IpAddr> for Row {
 
             let converted = match cassandra_type {
                 &ColType::Inet => decode_inet(bytes),
-                _ => unreachable!()
+                _ => {
+                    let io_err = io::Error::new(
+                        io::ErrorKind::NotFound,
+                        format!("Unsupported type of converter. {:?} got, but
+                    (Inet) is only supported.", cassandra_type));
+                    Err(io_err)
+                }
             };
 
             return converted.map_err(|err| err.into());

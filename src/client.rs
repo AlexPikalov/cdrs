@@ -31,7 +31,6 @@ pub struct Credentials {
 /// CDRS driver structure that provides a basic functionality to work with DB including
 /// establishing new connection, getting supported options, preparing and executing CQL
 /// queries, using compression and other.
-#[derive(Debug)]
 pub struct CDRS<T: Authenticator> {
     compressor: Compression,
     authenticator: T,
@@ -91,28 +90,39 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
 
         if start_response.opcode == Opcode::Authenticate {
             let body = start_response.get_body();
-            let authenticator = body.get_authenticator().unwrap();
+            let authenticator = body.get_authenticator().expect("Cassandra Server did communicate that it needed password authentication but the  auth schema was missing in the body response");
+            //This creates a new scope; avoiding a clone  
+            // and we check whether
+            // 1. any authenticators has been passed in by client and if not send error back
+            // 2. authenticator is provided by the client and `auth_scheme` presented by the server and client are same
+            //     if not send error back
+            // 3. if it falls through it means the preliminary conditions are true
+            {
+                let autz:Option<&str> = self.authenticator.get_cassandra_name();
+                match autz {
+                    Some(ref auth) => {
+                        if &authenticator.as_str() != auth {
+                            let io_err = io::Error::new(
+                                io::ErrorKind::NotFound,
+                                format!("Unsupported type of authenticator. {:?} got, but {} is supported.",
+                                        authenticator,
+                                        authenticator.as_str()));
+                            return Err(error::Error::Io(io_err));
+                        }
+                    },
+                    None => return Err(error::Error::General("No authenticator was provided ".to_string()))
+                }
 
-            if self.authenticator.get_cassandra_name() == "NONE" {
-                let io_err = io::Error::new(
-                    io::ErrorKind::NotFound,
-                    format!("No authenticator was provided "));
-                return Err(error::Error::Io(io_err));
-
-            } else if authenticator.as_str() == self.authenticator.get_cassandra_name().to_string() {
-                let auth_token_bytes = self.authenticator.get_auth_token().into_cbytes();
-                try!(self.transport.write(Frame::new_req_auth_response(auth_token_bytes).into_cbytes().as_slice()));
-                try!(parse_frame(&mut self.transport, &compressor));
-
-                return Ok(Session::start(self));
-            } else {
-                let io_err = io::Error::new(
-                    io::ErrorKind::NotFound,
-                    format!("Unsupported type of authenticator. {:?} got, but {} is supported.",
-                        authenticator,
-                        self.authenticator.get_cassandra_name()));
-                return Err(error::Error::Io(io_err));
             }
+
+
+            let auth_token_bytes = self.authenticator.get_auth_token().into_cbytes();
+            try!(self.transport.write(Frame::new_req_auth_response(auth_token_bytes).into_cbytes().as_slice()));
+            try!(parse_frame(&mut self.transport, &compressor));
+
+            return Ok(Session::start(self));
+
+
         }
 
         unimplemented!();
@@ -125,7 +135,6 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
 }
 
 /// The object that provides functionality for communication with Cassandra server.
-#[derive(Debug)]
 pub struct Session<T: Authenticator> {
     started: bool,
     cdrs: CDRS<T>,
