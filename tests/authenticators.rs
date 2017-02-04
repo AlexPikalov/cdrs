@@ -15,7 +15,7 @@ fn test_password_authenticator_new() {
 #[test]
 fn test_password_authenticator_get_cassandra_name() {
     let auth = PasswordAuthenticator::new("foo", "bar");
-    assert_eq!(auth.get_cassandra_name(), "org.apache.cassandra.auth.PasswordAuthenticator");
+    assert_eq!(auth.get_cassandra_name(), Some("org.apache.cassandra.auth.PasswordAuthenticator"));
 }
 
 #[test]
@@ -32,7 +32,7 @@ fn test_password_authenticator_get_auth_token() {
 #[test]
 fn test_authenticator_none_get_cassandra_name() {
     let auth = AuthenticatorNone;
-    assert_eq!(auth.get_cassandra_name(), "NONE");
+    assert_eq!(auth.get_cassandra_name(), None);
     assert_eq!(auth.get_auth_token().into_plain(), vec![0]);
 }
 

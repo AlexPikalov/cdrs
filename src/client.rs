@@ -90,28 +90,33 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
 
         if start_response.opcode == Opcode::Authenticate {
             let body = start_response.get_body();
-            let authenticator = body.get_authenticator().unwrap();
+            let authenticator = body.get_authenticator().expect("Cassandra Server did communicate that it needed password authentication but the  auth schema was missing in the body response");
 
-            if self.authenticator.get_cassandra_name() == "NONE" {
-                let io_err = io::Error::new(
-                    io::ErrorKind::NotFound,
-                    format!("No authenticator was provided "));
-                return Err(error::Error::Io(io_err));
+            let autz = self.authenticator.clone();
+            match autz.get_cassandra_name() {
+                Some(ref auth) => {
+                    if &authenticator.as_str() == auth {
+                        let auth_token_bytes = self.authenticator.get_auth_token().into_cbytes();
+                        try!(self.transport.write(Frame::new_req_auth_response(auth_token_bytes).into_cbytes().as_slice()));
+                        try!(parse_frame(&mut self.transport, &compressor));
 
-            } else if authenticator.as_str() == self.authenticator.get_cassandra_name().to_string() {
-                let auth_token_bytes = self.authenticator.get_auth_token().into_cbytes();
-                try!(self.transport.write(Frame::new_req_auth_response(auth_token_bytes).into_cbytes().as_slice()));
-                try!(parse_frame(&mut self.transport, &compressor));
-
-                return Ok(Session::start(self));
-            } else {
-                let io_err = io::Error::new(
-                    io::ErrorKind::NotFound,
-                    format!("Unsupported type of authenticator. {:?} got, but {} is supported.",
-                        authenticator,
-                        self.authenticator.get_cassandra_name()));
-                return Err(error::Error::Io(io_err));
+                        return Ok(Session::start(self));
+                    } else {
+                        let io_err = io::Error::new(
+                            io::ErrorKind::NotFound,
+                            format!("Unsupported type of authenticator. {:?} got, but {} is supported.",
+                                    authenticator,
+                                    authenticator.as_str()));
+                        return Err(error::Error::Io(io_err));
+                    }
+                },
+                None => {
+                    let io_err = io::Error::new(io::ErrorKind::NotFound,
+                                                format!("No authenticator was provided "));
+                    return Err(error::Error::Io(io_err));
+                },
             }
+
         }
 
         unimplemented!();
