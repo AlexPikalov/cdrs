@@ -19,6 +19,7 @@ use error;
 use transport::Transport;
 #[cfg(feature = "ssl")]
 use transport_ssl::Transport;
+use events::{Listener, EventStream, new_listener};
 
 /// DB user's credentials.
 #[derive(Clone, Debug)]
@@ -266,10 +267,14 @@ impl<T: Authenticator> Session<T> {
         return parse_frame(&mut self.cdrs.transport, &self.compressor);
     }
 
-    pub fn listen_for(&mut self, events: Vec<SimpleServerEvent>) -> error::Result<Frame> {
+    /// It consumes CDRS
+    pub fn listen_for<'a>(
+        mut self,
+        events: Vec<SimpleServerEvent>
+    ) -> error::Result<(Listener, EventStream)> {
         let query_frame = Frame::new_req_register(events).into_cbytes();
         try!(self.cdrs.transport.write(query_frame.as_slice()));
         try!(parse_frame(&mut self.cdrs.transport, &self.compressor));
-        return parse_frame(&mut self.cdrs.transport, &self.compressor);
+        return Ok(new_listener(self.cdrs.transport));
     }
 }
