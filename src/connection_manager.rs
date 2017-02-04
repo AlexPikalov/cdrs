@@ -14,7 +14,6 @@ use transport::Transport;
 use transport_ssl::Transport;
 
 /// [r2d2](https://github.com/sfackler/r2d2) `ManageConnection`.
-#[derive(Debug)]
 pub struct ConnectionManager<T> {
     transport: Transport,
     authenticator: T,
