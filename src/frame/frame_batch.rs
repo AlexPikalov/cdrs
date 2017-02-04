@@ -5,7 +5,7 @@ use types::*;
 use types::value::Value;
 use consistency::Consistency;
 
-/// BodyResReady
+/// `BodyResReady`
 #[derive(Debug, Clone)]
 pub struct BodyReqBatch {
     pub batch_type: BatchType,
@@ -78,7 +78,7 @@ impl FromSingleByte for BatchType {
 
 impl AsByte for BatchType {
     fn as_byte(&self) -> u8 {
-        return match self {
+        match self {
             &BatchType::Logged => 0,
             &BatchType::Unlogged => 1,
             &BatchType::Counter => 2
@@ -159,7 +159,7 @@ impl Frame {
         let stream: u64 = 0;
         let opcode = Opcode::Batch;
 
-        return Frame {
+        Frame {
             version: version,
             flags: flags,
             stream: stream,
@@ -168,6 +168,6 @@ impl Frame {
             // for request frames it's always None
             tracing_id: None,
             warnings: vec![]
-        };
+        }
     }
 }

@@ -15,10 +15,10 @@ pub struct BodyReqExecute {
 impl BodyReqExecute {
     /// The method which creates new instance of `BodyReqExecute`
     pub fn new(id: CBytesShort, query_parameters: ParamsReqQuery) -> BodyReqExecute {
-        return BodyReqExecute {
+        BodyReqExecute {
             id: id,
             query_parameters: query_parameters
-        };
+        }
     }
 }
 
@@ -27,7 +27,7 @@ impl IntoBytes for BodyReqExecute {
         let mut v: Vec<u8> = vec![];
         v.extend_from_slice(self.id.into_cbytes().as_slice());
         v.extend_from_slice(self.query_parameters.into_cbytes().as_slice());
-        return v;
+        v
     }
 }
 
@@ -40,7 +40,7 @@ impl Frame {
         let opcode = Opcode::Execute;
         let body = BodyReqExecute::new(id, query_parameters);
 
-        return Frame {
+        Frame {
             version: version,
             flags: flags,
             stream: stream,
@@ -49,6 +49,6 @@ impl Frame {
             // for request frames it's always None
             tracing_id: None,
             warnings: vec![]
-        };
+        }
     }
 }

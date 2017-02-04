@@ -8,13 +8,13 @@ pub struct BodyReqOptions;
 impl BodyReqOptions {
     /// Creates new body of a frame of type `options`
     pub fn new() -> BodyReqOptions {
-        return BodyReqOptions{};
+        BodyReqOptions{}
     }
 }
 
 impl IntoBytes for BodyReqOptions {
     fn into_cbytes(&self) -> Vec<u8> {
-        return vec![];
+        vec![]
     }
 }
 
@@ -30,7 +30,7 @@ impl Frame {
         let opcode = Opcode::Options;
         let body = BodyReqOptions::new();
 
-        return Frame {
+        Frame {
             version: version,
             flags: vec![flag],
             stream: stream,
@@ -39,6 +39,6 @@ impl Frame {
             // for request frames it's always None
             tracing_id: None,
             warnings: vec![]
-        };
+        }
     }
 }

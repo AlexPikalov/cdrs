@@ -51,15 +51,15 @@ pub struct Frame {
 
 impl Frame {
     pub fn get_body(&self) -> ResponseBody {
-        return ResponseBody::from(self.body.clone(), &self.opcode);
+        ResponseBody::from(self.body.clone(), &self.opcode)
     }
 
     pub fn tracing_id(&self) -> Option<Uuid> {
-        return self.tracing_id.clone();
+        self.tracing_id.clone()
     }
 
     pub fn warnings(&self) -> Vec<String> {
-        return self.warnings.clone();
+        self.warnings.clone()
     }
 
     pub fn encode_with(self, compressor: Compression) -> error::Result<Vec<u8>> {
@@ -78,7 +78,7 @@ impl Frame {
         v.extend_from_slice(to_n_bytes(body_len as u64, LENGTH_LEN).as_slice());
         v.extend_from_slice(encoded_body.as_slice());
 
-        return Ok(v);
+        Ok(v)
     }
 }
 
@@ -98,7 +98,7 @@ impl<'a> IntoBytes for Frame {
         v.extend_from_slice(to_n_bytes(body_len as u64, LENGTH_LEN).as_slice());
         v.extend_from_slice(self.body.as_slice());
 
-        return v;
+        v
     }
 }
 
@@ -111,7 +111,7 @@ pub enum Version {
 
 impl AsByte for Version {
     fn as_byte(&self) -> u8 {
-        return match self {
+        match self {
             &Version::Request => 0x04,
             &Version::Response => 0x84
         }
@@ -124,7 +124,7 @@ impl From<Vec<u8>> for Version {
             error!("Unexpected Cassandra verion. Should has {} byte(-s), got {:?}", VERSION_LEN, v);
             panic!("Unexpected Cassandra verion. Should has {} byte(-s), got {:?}", VERSION_LEN, v);
         }
-        return match v[0] {
+        match v[0] {
             0x04 => Version::Request,
             0x84 => Version::Response,
             _ => {
@@ -166,40 +166,40 @@ impl Flag {
             found_flags.push(Flag::Warning);
         }
 
-        return found_flags;
+        found_flags
     }
 
     /// The method converts a serie of `Flag`-s into a single byte.
     pub fn many_to_cbytes(flags: &Vec<Flag>) -> u8 {
-        return flags
+         flags
             .iter()
-            .fold(Flag::Ignore.as_byte(), |acc, f| acc | f.as_byte());
+            .fold(Flag::Ignore.as_byte(), |acc, f| acc | f.as_byte())
     }
 
     /// Indicates if flags contains `Flag::Compression`
     pub fn has_compression(flags: u8) -> bool {
-        return (flags & Flag::Compression.as_byte()) > 0;
+         (flags & Flag::Compression.as_byte()) > 0
     }
 
     /// Indicates if flags contains `Flag::Tracing`
     pub fn has_tracing(flags: u8) -> bool {
-        return (flags & Flag::Tracing.as_byte()) > 0;
+         (flags & Flag::Tracing.as_byte()) > 0
     }
 
     /// Indicates if flags contains `Flag::CustomPayload`
     pub fn has_custom_payload(flags: u8) -> bool {
-        return (flags & Flag::CustomPayload.as_byte()) > 0;
+         (flags & Flag::CustomPayload.as_byte()) > 0
     }
 
     /// Indicates if flags contains `Flag::Warning`
     pub fn has_warning(flags: u8) -> bool {
-        return (flags & Flag::Warning.as_byte()) > 0;
+        (flags & Flag::Warning.as_byte()) > 0
     }
 }
 
 impl AsByte for Flag {
     fn as_byte(&self) -> u8 {
-        return match self {
+        match self {
             &Flag::Compression => 0x01,
             &Flag::Tracing => 0x02,
             &Flag::CustomPayload => 0x04,
@@ -211,7 +211,7 @@ impl AsByte for Flag {
 
 impl From<u8> for Flag {
     fn from(f: u8) -> Flag {
-        return match f {
+        match f {
             0x01 => Flag::Compression,
             0x02 => Flag::Tracing,
             0x04 => Flag::CustomPayload,
@@ -243,7 +243,7 @@ pub enum Opcode {
 
 impl AsByte for Opcode {
     fn as_byte(&self) -> u8 {
-        return match self {
+        match self {
             &Opcode::Error => 0x00,
             &Opcode::Startup => 0x01,
             &Opcode::Ready => 0x02,
@@ -266,7 +266,7 @@ impl AsByte for Opcode {
 
 impl From<u8> for Opcode {
     fn from(b: u8) -> Opcode {
-        return match b {
+        match b {
             0x00 => Opcode::Error,
             0x01 => Opcode::Startup,
             0x02 => Opcode::Ready,

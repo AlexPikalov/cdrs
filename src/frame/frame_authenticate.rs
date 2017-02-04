@@ -10,8 +10,8 @@ pub struct BodyResAuthenticate {
 
 impl FromCursor for BodyResAuthenticate {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResAuthenticate {
-        return BodyResAuthenticate {
+        BodyResAuthenticate {
             data: CString::from_cursor(&mut cursor)
-        };
+        }
     }
 }

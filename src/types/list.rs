@@ -18,17 +18,17 @@ pub struct List {
 
 impl List {
     pub fn new(data: Vec<CBytes>, metadata: ColTypeOption) -> List {
-        return List {
+        List {
             metadata: metadata,
             data: data
-        };
+        }
     }
 
     fn map<T, F>(&self, f: F) -> Vec<T> where F: FnMut(&CBytes) -> T {
-        return self.data
+        self.data
             .iter()
             .map(f)
-            .collect();
+            .collect()
     }
 }
 
@@ -454,7 +454,7 @@ impl AsRust<Vec<UDT>> for List {
                 let list_type_option_box: Box<ColTypeOption> = type_option.clone();
                 let list_type_option = match list_type_option_box.value {
                     Some(ColTypeOptionValue::UdtType(t)) => t,
-                    _ => return unreachable!()
+                    _ => unreachable!()
                 };
                 match id {
                     // T is Udt

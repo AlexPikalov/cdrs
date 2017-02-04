@@ -32,11 +32,11 @@ impl FromCursor for CDRSError {
         let error_code = CInt::from_cursor(&mut cursor);
         let message = CString::from_cursor(&mut cursor);
         let additional_info = AdditionalErrorInfo::from_cursor_with_code(&mut cursor, error_code);
-        return CDRSError {
+        CDRSError {
             error_code: error_code,
             message: message,
             additional_info: additional_info
-        };
+        }
     }
 }
 
@@ -66,7 +66,7 @@ pub enum AdditionalErrorInfo {
 impl AdditionalErrorInfo {
     pub fn from_cursor_with_code(mut cursor: &mut io::Cursor<Vec<u8>>, error_code: CInt)
         -> AdditionalErrorInfo {
-        return match error_code {
+        match error_code {
             0x0000 => AdditionalErrorInfo::Server(SimpleError::from_cursor(&mut cursor)),
             0x000A => AdditionalErrorInfo::Protocol(SimpleError::from_cursor(&mut cursor)),
             0x0100 => AdditionalErrorInfo::Authentication(SimpleError::from_cursor(&mut cursor)),
@@ -86,7 +86,7 @@ impl AdditionalErrorInfo {
             0x2400 => AdditionalErrorInfo::AlreadyExists(AlreadyExistsError::from_cursor(&mut cursor)),
             0x2500 => AdditionalErrorInfo::Unprepared(UnpreparedError::from_cursor(&mut cursor)),
             _ => unreachable!()
-        };
+        }
     }
 }
 
@@ -96,7 +96,7 @@ pub struct SimpleError {}
 
 impl FromCursor for SimpleError {
     fn from_cursor(mut _cursor: &mut io::Cursor<Vec<u8>>) -> SimpleError {
-        return SimpleError {};
+        SimpleError {}
     }
 }
 
@@ -117,11 +117,11 @@ impl FromCursor for UnavailableError {
         let required = CInt::from_cursor(&mut cursor);
         let alive = CInt::from_cursor(&mut cursor);
 
-        return UnavailableError {
+        UnavailableError {
             cl: cl,
             required: required,
             alive: alive
-        };
+        }
     }
 }
 
@@ -169,7 +169,7 @@ pub struct ReadTimeoutError {
 impl ReadTimeoutError {
     /// Shows if replica has resonded to a query.
     pub fn replica_has_responded(&self) -> bool {
-        return self.data_present != 0;
+        self.data_present != 0
     }
 }
 
@@ -179,12 +179,12 @@ impl FromCursor for ReadTimeoutError {
         let received = CInt::from_cursor(&mut cursor);
         let blockfor = CInt::from_cursor(&mut cursor);
         let data_present = from_bytes(cursor_next_value(&mut cursor, 1)) as u8;
-        return ReadTimeoutError {
+        ReadTimeoutError {
             cl: cl,
             received: received,
             blockfor: blockfor,
             data_present: data_present
-        };
+        }
     }
 }
 
@@ -205,7 +205,7 @@ pub struct ReadFailureError {
 impl ReadFailureError {
     /// Shows if replica has resonded to a query.
     pub fn replica_has_responded(&self) -> bool {
-        return self.data_present != 0;
+        self.data_present != 0
     }
 }
 
@@ -216,13 +216,13 @@ impl FromCursor for ReadFailureError {
         let blockfor = CInt::from_cursor(&mut cursor);
         let num_failures = CInt::from_cursor(&mut cursor);
         let data_present = from_bytes(cursor_next_value(&mut cursor, 1)) as u8;
-        return ReadFailureError {
+        ReadFailureError {
             cl: cl,
             received: received,
             blockfor: blockfor,
             num_failures: num_failures,
             data_present: data_present
-        };
+        }
     }
 }
 
@@ -242,11 +242,11 @@ impl FromCursor for FunctionFailureError {
         let keyspace = CString::from_cursor(&mut cursor);
         let function = CString::from_cursor(&mut cursor);
         let arg_types = CStringList::from_cursor(&mut cursor);
-        return FunctionFailureError {
+        FunctionFailureError {
             keyspace: keyspace,
             function: function,
             arg_types: arg_types
-        };
+        }
     }
 }
 
@@ -272,13 +272,13 @@ impl FromCursor for WriteFailureError {
         let blockfor = CInt::from_cursor(&mut cursor);
         let num_failures = CInt::from_cursor(&mut cursor);
         let write_type = WriteType::from_cursor(&mut cursor);
-        return WriteFailureError {
+        WriteFailureError {
             cl: cl,
             received: received,
             blockfor: blockfor,
             num_failures: num_failures,
             write_type: write_type
-        };
+        }
     }
 }
 
@@ -302,14 +302,14 @@ pub enum WriteType {
 
 impl FromCursor for WriteType {
     fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> WriteType {
-        return match CString::from_cursor(&mut cursor).as_str() {
+        match CString::from_cursor(&mut cursor).as_str() {
             "SIMPLE" => WriteType::Simple,
             "BATCH" => WriteType::Batch,
             "UNLOGGED_BATCH" => WriteType::UnloggedBatch,
             "COUNTER" => WriteType::Counter,
             "BATCH_LOG" => WriteType::BatchLog,
             _ => unreachable!()
-        };
+        }
     }
 }
 
@@ -329,10 +329,10 @@ impl FromCursor for AlreadyExistsError {
         let ks = CString::from_cursor(&mut cursor);
         let table = CString::from_cursor(&mut cursor);
 
-        return AlreadyExistsError {
+        AlreadyExistsError {
             ks: ks,
             table: table
-        };
+        }
     }
 }
 
@@ -349,8 +349,8 @@ impl FromCursor for UnpreparedError {
     fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> UnpreparedError {
         let id = CBytes::from_cursor(&mut cursor);
 
-        return UnpreparedError {
+        UnpreparedError {
             id: id
-        };
+        }
     }
 }
