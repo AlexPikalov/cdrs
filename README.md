@@ -6,10 +6,9 @@ Existing ones are bindings to C clients.
 
 [Documentation](https://docs.rs/cdrs)
 
-CDRS is under active development at the moment, so API may not be stable.
-
-As well **CDRS** provides tools for [mapping results](#select-query-mapping-results)
-into Rust structures It supports 4-th version of [Cassandra protocol](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec).
+**CDRS** completely implements 4-th version of [Cassandra protocol](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec).
+Also it provides tools for [mapping results](#select-query-mapping-results)
+into Rust structures.
 
 ### Supported features
 - [x] lz4 decompression
@@ -351,6 +350,26 @@ Prepare-execute query is also supported:
     .into_set_keyspace()
     .unwrap();
 ```
+
+#### Listen to Server events
+
+CDRS provides functionality which allows listening to server events. Events
+inform user about following changes:
+
+* **Topology change** - events related to change in the cluster topology.
+Currently, events are sent when new nodes are added to the cluster, and
+when nodes are removed.
+
+* **Status change** - events related to change of node status. Currently,
+up/down events are sent.
+
+* **Schema_change** - events related to schema change.
+
+Current implementation allows to move listener and stream handler into separate
+threads so then (as we believe) developers could leverage whatever
+async IO library they want.
+
+To find an examples please refer to [examples](./examples/server_events.rs).
 
 ### License
 
