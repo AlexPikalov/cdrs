@@ -408,7 +408,9 @@ pub fn cursor_next_value(mut cursor: &mut Cursor<Vec<u8>>, len: u64) -> Vec<u8> 
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
     use super::*;
+    use {IntoBytes, FromCursor};
 
     // CString
     #[test]

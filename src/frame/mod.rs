@@ -292,6 +292,7 @@ impl From<u8> for Opcode {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use AsByte;
 
     #[test]
     fn test_frame_version_as_byte() {
