@@ -1,4 +1,5 @@
 # CDRS [![Build Status](https://travis-ci.org/AlexPikalov/cdrs.svg?branch=master)](https://travis-ci.org/AlexPikalov/cdrs)
+[![crates.io version](https://img.shields.io/crates/v/cdrs.svg)](https://crates.io/crates/cdrs)
 
 **CDRS** is a native Cassandra driver written in [Rust](https://www.rust-lang.org).
 The motivation to write it in Rust is a lack of native one.
