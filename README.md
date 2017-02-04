@@ -371,16 +371,11 @@ To find an examples please refer to [examples](./examples/server_events.rs).
 - [x] RESULT (Set_keyspace)
 - [x] RESULT (Prepared)
 - [x] RESULT (Schema_change)
-
-* - [x] Target KEYSPACE
-
-* - [x] Target TABLE
-
-* - [x] Target TYPE
-
-* - [x] Target FUNCTION
-
-* - [x] Target AGGREGATE
+  - [x] Target KEYSPACE
+  - [x] Target TABLE
+  - [x] Target TYPE
+  - [x] Target FUNCTION
+  - [x] Target AGGREGATE
 - [x] EVENT
 - [x] AUTH_CHALLENGE
 - [x] AUTH_SUCCESS
