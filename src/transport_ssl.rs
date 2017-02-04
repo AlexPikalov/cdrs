@@ -4,6 +4,7 @@ use std::net;
 use std::net::TcpStream;
 use openssl::ssl::{SslStream, SslConnector,HandshakeError};
 
+#[derive(Debug)]
 pub struct Transport {
     ssl: SslStream<TcpStream>,
     connector: SslConnector

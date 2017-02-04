@@ -121,6 +121,7 @@ impl QueryBuilder {
 pub type QueryParams = ParamsReqQuery;
 
 /// Query parameters builder
+#[derive(Debug)]
 pub struct QueryParamsBuilder {
     consistency: Consistency,
     values: Option<Vec<Value>>,
@@ -218,6 +219,7 @@ impl QueryParamsBuilder {
 
 pub type QueryBatch = BodyReqBatch;
 
+#[derive(Debug)]
 pub struct BatchQueryBuilder {
     batch_type: BatchType,
     queries: Vec<BatchQuery>,

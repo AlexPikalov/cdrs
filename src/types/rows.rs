@@ -9,6 +9,7 @@ use types::map::Map;
 use types::udt::UDT;
 use error::Result;
 
+#[derive(Debug)]
 pub struct Row {
     metadata: RowsMetadata,
     row_content: Vec<CBytes>

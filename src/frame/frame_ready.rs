@@ -1,6 +1,7 @@
 use std::convert::From;
 use super::super::IntoBytes;
 
+#[derive(Debug)]
 pub struct BodyResReady;
 
 impl BodyResReady {

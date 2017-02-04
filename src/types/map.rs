@@ -9,6 +9,7 @@ use types::list::List;
 use types::udt::UDT;
 use error::Result;
 
+#[derive(Debug)]
 pub struct Map {
     metadata: ColTypeOption,
     data: HashMap<String, CBytes>
