@@ -1,7 +1,7 @@
 extern crate cdrs;
 use cdrs::client::{CDRS};
 use cdrs::query::QueryBuilder;
-use cdrs::authenticators::AuthenticatorNone;
+use cdrs::authenticators::NoneAuthenticator;
 use cdrs::compression::Compression;
 use cdrs::types::IntoRustByName;
 use cdrs::transport::Transport;
@@ -44,7 +44,7 @@ fn main() {
     let tcp_transport = Transport::new(addr).unwrap();
 
     // pass authenticator into CDRS' constructor
-    let client = CDRS::new(tcp_transport, AuthenticatorNone);
+    let client = CDRS::new(tcp_transport, NoneAuthenticator);
 
     // start session without compression
     let select_query = QueryBuilder::new("SELECT * FROM my_namespace.emp;").finalize();
