@@ -2,7 +2,7 @@ use types::CBytes;
 
 pub trait Authenticator: Clone {
     fn get_auth_token(&self) -> CBytes;
-    fn get_cassandra_name(&self) -> &str;
+    fn get_cassandra_name(&self) -> Option<&str>;
 }
 
 #[derive(Debug, Clone)]
@@ -30,8 +30,8 @@ impl<'a> Authenticator for PasswordAuthenticator<'a> {
         return CBytes::new(token);
     }
 
-    fn get_cassandra_name(&self) -> &str {
-        return "org.apache.cassandra.auth.PasswordAuthenticator";
+    fn get_cassandra_name(&self) -> Option<&str> {
+        return Some("org.apache.cassandra.auth.PasswordAuthenticator");
     }
 }
 
@@ -44,8 +44,52 @@ impl Authenticator for AuthenticatorNone {
         return CBytes::new(vec![0]);
     }
 
-    fn get_cassandra_name(&self) -> &str {
-        return "NONE";
+    fn get_cassandra_name(&self) -> Option<&str> {
+        return None;
     }
+
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_password_authenticator_trait_impl() {
+        let authenticator = PasswordAuthenticator::new("a", "a");
+        let _ = authenticator_tester(Box::new(authenticator));
+    }
+
+    #[test]
+    fn test_password_authenticator_new() {
+        PasswordAuthenticator::new("foo", "bar");
+    }
+
+    #[test]
+    fn test_password_authenticator_get_cassandra_name() {
+        let auth = PasswordAuthenticator::new("foo", "bar");
+        assert_eq!(auth.get_cassandra_name(), Some("org.apache.cassandra.auth.PasswordAuthenticator"));
+    }
+
+    #[test]
+    fn test_password_authenticator_get_auth_token() {
+        let auth = PasswordAuthenticator::new("foo", "bar");
+        let mut expected_token = vec![0];
+        expected_token.extend_from_slice("foo".as_bytes());
+        expected_token.push(0);
+        expected_token.extend_from_slice("bar".as_bytes());
+
+        assert_eq!(auth.get_auth_token().into_plain(), expected_token);
+    }
+
+    #[test]
+    fn test_authenticator_none_get_cassandra_name() {
+        let auth = AuthenticatorNone;
+        assert_eq!(auth.get_cassandra_name(), None);
+        assert_eq!(auth.get_auth_token().into_plain(), vec![0]);
+    }
+
+    fn authenticator_tester<A: Authenticator>(_authenticator: Box<A>) {}
 
 }
