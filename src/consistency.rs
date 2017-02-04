@@ -109,8 +109,8 @@ impl FromCursor for Consistency {
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
-    use super::{IntoBytes, FromBytes, FromCursor};
-    use super::Consistency;
+    use {IntoBytes, FromBytes, FromCursor};
+    use super::*;
 
     #[test]
     fn test_consistency_into_cbytes() {

@@ -1,8 +1,7 @@
 //! `frame` module contains general Frame functionality.
-use std::convert::{From};
 use types::to_n_bytes;
 use {AsByte, IntoBytes};
-use self::frame_response::ResponseBody;
+use frame::frame_response::ResponseBody;
 use compression::Compression;
 use uuid::Uuid;
 
@@ -17,17 +16,20 @@ pub const STREAM_LEN: usize = 2;
 /// Number of body length bytes in accordance to protocol.
 pub const LENGTH_LEN: usize = 4;
 
+pub mod events;
 pub mod frame_auth_challenge;
 pub mod frame_auth_response;
 pub mod frame_auth_success;
 pub mod frame_authenticate;
 pub mod frame_batch;
 pub mod frame_error;
+pub mod frame_event;
 pub mod frame_execute;
 pub mod frame_options;
 pub mod frame_prepare;
 pub mod frame_query;
 pub mod frame_ready;
+pub mod frame_register;
 pub mod frame_response;
 pub mod frame_result;
 pub mod frame_startup;
@@ -290,6 +292,7 @@ impl From<u8> for Opcode {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use AsByte;
 
     #[test]
     fn test_frame_version_as_byte() {

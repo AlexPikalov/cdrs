@@ -66,6 +66,7 @@ impl IntoBytes for Value {
 mod tests {
 
     use super::*;
+    use IntoBytes;
 
     #[test]
     fn test_value_type_into_cbytes() {

@@ -7,9 +7,11 @@ pub const UUID_LEN: usize = 16;
 
 use std::io;
 use std::io::{Cursor, Read};
+use std::net::SocketAddr;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt, ByteOrder};
 use {FromBytes, IntoBytes, FromCursor};
 use error::{Result as CDRSResult};
+use types::data_serialization_types::decode_inet;
 
 pub mod data_serialization_types;
 pub mod list;
@@ -216,7 +218,7 @@ impl FromCursor for CStringLong {
 
 #[derive(Debug, Clone)]
 pub struct CStringList {
-    list: Vec<CString>
+    pub list: Vec<CString>
 }
 
 impl CStringList {
@@ -225,6 +227,24 @@ impl CStringList {
             .iter()
             .map(|string| string.clone().into_plain())
             .collect();
+    }
+}
+
+impl IntoBytes for CStringList {
+    fn into_cbytes(&self) -> Vec<u8> {
+        let mut bytes = vec![];
+
+        let l = to_short(self.list.len() as u64);
+        bytes.extend_from_slice(l.as_slice());
+
+        bytes = self.list
+            .iter()
+            .fold(bytes, |mut _bytes, cstring| {
+                _bytes.extend_from_slice(cstring.into_cbytes().as_slice());
+                _bytes
+            });
+
+        return bytes;
     }
 }
 
@@ -349,6 +369,27 @@ impl FromBytes for Vec<u8> {
     }
 }
 
+/// The structure wich represets Cassandra [inet]
+/// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L222).
+#[derive(Debug)]
+pub struct CInet {
+    addr: SocketAddr
+}
+
+impl FromCursor for CInet {
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CInet {
+        let n = CIntShort::from_cursor(&mut cursor);
+        let bytes = cursor_next_value(&mut cursor, n as u64);
+        let ip = decode_inet(bytes).unwrap();
+        let port = CInt::from_cursor(&mut cursor);
+        let socket_addr = SocketAddr::new(ip, port as u16);
+
+        CInet {
+            addr: socket_addr
+        }
+    }
+}
+
 pub fn cursor_next_value(mut cursor: &mut Cursor<Vec<u8>>, len: u64) -> Vec<u8> {
     let l = len as usize;
     let current_position = cursor.position();
@@ -367,7 +408,9 @@ pub fn cursor_next_value(mut cursor: &mut Cursor<Vec<u8>>, len: u64) -> Vec<u8> 
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
     use super::*;
+    use {IntoBytes, FromCursor};
 
     // CString
     #[test]
