@@ -2,7 +2,7 @@ use types::CBytes;
 
 pub trait Authenticator: Clone {
     fn get_auth_token(&self) -> CBytes;
-    fn get_cassandra_name(&self) -> &str;
+    fn get_cassandra_name(&self) -> Option<&str>;
 }
 
 #[derive(Debug, Clone)]
@@ -30,8 +30,8 @@ impl<'a> Authenticator for PasswordAuthenticator<'a> {
         return CBytes::new(token);
     }
 
-    fn get_cassandra_name(&self) -> &str {
-        return "org.apache.cassandra.auth.PasswordAuthenticator";
+    fn get_cassandra_name(&self) -> Option<&str> {
+        return Some("org.apache.cassandra.auth.PasswordAuthenticator");
     }
 }
 
@@ -44,8 +44,8 @@ impl Authenticator for AuthenticatorNone {
         return CBytes::new(vec![0]);
     }
 
-    fn get_cassandra_name(&self) -> &str {
-        return "NONE";
+    fn get_cassandra_name(&self) -> Option<&str> {
+        return None;
     }
 
 }
