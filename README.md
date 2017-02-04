@@ -11,57 +11,22 @@ Existing ones are bindings to C clients.
 Also it provides tools for [mapping results](#select-query-mapping-results)
 into Rust structures.
 
-### Supported features
-- [x] lz4 decompression
-- [x] snappy decompression
-- [x] password authorization
-- [x] tracing information
-- [x] warning information
-- [x] SSL encrypted connection
-- [ ] load balancing
-- [x] connection pooling
+## Content
+* [Creating new connection and authorization](#creating-new-connection-and-authorization)
+* [Creating new encrypted connection](#creating-new-encrypted-connection)
+* [Connecting via r2d2 connection pool](#connecting-via-r2d2-connection-pool)
+* [Retrieving supported options](#getting-supported-options)
+* [Using compression](#using-compression)
+* [Query execution](#query-execution)
+  * [USE query](https://github.com/AlexPikalov/cdrs#use-query)
+  * [CREATE query](#create-query)
+  * [SELECT query](#select-query)
+  * [SELECT query (mapping results)](#select-query-mapping-results)
+  * [PREPARE and EXECUTE query](#prepare-and-execute-a-query)
+* [Listen to server events](#listen-to-server-events)
+* [Supported features](#supported-features)
 
-### Frames
-
-#### Request
-
-- [x] STARTUP
-- [x] AUTH_RESPONSE
-- [x] OPTIONS
-- [x] QUERY
-- [x] PREPARE
-- [x] EXECUTE
-- [x] BATCH
-- [x] REGISTER
-
-#### Response
-
-- [x] ERROR
-- [x] READY
-- [x] AUTHENTICATE
-- [x] SUPPORTED
-- [x] RESULT (Void)
-- [x] RESULT (Rows)
-- [x] RESULT (Set_keyspace)
-- [x] RESULT (Prepared)
-- [x] RESULT (Schema_change)
-
-* - [x] Target KEYSPACE
-
-* - [x] Target TABLE
-
-* - [x] Target TYPE
-
-* - [x] Target FUNCTION
-
-* - [x] Target AGGREGATE
-- [x] EVENT
-- [x] AUTH_CHALLENGE
-- [x] AUTH_SUCCESS
-
-### Examples
-
-#### Creating new connection and authorization
+### Creating new connection and authorization
 
 To use password authenticator, just include the one implemented in
 `cdrs::authenticators`.
@@ -89,7 +54,7 @@ let mut session = try!(client.start(compression::None));
 If Server does not require authorization `authenticator` won't be used, but is still
 required for the constructor (most probably it will be refactored in future).
 
-#### Creating new encrypted connection
+### Creating new encrypted connection
 
 To be able to create SSL-encrypted connection CDRS should be used with
 `ssl` feature enabled. Apart of CDRS itself _openssl_ must also be imported.
@@ -173,7 +138,7 @@ let options = try!(client.get_options());
 **This should be called before session started** to let you know which compression
 to choose and because session object borrows `CDRS` instance.
 
-#### Using compression
+### Using compression
 
 Two types of compression are supported - [snappy](https://code.google.com/p/snappy/)
 and [lz4](https://code.google.com/p/lz4/). To use compression just start connection
@@ -188,12 +153,12 @@ let mut session_res = client.start(compression::Lz4);
 let mut session_res = client.start(compression::Snappy);
 ```
 
-#### Query execution
+### Query execution
 
 Query execution is provided in scope of Session. So to start executing queries
 you need to start Session first.
 
-##### Use Query:
+#### Use Query:
 
 ```rust
 
@@ -209,7 +174,7 @@ match session.query(create_query, with_tracing, with_warnings) {
 }
 ```
 
-##### Create Query:
+#### Create Query:
 
 Creating new table could be performed via `session.query`. In case of success
 method return Schema Change frame that contains Change Type, Target and options
@@ -236,7 +201,7 @@ let table_created = session.query(create_query, with_tracing, with_warnings).is_
 
 ```
 
-##### Select Query:
+#### Select Query:
 
 As a response to select query CDRS returns a result frame of type Rows with
 data items (columns) encoded in Cassandra's way.
@@ -256,7 +221,7 @@ match session.query(select_query, with_tracing, with_warnings) {
 }
 ```
 
-##### Select Query (mapping results):
+#### Select Query (mapping results):
 
 Once CDRS got response to `SELECT` query you can map rows encapsulated within
 `Result` frame into Rust values or into `List`, `Map` or `UDT` helper structures
@@ -325,7 +290,7 @@ let messages: Vec<CAuthor> = rows
 
 ```
 
-##### Prepare and execute a query:
+#### Prepare and execute a query:
 
 Prepare-execute query is also supported:
 
@@ -352,7 +317,7 @@ Prepare-execute query is also supported:
     .unwrap();
 ```
 
-#### Listen to Server events
+### Listen to Server events
 
 CDRS provides functionality which allows listening to server events. Events
 inform user about following changes:
@@ -371,6 +336,55 @@ threads so then (as we believe) developers could leverage whatever
 async IO library they want.
 
 To find an examples please refer to [examples](./examples/server_events.rs).
+
+### Supported features
+- [x] lz4 decompression
+- [x] snappy decompression
+- [x] password authorization
+- [x] tracing information
+- [x] warning information
+- [x] SSL encrypted connection
+- [ ] load balancing
+- [x] connection pooling
+
+### Frames
+
+#### Request
+
+- [x] STARTUP
+- [x] AUTH_RESPONSE
+- [x] OPTIONS
+- [x] QUERY
+- [x] PREPARE
+- [x] EXECUTE
+- [x] BATCH
+- [x] REGISTER
+
+#### Response
+
+- [x] ERROR
+- [x] READY
+- [x] AUTHENTICATE
+- [x] SUPPORTED
+- [x] RESULT (Void)
+- [x] RESULT (Rows)
+- [x] RESULT (Set_keyspace)
+- [x] RESULT (Prepared)
+- [x] RESULT (Schema_change)
+
+* - [x] Target KEYSPACE
+
+* - [x] Target TABLE
+
+* - [x] Target TYPE
+
+* - [x] Target FUNCTION
+
+* - [x] Target AGGREGATE
+- [x] EVENT
+- [x] AUTH_CHALLENGE
+- [x] AUTH_SUCCESS
+
 
 ### License
 
