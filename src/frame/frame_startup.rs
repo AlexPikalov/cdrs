@@ -1,44 +1,38 @@
 use std::collections::HashMap;
 
-use super::*;
-use super::super::types::*;
-use super::super::{IntoBytes};
+use frame::*;
+use types::*;
+use IntoBytes;
+
+const CQL_VERSION: &'static str = "CQL_VERSION";
+const CQL_VERSION_VAL: &'static str = "3.0.0";
+const COMPRESSION: &'static str = "COMPRESSION";
 
 #[derive(Debug)]
-pub struct BodyReqStartup {
-    pub map: HashMap<String, String>
+pub struct BodyReqStartup<'a> {
+    pub map: HashMap<&'static str, &'a str>
 }
 
-impl BodyReqStartup {
-    pub fn new(compression: Option<String>) -> BodyReqStartup {
+impl<'a> BodyReqStartup<'a> {
+    pub fn new<'b>(compression: Option<&'b str>) -> BodyReqStartup<'b> {
         let mut map = HashMap::new();
-        map.insert("CQL_VERSION".to_string(), "3.0.0".to_string());
+        map.insert(CQL_VERSION, CQL_VERSION_VAL);
         if let Some(c) = compression {
-            map.insert("COMPRESSION".to_string(), c);
+            map.insert(COMPRESSION, c);
         }
         BodyReqStartup {
             map: map
         }
     }
 
-    // TODO rid of it
-    pub fn map_len(&self) -> u64 {
-        let mut l: usize = 0;
-        for (key, val) in self.map.iter() {
-            // [short], string, [short], string
-            l += key.len() + SHORT_LEN + val.len() + SHORT_LEN;
-        }
-        l as u64
-    }
-
     // should be [u8; 2]
     /// Number of key-value pairs
     pub fn num(&self) -> Vec<u8> {
-        to_n_bytes(self.map.len() as u64, SHORT_LEN)
+        to_short(self.map.len() as u64)
     }
 }
 
-impl IntoBytes for BodyReqStartup {
+impl<'a> IntoBytes for BodyReqStartup<'a> {
     fn into_cbytes(&self) -> Vec<u8> {
         let mut v = vec![];
         // push number of key-value pairs
@@ -61,7 +55,7 @@ impl IntoBytes for BodyReqStartup {
 
 impl Frame {
     /// Creates new frame of type `startup`.
-    pub fn new_req_startup(compression: Option<String>) -> Frame {
+    pub fn new_req_startup(compression: Option<&str>) -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
         // sync client
