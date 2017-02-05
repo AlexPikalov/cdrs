@@ -16,9 +16,9 @@ impl BodyReqStartup {
         if let Some(c) = compression {
             map.insert("COMPRESSION".to_string(), c);
         }
-        return BodyReqStartup {
+        BodyReqStartup {
             map: map
-        };
+        }
     }
 
     // TODO rid of it
@@ -28,13 +28,13 @@ impl BodyReqStartup {
             // [short], string, [short], string
             l += key.len() + SHORT_LEN + val.len() + SHORT_LEN;
         }
-        return l as u64;
+        l as u64
     }
 
     // should be [u8; 2]
     /// Number of key-value pairs
     pub fn num(&self) -> Vec<u8> {
-        return to_n_bytes(self.map.len() as u64, SHORT_LEN);
+        to_n_bytes(self.map.len() as u64, SHORT_LEN)
     }
 }
 
@@ -53,7 +53,7 @@ impl IntoBytes for BodyReqStartup {
             // push val itself
             v.extend_from_slice(val.as_bytes());
         }
-        return v;
+        v
     }
 }
 
@@ -69,7 +69,7 @@ impl Frame {
         let opcode = Opcode::Startup;
         let body = BodyReqStartup::new(compression);
 
-        return Frame {
+        Frame {
             version: version,
             flags: vec![flag],
             stream: stream,
@@ -78,6 +78,6 @@ impl Frame {
             // for request frames it's always None
             tracing_id: None,
             warnings: vec![]
-        };
+        }
     }
 }

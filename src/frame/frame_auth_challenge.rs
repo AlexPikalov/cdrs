@@ -10,8 +10,8 @@ pub struct BodyResAuthChallenge {
 
 impl FromCursor for BodyResAuthChallenge {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResAuthChallenge {
-        return BodyResAuthChallenge {
+        BodyResAuthChallenge {
             data: CBytes::from_cursor(&mut cursor)
-        };
+        }
     }
 }

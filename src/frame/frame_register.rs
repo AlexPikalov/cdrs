@@ -16,7 +16,7 @@ impl IntoBytes for BodyReqRegister {
                 .map(|event| CString::new(event.as_string()))
                 .collect()
         };
-        return events_string_list.into_cbytes();
+        events_string_list.into_cbytes()
     }
 }
 
@@ -32,7 +32,7 @@ impl Frame {
         let opcode = Opcode::Register;
         let register_body = BodyReqRegister { events: events };
 
-        return Frame {
+        Frame {
             version: version,
             flags: vec![flag],
             stream: stream,
@@ -41,6 +41,6 @@ impl Frame {
             // for request frames it's always None
             tracing_id: None,
             warnings: vec![]
-        };
+        }
     }
 }
