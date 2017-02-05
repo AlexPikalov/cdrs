@@ -11,7 +11,7 @@ pub struct BodyReqPrepare {
 impl BodyReqPrepare {
     /// Creates new body of a frame of type `prepare` that prepares query `query`.
     pub fn new(query: String) -> BodyReqPrepare {
-        return BodyReqPrepare {
+        BodyReqPrepare {
             query: CStringLong::new(query)
         }
     }
@@ -19,7 +19,7 @@ impl BodyReqPrepare {
 
 impl IntoBytes for BodyReqPrepare {
     fn into_cbytes(&self) -> Vec<u8> {
-        return self.query.into_cbytes();
+        self.query.into_cbytes()
     }
 }
 
@@ -32,7 +32,7 @@ impl Frame {
         let opcode = Opcode::Prepare;
         let body = BodyReqPrepare::new(query);
 
-        return Frame {
+        Frame {
             version: version,
             flags: flags,
             stream: stream,
@@ -41,6 +41,6 @@ impl Frame {
             // for request frames it's always None
             tracing_id: None,
             warnings: vec![]
-        };
+        }
     }
 }

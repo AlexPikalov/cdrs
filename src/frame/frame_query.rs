@@ -45,7 +45,7 @@ impl BodyReqQuery {
                 flags.push(QueryFlags::WithDefaultTimestamp);
             }
 
-            return BodyReqQuery {
+            BodyReqQuery {
                 query: CStringLong::new(query),
                 query_params: ParamsReqQuery {
                     consistency: consistency,
@@ -56,7 +56,7 @@ impl BodyReqQuery {
                     serial_consistency: serial_consistency,
                     timestamp: timestamp
                 }
-            };
+            }
         }
 }
 
@@ -65,7 +65,7 @@ impl IntoBytes for BodyReqQuery {
         let mut v: Vec<u8> = vec![];
         v.extend_from_slice(self.query.clone().into_cbytes().as_slice());
         v.extend_from_slice(self.query_params.into_cbytes().as_slice());
-        return v;
+        v
     }
 }
 
@@ -125,7 +125,7 @@ impl ParamsReqQuery {
             flags.push(QueryFlags::WithNamesForValues);
         }
 
-        return flags;
+        flags
     }
 }
 
@@ -153,7 +153,7 @@ impl IntoBytes for ParamsReqQuery {
             v.extend_from_slice(to_int(self.timestamp.unwrap()).as_slice());
         }
 
-        return v;
+        v
     }
 }
 
@@ -187,78 +187,78 @@ pub enum QueryFlags {
 impl QueryFlags {
     #[doc(hidden)]
     pub fn has_value(byte: u8) -> bool {
-        return (byte & FLAGS_VALUE) != 0;
+        (byte & FLAGS_VALUE) != 0
     }
 
     #[doc(hidden)]
     pub fn set_value(byte: u8) -> u8 {
-        return byte | FLAGS_VALUE;
+        byte | FLAGS_VALUE
     }
 
     #[doc(hidden)]
     pub fn has_skip_metadata(byte: u8) -> bool {
-        return (byte & FLAGS_SKIP_METADATA) != 0;
+        (byte & FLAGS_SKIP_METADATA) != 0
     }
 
     #[doc(hidden)]
     pub fn set_skip_metadata(byte: u8) -> u8 {
-        return byte | FLAGS_SKIP_METADATA;
+        byte | FLAGS_SKIP_METADATA
     }
 
     #[doc(hidden)]
     pub fn has_page_size(byte: u8) -> bool {
-        return (byte & WITH_PAGE_SIZE) != 0;
+        (byte & WITH_PAGE_SIZE) != 0
     }
 
     #[doc(hidden)]
     pub fn set_page_size(byte: u8) -> u8 {
-        return byte | WITH_PAGE_SIZE;
+        byte | WITH_PAGE_SIZE
     }
 
     #[doc(hidden)]
     pub fn has_with_paging_state(byte: u8) -> bool {
-        return (byte & WITH_PAGING_STATE) != 0;
+        (byte & WITH_PAGING_STATE) != 0
     }
 
     #[doc(hidden)]
     pub fn set_with_paging_state(byte: u8) -> u8 {
-        return byte | WITH_PAGING_STATE;
+        byte | WITH_PAGING_STATE
     }
 
     #[doc(hidden)]
     pub fn has_with_serial_consistency(byte: u8) -> bool {
-        return (byte & WITH_SERIAL_CONSISTENCY) != 0;
+        (byte & WITH_SERIAL_CONSISTENCY) != 0
     }
 
     #[doc(hidden)]
     pub fn set_with_serial_consistency(byte: u8) -> u8 {
-        return byte | WITH_SERIAL_CONSISTENCY;
+        byte | WITH_SERIAL_CONSISTENCY
     }
 
     #[doc(hidden)]
     pub fn has_with_default_timestamp(byte: u8) -> bool {
-        return (byte & WITH_DEFAULT_TIMESTAMP) != 0;
+        (byte & WITH_DEFAULT_TIMESTAMP) != 0
     }
 
     #[doc(hidden)]
     pub fn set_with_default_timestamp(byte: u8) -> u8 {
-        return byte | WITH_DEFAULT_TIMESTAMP;
+        byte | WITH_DEFAULT_TIMESTAMP
     }
 
     #[doc(hidden)]
     pub fn has_with_names_for_values(byte: u8) -> bool {
-        return (byte & WITH_NAME_FOR_VALUES) != 0;
+        (byte & WITH_NAME_FOR_VALUES) != 0
     }
 
     #[doc(hidden)]
     pub fn set_with_names_for_values(byte: u8) -> u8 {
-        return byte | WITH_NAME_FOR_VALUES;
+        byte | WITH_NAME_FOR_VALUES
     }
 }
 
 impl AsByte for QueryFlags {
     fn as_byte(&self) -> u8 {
-        return match *self {
+        match *self {
             QueryFlags::Value => FLAGS_VALUE,
             QueryFlags::SkipMetadata => FLAGS_SKIP_METADATA,
             QueryFlags::PageSize => WITH_PAGE_SIZE,
@@ -266,7 +266,7 @@ impl AsByte for QueryFlags {
             QueryFlags::WithSerialConsistency => WITH_SERIAL_CONSISTENCY,
             QueryFlags::WithDefaultTimestamp => WITH_DEFAULT_TIMESTAMP,
             QueryFlags::WithNamesForValues => WITH_NAME_FOR_VALUES,
-        };
+        }
     }
 }
 
@@ -289,7 +289,7 @@ impl Frame {
         let opcode = Opcode::Query;
         let body = BodyReqQuery::new(query, consistency, values, with_names, page_size, paging_state, serial_consistency, timestamp);
 
-        return Frame {
+        Frame {
             version: version,
             flags: flags,
             stream: stream,
@@ -298,6 +298,6 @@ impl Frame {
             // for request frames it's always None
             tracing_id: None,
             warnings: vec![]
-        };
+        }
     }
 }

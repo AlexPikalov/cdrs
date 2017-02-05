@@ -9,13 +9,13 @@ pub struct BodyReqAuthResponse {
 
 impl BodyReqAuthResponse {
     pub fn new(data: CBytes) -> BodyReqAuthResponse {
-        return BodyReqAuthResponse { data: data };
+        BodyReqAuthResponse { data: data }
     }
 }
 
 impl IntoBytes for BodyReqAuthResponse {
     fn into_cbytes(&self) -> Vec<u8> {
-        return self.data.into_cbytes();
+        self.data.into_cbytes()
     }
 }
 
@@ -31,7 +31,7 @@ impl Frame {
         let opcode = Opcode::AuthResponse;
         let body = BodyReqAuthResponse::new(CBytes::new(bytes));
 
-        return Frame {
+        Frame {
             version: version,
             flags: vec![flag],
             stream: stream,
@@ -40,6 +40,6 @@ impl Frame {
             // for request frames it's always None
             tracing_id: None,
             warnings: vec![]
-        };
+        }
     }
 }

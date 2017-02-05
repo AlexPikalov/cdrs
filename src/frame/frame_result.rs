@@ -22,7 +22,7 @@ pub enum ResultKind {
 
 impl IntoBytes for ResultKind {
     fn into_cbytes(&self) -> Vec<u8> {
-        return match *self {
+        match *self {
             ResultKind::Void => to_int(0x0001),
             ResultKind::Rows => to_int(0x0002),
             ResultKind::SetKeyspace => to_int(0x0003),
@@ -34,20 +34,20 @@ impl IntoBytes for ResultKind {
 
 impl FromBytes for ResultKind {
     fn from_bytes(bytes: Vec<u8>) -> ResultKind {
-        return match from_bytes(bytes.clone()) {
+        match from_bytes(bytes.clone()) {
             0x0001 => ResultKind::Void,
             0x0002 => ResultKind::Rows,
             0x0003 => ResultKind::SetKeyspace,
             0x0004 => ResultKind::Prepared,
             0x0005 => ResultKind::SchemaChange,
             _ => unreachable!()
-        };
+        }
     }
 }
 
 impl FromCursor for ResultKind {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ResultKind {
-        return ResultKind::from_bytes(cursor_next_value(&mut cursor, INT_LEN as u64));
+        ResultKind::from_bytes(cursor_next_value(&mut cursor, INT_LEN as u64))
     }
 }
 
@@ -71,18 +71,18 @@ pub enum ResResultBody {
 impl ResResultBody {
     /// It retrieves `ResResultBody` from `io::Cursor` having knowledge about expected kind of result.
     fn parse_body_from_cursor(mut cursor: &mut Cursor<Vec<u8>>, result_kind: ResultKind) -> ResResultBody {
-        return match result_kind {
+        match result_kind {
             ResultKind::Void => ResResultBody::Void(BodyResResultVoid::from_cursor(&mut cursor)),
             ResultKind::Rows => ResResultBody::Rows(BodyResResultRows::from_cursor(&mut cursor)),
             ResultKind::SetKeyspace => ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)),
             ResultKind::Prepared => ResResultBody::Prepared(BodyResResultPrepared::from_cursor(&mut cursor)),
             _ => unimplemented!()
-        };
+        }
     }
 
     /// It converts body into `Vec<Row>` if body's type is `Row` and returns `None` otherwise.
     pub fn into_rows(self) -> Option<Vec<Row>> {
-        return match self {
+        match self {
             ResResultBody::Rows(rows_body) => Some(Row::from_frame_body(rows_body)),
             _ => None
         }
@@ -110,7 +110,7 @@ impl ResResultBody {
 impl FromCursor for ResResultBody {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ResResultBody {
         let result_kind = ResultKind::from_cursor(&mut cursor);
-        return ResResultBody::parse_body_from_cursor(&mut cursor, result_kind);
+        ResResultBody::parse_body_from_cursor(&mut cursor, result_kind)
     }
 }
 
@@ -121,20 +121,20 @@ pub struct BodyResResultVoid {}
 /// Empty result body.
 impl BodyResResultVoid {
     pub fn new() -> BodyResResultVoid {
-        return BodyResResultVoid {};
+        BodyResResultVoid {}
     }
 }
 
 impl FromBytes for BodyResResultVoid {
     fn from_bytes(_bytes: Vec<u8>) -> BodyResResultVoid {
         // as it's empty by definition just create BodyResVoid
-        return BodyResResultVoid::new();
+        BodyResResultVoid::new()
     }
 }
 
 impl FromCursor for BodyResResultVoid {
     fn from_cursor(mut _cursor: &mut Cursor<Vec<u8>>) -> BodyResResultVoid {
-        return BodyResResultVoid::new();
+        BodyResResultVoid::new()
     }
 }
 
@@ -148,7 +148,7 @@ pub struct BodyResResultSetKeyspace {
 impl BodyResResultSetKeyspace {
     /// Factory function that takes body value and returns new instance of `BodyResResultSetKeyspace`.
     pub fn new(body: CString) -> BodyResResultSetKeyspace {
-        return BodyResResultSetKeyspace {
+        BodyResResultSetKeyspace {
             body: body
         }
     }
@@ -156,7 +156,7 @@ impl BodyResResultSetKeyspace {
 
 impl FromCursor for BodyResResultSetKeyspace {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResResultSetKeyspace {
-        return BodyResResultSetKeyspace::new(CString::from_cursor(&mut cursor));
+        BodyResResultSetKeyspace::new(CString::from_cursor(&mut cursor))
     }
 }
 
@@ -177,9 +177,9 @@ impl BodyResResultRows {
     fn get_rows_content(mut cursor: &mut Cursor<Vec<u8>>,
         rows_count: i32,
         columns_count: i32) -> Vec<Vec<CBytes>> {
-        return (0..rows_count).map(|_| {
+        (0..rows_count).map(|_| {
             return (0..columns_count).map(|_| CBytes::from_cursor(&mut cursor) as CBytes).collect();
-        }).collect();
+        }).collect()
     }
 
     /// Returns a list of tuples `(CBytes, ColType)` with value and type of values respectively.
@@ -188,10 +188,10 @@ impl BodyResResultRows {
         let col_types = self.metadata.col_specs
             .iter()
             .map(|col_spec| col_spec.col_type.id.clone());
-        return self.rows_content[n].iter()
+        self.rows_content[n].iter()
             .map(|cbyte| cbyte.clone())
             .zip(col_types)
-            .collect();
+            .collect()
     }
 }
 
@@ -200,11 +200,11 @@ impl FromCursor for BodyResResultRows {
         let metadata = RowsMetadata::from_cursor(&mut cursor);
         let rows_count = CInt::from_cursor(&mut cursor);
         let rows_content: Vec<Vec<CBytes>> = BodyResResultRows::get_rows_content(&mut cursor, rows_count, metadata.columns_count);
-        return BodyResResultRows {
+        BodyResResultRows {
             metadata: metadata,
             rows_count: rows_count,
             rows_content: rows_content
-        };
+        }
     }
 }
 
@@ -245,7 +245,7 @@ impl FromCursor for RowsMetadata {
 
         let col_specs = ColSpec::parse_colspecs(&mut cursor, columns_count, has_global_table_space);
 
-        return RowsMetadata {
+        RowsMetadata {
             flags: flags,
             columns_count: columns_count,
             paging_state: paging_state,
@@ -269,48 +269,48 @@ pub enum RowsMetadataFlag {
 impl RowsMetadataFlag {
     /// Shows if provided flag contains GlobalTableSpace rows metadata flag
     pub fn has_global_table_space(flag: i32) -> bool {
-        return (flag & GLOBAL_TABLE_SPACE) != 0;
+         (flag & GLOBAL_TABLE_SPACE) != 0
     }
 
     /// Sets GlobalTableSpace rows metadata flag
     pub fn set_global_table_space(flag: i32) -> i32 {
-        return flag | GLOBAL_TABLE_SPACE;
+         flag | GLOBAL_TABLE_SPACE
     }
 
     /// Shows if provided flag contains HasMorePages rows metadata flag
     pub fn has_has_more_pages(flag: i32) -> bool {
-        return (flag & HAS_MORE_PAGES) != 0;
+        (flag & HAS_MORE_PAGES) != 0
     }
 
     /// Sets HasMorePages rows metadata flag
     pub fn set_has_more_pages(flag: i32) -> i32 {
-        return flag | HAS_MORE_PAGES;
+         flag | HAS_MORE_PAGES
     }
 
     /// Shows if provided flag contains NoMetadata rows metadata flag
     pub fn has_no_metadata(flag: i32) -> bool {
-        return (flag & NO_METADATA) != 0;
+         (flag & NO_METADATA) != 0
     }
 
     /// Sets NoMetadata rows metadata flag
     pub fn set_no_metadata(flag: i32) -> i32 {
-        return flag | NO_METADATA;
+         flag | NO_METADATA
     }
 }
 
 impl IntoBytes for RowsMetadataFlag {
     fn into_cbytes(&self) -> Vec<u8> {
-        return match *self {
+        match *self {
             RowsMetadataFlag::GlobalTableSpace => to_int(GLOBAL_TABLE_SPACE as i64),
             RowsMetadataFlag::HasMorePages => to_int(HAS_MORE_PAGES as i64),
             RowsMetadataFlag::NoMetadata => to_int(NO_METADATA as i64)
-        };
+        }
     }
 }
 
 impl FromBytes for RowsMetadataFlag {
     fn from_bytes(bytes: Vec<u8>) -> RowsMetadataFlag {
-        return match from_bytes(bytes.clone()) as i32 {
+        match from_bytes(bytes.clone()) as i32 {
             GLOBAL_TABLE_SPACE => RowsMetadataFlag::GlobalTableSpace,
             HAS_MORE_PAGES => RowsMetadataFlag::HasMorePages,
             NO_METADATA => RowsMetadataFlag::NoMetadata,
@@ -318,7 +318,7 @@ impl FromBytes for RowsMetadataFlag {
                 error!("Unexpected Cassandra rows metadata flag: {:?}", bytes);
                 panic!("Unexpected Cassandra rows metadata flag: {:?}", bytes);
             }
-        };
+        }
     }
 }
 
@@ -343,7 +343,7 @@ impl ColSpec {
     pub fn parse_colspecs(mut cursor: &mut Cursor<Vec<u8>>,
         column_count: i32,
         with_globale_table_spec: bool) -> Vec<ColSpec> {
-            return (0..column_count).map(|_| {
+        (0..column_count).map(|_| {
                 let mut ksname: Option<CString> = None;
                 let mut tablename: Option<CString> = None;
                 if !with_globale_table_spec {
@@ -359,7 +359,7 @@ impl ColSpec {
                     name: name,
                     col_type: col_type
                 };
-            }).collect();
+            }).collect()
         }
 }
 
@@ -396,7 +396,7 @@ pub enum ColType {
 
 impl FromBytes for ColType {
     fn from_bytes(bytes: Vec<u8>) -> ColType {
-        return match from_bytes(bytes.clone()) {
+        match from_bytes(bytes.clone()) {
             0x0000 => ColType::Custom,
             0x0001 => ColType::Ascii,
             0x0002 => ColType::Bigint,
@@ -423,7 +423,7 @@ impl FromBytes for ColType {
             0x0030 => ColType::Udt,
             0x0031 => ColType::Tuple,
             _ => unreachable!()
-        };
+        }
     }
 }
 
@@ -431,7 +431,7 @@ impl FromCursor for ColType {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ColType {
         let option_id_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
         let col_type = ColType::from_bytes(option_id_bytes);
-        return col_type;
+        col_type
     }
 }
 
@@ -466,7 +466,7 @@ impl FromCursor for ColTypeOption {
             _ => None
         };
 
-        return ColTypeOption {
+        ColTypeOption {
             id: id,
             value: value
         }
@@ -506,7 +506,7 @@ impl FromCursor for CUdt {
             return (name, col_type);
         }).collect();
 
-        return CUdt {
+        CUdt {
             ks: ks,
             udt_name: udt_name,
             descriptions: descriptions
@@ -532,11 +532,11 @@ impl FromCursor for BodyResResultPrepared {
         let metadata = PreparedMetadata::from_cursor(&mut cursor);
         let result_metadata = RowsMetadata::from_cursor(&mut cursor);
 
-        return BodyResResultPrepared {
+        BodyResResultPrepared {
             id: id,
             metadata: metadata,
             result_metadata: result_metadata
-        };
+        }
     }
 }
 
@@ -560,7 +560,7 @@ impl FromCursor for PreparedMetadata {
             .fold(vec![], |mut acc, _| {
                 let idx = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)) as i16;
                 acc.push(idx);
-                return acc;
+                acc
             });
         let mut global_table_space: Option<(CString, CString)> = None;
         let has_global_table_space = RowsMetadataFlag::has_global_table_space(flags);
@@ -571,13 +571,13 @@ impl FromCursor for PreparedMetadata {
         }
         let col_specs = ColSpec::parse_colspecs(&mut cursor, columns_count, has_global_table_space);
 
-        return PreparedMetadata {
+        PreparedMetadata {
             flags: flags,
             columns_count: columns_count,
             pk_count: pk_count,
             pk_indexes: pk_indexes,
             global_table_spec: global_table_space,
             col_specs: col_specs
-        };
+        }
     }
 }

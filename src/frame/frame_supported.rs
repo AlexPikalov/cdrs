@@ -19,8 +19,8 @@ impl FromCursor for BodyResSupported {
             return m;
         });
 
-        return BodyResSupported {
+        BodyResSupported {
             data: map
-        };
+        }
     }
 }
