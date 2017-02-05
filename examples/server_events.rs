@@ -7,7 +7,11 @@ use cdrs::client::CDRS;
 use cdrs::transport::Transport;
 use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::compression::Compression;
-use cdrs::frame::events::SimpleServerEvent;
+use cdrs::frame::events::{
+    SimpleServerEvent,
+    ServerEvent,
+    TopologyChangeType
+};
 
 // default credentials
 const USER: &'static str = "cassandra";
@@ -26,9 +30,24 @@ fn main() {
         listener.start(&Compression::None).unwrap()
     });
 
+    let topology_changes = stream
+        // inspects all events in a stream
+        .inspect(|event| println!("inspect event {:?}", event))
+        // filter by event's type: topology changes
+        .filter(|event| event == &SimpleServerEvent::TopologyChange)
+        // filter by event's specific information: new node was added
+        .filter(|event| {
+            match event {
+                &ServerEvent::TopologyChange(ref event) => {
+                    event.change_type == TopologyChangeType::NewNode
+                },
+                _ => false
+            }
+        });
+
     println!("Start listen for server events");
 
-    for event in stream {
-        println!("server event {:?}", event.get_body());
+    for change in topology_changes {
+        println!("server event {:?}", change);
     }
 }

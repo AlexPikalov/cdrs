@@ -108,6 +108,15 @@ impl ResponseBody {
         }
     }
 
+    /// It unwraps body and returns BodyResEvent.
+    /// If frame body is not of type `Result` this method returns `None`.
+    pub fn into_server_event(self) -> Option<BodyResEvent> {
+        match self {
+            ResponseBody::Event(event) => Some(event),
+            _ => None
+        }
+    }
+
     pub fn get_authenticator(&self) -> Option<String> {
         match self {
             &ResponseBody::Authenticate(ref auth) => {
