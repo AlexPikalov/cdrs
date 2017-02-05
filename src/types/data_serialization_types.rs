@@ -67,7 +67,7 @@ pub fn decode_decimal(bytes: Vec<u8>) -> Result<f32, io::Error> {
     }
     let scaled = try_i_from_bytes(lr[1].clone());
     if scaled.is_err() {
-        return Err(unscaled.unwrap_err());
+        return Err(scaled.unwrap_err());
     }
 
     let unscaled_unwrapped: f32 = unscaled.unwrap() as f32;
