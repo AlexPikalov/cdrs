@@ -454,7 +454,7 @@ impl AsRust<Vec<UDT>> for List {
                 let list_type_option_box: Box<ColTypeOption> = type_option.clone();
                 let list_type_option = match list_type_option_box.value {
                     Some(ColTypeOptionValue::UdtType(t)) => t,
-                    _ => return unreachable!()
+                    _ => unreachable!()
                 };
                 match id {
                     // T is Udt

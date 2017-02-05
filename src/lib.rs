@@ -26,7 +26,7 @@ pub mod query;
 #[cfg(not(feature = "ssl"))]
 pub mod transport;
 #[cfg(feature = "ssl")]
-pub mod transport_ssl;
+pub mod transport;
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.
 pub trait IntoBytes {
