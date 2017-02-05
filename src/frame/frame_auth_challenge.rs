@@ -2,7 +2,7 @@ use std::io::Cursor;
 use FromCursor;
 use types::CBytes;
 
-/// A server authentication challenge.
+/// Server authentication challenge.
 #[derive(Debug)]
 pub struct BodyResAuthChallenge {
     pub data: CBytes
