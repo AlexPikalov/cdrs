@@ -8,10 +8,7 @@ use authenticators::Authenticator;
 use compression::Compression;
 use r2d2;
 
-#[cfg(not(feature = "ssl"))]
 use transport::Transport;
-#[cfg(feature = "ssl")]
-use transport_ssl::Transport;
 
 /// [r2d2](https://github.com/sfackler/r2d2) `ManageConnection`.
 pub struct ConnectionManager<T> {
