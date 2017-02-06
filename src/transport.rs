@@ -5,7 +5,7 @@ use std::net::TcpStream;
 #[cfg(feature = "ssl")]
 use openssl::ssl::{SslStream, SslConnector,HandshakeError};
 
-pub  trait  CDRSTransport{
+pub  trait  CDRSTransport: Sized{
 
     fn try_clone(&self) -> io::Result<Self>;
     fn close(&mut self, close: net::Shutdown) -> io::Result<()>;
