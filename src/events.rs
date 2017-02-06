@@ -12,6 +12,7 @@ use frame::events::{
 use frame::Frame;
 use frame::parser::parse_frame;
 use compression::Compression;
+use transport::CDRSTransport;
 
 /// Full Server Event which includes all details about occured change.
 pub type ServerEvent = FrameServerEvent;
@@ -31,7 +32,7 @@ pub type SchemaChange = FrameSchemaChange;
 ///
 /// `EventStream` is an iterator which returns new events once they come.
 /// It is similar to `Receiver::iter`.
-pub fn new_listener(transport: Transport) -> (Listener, EventStream) {
+pub fn new_listener<X: CDRSTransport>(transport: X) -> (Listener<X>, EventStream) {
     let (tx, rx) = channel();
     let listener = Listener {
         transport: transport,
@@ -44,12 +45,12 @@ pub fn new_listener(transport: Transport) -> (Listener, EventStream) {
 /// `Listener` provides only one function `start` to start listening. It
 /// blocks a thread so should be moved into a separate one to no release
 /// main thread.
-pub struct Listener {
-    transport: Transport,
+pub struct Listener<X:CDRSTransport> {
+    transport: X,
     tx: Sender<Frame>
 }
 
-impl Listener {
+impl <X:CDRSTransport> Listener <X> {
     /// It starts a process of listening to new events. Locks a frame.
     pub fn start(&mut self, compressor: &Compression) -> error::Result<()> {
         loop {
