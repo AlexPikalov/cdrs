@@ -211,7 +211,7 @@ use std::default::Default;
 use cdrs::client::Query;
 use cdrs::consistency::Consistency;
 
-let select_query: Query = QueryBuilder::new("SELECT * FROM keyspace.table").finalize();
+let select_query: Query = QueryBuilder::new("SELECT * FROM keyspace.table;").finalize();
 let with_tracing = false;
 let with_warnings = false;
 
