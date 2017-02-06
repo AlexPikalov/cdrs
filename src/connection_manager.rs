@@ -9,19 +9,20 @@ use compression::Compression;
 use r2d2;
 
 use transport::Transport;
+use transport::CDRSTransport;
 
 /// [r2d2](https://github.com/sfackler/r2d2) `ManageConnection`.
-pub struct ConnectionManager<T> {
-    transport: Transport,
+pub struct ConnectionManager<T,X> {
+    transport: X,
     authenticator: T,
     compression: Compression
 }
 
-impl<T: Authenticator + Send + Sync + 'static> ConnectionManager<T> {
+impl<T: Authenticator + Send + Sync + 'static,X: CDRSTransport + Send + Sync + 'static> ConnectionManager<T,X> {
     /// Creates a new instance of `ConnectionManager`.
     /// It requires transport, authenticator and compression as inputs.
-    pub fn new(transport: Transport, authenticator: T, compression: Compression)
-        -> ConnectionManager<T> {
+    pub fn new(transport: X, authenticator: T, compression: Compression)
+        -> ConnectionManager<T,X> {
         ConnectionManager {
             transport: transport,
             authenticator: authenticator,
@@ -30,8 +31,8 @@ impl<T: Authenticator + Send + Sync + 'static> ConnectionManager<T> {
     }
 }
 
-impl<T: Authenticator + Send + Sync + 'static> r2d2::ManageConnection for ConnectionManager<T> {
-    type Connection = Session<T>;
+impl<T: Authenticator + Send + Sync + 'static,X: CDRSTransport + Send + Sync + 'static> r2d2::ManageConnection for ConnectionManager<T,X> {
+    type Connection = Session<T,X>;
     type Error = CError;
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
