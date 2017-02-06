@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use frame::*;
-use types::*;
+use types::{to_short};
 use IntoBytes;
 
 const CQL_VERSION: &'static str = "CQL_VERSION";
@@ -26,8 +26,8 @@ impl<'a> BodyReqStartup<'a> {
     }
 
     // should be [u8; 2]
-    /// Number of key-value pairs
-    pub fn num(&self) -> Vec<u8> {
+    // Number of key-value pairs
+    fn num(&self) -> Vec<u8> {
         to_short(self.map.len() as u64)
     }
 }
@@ -39,11 +39,11 @@ impl<'a> IntoBytes for BodyReqStartup<'a> {
         v.extend_from_slice(&self.num().as_slice());
         for (key, val) in self.map.iter() {
             // push key len
-            v.extend_from_slice(to_n_bytes(key.len() as u64, SHORT_LEN).as_slice());
+            v.extend_from_slice(to_short(key.len() as u64).as_slice());
             // push key itself
             v.extend_from_slice(key.as_bytes());
             // push val len
-            v.extend_from_slice(to_n_bytes(val.len() as u64, SHORT_LEN).as_slice());
+            v.extend_from_slice(to_short(val.len() as u64).as_slice());
             // push val itself
             v.extend_from_slice(val.as_bytes());
         }
@@ -73,5 +73,39 @@ impl Frame {
             tracing_id: None,
             warnings: vec![]
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use frame::{Frame, Version, Flag, Opcode};
+
+    #[test]
+    fn new_body_req_startup_some_compression() {
+        let compression = "test_compression";
+        let body = BodyReqStartup::new(Some(compression));
+        assert_eq!(body.map.get("CQL_VERSION"), Some(&"3.0.0"));
+        assert_eq!(body.map.get("COMPRESSION"), Some(&compression));
+        assert_eq!(body.map.len(), 2);
+    }
+
+    #[test]
+    fn new_body_req_startup_none_compression() {
+        let body = BodyReqStartup::new(None);
+        assert_eq!(body.map.get("CQL_VERSION"), Some(&"3.0.0"));
+        assert_eq!(body.map.len(), 1);
+    }
+
+    #[test]
+    fn new_req_startup() {
+        let compression = Some("test_compression");
+        let frame = Frame::new_req_startup(compression);
+        assert_eq!(frame.version, Version::Request);
+        assert_eq!(frame.flags, vec![Flag::Ignore]);
+        assert_eq!(frame.stream, 0);
+        assert_eq!(frame.opcode, Opcode::Startup);
+        assert_eq!(frame.tracing_id, None);
+        assert_eq!(frame.warnings, vec![] as Vec<String>);
     }
 }
