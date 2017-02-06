@@ -1,33 +1,12 @@
-sudo: false
 language: rust
-# necessary for `travis-cargo coveralls --no-sudo`
-addons:
-  apt:
-    packages:
-      - libcurl4-openssl-dev
-      - libelf-dev
-      - libdw-dev
-      - binutils-dev # optional: only required for the --verify flag of coveralls
-
-# run builds for all the trains (and more)
 rust:
-  #- nightly
-  - beta
-  # check it compiles on the latest stable compiler
   - stable
-  
-# load travis-cargo
-before_script:
-  - |
-      pip install 'travis-cargo<0.2' --user &&
-      export PATH=$HOME/.local/bin:$PATH
-
-# the main build
-script:
-  - |
-      travis-cargo build &&
-      travis-cargo test &&
-      travis-cargo --only stable doc
+  - beta
+  - nightly
+matrix:
+  allow_failures:
+    - rust: nightly
+    
 after_success:
     sudo apt-get install libcurl4-openssl-dev libelf-dev libdw-dev &&
     wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
