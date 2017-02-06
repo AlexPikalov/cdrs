@@ -15,10 +15,7 @@ use frame::events::SimpleServerEvent;
 use compression::Compression;
 use authenticators::Authenticator;
 use error;
-#[cfg(not(feature = "ssl"))]
 use transport::Transport;
-#[cfg(feature = "ssl")]
-use transport_ssl::Transport;
 use events::{Listener, EventStream, new_listener};
 
 /// DB user's credentials.

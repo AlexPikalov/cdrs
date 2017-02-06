@@ -3,10 +3,7 @@ use std::iter::Iterator;
 
 use std::error::Error;
 use error;
-#[cfg(not(feature="ssl"))]
 use transport::Transport;
-#[cfg(feature="ssl")]
-use transport_ssl::Transport;
 use frame::events::{
     ServerEvent as FrameServerEvent,
     SimpleServerEvent as FrameSimpleServerEvent,
