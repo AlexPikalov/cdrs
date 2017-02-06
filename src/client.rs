@@ -18,15 +18,6 @@ use error;
 use transport::Transport;
 use events::{Listener, EventStream, new_listener};
 
-/// DB user's credentials.
-#[derive(Clone, Debug)]
-pub struct Credentials {
-    /// DB user's username
-    pub username: String,
-    /// DB user's password
-    pub password: String
-}
-
 /// CDRS driver structure that provides a basic functionality to work with DB including
 /// establishing new connection, getting supported options, preparing and executing CQL
 /// queries, using compression and other.
