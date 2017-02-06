@@ -7,6 +7,10 @@ use lz4_compress as lz4;
 
 type Result<T> = result::Result<T, CompressionError>;
 
+pub const LZ4: &'static str = "lz4";
+pub const SNAPPY: &'static str = "snappy";
+
+
 /// It's an error which may occure during encoding or deconding
 /// frame body. As there are only two types of compressors it
 /// contains two related enum options.
@@ -83,11 +87,11 @@ impl Compression {
         };
     }
 
-    /// It transforms compression method into a string.
-    pub fn into_string(&self) -> Option<String> {
+    /// It transforms compression method into a `&str`.
+    pub fn as_str(&self) -> Option<&'static str> {
         return match self {
-            &Compression::Lz4 => Some(String::from("lz4")),
-            &Compression::Snappy => Some(String::from("snappy")),
+            &Compression::Lz4 => Some(LZ4),
+            &Compression::Snappy => Some(SNAPPY),
             &Compression::None => None
         };
     }
@@ -113,7 +117,8 @@ impl Compression {
     fn decode_lz4(bytes: Vec<u8>) -> Result<Vec<u8>> {
         // skip first 4 bytes in accordance to
         // https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L805
-        return lz4::decompress(&bytes[4..]).map_err(|err| CompressionError::Lz4(err.description().to_string()));
+        return lz4::decompress(&bytes[4..])
+            .map_err(|err| CompressionError::Lz4(err.description().to_string()));
     }
 }
 
@@ -130,8 +135,8 @@ impl<'a> From<&'a str> for Compression {
     /// `Compression::None` will be returned
     fn from(compression_str: &'a str) -> Compression {
         return match compression_str {
-            "lz4" => Compression::Lz4,
-            "snappy" => Compression::Snappy,
+            LZ4 => Compression::Lz4,
+            SNAPPY => Compression::Snappy,
             _ => Compression::None
         };
     }
