@@ -11,27 +11,6 @@ pub  trait  CDRSTransport: Sized+Read+Write+Send+Sync{
     fn close(&mut self, close: net::Shutdown) -> io::Result<()>;
 }
 
-impl CDRSTransport  for Transport {
-
-    /// In opposite to `TcpStream`'s `try_clone` this method
-    /// creates absolutely new connection - it gets an address
-    /// of a peer from `Transport` and creates a new encrypted
-    /// transport with new TCP stream under hood.
-    fn try_clone(&self) -> io::Result<Transport> {
-        let addr = try!( self.tcp.peer_addr());
-
-        net::TcpStream::connect(addr)
-        .map( | socket | Transport {
-        tcp: socket
-        })
-    }
-
-     fn close(&mut self, close: net::Shutdown) -> io::Result<()> {
-            return self.tcp.shutdown(close);
-    }
-
-
-}
 
 #[derive(Debug)]
 pub struct Transport {
@@ -40,10 +19,7 @@ pub struct Transport {
 
 impl Transport {
     pub fn new(addr: &str) -> io::Result<Transport> {
-        return net::TcpStream::connect(addr)
-            .map(|socket| Transport {
-                tcp: socket
-            });
+        TcpStream::connect(addr).map(|socket| Transport {tcp: socket})
     }
 
 }
@@ -63,34 +39,29 @@ impl Write for Transport {
         return self.tcp.flush();
     }
 }
-/*************************************/
-/** TLS**/
-/**************************************/
-#[cfg(feature = "ssl")]
-impl CDRSTransport for TransportTls{
+
+impl CDRSTransport  for Transport {
 
     /// In opposite to `TcpStream`'s `try_clone` this method
     /// creates absolutely new connection - it gets an address
-    /// of a peer from `TransportTls` and creates a new encrypted
-    /// connection with a new TCP stream under hood.
-     fn try_clone(&self) -> io::Result<TransportTls> {
-        let addr = try!(self.ssl.get_ref().peer_addr());
-        let ip_string = format!("{}", addr.ip());
-
-        let res =  net::TcpStream::connect(addr)
-            .map(|socket|
-                     self.connector.connect(ip_string.as_str(), socket)
-                         .map(|sslsocket| TransportTls {ssl: sslsocket, connector: self.connector.clone()}));
-
-        res.and_then(|res| {
-            res.map(|n: TransportTls| n ).map_err(|e| io::Error::new(io::ErrorKind::Other,e))
-        })
+    /// of a peer from `Transport` and creates a new encrypted
+    /// transport with new TCP stream under hood.
+    fn try_clone(&self) -> io::Result<Transport> {
+        let addr = try!( self.tcp.peer_addr());
+        TcpStream::connect(addr).map( | socket | Transport {tcp: socket})
     }
 
-     fn close(&mut self, _close: net::Shutdown) -> io::Result<()> {
-        return self.ssl.shutdown().map_err(|e| io::Error::new(io::ErrorKind::Other,e)).and_then(|_| Ok(()));
+    fn close(&mut self, close: net::Shutdown) -> io::Result<()> {
+        return self.tcp.shutdown(close);
     }
+
+
 }
+
+/*************************************/
+/** TLS**/
+/**************************************/
+
 #[cfg(feature = "ssl")]
 pub struct TransportTls {
     ssl: SslStream<TcpStream>,
@@ -141,3 +112,30 @@ impl Write for TransportTls {
         return self.ssl.flush();
     }
 }
+
+#[cfg(feature = "ssl")]
+impl CDRSTransport for TransportTls{
+
+    /// In opposite to `TcpStream`'s `try_clone` this method
+    /// creates absolutely new connection - it gets an address
+    /// of a peer from `TransportTls` and creates a new encrypted
+    /// connection with a new TCP stream under hood.
+    fn try_clone(&self) -> io::Result<TransportTls> {
+        let addr = try!(self.ssl.get_ref().peer_addr());
+        let ip_string = format!("{}", addr.ip());
+
+        let res =  net::TcpStream::connect(addr)
+            .map(|socket|
+                     self.connector.connect(ip_string.as_str(), socket)
+                         .map(|sslsocket| TransportTls {ssl: sslsocket, connector: self.connector.clone()}));
+
+        res.and_then(|res| {
+            res.map(|n: TransportTls| n ).map_err(|e| io::Error::new(io::ErrorKind::Other,e))
+        })
+    }
+
+    fn close(&mut self, _close: net::Shutdown) -> io::Result<()> {
+        return self.ssl.shutdown().map_err(|e| io::Error::new(io::ErrorKind::Other,e)).and_then(|_| Ok(()));
+    }
+}
+
