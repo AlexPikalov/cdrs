@@ -7,8 +7,6 @@ use error::{Error as CError};
 use authenticators::Authenticator;
 use compression::Compression;
 use r2d2;
-
-use transport::Transport;
 use transport::CDRSTransport;
 
 /// [r2d2](https://github.com/sfackler/r2d2) `ManageConnection`.

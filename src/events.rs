@@ -3,7 +3,6 @@ use std::iter::Iterator;
 
 use std::error::Error;
 use error;
-use transport::Transport;
 use frame::events::{
     ServerEvent as FrameServerEvent,
     SimpleServerEvent as FrameSimpleServerEvent,
@@ -32,7 +31,7 @@ pub type SchemaChange = FrameSchemaChange;
 ///
 /// `EventStream` is an iterator which returns new events once they come.
 /// It is similar to `Receiver::iter`.
-pub fn new_listener<X: CDRSTransport>(transport: X) -> (Listener<X>, EventStream) {
+pub fn new_listener<X>(transport: X) -> (Listener<X>, EventStream) {
     let (tx, rx) = channel();
     let listener = Listener {
         transport: transport,
@@ -45,7 +44,7 @@ pub fn new_listener<X: CDRSTransport>(transport: X) -> (Listener<X>, EventStream
 /// `Listener` provides only one function `start` to start listening. It
 /// blocks a thread so should be moved into a separate one to no release
 /// main thread.
-pub struct Listener<X:CDRSTransport> {
+pub struct Listener<X> {
     transport: X,
     tx: Sender<Frame>
 }

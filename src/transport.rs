@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use std::net;
 use std::net::TcpStream;
 #[cfg(feature = "ssl")]
-use openssl::ssl::{SslStream, SslConnector,HandshakeError};
+use openssl::ssl::{SslStream, SslConnector};
 
 pub  trait  CDRSTransport: Sized+Read+Write+Send+Sync{
 
