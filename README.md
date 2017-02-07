@@ -34,7 +34,7 @@ To use password authenticator, just include the one implemented in
 ```rust
 use cdrs::client::CDRS;
 use cdrs::authenticators::PasswordAuthenticator;
-use cdrs::transport::Transport;
+use cdrs::transport::TransportPlain;
 ```
 
 After that you can create a new instance of `CDRS` and establish new connection:
@@ -42,7 +42,7 @@ After that you can create a new instance of `CDRS` and establish new connection:
 ```rust
 let authenticator = PasswordAuthenticator::new("user", "pass");
 let addr = "127.0.0.1:9042";
-let tcp_transport = Transport::new(addr).unwrap();
+let tcp_transport = TransportPlain::new(addr).unwrap();
 
 // pass authenticator and transport into CDRS' constructor
 let client = CDRS::new(tcp_transport, authenticator);
@@ -71,7 +71,7 @@ features = ["ssl"]
 ```rust
 use cdrs::client::CDRS;
 use cdrs::authenticators::PasswordAuthenticator;
-use cdrs::transport_ssl::Transport;
+use cdrs::transport::TransportTls;
 use openssl::ssl::{SslConnectorBuilder, SslMethod};
 use std::path::Path;
 ```
@@ -88,7 +88,7 @@ let mut ssl_connector_builder = SslConnectorBuilder::new(SslMethod::tls()).unwra
 ssl_connector_builder.builder_mut().set_ca_file(path).unwrap();
 let connector = ssl_connector_builder.build();
 
-let ssl_transport = Transport::new(addr, &connector).unwrap();
+let ssl_transport = TransportTls::new(addr, &connector).unwrap();
 
 // pass authenticator and SSL transport into CDRS' constructor
 let client = CDRS::new(ssl_transport, authenticator);
@@ -105,7 +105,7 @@ use cdrs::connection_manager::ConnectionManager;
 let config = r2d2::Config::builder()
     .pool_size(15)
     .build();
-let transport = Transport::new(ADDR).unwrap();
+let transport = TransportPlain::new(ADDR).unwrap();
 let authenticator = PasswordAuthenticator::new(USER, PASS);
 let manager = ConnectionManager::new(transport, authenticator, Compression::None);
 
