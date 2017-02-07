@@ -26,17 +26,17 @@ impl Transport {
 
 impl Read for Transport {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        return self.tcp.read(buf);
+        self.tcp.read(buf)
     }
 }
 
 impl Write for Transport {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        return self.tcp.write(buf);
+        self.tcp.write(buf)
     }
 
     fn flush(&mut self) -> io::Result<()> {
-        return self.tcp.flush();
+        self.tcp.flush()
     }
 }
 
@@ -52,7 +52,7 @@ impl CDRSTransport  for Transport {
     }
 
     fn close(&mut self, close: net::Shutdown) -> io::Result<()> {
-        return self.tcp.shutdown(close);
+        self.tcp.shutdown(close)
     }
 
 
@@ -94,17 +94,17 @@ impl TransportTls {
 #[cfg(feature = "ssl")]
 impl Read for TransportTls {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        return self.ssl.read(buf);
+        self.ssl.read(buf)
     }
 }
 #[cfg(feature = "ssl")]
 impl Write for TransportTls {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        return self.ssl.write(buf);
+        self.ssl.write(buf)
     }
 
     fn flush(&mut self) -> io::Result<()> {
-        return self.ssl.flush();
+        self.ssl.flush()
     }
 }
 
@@ -130,7 +130,7 @@ impl CDRSTransport for TransportTls{
     }
 
     fn close(&mut self, _close: net::Shutdown) -> io::Result<()> {
-        return self.ssl.shutdown().map_err(|e| io::Error::new(io::ErrorKind::Other,e)).and_then(|_| Ok(()));
+        self.ssl.shutdown().map_err(|e| io::Error::new(io::ErrorKind::Other,e)).and_then(|_| Ok(()))
     }
 }
 
