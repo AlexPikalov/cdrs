@@ -6,7 +6,7 @@ use cdrs::query::QueryBuilder;
 use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::compression::Compression;
 use cdrs::consistency::Consistency;
-use cdrs::transport::Transport;
+use cdrs::transport::TransportPlain;
 // default credentials
 const _USER: &'static str = "cassandra";
 const _PASS: &'static str = "cassandra";
@@ -15,7 +15,7 @@ const _ADDR: &'static str = "127.0.0.1:9042";
 
 fn main() {
     let authenticator = PasswordAuthenticator::new(_USER, _PASS);
-    let tcp_transport = Transport::new(_ADDR).unwrap();
+    let tcp_transport = TransportPlain::new(_ADDR).unwrap();
     let client = CDRS::new(tcp_transport, authenticator);
     let mut session = client.start(Compression::None).unwrap();
 

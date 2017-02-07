@@ -13,24 +13,24 @@ pub  trait  CDRSTransport: Sized+Read+Write+Send+Sync{
 
 
 #[derive(Debug)]
-pub struct Transport {
+pub struct TransportPlain {
     tcp: TcpStream
 }
 
-impl Transport {
-    pub fn new(addr: &str) -> io::Result<Transport> {
-        TcpStream::connect(addr).map(|socket| Transport {tcp: socket})
+impl TransportPlain {
+    pub fn new(addr: &str) -> io::Result<TransportPlain> {
+        TcpStream::connect(addr).map(|socket| TransportPlain {tcp: socket})
     }
 
 }
 
-impl Read for Transport {
+impl Read for TransportPlain {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.tcp.read(buf)
     }
 }
 
-impl Write for Transport {
+impl Write for TransportPlain {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         self.tcp.write(buf)
     }
@@ -40,15 +40,15 @@ impl Write for Transport {
     }
 }
 
-impl CDRSTransport  for Transport {
+impl CDRSTransport  for TransportPlain {
 
     /// In opposite to `TcpStream`'s `try_clone` this method
     /// creates absolutely new connection - it gets an address
     /// of a peer from `Transport` and creates a new encrypted
     /// transport with new TCP stream under hood.
-    fn try_clone(&self) -> io::Result<Transport> {
+    fn try_clone(&self) -> io::Result<TransportPlain> {
         let addr = try!( self.tcp.peer_addr());
-        TcpStream::connect(addr).map( | socket | Transport {tcp: socket})
+        TcpStream::connect(addr).map( | socket | TransportPlain {tcp: socket})
     }
 
     fn close(&mut self, close: net::Shutdown) -> io::Result<()> {

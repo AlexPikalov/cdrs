@@ -12,7 +12,7 @@ use cdrs::frame::events::{
     ServerEvent,
     TopologyChangeType
 };
-use cdrs::transport::Transport;
+use cdrs::transport::TransportPlain;
 
 // default credentials
 const _USER: &'static str = "cassandra";
@@ -20,7 +20,7 @@ const _PASS: &'static str = "cassandra";
 const _ADDR: &'static str = "127.0.0.1:9042";
 
 fn main() {
-    let transport = Transport::new(_ADDR).unwrap();
+    let transport = TransportPlain::new(_ADDR).unwrap();
     let authenticator = PasswordAuthenticator::new(_USER, _PASS);
     let client = CDRS::new(transport, authenticator);
     let session = client.start(Compression::None).unwrap();

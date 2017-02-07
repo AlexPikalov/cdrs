@@ -5,7 +5,7 @@ use cdrs::query::QueryBuilder;
 use cdrs::authenticators::NoneAuthenticator;
 use cdrs::compression::Compression;
 use cdrs::types::IntoRustByName;
-use cdrs::transport::Transport;
+use cdrs::transport::TransportPlain;
 
 
 /// this example is to pull employee records from emp table
@@ -43,7 +43,7 @@ struct Employee {
 fn main() {
 
     let addr = "127.0.0.1:9042";
-    let tcp_transport = Transport::new(addr).unwrap();
+    let tcp_transport = TransportPlain::new(addr).unwrap();
 
     // pass authenticator into CDRS' constructor
     let client = CDRS::new(tcp_transport, NoneAuthenticator);
