@@ -16,7 +16,6 @@ addons:
       - cmake
       - gcc
       - binutils-dev
-      - libiberty-dev
       - zlib1g-dev
       - libbfd-dev
 
