@@ -8,7 +8,6 @@ use frame::events::{
     SimpleServerEvent as FrameSimpleServerEvent,
     SchemaChange as FrameSchemaChange
 };
-use frame::Frame;
 use frame::parser::parse_frame;
 use compression::Compression;
 use transport::CDRSTransport;
@@ -44,16 +43,26 @@ pub fn new_listener<X>(transport: X) -> (Listener<X>, EventStream) {
 /// `Listener` provides only one function `start` to start listening. It
 /// blocks a thread so should be moved into a separate one to no release
 /// main thread.
+
 pub struct Listener<X> {
     transport: X,
-    tx: Sender<Frame>
+    tx: Sender<ServerEvent>
 }
 
 impl <X:CDRSTransport> Listener <X> {
     /// It starts a process of listening to new events. Locks a frame.
     pub fn start(&mut self, compressor: &Compression) -> error::Result<()> {
         loop {
-            match self.tx.send(try!(parse_frame(&mut self.transport, compressor))) {
+            let event_opt = try!(parse_frame(&mut self.transport, compressor))
+                .get_body()
+                .into_server_event();
+
+            let event = if event_opt.is_some() {
+                event_opt.unwrap().event as ServerEvent
+            } else {
+                continue;
+            };
+            match self.tx.send(event) {
                 Err(err) => return Err(error::Error::General(err.description().to_string())),
                 _ => continue
             }
@@ -64,11 +73,11 @@ impl <X:CDRSTransport> Listener <X> {
 /// `EventStream` is an iterator which returns new events once they come.
 /// It is similar to `Receiver::iter`.
 pub struct EventStream {
-    rx: Receiver<Frame>
+    rx: Receiver<ServerEvent>
 }
 
 impl Iterator for EventStream {
-    type Item = Frame;
+    type Item = ServerEvent;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.rx.recv().ok()

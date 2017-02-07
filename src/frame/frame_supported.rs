@@ -1,7 +1,13 @@
 use std::collections::HashMap;
 use std::io::Cursor;
-use super::super::FromCursor;
-use types::*;
+use FromCursor;
+use types::{
+    SHORT_LEN,
+    cursor_next_value,
+    from_bytes,
+    CString,
+    CStringList
+};
 
 #[derive(Debug)]
 pub struct BodyResSupported {
@@ -22,5 +28,28 @@ impl FromCursor for BodyResSupported {
         BodyResSupported {
             data: map
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+    use FromCursor;
+    use super::*;
+
+    #[test]
+    fn test_name() {
+        let bytes = vec![
+            0, 1, // n options
+            // 1-st option
+            0, 2, 97, 98, // key [string] "ab"
+            0, 2, 0, 1, 97, 0, 1, 98 // value ["a", "b"]
+        ];
+        let mut cursor = Cursor::new(bytes);
+        let options = BodyResSupported::from_cursor(&mut cursor).data;
+        assert_eq!(options.len(), 1);
+        let option_ab = options.get(&"ab".to_string()).unwrap();
+        assert_eq!(option_ab[0], "a".to_string());
+        assert_eq!(option_ab[1], "b".to_string());
     }
 }

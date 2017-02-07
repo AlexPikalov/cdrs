@@ -68,7 +68,7 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T,X> {
     /// will be decompressed automatically.
     pub fn start(mut self, compressor: Compression) -> error::Result<Session<T,X>> {
         self.compressor = compressor;
-        let startup_frame = Frame::new_req_startup(compressor.into_string()).into_cbytes();
+        let startup_frame = Frame::new_req_startup(compressor.as_str()).into_cbytes();
 
         try!(self.transport.write(startup_frame.as_slice()));
         let start_response = try!(parse_frame(&mut self.transport, &compressor));
