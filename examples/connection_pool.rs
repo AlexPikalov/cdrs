@@ -1,5 +1,4 @@
-// in feature="ssl" imports are unused until examples are implemented
-#![allow(unused_imports, unused_variables)]
+
 extern crate cdrs;
 extern crate r2d2;
 
@@ -10,17 +9,13 @@ use cdrs::connection_manager::ConnectionManager;
 use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::compression::Compression;
 use cdrs::query::QueryBuilder;
-#[cfg(not(feature = "ssl"))]
 use cdrs::transport::Transport;
-#[cfg(feature = "ssl")]
-use cdrs::transport_ssl::Transport;
 
 // default credentials
 const _USER: &'static str = "cassandra";
 const _PASS: &'static str = "cassandra";
 const _ADDR: &'static str = "127.0.0.1:9042";
 
-#[cfg(not(feature = "ssl"))]
 fn main() {
     let config = r2d2::Config::builder()
         .pool_size(15)
@@ -53,9 +48,4 @@ fn main() {
         let res = rx.recv().unwrap();
         println!("{:?}", res);
     }
-}
-
-#[cfg(feature = "ssl")]
-fn main() {
-    unimplemented!()
 }

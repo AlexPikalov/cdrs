@@ -1,9 +1,7 @@
 //! The modules which contains CDRS Cassandra client.
 use std::net;
 use std::io;
-use std::io::Write;
 use std::collections::HashMap;
-
 use query::{Query, QueryParams, QueryBatch};
 use frame::{Frame, Opcode, Flag};
 use frame::frame_response::ResponseBody;
@@ -15,40 +13,29 @@ use frame::events::SimpleServerEvent;
 use compression::Compression;
 use authenticators::Authenticator;
 use error;
-#[cfg(not(feature = "ssl"))]
-use transport::Transport;
-#[cfg(feature = "ssl")]
-use transport_ssl::Transport;
-use events::{Listener, EventStream, new_listener};
+use transport::CDRSTransport;
 
-/// DB user's credentials.
-#[derive(Clone, Debug)]
-pub struct Credentials {
-    /// DB user's username
-    pub username: String,
-    /// DB user's password
-    pub password: String
-}
+use events::{Listener, EventStream, new_listener};
 
 /// CDRS driver structure that provides a basic functionality to work with DB including
 /// establishing new connection, getting supported options, preparing and executing CQL
 /// queries, using compression and other.
-pub struct CDRS<T: Authenticator> {
+pub struct CDRS<T: Authenticator,X:CDRSTransport> {
     compressor: Compression,
     authenticator: T,
-    transport: Transport
+    transport: X
 }
 
 /// Map of options supported by Cassandra server.
 pub type CassandraOptions = HashMap<String, Vec<String>>;
 
-impl<'a, T: Authenticator + 'a> CDRS<T> {
+impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T,X> {
     /// The method creates new instance of CDRS driver. At this step an instance doesn't
     /// connected to DB Server. To create new instance two parameters are needed to be
     /// provided - `addr` is IP address of DB Server, `authenticator` is a selected authenticator
     /// that is supported by particular DB Server. There are few authenticators already
     /// provided by this trait.
-    pub fn new(transport: Transport, authenticator: T) -> CDRS<T> {
+    pub fn new(transport: X, authenticator: T) -> CDRS<T,X> {
         return CDRS {
             compressor: Compression::None,
             authenticator: authenticator,
@@ -79,7 +66,7 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
     /// method provided by CRDR driver, it's `Compression::None` that tells drivers that it
     /// should work without compression. If compression is provided then incomming frames
     /// will be decompressed automatically.
-    pub fn start(mut self, compressor: Compression) -> error::Result<Session<T>> {
+    pub fn start(mut self, compressor: Compression) -> error::Result<Session<T,X>> {
         self.compressor = compressor;
         let startup_frame = Frame::new_req_startup(compressor.as_str()).into_cbytes();
 
@@ -141,15 +128,15 @@ impl<'a, T: Authenticator + 'a> CDRS<T> {
 }
 
 /// The object that provides functionality for communication with Cassandra server.
-pub struct Session<T: Authenticator> {
+pub struct Session<T: Authenticator,X: CDRSTransport> {
     started: bool,
-    cdrs: CDRS<T>,
+    cdrs: CDRS<T,X>,
     compressor: Compression
 }
 
-impl<T: Authenticator> Session<T> {
+impl<T: Authenticator,X: CDRSTransport> Session<T,X> {
     /// Creates new session basing on CDRS instance.
-    pub fn start(cdrs: CDRS<T>) -> Session<T> {
+    pub fn start(cdrs: CDRS<T,X>) -> Session<T,X> {
         let compressor = cdrs.compressor.clone();
         return Session {
             cdrs: cdrs,
@@ -283,13 +270,10 @@ impl<T: Authenticator> Session<T> {
     }
 
     /// It consumes CDRS
-    pub fn listen_for<'a>(
-        mut self,
-        events: Vec<SimpleServerEvent>
-    ) -> error::Result<(Listener, EventStream)> {
+    pub fn  listen_for<'a>(mut self, events: Vec<SimpleServerEvent>) -> error::Result<(Listener<X>, EventStream)> {
         let query_frame = Frame::new_req_register(events).into_cbytes();
         try!(self.cdrs.transport.write(query_frame.as_slice()));
         try!(parse_frame(&mut self.cdrs.transport, &self.compressor));
-        return Ok(new_listener(self.cdrs.transport));
+        Ok(new_listener(self.cdrs.transport))
     }
 }
