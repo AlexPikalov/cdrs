@@ -33,4 +33,6 @@ after_success:
    rm -rf kcov-master &&
    for file in target/debug/cdrs-*; do mkdir -p "target/cov/$(basename $file)"; kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done &&
    bash <(curl -s https://codecov.io/bash) &&
+   rm -rf target/cov &&
+   for file in target/debug/cdrs-*; do mkdir -p "target/coverall/$(basename $file)"; kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo,/usr/lib --verify "target/coverall/$(basename $file)" "$file"; done &&
    echo "Uploaded code coverage"
