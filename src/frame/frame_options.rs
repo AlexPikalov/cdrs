@@ -8,7 +8,7 @@ pub struct BodyReqOptions;
 impl BodyReqOptions {
     /// Creates new body of a frame of type `options`
     pub fn new() -> BodyReqOptions {
-        BodyReqOptions{}
+        BodyReqOptions {}
     }
 }
 
@@ -38,7 +38,7 @@ impl Frame {
             body: body.into_cbytes(),
             // for request frames it's always None
             tracing_id: None,
-            warnings: vec![]
+            warnings: vec![],
         }
     }
 }

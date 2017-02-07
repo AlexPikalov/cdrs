@@ -3,11 +3,8 @@ use std::iter::Iterator;
 
 use std::error::Error;
 use error;
-use frame::events::{
-    ServerEvent as FrameServerEvent,
-    SimpleServerEvent as FrameSimpleServerEvent,
-    SchemaChange as FrameSchemaChange
-};
+use frame::events::{ServerEvent as FrameServerEvent, SimpleServerEvent as FrameSimpleServerEvent,
+                    SchemaChange as FrameSchemaChange};
 use frame::parser::parse_frame;
 use compression::Compression;
 use transport::CDRSTransport;
@@ -34,7 +31,7 @@ pub fn new_listener<X>(transport: X) -> (Listener<X>, EventStream) {
     let (tx, rx) = channel();
     let listener = Listener {
         transport: transport,
-        tx: tx
+        tx: tx,
     };
     let stream = EventStream { rx: rx };
     (listener, stream)
@@ -46,10 +43,10 @@ pub fn new_listener<X>(transport: X) -> (Listener<X>, EventStream) {
 
 pub struct Listener<X> {
     transport: X,
-    tx: Sender<ServerEvent>
+    tx: Sender<ServerEvent>,
 }
 
-impl <X:CDRSTransport> Listener <X> {
+impl<X: CDRSTransport> Listener<X> {
     /// It starts a process of listening to new events. Locks a frame.
     pub fn start(&mut self, compressor: &Compression) -> error::Result<()> {
         loop {
@@ -64,7 +61,7 @@ impl <X:CDRSTransport> Listener <X> {
             };
             match self.tx.send(event) {
                 Err(err) => return Err(error::Error::General(err.description().to_string())),
-                _ => continue
+                _ => continue,
             }
         }
     }
@@ -73,7 +70,7 @@ impl <X:CDRSTransport> Listener <X> {
 /// `EventStream` is an iterator which returns new events once they come.
 /// It is similar to `Receiver::iter`.
 pub struct EventStream {
-    rx: Receiver<ServerEvent>
+    rx: Receiver<ServerEvent>,
 }
 
 impl Iterator for EventStream {

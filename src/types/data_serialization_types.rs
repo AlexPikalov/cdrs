@@ -11,7 +11,7 @@ use FromCursor;
 
 // Decodes Cassandra `ascii` data (bytes) into Rust's `Result<String, FromUtf8Error>`.
 pub fn decode_custom(bytes: Vec<u8>) -> Result<String, FromUtf8Error> {
-     String::from_utf8(bytes)
+    String::from_utf8(bytes)
 }
 
 // Decodes Cassandra `ascii` data (bytes) into Rust's `Result<String, FromUtf8Error>`.
@@ -21,18 +21,18 @@ pub fn decode_ascii(bytes: Vec<u8>) -> Result<String, FromUtf8Error> {
 
 // Decodes Cassandra `varchar` data (bytes) into Rust's `Result<String, FromUtf8Error>`.
 pub fn decode_varchar(bytes: Vec<u8>) -> Result<String, FromUtf8Error> {
-     String::from_utf8(bytes)
+    String::from_utf8(bytes)
 }
 
 // Decodes Cassandra `bigint` data (bytes) into Rust's `Result<i32, io::Error>`
 pub fn decode_bigint(bytes: Vec<u8>) -> Result<i64, io::Error> {
-     try_from_bytes(bytes).map(|i| i as i64)
+    try_from_bytes(bytes).map(|i| i as i64)
 }
 
 // Decodes Cassandra `blob` data (bytes) into Rust's `Result<Vec<u8>, io::Error>`
 pub fn decode_blob(bytes: Vec<u8>) -> Result<Vec<u8>, io::Error> {
     // in fact we just pass it through.
-     Ok(bytes)
+    Ok(bytes)
 }
 
 // Decodes Cassandra `boolean` data (bytes) into Rust's `Result<i32, io::Error>`
@@ -90,9 +90,7 @@ pub fn decode_float(bytes: Vec<u8>) -> Result<f32, io::Error> {
 pub fn decode_inet(bytes: Vec<u8>) -> Result<net::IpAddr, io::Error> {
     match bytes.len() {
         // v4
-        4 => {
-            Ok(net::IpAddr::V4(net::Ipv4Addr::new(bytes[0], bytes[1], bytes[2], bytes[3])))
-        },
+        4 => Ok(net::IpAddr::V4(net::Ipv4Addr::new(bytes[0], bytes[1], bytes[2], bytes[3]))),
         // v6
         16 => {
             let a = from_u16_bytes(bytes[0..2].to_vec());
@@ -104,8 +102,8 @@ pub fn decode_inet(bytes: Vec<u8>) -> Result<net::IpAddr, io::Error> {
             let g = from_u16_bytes(bytes[12..14].to_vec());
             let h = from_u16_bytes(bytes[14..16].to_vec());
             Ok(net::IpAddr::V6(net::Ipv6Addr::new(a, b, c, d, e, f, g, h)))
-        },
-        _ => unreachable!()
+        }
+        _ => unreachable!(),
     }
 }
 
@@ -137,9 +135,11 @@ pub fn decode_set(bytes: Vec<u8>) -> Result<Vec<CBytes>, io::Error> {
 pub fn decode_map(bytes: Vec<u8>) -> Result<Vec<(CBytes, CBytes)>, io::Error> {
     let mut cursor: io::Cursor<Vec<u8>> = io::Cursor::new(bytes);
     let l = CInt::from_cursor(&mut cursor);
-    let list = (0..l).map(|_| {
-        return (CBytes::from_cursor(&mut cursor), CBytes::from_cursor(&mut cursor));
-    }).collect();
+    let list = (0..l)
+        .map(|_| {
+            return (CBytes::from_cursor(&mut cursor), CBytes::from_cursor(&mut cursor));
+        })
+        .collect();
     Ok(list)
 }
 

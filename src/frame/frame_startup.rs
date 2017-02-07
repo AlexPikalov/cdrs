@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use frame::*;
-use types::{to_short};
+use types::to_short;
 use IntoBytes;
 
 const CQL_VERSION: &'static str = "CQL_VERSION";
@@ -10,7 +10,7 @@ const COMPRESSION: &'static str = "COMPRESSION";
 
 #[derive(Debug)]
 pub struct BodyReqStartup<'a> {
-    pub map: HashMap<&'static str, &'a str>
+    pub map: HashMap<&'static str, &'a str>,
 }
 
 impl<'a> BodyReqStartup<'a> {
@@ -20,9 +20,7 @@ impl<'a> BodyReqStartup<'a> {
         if let Some(c) = compression {
             map.insert(COMPRESSION, c);
         }
-        BodyReqStartup {
-            map: map
-        }
+        BodyReqStartup { map: map }
     }
 
     // should be [u8; 2]
@@ -71,7 +69,7 @@ impl Frame {
             body: body.into_cbytes(),
             // for request frames it's always None
             tracing_id: None,
-            warnings: vec![]
+            warnings: vec![],
         }
     }
 }

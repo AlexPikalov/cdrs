@@ -27,7 +27,7 @@ pub enum Error {
     /// Internal Compression/Decompression error
     Compression(CompressionError),
     /// Server error.
-    Server(CDRSError)
+    Server(CDRSError),
 }
 
 impl fmt::Display for Error {
@@ -52,7 +52,7 @@ impl error::Error for Error {
             Error::FromUtf8(ref err) => err.description(),
             // FIXME: err.description not found in current scope, std::error::Error not satisfied
             Error::UUIDParse(_) => "UUID Parse Error",
-            Error::General(ref err) => err.as_str()
+            Error::General(ref err) => err.as_str(),
         }
     }
 }

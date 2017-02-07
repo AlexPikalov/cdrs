@@ -8,14 +8,14 @@ pub trait Authenticator: Clone {
 #[derive(Debug, Clone)]
 pub struct PasswordAuthenticator<'a> {
     username: &'a str,
-    password: &'a str
+    password: &'a str,
 }
 
 impl<'a> PasswordAuthenticator<'a> {
     pub fn new<'b>(username: &'b str, password: &'b str) -> PasswordAuthenticator<'b> {
         return PasswordAuthenticator {
             username: username,
-            password: password
+            password: password,
         };
     }
 }
@@ -47,7 +47,6 @@ impl Authenticator for NoneAuthenticator {
     fn get_cassandra_name(&self) -> Option<&str> {
         return None;
     }
-
 }
 
 
@@ -69,7 +68,8 @@ mod tests {
     #[test]
     fn test_password_authenticator_get_cassandra_name() {
         let auth = PasswordAuthenticator::new("foo", "bar");
-        assert_eq!(auth.get_cassandra_name(), Some("org.apache.cassandra.auth.PasswordAuthenticator"));
+        assert_eq!(auth.get_cassandra_name(),
+                   Some("org.apache.cassandra.auth.PasswordAuthenticator"));
     }
 
     #[test]

@@ -2,13 +2,8 @@ use std::io::Cursor;
 
 use FromCursor;
 use frame::Opcode;
-use frame::frame_result::{
-    BodyResResultVoid,
-    BodyResResultPrepared,
-    BodyResResultRows,
-    BodyResResultSetKeyspace,
-    ResResultBody
-};
+use frame::frame_result::{BodyResResultVoid, BodyResResultPrepared, BodyResResultRows,
+                          BodyResResultSetKeyspace, ResResultBody};
 use frame::frame_event::BodyResEvent;
 use frame::frame_error::CDRSError;
 use frame::frame_supported::*;
@@ -34,7 +29,7 @@ pub enum ResponseBody {
     Batch,
     AuthChallenge(BodyResAuthChallenge),
     AuthResponse,
-    AuthSuccess(BodyReqAuthSuccess)
+    AuthSuccess(BodyReqAuthSuccess),
 }
 
 impl ResponseBody {
@@ -54,27 +49,27 @@ impl ResponseBody {
             // response frames
             &Opcode::Error => ResponseBody::Error(CDRSError::from_cursor(&mut cursor)),
             &Opcode::Ready => ResponseBody::Ready(BodyResResultVoid::from_cursor(&mut cursor)),
-            &Opcode::Authenticate => ResponseBody::Authenticate(
-                BodyResAuthenticate::from_cursor(&mut cursor)
-            ),
-            &Opcode::Supported => ResponseBody::Supported(
-                BodyResSupported::from_cursor(&mut cursor)
-            ),
+            &Opcode::Authenticate => {
+                ResponseBody::Authenticate(BodyResAuthenticate::from_cursor(&mut cursor))
+            }
+            &Opcode::Supported => {
+                ResponseBody::Supported(BodyResSupported::from_cursor(&mut cursor))
+            }
             &Opcode::Result => ResponseBody::Result(ResResultBody::from_cursor(&mut cursor)),
             &Opcode::Event => ResponseBody::Event(BodyResEvent::from_cursor(&mut cursor)),
-            &Opcode::AuthChallenge => ResponseBody::AuthChallenge(
-                BodyResAuthChallenge::from_cursor(&mut cursor)
-            ),
-            &Opcode::AuthSuccess => ResponseBody::AuthSuccess(
-                BodyReqAuthSuccess::from_cursor(&mut cursor)
-            )
+            &Opcode::AuthChallenge => {
+                ResponseBody::AuthChallenge(BodyResAuthChallenge::from_cursor(&mut cursor))
+            }
+            &Opcode::AuthSuccess => {
+                ResponseBody::AuthSuccess(BodyReqAuthSuccess::from_cursor(&mut cursor))
+            }
         }
     }
 
     pub fn into_rows(self) -> Option<Vec<Row>> {
         match self {
             ResponseBody::Result(res) => res.into_rows(),
-            _ => None
+            _ => None,
         }
     }
 
@@ -83,10 +78,10 @@ impl ResponseBody {
             &ResponseBody::Result(ref res) => {
                 match res {
                     &ResResultBody::Rows(ref rows) => Some(rows),
-                    _ => None
+                    _ => None,
                 }
-            },
-            _ => None
+            }
+            _ => None,
         }
     }
 
@@ -95,7 +90,7 @@ impl ResponseBody {
     pub fn into_prepared(self) -> Option<BodyResResultPrepared> {
         match self {
             ResponseBody::Result(res) => res.into_prepared(),
-            _ => None
+            _ => None,
         }
     }
 
@@ -104,7 +99,7 @@ impl ResponseBody {
     pub fn into_set_keyspace(self) -> Option<BodyResResultSetKeyspace> {
         match self {
             ResponseBody::Result(res) => res.into_set_keyspace(),
-            _ => None
+            _ => None,
         }
     }
 
@@ -113,16 +108,14 @@ impl ResponseBody {
     pub fn into_server_event(self) -> Option<BodyResEvent> {
         match self {
             ResponseBody::Event(event) => Some(event),
-            _ => None
+            _ => None,
         }
     }
 
     pub fn get_authenticator(&self) -> Option<String> {
         match self {
-            &ResponseBody::Authenticate(ref auth) => {
-                Some(auth.data.clone().into_plain())
-            },
-            _ => None
+            &ResponseBody::Authenticate(ref auth) => Some(auth.data.clone().into_plain()),
+            _ => None,
         }
     }
 }

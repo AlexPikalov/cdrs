@@ -19,14 +19,14 @@ pub enum CompressionError {
     /// Snappy error.
     Snappy(Box<Error>),
     /// Lz4 error.
-    Lz4(String)
+    Lz4(String),
 }
 
 impl fmt::Display for CompressionError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &CompressionError::Snappy(ref err) => write!(f, "Snappy Error: {:?}", err),
-            &CompressionError::Lz4(ref s) => write!(f, "Lz4 Error: {:?}", s)
+            &CompressionError::Lz4(ref s) => write!(f, "Lz4 Error: {:?}", s),
         }
     }
 }
@@ -35,7 +35,7 @@ impl Error for CompressionError {
     fn description(&self) -> &str {
         let desc = match self {
             &CompressionError::Snappy(ref err) => err.description(),
-            &CompressionError::Lz4(ref s) => s.as_str()
+            &CompressionError::Lz4(ref s) => s.as_str(),
         };
 
         return desc;
@@ -65,7 +65,7 @@ pub enum Compression {
     /// [snappy](https://code.google.com/p/snappy/) compression
     Snappy,
     /// Non compression
-    None
+    None,
 }
 
 impl Compression {
@@ -74,7 +74,7 @@ impl Compression {
         return match self {
             &Compression::Lz4 => Compression::encode_lz4(bytes),
             &Compression::Snappy => Compression::encode_snappy(bytes),
-            &Compression::None => Ok(bytes)
+            &Compression::None => Ok(bytes),
         };
     }
 
@@ -83,7 +83,7 @@ impl Compression {
         return match self {
             &Compression::Lz4 => Compression::decode_lz4(bytes),
             &Compression::Snappy => Compression::decode_snappy(bytes),
-            &Compression::None => Ok(bytes)
+            &Compression::None => Ok(bytes),
         };
     }
 
@@ -92,21 +92,19 @@ impl Compression {
         return match self {
             &Compression::Lz4 => Some(LZ4),
             &Compression::Snappy => Some(SNAPPY),
-            &Compression::None => None
+            &Compression::None => None,
         };
     }
 
     fn encode_snappy(bytes: Vec<u8>) -> Result<Vec<u8>> {
         let mut encoder = snap::Encoder::new();
-        return encoder
-            .compress_vec(bytes.as_slice())
+        return encoder.compress_vec(bytes.as_slice())
             .map_err(|err| CompressionError::Snappy(Box::new(err)));
     }
 
     fn decode_snappy(bytes: Vec<u8>) -> Result<Vec<u8>> {
         let mut decoder = snap::Decoder::new();
-        return decoder
-            .decompress_vec(bytes.as_slice())
+        return decoder.decompress_vec(bytes.as_slice())
             .map_err(|err| CompressionError::Snappy(Box::new(err)));
     }
 
@@ -137,7 +135,7 @@ impl<'a> From<&'a str> for Compression {
         return match compression_str {
             LZ4 => Compression::Lz4,
             SNAPPY => Compression::Snappy,
-            _ => Compression::None
+            _ => Compression::None,
         };
     }
 }

@@ -6,7 +6,15 @@ rust:
 matrix:
   allow_failures:
     - rust: nightly
-    
+cache: cargo
+before_script: (cargo install rustfmt || true)
+script:
+- |
+  export PATH=$PATH:~/.cargo/bin &&
+  cargo fmt -- --write-mode=diff &&
+  cargo build &&
+  cargo test
+
 after_success:
     sudo apt-get install libcurl4-openssl-dev libelf-dev libdw-dev &&
     wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
