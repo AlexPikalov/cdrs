@@ -40,7 +40,7 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
         try!(Compression::None.decode(body_bytes))
     };
 
-    // TODO: use cursor to get tracing id, warnings and actual body
+    // Use cursor to get tracing id, warnings and actual body
     let mut body_cursor = Cursor::new(full_body);
 
     let tracing_id = if flags.iter().any(|flag| flag == &Flag::Tracing) {

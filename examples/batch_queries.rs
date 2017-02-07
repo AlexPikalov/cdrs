@@ -1,23 +1,29 @@
+// in feature="ssl" imports are unused until examples are implemented
+#![allow(unused_imports)]
 extern crate cdrs;
 
 use cdrs::client::CDRS;
 use cdrs::query::BatchQueryBuilder;
 use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::compression::Compression;
+#[cfg(not(feature = "ssl"))]
 use cdrs::transport::Transport;
+#[cfg(feature = "ssl")]
+use cdrs::transport_ssl::Transport;
 
 // default credentials
-const USER: &'static str = "cassandra";
-const PASS: &'static str = "cassandra";
-const ADDR: &'static str = "127.0.0.1:9042";
+const _USER: &'static str = "cassandra";
+const _PASS: &'static str = "cassandra";
+const _ADDR: &'static str = "127.0.0.1:9042";
 
 /// First create a keyspace 'keyspace'.
 /// Then create a new table of integers:
 /// CREATE TABLE keyspace.integers (integer int PRIMARY KEY);
 
+#[cfg(not(feature = "ssl"))]
 fn main() {
-    let authenticator = PasswordAuthenticator::new(USER, PASS);
-    let tcp_transport = Transport::new(ADDR).unwrap();
+    let authenticator = PasswordAuthenticator::new(_USER, _PASS);
+    let tcp_transport = Transport::new(_ADDR).unwrap();
     let client = CDRS::new(tcp_transport, authenticator);
     let mut session = client.start(Compression::None).unwrap();
 
@@ -42,4 +48,9 @@ fn main() {
     let batched = session.batch(batch_query, false, false).unwrap();
 
     println!("batch result {:?}", batched.get_body());
+}
+
+#[cfg(feature = "ssl")]
+fn main() {
+    unimplemented!()
 }

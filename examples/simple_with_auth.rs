@@ -1,11 +1,16 @@
-
+// in feature="ssl" imports are unused until examples are implemented
+#![allow(unused_imports, unused_variables)]
 extern crate cdrs;
 use cdrs::client::CDRS;
 use cdrs::query::QueryBuilder;
 use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::compression::Compression;
+#[cfg(not(feature = "ssl"))]
 use cdrs::transport::Transport;
+#[cfg(feature = "ssl")]
+use cdrs::transport_ssl::Transport;
 
+#[cfg(not(feature = "ssl"))]
 fn main() {
 
     let authenticator = PasswordAuthenticator::new("user", "pass");
@@ -39,4 +44,9 @@ fn main() {
     }
 
 
+}
+
+#[cfg(feature = "ssl")]
+fn main() {
+    unimplemented!();
 }

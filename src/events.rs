@@ -12,7 +12,6 @@ use frame::events::{
     SimpleServerEvent as FrameSimpleServerEvent,
     SchemaChange as FrameSchemaChange
 };
-use frame::Frame;
 use frame::parser::parse_frame;
 use compression::Compression;
 
@@ -49,14 +48,23 @@ pub fn new_listener(transport: Transport) -> (Listener, EventStream) {
 /// main thread.
 pub struct Listener {
     transport: Transport,
-    tx: Sender<Frame>
+    tx: Sender<ServerEvent>
 }
 
 impl Listener {
     /// It starts a process of listening to new events. Locks a frame.
     pub fn start(&mut self, compressor: &Compression) -> error::Result<()> {
         loop {
-            match self.tx.send(try!(parse_frame(&mut self.transport, compressor))) {
+            let event_opt = try!(parse_frame(&mut self.transport, compressor))
+                .get_body()
+                .into_server_event();
+
+            let event = if event_opt.is_some() {
+                event_opt.unwrap().event as ServerEvent
+            } else {
+                continue;
+            };
+            match self.tx.send(event) {
                 Err(err) => return Err(error::Error::General(err.description().to_string())),
                 _ => continue
             }
@@ -67,11 +75,11 @@ impl Listener {
 /// `EventStream` is an iterator which returns new events once they come.
 /// It is similar to `Receiver::iter`.
 pub struct EventStream {
-    rx: Receiver<Frame>
+    rx: Receiver<ServerEvent>
 }
 
 impl Iterator for EventStream {
-    type Item = Frame;
+    type Item = ServerEvent;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.rx.recv().ok()

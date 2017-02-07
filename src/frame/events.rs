@@ -1,4 +1,5 @@
 use std::io::Cursor;
+use std::cmp::PartialEq;
 
 use FromCursor;
 use types::{CString, CStringList, CInet};
@@ -32,7 +33,7 @@ const AGGREGATE: &'static str = "AGGREGATE";
 /// Simplified `ServerEvent` that does not contain details
 /// about a concrete change. It may be useful for subscription
 /// when you need only string representation of an event.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum SimpleServerEvent {
     TopologyChange,
     StatusChange,
@@ -49,6 +50,32 @@ impl SimpleServerEvent {
     }
 }
 
+impl From<ServerEvent> for SimpleServerEvent {
+    fn from(event: ServerEvent) -> SimpleServerEvent {
+        match event {
+            ServerEvent::TopologyChange(_) => SimpleServerEvent::TopologyChange,
+            ServerEvent::StatusChange(_) => SimpleServerEvent::TopologyChange,
+            ServerEvent::SchemaChange(_) => SimpleServerEvent::TopologyChange,
+        }
+    }
+}
+
+impl<'a> From<&'a ServerEvent> for SimpleServerEvent {
+    fn from(event: &'a ServerEvent) -> SimpleServerEvent {
+        match event {
+            &ServerEvent::TopologyChange(_) => SimpleServerEvent::TopologyChange,
+            &ServerEvent::StatusChange(_) => SimpleServerEvent::TopologyChange,
+            &ServerEvent::SchemaChange(_) => SimpleServerEvent::TopologyChange,
+        }
+    }
+}
+
+impl PartialEq<ServerEvent> for SimpleServerEvent {
+    fn eq(&self, full_event: &ServerEvent) -> bool {
+        self == &SimpleServerEvent::from(full_event)
+    }
+}
+
 /// Full server event that contains all details about a concreate change.
 #[derive(Debug)]
 pub enum ServerEvent {
@@ -58,6 +85,12 @@ pub enum ServerEvent {
     StatusChange(StatusChange),
     /// Events related to schema change.
     SchemaChange(SchemaChange)
+}
+
+impl PartialEq<SimpleServerEvent> for ServerEvent {
+    fn eq(&self, event: &SimpleServerEvent) -> bool {
+        &SimpleServerEvent::from(self) == event
+    }
 }
 
 impl FromCursor for ServerEvent {
@@ -97,7 +130,7 @@ impl FromCursor for TopologyChange {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TopologyChangeType {
     NewNode,
     RemovedNode
@@ -132,7 +165,7 @@ impl FromCursor for StatusChange {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum StatusChangeType {
     Up,
     Down
@@ -149,7 +182,7 @@ impl FromCursor for StatusChangeType {
 }
 
 /// Events related to schema change.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct SchemaChange {
     pub change_type: ChangeType,
     pub target: Target,
@@ -171,7 +204,7 @@ impl FromCursor for SchemaChange {
 }
 
 /// Represents type of changes.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ChangeType {
     Created,
     Updated,
@@ -190,7 +223,7 @@ impl FromCursor for ChangeType {
 }
 
 /// Refers to a target of changes were made.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Target {
     Keyspace,
     Table,
@@ -213,7 +246,7 @@ impl FromCursor for Target {
 }
 
 /// Option that contains an information about changes were made.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ChangeSchemeOptions {
     /// Changes related to keyspaces. Contains keyspace name.
     Keyspace(String),
