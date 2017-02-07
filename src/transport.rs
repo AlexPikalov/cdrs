@@ -84,12 +84,7 @@ impl TransportTls {
             );
 
         res.and_then(|res| {
-            // transform `Ok(Result<TransportTls,HandshakeError<net::TcpStream>>)` into `Ok(Result<TransportTls, io::Error>)`
-            res
-                // transform n to TransportTls
-                .map(|n: TransportTls| n )
-                // transform `HandshakeError` into `'io::Error`
-                .map_err(|e| io::Error::new(io::ErrorKind::Other,e))
+            res.map(|n: TransportTls| n ).map_err(|e| io::Error::new(io::ErrorKind::Other,e))
 
         })
     }
