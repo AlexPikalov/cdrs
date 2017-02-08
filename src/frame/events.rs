@@ -286,3 +286,104 @@ impl ChangeSchemeOptions {
         ChangeSchemeOptions::Function((keyspace, name, types))
     }
 }
+
+#[cfg(test)]
+mod simple_server_event_test {
+    use super::*;
+
+    #[test]
+    fn as_string() {
+        assert_eq!(SimpleServerEvent::TopologyChange.as_string(), "TOPOLOGY_CHANGE".to_string());
+        assert_eq!(SimpleServerEvent::StatusChange.as_string(), "STATUS_CHANGE".to_string());
+        assert_eq!(SimpleServerEvent::SchemaChange.as_string(), "SCHEMA_CHANGE".to_string());
+    }
+}
+
+#[cfg(test)]
+mod topology_change_type_test {
+    use super::*;
+    use std::io::Cursor;
+    use FromCursor;
+
+    #[test]
+    fn from_cursor() {
+        let mut new_node: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 8, 78, 69, 87, 95, 78, 79, 68, 69]);
+        assert_eq!(TopologyChangeType::from_cursor(&mut new_node),
+            TopologyChangeType::NewNode);
+
+        let mut removed_node: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 12, 82, 69, 77, 79, 86, 69, 68, 95, 78, 79, 68, 69]);
+        assert_eq!(TopologyChangeType::from_cursor(&mut removed_node),
+            TopologyChangeType::RemovedNode);
+    }
+
+    #[test]
+    #[should_panic]
+    fn from_cursor_wrong() {
+        let mut wrong: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 1, 78]);
+        let _ = TopologyChangeType::from_cursor(&mut wrong);
+    }
+}
+
+#[cfg(test)]
+mod status_change_type_test {
+    use super::*;
+    use std::io::Cursor;
+    use FromCursor;
+
+    #[test]
+    fn from_cursor() {
+        let mut up: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 2, 85, 80]);
+        assert_eq!(StatusChangeType::from_cursor(&mut up),
+            StatusChangeType::Up);
+
+        let mut down: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 4, 68, 79, 87, 78]);
+        assert_eq!(StatusChangeType::from_cursor(&mut down),
+            StatusChangeType::Down);
+    }
+
+    #[test]
+    #[should_panic]
+    fn from_cursor_wrong() {
+        let mut wrong: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 1, 78]);
+        let _ = StatusChangeType::from_cursor(&mut wrong);
+    }
+}
+
+#[cfg(test)]
+mod schema_change_type_test {
+    use super::*;
+    use std::io::Cursor;
+    use FromCursor;
+
+    #[test]
+    fn from_cursor() {
+        let mut created: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 7, 67, 82, 69, 65, 84, 69, 68]);
+        assert_eq!(ChangeType::from_cursor(&mut created),
+            ChangeType::Created);
+
+        let mut updated: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 7, 85, 80, 68, 65, 84, 69, 68]);
+        assert_eq!(ChangeType::from_cursor(&mut updated),
+            ChangeType::Updated);
+
+        let mut dropped: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 7, 68, 82, 79, 80, 80, 69, 68]);
+        assert_eq!(ChangeType::from_cursor(&mut dropped),
+            ChangeType::Dropped);
+    }
+
+    #[test]
+    #[should_panic]
+    fn from_cursor_wrong() {
+        let mut wrong: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 1, 78]);
+        let _ = ChangeType::from_cursor(&mut wrong);
+    }
+}
