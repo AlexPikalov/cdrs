@@ -84,8 +84,9 @@ impl ResResultBody {
                 ResResultBody::Prepared(BodyResResultPrepared::from_cursor(&mut cursor))
             }
             ResultKind::SchemaChange => {
-                ResResultBody::Void(BodyResResultVoid::from_cursor(&mut cursor))
+                ResResultBody::SchemaChange(SchemaChange::from_cursor(&mut cursor))
             }
+
 
         }
     }
