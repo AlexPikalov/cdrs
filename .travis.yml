@@ -1,4 +1,5 @@
 language: rust
+cache: cargo
 rust:
   - stable
   - beta
@@ -17,13 +18,15 @@ before_install:
   - sudo sh ./apache-cassandra-3.9/bin/cassandra -R
   - sleep 20
 
-cache: cargo
-before_script: (cargo install rustfmt || true)
+
+install:
+  - (cargo install rustfmt || true)
+  - PATH=$PATH:/home/travis/.cargo/bin
+
 script:
-- |
-  cargo fmt -- --write-mode=diff &&
-  cargo build &&
-  cargo test
+  - cargo fmt -- --write-mode=diff
+  - cargo build --verbose
+  - cargo test --verbose
 
 addons:
   apt:
