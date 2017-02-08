@@ -87,7 +87,6 @@ impl ResResultBody {
                 ResResultBody::SchemaChange(SchemaChange::from_cursor(&mut cursor))
             }
 
-
         }
     }
 
