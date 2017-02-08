@@ -35,18 +35,7 @@ fn it_works() {
     let with_warnings = false;
 
 
-    let drop_ks_query = QueryBuilder::new(drop_ks)
-        .consistency(Consistency::One)
-        .finalize();
 
-    let drop_ks_query_result =  session.query(drop_ks_query, with_tracing, with_warnings) ;
-
-    assert_eq!(drop_ks_query_result.is_ok(), true);
-
-    match drop_ks_query_result {
-        Ok(ref res) => println!("keyspace dropped: {:?}", res.get_body()),
-        Err(ref err) => println!("Error occured: {:?}", err)
-    }
 
     let create_ks_query = QueryBuilder::new(create_ks_cql)
         .consistency(Consistency::One)
@@ -68,6 +57,19 @@ fn it_works() {
         .finalize();
     match session.query(create_table_query, with_tracing, with_warnings) {
         Ok(ref res) => println!("table created: {:?}", res.get_body()),
+        Err(ref err) => println!("Error occured: {:?}", err)
+    }
+
+    let drop_ks_query = QueryBuilder::new(drop_ks)
+        .consistency(Consistency::One)
+        .finalize();
+
+    let drop_ks_query_result =  session.query(drop_ks_query, with_tracing, with_warnings) ;
+
+    assert_eq!(drop_ks_query_result.is_ok(), true);
+
+    match drop_ks_query_result {
+        Ok(ref res) => println!("keyspace dropped: {:?}", res.get_body()),
         Err(ref err) => println!("Error occured: {:?}", err)
     }
 }
