@@ -7,6 +7,9 @@ matrix:
   allow_failures:
     - rust: nightly
 
+services:
+  - cassandra
+
 addons:
   apt:
     packages:
