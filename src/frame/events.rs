@@ -37,7 +37,7 @@ const AGGREGATE: &'static str = "AGGREGATE";
 pub enum SimpleServerEvent {
     TopologyChange,
     StatusChange,
-    SchemaChange
+    SchemaChange,
 }
 
 impl SimpleServerEvent {
@@ -45,7 +45,7 @@ impl SimpleServerEvent {
         match self {
             &SimpleServerEvent::TopologyChange => String::from(TOPOLOGY_CHANGE),
             &SimpleServerEvent::StatusChange => String::from(STATUS_CHANGE),
-            &SimpleServerEvent::SchemaChange => String::from(SCHEMA_CHANGE)
+            &SimpleServerEvent::SchemaChange => String::from(SCHEMA_CHANGE),
         }
     }
 }
@@ -84,7 +84,7 @@ pub enum ServerEvent {
     /// Events related to change of node status.
     StatusChange(StatusChange),
     /// Events related to schema change.
-    SchemaChange(SchemaChange)
+    SchemaChange(SchemaChange),
 }
 
 impl PartialEq<SimpleServerEvent> for ServerEvent {
@@ -97,16 +97,12 @@ impl FromCursor for ServerEvent {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ServerEvent {
         let event_type = CString::from_cursor(&mut cursor);
         match event_type.as_str() {
-            TOPOLOGY_CHANGE => ServerEvent::TopologyChange(
-                TopologyChange::from_cursor(&mut cursor)
-            ),
-            STATUS_CHANGE => ServerEvent::StatusChange(
-                StatusChange::from_cursor(&mut cursor)
-            ),
-            SCHEMA_CHANGE => ServerEvent::SchemaChange(
-                SchemaChange::from_cursor(&mut cursor)
-            ),
-            _ => unreachable!()
+            TOPOLOGY_CHANGE => {
+                ServerEvent::TopologyChange(TopologyChange::from_cursor(&mut cursor))
+            }
+            STATUS_CHANGE => ServerEvent::StatusChange(StatusChange::from_cursor(&mut cursor)),
+            SCHEMA_CHANGE => ServerEvent::SchemaChange(SchemaChange::from_cursor(&mut cursor)),
+            _ => unreachable!(),
         }
     }
 }
@@ -115,7 +111,7 @@ impl FromCursor for ServerEvent {
 #[derive(Debug)]
 pub struct TopologyChange {
     pub change_type: TopologyChangeType,
-    pub addr: CInet
+    pub addr: CInet,
 }
 
 impl FromCursor for TopologyChange {
@@ -125,7 +121,7 @@ impl FromCursor for TopologyChange {
 
         TopologyChange {
             change_type: change_type,
-            addr: addr
+            addr: addr,
         }
     }
 }
@@ -133,7 +129,7 @@ impl FromCursor for TopologyChange {
 #[derive(Debug, PartialEq)]
 pub enum TopologyChangeType {
     NewNode,
-    RemovedNode
+    RemovedNode,
 }
 
 impl FromCursor for TopologyChangeType {
@@ -141,7 +137,7 @@ impl FromCursor for TopologyChangeType {
         match CString::from_cursor(&mut cursor).as_str() {
             NEW_NODE => TopologyChangeType::NewNode,
             REMOVED_NODE => TopologyChangeType::RemovedNode,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -150,7 +146,7 @@ impl FromCursor for TopologyChangeType {
 #[derive(Debug)]
 pub struct StatusChange {
     pub change_type: StatusChangeType,
-    pub addr: CInet
+    pub addr: CInet,
 }
 
 impl FromCursor for StatusChange {
@@ -160,7 +156,7 @@ impl FromCursor for StatusChange {
 
         StatusChange {
             change_type: change_type,
-            addr: addr
+            addr: addr,
         }
     }
 }
@@ -168,7 +164,7 @@ impl FromCursor for StatusChange {
 #[derive(Debug, PartialEq)]
 pub enum StatusChangeType {
     Up,
-    Down
+    Down,
 }
 
 impl FromCursor for StatusChangeType {
@@ -176,7 +172,7 @@ impl FromCursor for StatusChangeType {
         match CString::from_cursor(&mut cursor).as_str() {
             UP => StatusChangeType::Up,
             DOWN => StatusChangeType::Down,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -186,7 +182,7 @@ impl FromCursor for StatusChangeType {
 pub struct SchemaChange {
     pub change_type: ChangeType,
     pub target: Target,
-    pub options: ChangeSchemeOptions
+    pub options: ChangeSchemeOptions,
 }
 
 impl FromCursor for SchemaChange {
@@ -198,7 +194,7 @@ impl FromCursor for SchemaChange {
         SchemaChange {
             change_type: change_type,
             target: target,
-            options: options
+            options: options,
         }
     }
 }
@@ -208,7 +204,7 @@ impl FromCursor for SchemaChange {
 pub enum ChangeType {
     Created,
     Updated,
-    Dropped
+    Dropped,
 }
 
 impl FromCursor for ChangeType {
@@ -217,7 +213,7 @@ impl FromCursor for ChangeType {
             CREATED => ChangeType::Created,
             UPDATED => ChangeType::Updated,
             DROPPED => ChangeType::Dropped,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -229,7 +225,7 @@ pub enum Target {
     Table,
     Type,
     Function,
-    Aggregate
+    Aggregate,
 }
 
 impl FromCursor for Target {
@@ -240,7 +236,7 @@ impl FromCursor for Target {
             TYPE => Target::Type,
             FUNCTION => Target::Function,
             AGGREGATE => Target::Aggregate,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -256,21 +252,23 @@ pub enum ChangeSchemeOptions {
     /// * keyspace containing the user defined function / aggregate
     /// * the function/aggregate name
     /// * list of strings, one string for each argument type (as CQL type)
-    Function((String, String, Vec<String>))
+    Function((String, String, Vec<String>)),
 }
 
 impl ChangeSchemeOptions {
-    fn from_cursor_and_target(mut cursor: &mut Cursor<Vec<u8>>, target: &Target)
-        -> ChangeSchemeOptions {
+    fn from_cursor_and_target(mut cursor: &mut Cursor<Vec<u8>>,
+                              target: &Target)
+                              -> ChangeSchemeOptions {
         match target {
             &Target::Keyspace => ChangeSchemeOptions::from_cursor_keyspace(&mut cursor),
             &Target::Table | &Target::Type => ChangeSchemeOptions::from_cursor_table(&mut cursor),
-            &Target::Function | &Target::Aggregate => ChangeSchemeOptions::from_cursor_function(&mut cursor)
+            &Target::Function |
+            &Target::Aggregate => ChangeSchemeOptions::from_cursor_function(&mut cursor),
         }
     }
 
     fn from_cursor_keyspace(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeSchemeOptions {
-         ChangeSchemeOptions::Keyspace(CString::from_cursor(&mut cursor).into_plain())
+        ChangeSchemeOptions::Keyspace(CString::from_cursor(&mut cursor).into_plain())
     }
 
     fn from_cursor_table(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeSchemeOptions {

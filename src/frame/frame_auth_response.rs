@@ -4,7 +4,7 @@ use frame::*;
 
 #[derive(Debug)]
 pub struct BodyReqAuthResponse {
-    data: CBytes
+    data: CBytes,
 }
 
 impl BodyReqAuthResponse {
@@ -39,17 +39,18 @@ impl Frame {
             body: body.into_cbytes(),
             // for request frames it's always None
             tracing_id: None,
-            warnings: vec![]
+            warnings: vec![],
         }
     }
 }
+
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use types::CBytes;
     use IntoBytes;
-    use frame::*;
+
 
     #[test]
     fn body_req_auth_response() {
@@ -62,6 +63,7 @@ mod tests {
     fn frame_body_req_auth_response() {
         let bytes = vec![1, 2, 3];
         let frame = Frame::new_req_auth_response(bytes);
+
         assert_eq!(frame.version, Version::Request);
         assert_eq!(frame.flags, vec![Flag::Ignore]);
         assert_eq!(frame.stream, 0);

@@ -5,15 +5,13 @@ use IntoBytes;
 /// Struct that represents a body of a frame of type `prepare`
 #[derive(Debug)]
 pub struct BodyReqPrepare {
-    query: CStringLong
+    query: CStringLong,
 }
 
 impl BodyReqPrepare {
     /// Creates new body of a frame of type `prepare` that prepares query `query`.
     pub fn new(query: String) -> BodyReqPrepare {
-        BodyReqPrepare {
-            query: CStringLong::new(query)
-        }
+        BodyReqPrepare { query: CStringLong::new(query) }
     }
 }
 
@@ -40,7 +38,7 @@ impl Frame {
             body: body.into_cbytes(),
             // for request frames it's always None
             tracing_id: None,
-            warnings: vec![]
+            warnings: vec![],
         }
     }
 }

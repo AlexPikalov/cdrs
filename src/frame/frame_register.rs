@@ -5,7 +5,7 @@ use types::{CStringList, CString};
 
 /// The structure which represents a body of a frame of type `options`.
 pub struct BodyReqRegister {
-    pub events: Vec<SimpleServerEvent>
+    pub events: Vec<SimpleServerEvent>,
 }
 
 impl IntoBytes for BodyReqRegister {
@@ -14,7 +14,7 @@ impl IntoBytes for BodyReqRegister {
             list: self.events
                 .iter()
                 .map(|event| CString::new(event.as_string()))
-                .collect()
+                .collect(),
         };
         events_string_list.into_cbytes()
     }
@@ -40,7 +40,7 @@ impl Frame {
             body: register_body.into_cbytes(),
             // for request frames it's always None
             tracing_id: None,
-            warnings: vec![]
+            warnings: vec![],
         }
     }
 }

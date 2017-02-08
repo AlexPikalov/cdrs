@@ -36,6 +36,6 @@ fn main() {
 
     match session.query(create_table_query, with_tracing, with_warnings) {
         Ok(ref res) => println!("table created: {:?}", res.get_body()),
-        Err(ref err) => println!("Error occured: {:?}", err)
+        Err(ref err) => println!("Error occured: {:?}", err),
     }
 }

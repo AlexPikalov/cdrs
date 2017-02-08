@@ -15,7 +15,7 @@ pub struct BodyReqBatch {
     /// https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L409
     pub query_flags: Vec<QueryFlags>,
     pub serial_consistency: Option<Consistency>,
-    pub timestamp: Option<i64>
+    pub timestamp: Option<i64>,
 }
 
 impl IntoBytes for BodyReqBatch {
@@ -37,7 +37,7 @@ impl IntoBytes for BodyReqBatch {
 
         let flag_byte = self.query_flags
             .iter()
-            .fold(0, |mut _bytes, f|  _bytes | f.as_byte());
+            .fold(0, |mut _bytes, f| _bytes | f.as_byte());
         bytes.push(flag_byte);
 
         if let Some(ref serial_consistency) = self.serial_consistency {
@@ -62,7 +62,7 @@ pub enum BatchType {
     Unlogged,
     /// The batch will be a "counter" batch (and non-counter
     /// statements will be rejected).
-    Counter
+    Counter,
 }
 
 impl FromSingleByte for BatchType {
@@ -71,7 +71,7 @@ impl FromSingleByte for BatchType {
             0 => BatchType::Logged,
             1 => BatchType::Unlogged,
             2 => BatchType::Counter,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -81,7 +81,7 @@ impl AsByte for BatchType {
         match self {
             &BatchType::Logged => 0,
             &BatchType::Unlogged => 1,
-            &BatchType::Counter => 2
+            &BatchType::Counter => 2,
         }
     }
 }
@@ -100,14 +100,14 @@ pub struct BatchQuery {
     /// to implement. This will be fixed in a future version of the native
     /// protocol. See https://issues.apache.org/jira/browse/CASSANDRA-10246 for
     /// more details
-    pub values: Vec<(Option<CString>, Value)>
+    pub values: Vec<(Option<CString>, Value)>,
 }
 
 /// It contains either an id of prepared query or CQL string.
 #[derive(Debug, Clone)]
 pub enum BatchQuerySubj {
     PreparedId(CBytesShort),
-    QueryString(CStringLong)
+    QueryString(CStringLong),
 }
 
 impl IntoBytes for BatchQuery {
@@ -124,7 +124,7 @@ impl IntoBytes for BatchQuery {
         match self.subject {
             BatchQuerySubj::PreparedId(ref s) => {
                 bytes.extend_from_slice(s.into_cbytes().as_slice());
-            },
+            }
             BatchQuerySubj::QueryString(ref s) => {
                 bytes.extend_from_slice(s.into_cbytes().as_slice());
             }
@@ -150,10 +150,7 @@ impl IntoBytes for BatchQuery {
 
 impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
-    pub fn new_req_batch(
-        query: BodyReqBatch,
-        flags: Vec<Flag>
-    ) -> Frame {
+    pub fn new_req_batch(query: BodyReqBatch, flags: Vec<Flag>) -> Frame {
         let version = Version::Request;
         // sync client
         let stream: u64 = 0;
@@ -167,7 +164,7 @@ impl Frame {
             body: query.into_cbytes(),
             // for request frames it's always None
             tracing_id: None,
-            warnings: vec![]
+            warnings: vec![],
         }
     }
 }

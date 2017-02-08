@@ -2,6 +2,8 @@
 [![crates.io version](https://img.shields.io/crates/v/cdrs.svg)](https://crates.io/crates/cdrs)
 
 [![Coverage Status](https://coveralls.io/repos/github/harrydevnull/cdrs/badge.svg?branch=master)](https://coveralls.io/github/harrydevnull/cdrs?branch=master)
+[![codecov](https://codecov.io/gh/harrydevnull/cdrs/branch/master/graph/badge.svg)](https://codecov.io/gh/harrydevnull/cdrs)
+
 
 **CDRS** is a native Cassandra driver written in [Rust](https://www.rust-lang.org).
 The motivation to write it in Rust is a lack of native one.
@@ -420,8 +422,9 @@ Please refer to each project's style guidelines and guidelines for submitting pa
  1. **Fork** the repo on GitHub
  2. **Clone** the project to your own machine
  3. **Commit** changes to your own branch
- 4. **Push** your work back up to your fork
- 5. Submit a **Pull request** so that we can review your changes
+ 4. **Run  ```cargo test --all-features && cargo fmt -- --write-mode=diff```
+ 5. **Push** your work back up to your fork
+ 6. Submit a **Pull request** so that we can review your changes
 
 NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 while running the tests you might need a local cassandra server working.

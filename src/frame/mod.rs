@@ -46,7 +46,7 @@ pub struct Frame {
     pub stream: u64, // we're going to use 0 here until async client is implemented
     pub body: Vec<u8>,
     pub tracing_id: Option<Uuid>,
-    pub warnings: Vec<String>
+    pub warnings: Vec<String>,
 }
 
 impl Frame {
@@ -106,14 +106,14 @@ impl<'a> IntoBytes for Frame {
 #[derive(Debug, PartialEq)]
 pub enum Version {
     Request,
-    Response
+    Response,
 }
 
 impl AsByte for Version {
     fn as_byte(&self) -> u8 {
         match self {
             &Version::Request => 0x04,
-            &Version::Response => 0x84
+            &Version::Response => 0x84,
         }
     }
 }
@@ -121,8 +121,12 @@ impl AsByte for Version {
 impl From<Vec<u8>> for Version {
     fn from(v: Vec<u8>) -> Version {
         if v.len() != VERSION_LEN {
-            error!("Unexpected Cassandra verion. Should has {} byte(-s), got {:?}", VERSION_LEN, v);
-            panic!("Unexpected Cassandra verion. Should has {} byte(-s), got {:?}", VERSION_LEN, v);
+            error!("Unexpected Cassandra verion. Should has {} byte(-s), got {:?}",
+                   VERSION_LEN,
+                   v);
+            panic!("Unexpected Cassandra verion. Should has {} byte(-s), got {:?}",
+                   VERSION_LEN,
+                   v);
         }
         match v[0] {
             0x04 => Version::Request,
@@ -143,7 +147,7 @@ pub enum Flag {
     Tracing,
     CustomPayload,
     Warning,
-    Ignore
+    Ignore,
 }
 
 impl Flag {
@@ -171,24 +175,23 @@ impl Flag {
 
     /// The method converts a serie of `Flag`-s into a single byte.
     pub fn many_to_cbytes(flags: &Vec<Flag>) -> u8 {
-         flags
-            .iter()
+        flags.iter()
             .fold(Flag::Ignore.as_byte(), |acc, f| acc | f.as_byte())
     }
 
     /// Indicates if flags contains `Flag::Compression`
     pub fn has_compression(flags: u8) -> bool {
-         (flags & Flag::Compression.as_byte()) > 0
+        (flags & Flag::Compression.as_byte()) > 0
     }
 
     /// Indicates if flags contains `Flag::Tracing`
     pub fn has_tracing(flags: u8) -> bool {
-         (flags & Flag::Tracing.as_byte()) > 0
+        (flags & Flag::Tracing.as_byte()) > 0
     }
 
     /// Indicates if flags contains `Flag::CustomPayload`
     pub fn has_custom_payload(flags: u8) -> bool {
-         (flags & Flag::CustomPayload.as_byte()) > 0
+        (flags & Flag::CustomPayload.as_byte()) > 0
     }
 
     /// Indicates if flags contains `Flag::Warning`
@@ -204,8 +207,9 @@ impl AsByte for Flag {
             &Flag::Tracing => 0x02,
             &Flag::CustomPayload => 0x04,
             &Flag::Warning => 0x08,
-            &Flag::Ignore => 0x00 // assuming that ingoring value whould be other than [0x01, 0x02, 0x04, 0x08]
-         }
+            &Flag::Ignore => 0x00,
+            // assuming that ingoring value whould be other than [0x01, 0x02, 0x04, 0x08]
+        }
     }
 }
 
@@ -216,7 +220,7 @@ impl From<u8> for Flag {
             0x02 => Flag::Tracing,
             0x04 => Flag::CustomPayload,
             0x08 => Flag::Warning,
-            _ => Flag::Ignore // ignore by specification
+            _ => Flag::Ignore, // ignore by specification
         }
     }
 }
@@ -238,7 +242,7 @@ pub enum Opcode {
     Batch,
     AuthChallenge,
     AuthResponse,
-    AuthSuccess
+    AuthSuccess,
 }
 
 impl AsByte for Opcode {
@@ -259,7 +263,7 @@ impl AsByte for Opcode {
             &Opcode::Batch => 0x0D,
             &Opcode::AuthChallenge => 0x0E,
             &Opcode::AuthResponse => 0x0F,
-            &Opcode::AuthSuccess => 0x10
+            &Opcode::AuthSuccess => 0x10,
         }
     }
 }
@@ -283,7 +287,7 @@ impl From<u8> for Opcode {
             0x0E => Opcode::AuthChallenge,
             0x0F => Opcode::AuthResponse,
             0x10 => Opcode::AuthSuccess,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }

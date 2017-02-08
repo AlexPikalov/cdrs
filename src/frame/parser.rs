@@ -13,7 +13,7 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
     let mut flag_bytes = [0; FLAG_LEN];
     let mut opcode_bytes = [0; OPCODE_LEN];
     let mut stream_bytes = [0; STREAM_LEN];
-    let mut length_bytes =[0; LENGTH_LEN];
+    let mut length_bytes = [0; LENGTH_LEN];
 
     // NOTE: order of reads matters
     try!(cursor.read(&mut version_bytes));
@@ -72,7 +72,7 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
         stream: stream,
         body: body,
         tracing_id: tracing_id,
-        warnings: warnings
+        warnings: warnings,
     };
 
     return conver_frame_into_result(frame);
@@ -80,10 +80,12 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
 
 fn conver_frame_into_result(frame: Frame) -> error::Result<Frame> {
     match frame.opcode {
-        Opcode::Error => match frame.get_body() {
-            ResponseBody::Error(err) => Err(error::Error::Server(err)),
-            _ => unreachable!()
-        },
-        _ => Ok(frame)
+        Opcode::Error => {
+            match frame.get_body() {
+                ResponseBody::Error(err) => Err(error::Error::Server(err)),
+                _ => unreachable!(),
+            }
+        }
+        _ => Ok(frame),
     }
 }

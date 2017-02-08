@@ -4,7 +4,7 @@ use frame::events::ServerEvent;
 
 #[derive(Debug)]
 pub struct BodyResEvent {
-    pub event: ServerEvent
+    pub event: ServerEvent,
 }
 
 impl FromCursor for BodyResEvent {
