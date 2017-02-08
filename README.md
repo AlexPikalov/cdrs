@@ -383,6 +383,47 @@ To find an examples please refer to [examples](./examples/server_events.rs).
 - [x] AUTH_SUCCESS
 
 
+Issues
+------
+
+Feel free to submit issues and enhancement requests.
+
+Contributing
+------------
+
+Please refer to each project's style guidelines and guidelines for submitting patches and additions. In general, we follow the "fork-and-pull" Git workflow.
+
+ 1. **Fork** the repo on GitHub
+ 2. **Clone** the project to your own machine
+ 3. **Commit** changes to your own branch
+ 4. **Push** your work back up to your fork
+ 5. Submit a **Pull request** so that we can review your changes
+
+NOTE: Be sure to merge the latest from "upstream" before making a pull request!
+while running the tests you might need a local cassandra server working.
+The easiest way was to run cassandra on docker on local machine
+
+
+Running Cassandra on Local
+---------------------------
+
+ 1. If you have docker on the machine type the below command
+     ```
+     docker run --name cassandra-1 -d -p 9042:9042 -p 9160:9160 cassandra:2.2.1
+
+     ```
+     `docker ps `
+       should show an output like below
+
+     ```
+        CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                                                                     NAMES
+        a78c3a43bf1b        cassandra:2.2.1     "/docker-entrypoin..."   4 days ago          Up 4 days           7000-7001/tcp, 0.0.0.0:9042->9042/tcp, 7199/tcp, 0.0.0.0:9160->9160/tcp   cassandra-1
+      ```
+
+ 2. If docker is new to your tool set; it is never too late to know this awesome tool https://docs.docker.com/docker-for-mac/
+
+
+
 ### License
 
 The MIT License (MIT)
