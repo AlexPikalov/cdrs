@@ -241,7 +241,7 @@ mod tests {
 
 
     #[test]
-    fn test_compression_encode_snappy_with_non_utf8() {
+    fn test_compression_encode_lz4_with_invalid_input() {
         let lz4_compression = Compression::Lz4;
         let bytes: Vec<u8> = vec![0x7f, 0x7f, 0x7f, 0x7f, 0x7f];
         let encoded = lz4_compression.encode(bytes.clone()).unwrap();
@@ -249,5 +249,13 @@ mod tests {
         assert_eq!(decode.is_err(), true);
     }
 
+
+    #[test]
+    fn test_compression_encode_snappy_with_non_utf8() {
+        let snappy_compression = Compression::Snappy;
+        let v = vec![0xff, 0xff];
+        let encoded = snappy_compression.encode(v.clone()).expect("Should work without exceptions");
+        assert_eq!(snappy_compression.decode(encoded).unwrap(), v);
+    }
 
 }
