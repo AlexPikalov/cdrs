@@ -28,7 +28,35 @@ into Rust structures.
 * [Listen to server events](#listen-to-server-events)
 * [Supported features](#supported-features)
 
-### Creating new connection and authorization
+
+### Creating new connection
+
+To use password authenticator, just include the one implemented in
+`cdrs::authenticators`.
+
+```rust
+use cdrs::client::CDRS;
+use cdrs::authenticators::NoneAuthenticator;
+use cdrs::transport::TransportPlain;
+```
+
+After that you can create a new instance of `CDRS` and establish new connection:
+
+```rust
+let authenticator = NoneAuthenticator;
+let addr = "127.0.0.1:9042";
+let tcp_transport = TransportPlain::new(addr).unwrap();
+
+// pass authenticator and transport into CDRS' constructor
+let client = CDRS::new(tcp_transport, authenticator);
+use cdrs::compression;
+// start session without compression
+let mut session = try!(client.start(compression::None));
+```
+
+
+
+### Creating new connection with authentication
 
 To use password authenticator, just include the one implemented in
 `cdrs::authenticators`.
@@ -53,8 +81,6 @@ use cdrs::compression;
 let mut session = try!(client.start(compression::None));
 ```
 
-If Server does not require authorization `authenticator` won't be used, but is still
-required for the constructor (most probably it will be refactored in future).
 
 ### Creating new encrypted connection
 
