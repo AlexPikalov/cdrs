@@ -7,11 +7,7 @@ use std::thread;
 use cdrs::client::CDRS;
 use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::compression::Compression;
-use cdrs::frame::events::{
-    SimpleServerEvent,
-    ServerEvent,
-    TopologyChangeType
-};
+use cdrs::frame::events::{SimpleServerEvent, ServerEvent, TopologyChangeType};
 use cdrs::transport::TransportPlain;
 
 // default credentials
@@ -27,9 +23,7 @@ fn main() {
 
     let (mut listener, stream) = session.listen_for(vec![SimpleServerEvent::SchemaChange]).unwrap();
 
-    thread::spawn(move|| {
-        listener.start(&Compression::None).unwrap()
-    });
+    thread::spawn(move || listener.start(&Compression::None).unwrap());
 
     let topology_changes = stream
         // inspects all events in a stream

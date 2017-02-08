@@ -1,4 +1,5 @@
 language: rust
+cache: cargo
 rust:
   - stable
   - beta
@@ -7,9 +8,6 @@ matrix:
   allow_failures:
     - rust: nightly
 
-#before_install:
-  #- sudo sh -c "echo 'JVM_OPTS=\"\${JVM_OPTS} -Djava.net.preferIPv4Stack=false\"' >> /usr/local/cassandra/conf/cassandra-env.sh"
-  #- sudo service cassandra start
 
 before_install:
   - sudo update-java-alternatives -s java-8-oracle
@@ -21,9 +19,14 @@ before_install:
   - sleep 20
 
 
-#services:
-  #- cassandra
+install:
+  - (cargo install rustfmt || true)
+  - PATH=$PATH:/home/travis/.cargo/bin
 
+script:
+  - cargo fmt -- --write-mode=diff
+  - cargo build --verbose
+  - cargo test --verbose
 
 addons:
   apt:
@@ -39,7 +42,7 @@ addons:
       - oracle-java8-installer
 
 
-    
+
 after_success:
    wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
    tar xzf master.tar.gz &&

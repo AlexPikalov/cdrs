@@ -32,7 +32,7 @@ pub enum Consistency {
     #[allow(missing_docs)]
     LocalSerial,
     #[allow(missing_docs)]
-    LocalOne
+    LocalOne,
 }
 
 impl Default for Consistency {
@@ -54,7 +54,7 @@ impl IntoBytes for Consistency {
             &Consistency::EachQuorum => to_short(0x0007),
             &Consistency::Serial => to_short(0x0008),
             &Consistency::LocalSerial => to_short(0x0009),
-            &Consistency::LocalOne => to_short(0x000A)
+            &Consistency::LocalOne => to_short(0x000A),
         };
     }
 }
@@ -73,7 +73,7 @@ impl From<i32> for Consistency {
             0x0008 => Consistency::Serial,
             0x0009 => Consistency::LocalSerial,
             0x000A => Consistency::LocalOne,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
     }
 }
@@ -92,7 +92,7 @@ impl FromBytes for Consistency {
             0x0008 => Consistency::Serial,
             0x0009 => Consistency::LocalSerial,
             0x000A => Consistency::LocalOne,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
     }
 }
@@ -150,26 +150,39 @@ mod tests {
         assert_eq!(Consistency::from_bytes(vec![0, 3]), Consistency::Three);
         assert_eq!(Consistency::from_bytes(vec![0, 4]), Consistency::Quorum);
         assert_eq!(Consistency::from_bytes(vec![0, 5]), Consistency::All);
-        assert_eq!(Consistency::from_bytes(vec![0, 6]), Consistency::LocalQuorum);
+        assert_eq!(Consistency::from_bytes(vec![0, 6]),
+                   Consistency::LocalQuorum);
         assert_eq!(Consistency::from_bytes(vec![0, 7]), Consistency::EachQuorum);
         assert_eq!(Consistency::from_bytes(vec![0, 8]), Consistency::Serial);
-        assert_eq!(Consistency::from_bytes(vec![0, 9]), Consistency::LocalSerial);
+        assert_eq!(Consistency::from_bytes(vec![0, 9]),
+                   Consistency::LocalSerial);
         assert_eq!(Consistency::from_bytes(vec![0, 10]), Consistency::LocalOne);
     }
 
     #[test]
     fn test_consistency_from_cursor() {
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 0])), Consistency::Any);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 1])), Consistency::One);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 2])), Consistency::Two);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 3])), Consistency::Three);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 4])), Consistency::Quorum);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 5])), Consistency::All);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 6])), Consistency::LocalQuorum);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 7])), Consistency::EachQuorum);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 8])), Consistency::Serial);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 9])), Consistency::LocalSerial);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 10])), Consistency::LocalOne);
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 0])),
+                   Consistency::Any);
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 1])),
+                   Consistency::One);
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 2])),
+                   Consistency::Two);
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 3])),
+                   Consistency::Three);
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 4])),
+                   Consistency::Quorum);
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 5])),
+                   Consistency::All);
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 6])),
+                   Consistency::LocalQuorum);
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 7])),
+                   Consistency::EachQuorum);
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 8])),
+                   Consistency::Serial);
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 9])),
+                   Consistency::LocalSerial);
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(vec![0, 10])),
+                   Consistency::LocalOne);
     }
 
 }

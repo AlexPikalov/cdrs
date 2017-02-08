@@ -10,7 +10,7 @@ use std::io::{Cursor, Read};
 use std::net::SocketAddr;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt, ByteOrder};
 use {FromBytes, IntoBytes, FromCursor};
-use error::{Result as CDRSResult};
+use error::Result as CDRSResult;
 use types::data_serialization_types::decode_inet;
 
 pub mod data_serialization_types;
@@ -121,7 +121,7 @@ pub fn to_int(int: i64) -> Vec<u8> {
 
 #[derive(Debug, Clone)]
 pub struct CString {
-    string: String
+    string: String,
 }
 
 impl CString {
@@ -172,7 +172,7 @@ impl FromCursor for CString {
 
 #[derive(Debug, Clone)]
 pub struct CStringLong {
-    string: String
+    string: String,
 }
 
 impl CStringLong {
@@ -218,7 +218,7 @@ impl FromCursor for CStringLong {
 
 #[derive(Debug, Clone)]
 pub struct CStringList {
-    pub list: Vec<CString>
+    pub list: Vec<CString>,
 }
 
 impl CStringList {
@@ -261,12 +261,12 @@ impl FromCursor for CStringList {
     }
 }
 
-/**/
+//
 
 #[derive(Debug, Clone)]
 /// The structure that represents Cassandra byte type
 pub struct CBytes {
-    bytes: Vec<u8>
+    bytes: Vec<u8>,
 }
 
 impl CBytes {
@@ -305,7 +305,7 @@ impl IntoBytes for CBytes {
 /// Cassandra short bytes
 #[derive(Debug, Clone)]
 pub struct CBytesShort {
-    bytes: Vec<u8>
+    bytes: Vec<u8>,
 }
 
 impl CBytesShort {
@@ -373,7 +373,7 @@ impl FromBytes for Vec<u8> {
 /// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L222).
 #[derive(Debug)]
 pub struct CInet {
-    addr: SocketAddr
+    addr: SocketAddr,
 }
 
 impl FromCursor for CInet {
@@ -384,9 +384,7 @@ impl FromCursor for CInet {
         let port = CInt::from_cursor(&mut cursor);
         let socket_addr = SocketAddr::new(ip, port as u16);
 
-        CInet {
-            addr: socket_addr
-        }
+        CInet { addr: socket_addr }
     }
 }
 
@@ -493,7 +491,8 @@ mod tests {
     // CStringList
     #[test]
     fn test_cstringlist() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 2, 0, 3, 102, 111, 111, 0, 3, 102, 111, 111]);
+        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 2, 0, 3, 102, 111, 111, 0, 3, 102,
+                                                           111, 111]);
         let list = CStringList::from_cursor(&mut cursor);
         let plain = list.into_plain();
         assert_eq!(plain.len(), 2);

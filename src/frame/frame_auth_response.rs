@@ -4,7 +4,7 @@ use frame::*;
 
 #[derive(Debug)]
 pub struct BodyReqAuthResponse {
-    data: CBytes
+    data: CBytes,
 }
 
 impl BodyReqAuthResponse {
@@ -39,7 +39,7 @@ impl Frame {
             body: body.into_cbytes(),
             // for request frames it's always None
             tracing_id: None,
-            warnings: vec![]
+            warnings: vec![],
         }
     }
 }

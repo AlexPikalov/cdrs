@@ -42,4 +42,3 @@ fn main() {
 
     println!("executed:\n{:?}", executed);
 }
-

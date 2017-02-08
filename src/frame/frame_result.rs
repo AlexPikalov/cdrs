@@ -17,7 +17,7 @@ pub enum ResultKind {
     /// Prepeared result.
     Prepared,
     /// Schema change result.
-    SchemaChange
+    SchemaChange,
 }
 
 impl IntoBytes for ResultKind {
@@ -27,7 +27,7 @@ impl IntoBytes for ResultKind {
             ResultKind::Rows => to_int(0x0002),
             ResultKind::SetKeyspace => to_int(0x0003),
             ResultKind::Prepared => to_int(0x0004),
-            ResultKind::SchemaChange => to_int(0x0005)
+            ResultKind::SchemaChange => to_int(0x0005),
         }
     }
 }
@@ -40,7 +40,7 @@ impl FromBytes for ResultKind {
             0x0003 => ResultKind::SetKeyspace,
             0x0004 => ResultKind::Prepared,
             0x0005 => ResultKind::SchemaChange,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -65,18 +65,28 @@ pub enum ResResultBody {
     /// Prepared response body.
     Prepared(BodyResResultPrepared),
     /// Schema change body
-    SchemaChange(SchemaChange)
+    SchemaChange(SchemaChange),
 }
 
 impl ResResultBody {
-    /// It retrieves `ResResultBody` from `io::Cursor` having knowledge about expected kind of result.
-    fn parse_body_from_cursor(mut cursor: &mut Cursor<Vec<u8>>, result_kind: ResultKind) -> ResResultBody {
+    /// It retrieves`ResResultBody` from `io::Cursor`
+    /// having knowledge about expected kind of result.
+    fn parse_body_from_cursor(mut cursor: &mut Cursor<Vec<u8>>,
+                              result_kind: ResultKind)
+                              -> ResResultBody {
         match result_kind {
             ResultKind::Void => ResResultBody::Void(BodyResResultVoid::from_cursor(&mut cursor)),
             ResultKind::Rows => ResResultBody::Rows(BodyResResultRows::from_cursor(&mut cursor)),
-            ResultKind::SetKeyspace => ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)),
-            ResultKind::Prepared => ResResultBody::Prepared(BodyResResultPrepared::from_cursor(&mut cursor)),
-            ResultKind::SchemaChange => ResResultBody::SchemaChange(SchemaChange::from_cursor(&mut cursor)),
+            ResultKind::SetKeyspace => {
+                ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor))
+            }
+            ResultKind::Prepared => {
+                ResResultBody::Prepared(BodyResResultPrepared::from_cursor(&mut cursor))
+            }
+            ResultKind::SchemaChange => {
+                ResResultBody::SchemaChange(SchemaChange::from_cursor(&mut cursor))
+            }
+
         }
     }
 
@@ -84,7 +94,7 @@ impl ResResultBody {
     pub fn into_rows(self) -> Option<Vec<Row>> {
         match self {
             ResResultBody::Rows(rows_body) => Some(Row::from_frame_body(rows_body)),
-            _ => None
+            _ => None,
         }
     }
 
@@ -93,7 +103,7 @@ impl ResResultBody {
     pub fn into_prepared(self) -> Option<BodyResResultPrepared> {
         match self {
             ResResultBody::Prepared(p) => Some(p),
-            _ => None
+            _ => None,
         }
     }
 
@@ -102,7 +112,7 @@ impl ResResultBody {
     pub fn into_set_keyspace(self) -> Option<BodyResResultSetKeyspace> {
         match self {
             ResResultBody::SetKeyspace(p) => Some(p),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -142,15 +152,14 @@ impl FromCursor for BodyResResultVoid {
 #[derive(Debug)]
 pub struct BodyResResultSetKeyspace {
     /// It contains name of keyspace that was set.
-    pub body: CString
+    pub body: CString,
 }
 
 impl BodyResResultSetKeyspace {
-    /// Factory function that takes body value and returns new instance of `BodyResResultSetKeyspace`.
+    /// Factory function that takes body value and
+    /// returns new instance of `BodyResResultSetKeyspace`.
     pub fn new(body: CString) -> BodyResResultSetKeyspace {
-        BodyResResultSetKeyspace {
-            body: body
-        }
+        BodyResResultSetKeyspace { body: body }
     }
 }
 
@@ -161,7 +170,8 @@ impl FromCursor for BodyResResultSetKeyspace {
 }
 
 
-/// Structure that represents result of type [rows](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L533).
+/// Structure that represents result of type
+/// [rows](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L533).
 #[derive(Debug)]
 pub struct BodyResResultRows {
     /// Rows metadata
@@ -169,26 +179,33 @@ pub struct BodyResResultRows {
     /// Number of rows.
     pub rows_count: CInt,
     /// From spec: it is composed of `rows_count` of rows.
-    pub rows_content: Vec<Vec<CBytes>>
+    pub rows_content: Vec<Vec<CBytes>>,
 }
 
 impl BodyResResultRows {
     /// It retrieves rows content having knowledge about number of rows and columns.
     fn get_rows_content(mut cursor: &mut Cursor<Vec<u8>>,
-        rows_count: i32,
-        columns_count: i32) -> Vec<Vec<CBytes>> {
-        (0..rows_count).map(|_| {
-            return (0..columns_count).map(|_| CBytes::from_cursor(&mut cursor) as CBytes).collect();
-        }).collect()
+                        rows_count: i32,
+                        columns_count: i32)
+                        -> Vec<Vec<CBytes>> {
+        (0..rows_count)
+            .map(|_| {
+                return (0..columns_count)
+                    .map(|_| CBytes::from_cursor(&mut cursor) as CBytes)
+                    .collect();
+            })
+            .collect()
     }
 
     /// Returns a list of tuples `(CBytes, ColType)` with value and type of values respectively.
     /// `n` is a number of row.
     pub fn nth_row_val_types(&self, n: usize) -> Vec<(CBytes, ColType)> {
-        let col_types = self.metadata.col_specs
+        let col_types = self.metadata
+            .col_specs
             .iter()
             .map(|col_spec| col_spec.col_type.id.clone());
-        self.rows_content[n].iter()
+        self.rows_content[n]
+            .iter()
             .map(|cbyte| cbyte.clone())
             .zip(col_types)
             .collect()
@@ -196,14 +213,15 @@ impl BodyResResultRows {
 }
 
 impl FromCursor for BodyResResultRows {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResResultRows{
+    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResResultRows {
         let metadata = RowsMetadata::from_cursor(&mut cursor);
         let rows_count = CInt::from_cursor(&mut cursor);
-        let rows_content: Vec<Vec<CBytes>> = BodyResResultRows::get_rows_content(&mut cursor, rows_count, metadata.columns_count);
+        let rows_content: Vec<Vec<CBytes>> =
+            BodyResResultRows::get_rows_content(&mut cursor, rows_count, metadata.columns_count);
         BodyResResultRows {
             metadata: metadata,
             rows_count: rows_count,
-            rows_content: rows_content
+            rows_content: rows_content,
         }
     }
 }
@@ -211,7 +229,9 @@ impl FromCursor for BodyResResultRows {
 /// Rows metadata.
 #[derive(Debug, Clone)]
 pub struct RowsMetadata {
-    /// Flags. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L541)
+    /// Flags.
+    /// [Read more...]
+    /// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L541)
     pub flags: i32,
     /// Number of columns.
     pub columns_count: i32,
@@ -250,7 +270,7 @@ impl FromCursor for RowsMetadata {
             columns_count: columns_count,
             paging_state: paging_state,
             global_table_space: global_table_space,
-            col_specs: col_specs
+            col_specs: col_specs,
         }
     }
 }
@@ -263,18 +283,18 @@ const NO_METADATA: i32 = 0x0004;
 pub enum RowsMetadataFlag {
     GlobalTableSpace,
     HasMorePages,
-    NoMetadata
+    NoMetadata,
 }
 
 impl RowsMetadataFlag {
     /// Shows if provided flag contains GlobalTableSpace rows metadata flag
     pub fn has_global_table_space(flag: i32) -> bool {
-         (flag & GLOBAL_TABLE_SPACE) != 0
+        (flag & GLOBAL_TABLE_SPACE) != 0
     }
 
     /// Sets GlobalTableSpace rows metadata flag
     pub fn set_global_table_space(flag: i32) -> i32 {
-         flag | GLOBAL_TABLE_SPACE
+        flag | GLOBAL_TABLE_SPACE
     }
 
     /// Shows if provided flag contains HasMorePages rows metadata flag
@@ -284,17 +304,17 @@ impl RowsMetadataFlag {
 
     /// Sets HasMorePages rows metadata flag
     pub fn set_has_more_pages(flag: i32) -> i32 {
-         flag | HAS_MORE_PAGES
+        flag | HAS_MORE_PAGES
     }
 
     /// Shows if provided flag contains NoMetadata rows metadata flag
     pub fn has_no_metadata(flag: i32) -> bool {
-         (flag & NO_METADATA) != 0
+        (flag & NO_METADATA) != 0
     }
 
     /// Sets NoMetadata rows metadata flag
     pub fn set_no_metadata(flag: i32) -> i32 {
-         flag | NO_METADATA
+        flag | NO_METADATA
     }
 }
 
@@ -303,7 +323,7 @@ impl IntoBytes for RowsMetadataFlag {
         match *self {
             RowsMetadataFlag::GlobalTableSpace => to_int(GLOBAL_TABLE_SPACE as i64),
             RowsMetadataFlag::HasMorePages => to_int(HAS_MORE_PAGES as i64),
-            RowsMetadataFlag::NoMetadata => to_int(NO_METADATA as i64)
+            RowsMetadataFlag::NoMetadata => to_int(NO_METADATA as i64),
         }
     }
 }
@@ -334,16 +354,19 @@ pub struct ColSpec {
     /// Column name
     pub name: CString,
     /// Column type defined in spec in 4.2.5.2
-    pub col_type: ColTypeOption
+    pub col_type: ColTypeOption,
 }
 
 impl ColSpec {
-    /// parse_colspecs tables mutable cursor, number of columns (column_count) and flags that indicates
+    /// parse_colspecs tables mutable cursor,
+    /// number of columns (column_count) and flags that indicates
     /// if Global_tables_spec is specified. It returns column_count of ColSpecs.
     pub fn parse_colspecs(mut cursor: &mut Cursor<Vec<u8>>,
-        column_count: i32,
-        with_globale_table_spec: bool) -> Vec<ColSpec> {
-        (0..column_count).map(|_| {
+                          column_count: i32,
+                          with_globale_table_spec: bool)
+                          -> Vec<ColSpec> {
+        (0..column_count)
+            .map(|_| {
                 let mut ksname: Option<CString> = None;
                 let mut tablename: Option<CString> = None;
                 if !with_globale_table_spec {
@@ -357,10 +380,11 @@ impl ColSpec {
                     ksname: ksname,
                     tablename: tablename,
                     name: name,
-                    col_type: col_type
+                    col_type: col_type,
                 };
-            }).collect()
-        }
+            })
+            .collect()
+    }
 }
 
 /// Cassandra data types which clould be returned by a server.
@@ -391,7 +415,7 @@ pub enum ColType {
     Set,
     Udt,
     Tuple,
-    Null
+    Null,
 }
 
 impl FromBytes for ColType {
@@ -422,7 +446,7 @@ impl FromBytes for ColType {
             0x0022 => ColType::Set,
             0x0030 => ColType::Udt,
             0x0031 => ColType::Tuple,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -440,8 +464,10 @@ impl FromCursor for ColType {
 pub struct ColTypeOption {
     /// Id refers to `ColType`.
     pub id: ColType,
-    /// Values depending on column type. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L569)
-    pub value: Option<ColTypeOptionValue>
+    /// Values depending on column type.
+    /// [Read more...]
+    /// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L569)
+    pub value: Option<ColTypeOptionValue>,
 }
 
 impl FromCursor for ColTypeOption {
@@ -452,23 +478,23 @@ impl FromCursor for ColTypeOption {
             ColType::Set => {
                 let col_type = ColTypeOption::from_cursor(&mut cursor);
                 Some(ColTypeOptionValue::CSet(Box::new(col_type)))
-            },
+            }
             ColType::List => {
                 let col_type = ColTypeOption::from_cursor(&mut cursor);
                 Some(ColTypeOptionValue::CList(Box::new(col_type)))
-            },
+            }
             ColType::Udt => Some(ColTypeOptionValue::UdtType(CUdt::from_cursor(&mut cursor))),
             ColType::Map => {
                 let name_type = ColTypeOption::from_cursor(&mut cursor);
                 let value_type = ColTypeOption::from_cursor(&mut cursor);
                 Some(ColTypeOptionValue::CMap((Box::new(name_type), Box::new(value_type))))
             }
-            _ => None
+            _ => None,
         };
 
         ColTypeOption {
             id: id,
-            value: value
+            value: value,
         }
     }
 }
@@ -481,10 +507,11 @@ pub enum ColTypeOptionValue {
     CSet(Box<ColTypeOption>),
     CList(Box<ColTypeOption>),
     UdtType(CUdt),
-    CMap((Box<ColTypeOption>, Box<ColTypeOption>))
+    CMap((Box<ColTypeOption>, Box<ColTypeOption>)),
 }
 
-/// User defined type. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L608)
+/// User defined type.
+/// [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L608)
 #[derive(Debug, Clone)]
 pub struct CUdt {
     /// Keyspace name.
@@ -492,7 +519,7 @@ pub struct CUdt {
     /// UDT name
     pub udt_name: CString,
     /// List of pairs `(name, type)` where name is field name and type is type of field.
-    pub descriptions: Vec<(CString, ColTypeOption)>
+    pub descriptions: Vec<(CString, ColTypeOption)>,
 }
 
 impl FromCursor for CUdt {
@@ -500,16 +527,18 @@ impl FromCursor for CUdt {
         let ks = CString::from_cursor(&mut cursor);
         let udt_name = CString::from_cursor(&mut cursor);
         let n = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64));
-        let descriptions: Vec<(CString, ColTypeOption)> = (0..n).map(|_| {
-            let name = CString::from_cursor(&mut cursor);
-            let col_type = ColTypeOption::from_cursor(&mut cursor);
-            return (name, col_type);
-        }).collect();
+        let descriptions: Vec<(CString, ColTypeOption)> = (0..n)
+            .map(|_| {
+                let name = CString::from_cursor(&mut cursor);
+                let col_type = ColTypeOption::from_cursor(&mut cursor);
+                return (name, col_type);
+            })
+            .collect();
 
         CUdt {
             ks: ks,
             udt_name: udt_name,
-            descriptions: descriptions
+            descriptions: descriptions,
         }
     }
 }
@@ -523,7 +552,7 @@ pub struct BodyResResultPrepared {
     pub metadata: PreparedMetadata,
     /// It is defined exactly the same as <metadata> in the Rows
     /// documentation.
-    pub result_metadata: RowsMetadata
+    pub result_metadata: RowsMetadata,
 }
 
 impl FromCursor for BodyResResultPrepared {
@@ -535,7 +564,7 @@ impl FromCursor for BodyResResultPrepared {
         BodyResResultPrepared {
             id: id,
             metadata: metadata,
-            result_metadata: result_metadata
+            result_metadata: result_metadata,
         }
     }
 }
@@ -548,7 +577,7 @@ pub struct PreparedMetadata {
     pub pk_count: i32,
     pub pk_indexes: Vec<i16>,
     pub global_table_spec: Option<(CString, CString)>,
-    pub col_specs: Vec<ColSpec>
+    pub col_specs: Vec<ColSpec>,
 }
 
 impl FromCursor for PreparedMetadata {
@@ -556,12 +585,11 @@ impl FromCursor for PreparedMetadata {
         let flags = CInt::from_cursor(&mut cursor);
         let columns_count = CInt::from_cursor(&mut cursor);
         let pk_count = CInt::from_cursor(&mut cursor);
-        let pk_indexes: Vec<i16> = (0..pk_count)
-            .fold(vec![], |mut acc, _| {
-                let idx = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)) as i16;
-                acc.push(idx);
-                acc
-            });
+        let pk_indexes: Vec<i16> = (0..pk_count).fold(vec![], |mut acc, _| {
+            let idx = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)) as i16;
+            acc.push(idx);
+            acc
+        });
         let mut global_table_space: Option<(CString, CString)> = None;
         let has_global_table_space = RowsMetadataFlag::has_global_table_space(flags);
         if has_global_table_space {
@@ -577,7 +605,7 @@ impl FromCursor for PreparedMetadata {
             pk_count: pk_count,
             pk_indexes: pk_indexes,
             global_table_spec: global_table_space,
-            col_specs: col_specs
+            col_specs: col_specs,
         }
     }
 }

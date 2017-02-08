@@ -23,15 +23,15 @@ fn main() {
             let with_warnings = false;
             let query_op = session.query(select_query, with_tracing, with_warnings);
 
-                    match query_op {
+            match query_op {
 
-                        Ok(res) => {
-                            println!("Result frame: {:?},\nparsed body: {:?}",
-                                     res,
-                                     res.get_body())
-                        }
-                        Err(err) => println!("{:?}", err),
-                    }
+                Ok(res) => {
+                    println!("Result frame: {:?},\nparsed body: {:?}",
+                             res,
+                             res.get_body())
+                }
+                Err(err) => println!("{:?}", err),
+            }
 
         }
         Err(err) => println!("{:?}", err),

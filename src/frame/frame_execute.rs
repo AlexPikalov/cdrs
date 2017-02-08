@@ -9,7 +9,7 @@ pub struct BodyReqExecute {
     /// Id of prepared query
     id: CBytesShort,
     /// Query paramaters which have the same meaning as one for `query`
-    query_parameters: ParamsReqQuery
+    query_parameters: ParamsReqQuery,
 }
 
 impl BodyReqExecute {
@@ -17,7 +17,7 @@ impl BodyReqExecute {
     pub fn new(id: CBytesShort, query_parameters: ParamsReqQuery) -> BodyReqExecute {
         BodyReqExecute {
             id: id,
-            query_parameters: query_parameters
+            query_parameters: query_parameters,
         }
     }
 }
@@ -33,7 +33,10 @@ impl IntoBytes for BodyReqExecute {
 
 impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
-    pub fn new_req_execute(id: CBytesShort, query_parameters: ParamsReqQuery, flags: Vec<Flag>) -> Frame {
+    pub fn new_req_execute(id: CBytesShort,
+                           query_parameters: ParamsReqQuery,
+                           flags: Vec<Flag>)
+                           -> Frame {
         let version = Version::Request;
         // sync client
         let stream: u64 = 0;
@@ -48,7 +51,7 @@ impl Frame {
             body: body.into_cbytes(),
             // for request frames it's always None
             tracing_id: None,
-            warnings: vec![]
+            warnings: vec![],
         }
     }
 }
