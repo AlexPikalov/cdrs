@@ -420,8 +420,9 @@ Please refer to each project's style guidelines and guidelines for submitting pa
  1. **Fork** the repo on GitHub
  2. **Clone** the project to your own machine
  3. **Commit** changes to your own branch
- 4. **Push** your work back up to your fork
- 5. Submit a **Pull request** so that we can review your changes
+ 4. ** run  ```cargo test --all-features && cargo fmt -- --write-mode=diff```
+ 5. **Push** your work back up to your fork
+ 6. Submit a **Pull request** so that we can review your changes
 
 NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 while running the tests you might need a local cassandra server working.
