@@ -7,6 +7,7 @@ matrix:
   allow_failures:
     - rust: nightly
 
+
 before_install:
   - sudo update-java-alternatives -s java-8-oracle
   - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
@@ -16,10 +17,13 @@ before_install:
   - sudo sh ./apache-cassandra-3.9/bin/cassandra -R
   - sleep 20
 
-
-#services:
-  #- cassandra
-
+cache: cargo
+before_script: (cargo install rustfmt || true)
+script:
+- |
+  cargo fmt -- --write-mode=diff &&
+  cargo build &&
+  cargo test
 
 addons:
   apt:
