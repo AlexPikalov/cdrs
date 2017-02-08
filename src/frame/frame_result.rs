@@ -76,7 +76,7 @@ impl ResResultBody {
             ResultKind::Rows => ResResultBody::Rows(BodyResResultRows::from_cursor(&mut cursor)),
             ResultKind::SetKeyspace => ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)),
             ResultKind::Prepared => ResResultBody::Prepared(BodyResResultPrepared::from_cursor(&mut cursor)),
-            ResultKind::SchemaChange => ResResultBody::Void(BodyResResultVoid::from_cursor(&mut cursor)),
+            ResultKind::SchemaChange => ResResultBody::SchemaChange(SchemaChange::from_cursor(&mut cursor)),
         }
     }
 
