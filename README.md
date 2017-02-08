@@ -58,8 +58,6 @@ let mut session = try!(client.start(compression::None));
 
 ### Creating new connection with authentication
 
-To use password authenticator, just include the one implemented in
-`cdrs::authenticators`.
 
 ```rust
 use cdrs::client::CDRS;
