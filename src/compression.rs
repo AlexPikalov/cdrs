@@ -69,7 +69,6 @@ pub enum Compression {
 }
 
 impl Compression {
-
     /// It encodes `bytes` basing on type of `Compression`..
     ///
     /// # Examples
