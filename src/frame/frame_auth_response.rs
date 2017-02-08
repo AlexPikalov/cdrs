@@ -43,3 +43,31 @@ impl Frame {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use types::CBytes;
+    use IntoBytes;
+    use frame::*;
+
+    #[test]
+    fn body_req_auth_response() {
+        let bytes = CBytes::new(vec![1, 2, 3]);
+        let body = BodyReqAuthResponse::new(bytes);
+        assert_eq!(body.into_cbytes(), vec![0, 0, 0, 3, 1, 2, 3]);
+    }
+
+    #[test]
+    fn frame_body_req_auth_response() {
+        let bytes = vec![1, 2, 3];
+        let frame = Frame::new_req_auth_response(bytes);
+        assert_eq!(frame.version, Version::Request);
+        assert_eq!(frame.flags, vec![Flag::Ignore]);
+        assert_eq!(frame.stream, 0);
+        assert_eq!(frame.opcode, Opcode::AuthResponse);
+        assert_eq!(frame.body, &[0, 0, 0, 3, 1, 2, 3]);
+        assert_eq!(frame.tracing_id, None);
+        assert_eq!(frame.warnings.len(), 0);
+    }
+}
