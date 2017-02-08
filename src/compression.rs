@@ -33,12 +33,10 @@ impl fmt::Display for CompressionError {
 
 impl Error for CompressionError {
     fn description(&self) -> &str {
-        let desc = match self {
+        match self {
             &CompressionError::Snappy(ref err) => err.description(),
             &CompressionError::Lz4(ref s) => s.as_str(),
-        };
-
-        return desc;
+        }
     }
 }
 
@@ -83,11 +81,11 @@ impl Compression {
     ///
     /// ```
     pub fn encode(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
-        return match self {
+        match self {
             &Compression::Lz4 => Compression::encode_lz4(bytes),
             &Compression::Snappy => Compression::encode_snappy(bytes),
             &Compression::None => Ok(bytes),
-        };
+        }
     }
 
     /// It decodes `bytes` basing on type of compression.
@@ -105,32 +103,32 @@ impl Compression {
     ///     assert_eq!(lz4_compression.decode(input).unwrap(), bytes);
     /// ```
     pub fn decode(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
-        return match self {
+        match self {
             &Compression::Lz4 => Compression::decode_lz4(bytes),
             &Compression::Snappy => Compression::decode_snappy(bytes),
             &Compression::None => Ok(bytes),
-        };
+        }
     }
 
     /// It transforms compression method into a `&str`.
     pub fn as_str(&self) -> Option<&'static str> {
-        return match self {
+        match self {
             &Compression::Lz4 => Some(LZ4),
             &Compression::Snappy => Some(SNAPPY),
             &Compression::None => None,
-        };
+        }
     }
 
     fn encode_snappy(bytes: Vec<u8>) -> Result<Vec<u8>> {
         let mut encoder = snap::Encoder::new();
-        return encoder.compress_vec(bytes.as_slice())
-            .map_err(|err| CompressionError::Snappy(Box::new(err)));
+        encoder.compress_vec(bytes.as_slice())
+            .map_err(|err| CompressionError::Snappy(Box::new(err)))
     }
 
     fn decode_snappy(bytes: Vec<u8>) -> Result<Vec<u8>> {
         let mut decoder = snap::Decoder::new();
-        return decoder.decompress_vec(bytes.as_slice())
-            .map_err(|err| CompressionError::Snappy(Box::new(err)));
+        decoder.decompress_vec(bytes.as_slice())
+            .map_err(|err| CompressionError::Snappy(Box::new(err)))
     }
 
     fn encode_lz4(bytes: Vec<u8>) -> Result<Vec<u8>> {
@@ -140,8 +138,8 @@ impl Compression {
     fn decode_lz4(bytes: Vec<u8>) -> Result<Vec<u8>> {
         // skip first 4 bytes in accordance to
         // https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L805
-        return lz4::decompress(&bytes[4..])
-            .map_err(|err| CompressionError::Lz4(err.description().to_string()));
+        lz4::decompress(&bytes[4..])
+            .map_err(|err| CompressionError::Lz4(err.description().to_string()))
     }
 }
 
@@ -157,11 +155,11 @@ impl<'a> From<&'a str> for Compression {
     /// It converts `str` into `Compression`. If string is neither `lz4` nor `snappy` then
     /// `Compression::None` will be returned
     fn from(compression_str: &'a str) -> Compression {
-        return match compression_str {
+        match compression_str {
             LZ4 => Compression::Lz4,
             SNAPPY => Compression::Snappy,
             _ => Compression::None,
-        };
+        }
     }
 }
 
