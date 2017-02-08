@@ -215,7 +215,7 @@ impl IntoRustByName<UDT> for UDT {
             let col_type_value = match col_type.value.as_ref() {
                 Some(&ColTypeOptionValue::UdtType(ref ctv)) => ctv,
                 _ => unreachable!(),
-            };;
+            };
 
             return match col_type.id {
                 ColType::Udt => Ok(UDT::new(list_bytes, col_type_value.clone())),

@@ -44,4 +44,3 @@ fn main() {
 
     println!("batch result {:?}", batched.get_body());
 }
-

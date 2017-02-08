@@ -16,16 +16,18 @@ pub struct ConnectionManager<T, X> {
     compression: Compression,
 }
 
-impl<T: Authenticator + Send + Sync + 'static,X: CDRSTransport + Send + Sync + 'static>
-ConnectionManager<T,X> {
-/// Creates a new instance of `ConnectionManager`.
-/// It requires transport, authenticator and compression as inputs.
-    pub fn new(transport: X, authenticator: T, compression: Compression)
-        -> ConnectionManager<T,X> {
+impl<T: Authenticator + Send + Sync + 'static, X: CDRSTransport + Send + Sync + 'static>
+    ConnectionManager<T, X> {
+    /// Creates a new instance of `ConnectionManager`.
+    /// It requires transport, authenticator and compression as inputs.
+    pub fn new(transport: X,
+               authenticator: T,
+               compression: Compression)
+               -> ConnectionManager<T, X> {
         ConnectionManager {
             transport: transport,
             authenticator: authenticator,
-            compression: compression
+            compression: compression,
         }
     }
 }
