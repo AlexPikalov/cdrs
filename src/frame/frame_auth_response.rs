@@ -44,31 +44,30 @@ impl Frame {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use types::CBytes;
+    use IntoBytes;
+    use frame::*;
 
     #[test]
     fn body_req_auth_response() {
-        let few_bytes: Vec<u8> = vec![0, 0, 0, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-        let data = CBytes::new(few_bytes);
-        let body = BodyReqAuthResponse::new(data);
-        assert_eq!(body.data.into_plain(),
-                   vec![0, 0, 0, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        let bytes = CBytes::new(vec![1, 2, 3]);
+        let body = BodyReqAuthResponse::new(bytes);
+        assert_eq!(body.into_cbytes(), vec![0, 0, 0, 3, 1, 2, 3]);
     }
 
     #[test]
-    fn body_req_auth_frame() {
-        let few_bytes: Vec<u8> = vec![0, 0, 0, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-        let frame = Frame::new_req_auth_response(few_bytes);
+    fn frame_body_req_auth_response() {
+        let bytes = vec![1, 2, 3];
+        let frame = Frame::new_req_auth_response(bytes);
         assert_eq!(frame.version, Version::Request);
         assert_eq!(frame.flags, vec![Flag::Ignore]);
         assert_eq!(frame.stream, 0);
         assert_eq!(frame.opcode, Opcode::AuthResponse);
+        assert_eq!(frame.body, &[0, 0, 0, 3, 1, 2, 3]);
         assert_eq!(frame.tracing_id, None);
-        //assert_eq!(frame.warnings,vec![]);
-        assert_eq!(frame.body,
-                   vec![0, 0, 0, 14, 0, 0, 0, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        assert_eq!(frame.warnings.len(), 0);
     }
 }
