@@ -163,6 +163,7 @@ mod tests {
         assert_eq!(Consistency::Serial.into_cbytes(), vec![0, 8]);
         assert_eq!(Consistency::LocalSerial.into_cbytes(), vec![0, 9]);
         assert_eq!(Consistency::LocalOne.into_cbytes(), vec![0, 10]);
+        assert_eq!(Consistency::Unknown.into_cbytes(), vec![0, 99]);
     }
 
     #[test]
