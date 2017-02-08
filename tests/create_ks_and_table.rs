@@ -12,7 +12,7 @@ const _ADDR: &'static str = "127.0.0.1:9042";
 
 
 #[test]
-fn it_works() {
+fn create_keyspace_and_table() {
     const _ADDR: &'static str = "127.0.0.1:9042";
     let authenticator = NoneAuthenticator;
     let tcp_transport = TransportPlain::new(_ADDR);

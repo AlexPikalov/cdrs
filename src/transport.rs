@@ -51,7 +51,7 @@ impl CDRSTransport for TransportPlain {
     /// of a peer from `Transport` and creates a new encrypted
     /// transport with new TCP stream under hood.
     fn try_clone(&self) -> io::Result<TransportPlain> {
-        let addr = try!( self.tcp.peer_addr());
+        let addr = try!(self.tcp.peer_addr());
         TcpStream::connect(addr).map(|socket| TransportPlain { tcp: socket })
 
     }
