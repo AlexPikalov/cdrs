@@ -18,6 +18,16 @@ pub struct TransportPlain {
 }
 
 impl TransportPlain {
+
+    /// Constructs a new `TransportPlain`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdrs::transport::TransportPlain;
+    /// let addr = "127.0.0.1:9042";
+    /// let tcp_transport = TransportPlain::new(addr).unwrap();
+    /// ```
     pub fn new(addr: &str) -> io::Result<TransportPlain> {
         TcpStream::connect(addr).map(|socket| TransportPlain {tcp: socket})
     }

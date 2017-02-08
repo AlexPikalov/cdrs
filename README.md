@@ -28,7 +28,33 @@ into Rust structures.
 * [Listen to server events](#listen-to-server-events)
 * [Supported features](#supported-features)
 
-### Creating new connection and authorization
+
+### Creating new connection
+
+
+```rust
+use cdrs::client::CDRS;
+use cdrs::authenticators::NoneAuthenticator;
+use cdrs::transport::TransportPlain;
+```
+
+After that you can create a new instance of `CDRS` and establish new connection:
+
+```rust
+let authenticator = NoneAuthenticator;
+let addr = "127.0.0.1:9042";
+let tcp_transport = TransportPlain::new(addr).unwrap();
+
+// pass authenticator and transport into CDRS' constructor
+let client = CDRS::new(tcp_transport, authenticator);
+use cdrs::compression;
+// start session without compression
+let mut session = try!(client.start(compression::None));
+```
+
+
+
+### Creating new connection with authentication
 
 To use password authenticator, just include the one implemented in
 `cdrs::authenticators`.
@@ -53,8 +79,6 @@ use cdrs::compression;
 let mut session = try!(client.start(compression::None));
 ```
 
-If Server does not require authorization `authenticator` won't be used, but is still
-required for the constructor (most probably it will be refactored in future).
 
 ### Creating new encrypted connection
 
@@ -381,6 +405,47 @@ To find an examples please refer to [examples](./examples/server_events.rs).
 - [x] EVENT
 - [x] AUTH_CHALLENGE
 - [x] AUTH_SUCCESS
+
+
+Issues
+------
+
+Feel free to submit issues and enhancement requests.
+
+Contributing
+------------
+
+Please refer to each project's style guidelines and guidelines for submitting patches and additions. In general, we follow the "fork-and-pull" Git workflow.
+
+ 1. **Fork** the repo on GitHub
+ 2. **Clone** the project to your own machine
+ 3. **Commit** changes to your own branch
+ 4. **Push** your work back up to your fork
+ 5. Submit a **Pull request** so that we can review your changes
+
+NOTE: Be sure to merge the latest from "upstream" before making a pull request!
+while running the tests you might need a local cassandra server working.
+The easiest way was to run cassandra on docker on local machine
+
+
+Running Cassandra on Local
+---------------------------
+
+ 1. If you have docker on the machine type the below command
+     ```
+     docker run --name cassandra-1 -d -p 9042:9042 -p 9160:9160 cassandra:2.2.1
+
+     ```
+     `docker ps `
+       should show an output like below
+
+     ```
+        CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                                                                     NAMES
+        a78c3a43bf1b        cassandra:2.2.1     "/docker-entrypoin..."   4 days ago          Up 4 days           7000-7001/tcp, 0.0.0.0:9042->9042/tcp, 7199/tcp, 0.0.0.0:9160->9160/tcp   cassandra-1
+      ```
+
+ 2. If docker is new to your tool set; it is never too late to know this awesome tool https://docs.docker.com/docker-for-mac/
+
 
 
 ### License
