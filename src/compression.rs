@@ -69,7 +69,20 @@ pub enum Compression {
 }
 
 impl Compression {
-    /// It encodes `bytes` basing on type of compression.
+
+    /// It encodes `bytes` basing on type of `Compression`..
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///    use cdrs::compression::Compression;
+    ///
+    ///   let snappy_compression = Compression::Snappy;
+    ///   let bytes = String::from("Hello World").into_bytes().to_vec();
+    ///   let encoded = snappy_compression.encode(bytes.clone()).unwrap();
+    ///   assert_eq!(snappy_compression.decode(encoded).unwrap(), bytes);
+    ///
+    /// ```
     pub fn encode(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
         return match self {
             &Compression::Lz4 => Compression::encode_lz4(bytes),
@@ -79,6 +92,19 @@ impl Compression {
     }
 
     /// It decodes `bytes` basing on type of compression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///    use cdrs::compression::Compression;
+    ///     let lz4_compression = Compression::Lz4;
+    ///     let bytes = String::from("Hello World").into_bytes().to_vec();
+    ///     let encoded = lz4_compression.encode(bytes.clone()).unwrap();
+    ///     let len = encoded.len() as u8;
+    ///     let mut input = vec![0, 0, 0, len];
+    ///     input.extend_from_slice(encoded.as_slice());
+    ///     assert_eq!(lz4_compression.decode(input).unwrap(), bytes);
+    /// ```
     pub fn decode(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
         return match self {
             &Compression::Lz4 => Compression::decode_lz4(bytes),
@@ -189,13 +215,29 @@ mod tests {
 
     #[test]
     fn test_compression_decode_lz4() {
-        let snappy_compression = Compression::Lz4;
+        let lz4_compression = Compression::Lz4;
         let bytes = String::from("Hello World").into_bytes().to_vec();
-        let encoded = snappy_compression.encode(bytes.clone()).unwrap();
+        let encoded = lz4_compression.encode(bytes.clone()).unwrap();
         let len = encoded.len() as u8;
         let mut input = vec![0, 0, 0, len];
         input.extend_from_slice(encoded.as_slice());
-        assert_eq!(snappy_compression.decode(input).unwrap(), bytes);
+        assert_eq!(lz4_compression.decode(input).unwrap(), bytes);
+    }
+
+    #[test]
+    fn test_compression_encode_none() {
+        let none_compression = Compression::None;
+        let bytes = String::from("Hello World").into_bytes().to_vec();
+        none_compression.encode(bytes.clone()).expect("Should work without exceptions");
+    }
+
+
+    #[test]
+    fn test_compression_decode_none() {
+        let none_compression = Compression::None;
+        let bytes = String::from("Hello World").into_bytes().to_vec();
+        let encoded = none_compression.encode(bytes.clone()).unwrap();
+        assert_eq!(none_compression.decode(encoded).unwrap(), bytes);
     }
 
 }
