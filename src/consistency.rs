@@ -11,28 +11,64 @@ use super::FromBytes;
 /// To find more details about each consistency level please refer to Cassandra official docs.
 #[derive(Debug, PartialEq, Clone)]
 pub enum Consistency {
-    #[allow(missing_docs)]
+    /// A write must be written to the commit log and memtable on all replica nodes in the cluster
+    /// for that partition key.	Provides the highest consistency
+    /// and the lowest availability of any other level.
     Any,
-    #[allow(missing_docs)]
+    ///
+    /// A write must be written to the commit log and memtable of at least one replica node.
+    /// Satisfies the needs of most users because consistency requirements are not stringent.
     One,
-    #[allow(missing_docs)]
+    /// A write must be written to the commit log and memtable of at least two replica nodes.
+    /// Similar to ONE.
     Two,
-    #[allow(missing_docs)]
+
+    /// A write must be written to the commit log and memtable of at least three replica nodes.
+    /// Similar to TWO.
     Three,
-    #[allow(missing_docs)]
+    /// A write must be written to the commit log and memtable on a quorum of replica nodes.
+    /// Provides strong consistency if you can tolerate some level of failure.
     Quorum,
-    #[allow(missing_docs)]
+    /// A write must be written to the commit log and memtable on all replica nodes in the cluster
+    /// for that partition key.
+    /// Provides the highest consistency and the lowest availability of any other level.
     All,
-    #[allow(missing_docs)]
+    /// Strong consistency. A write must be written to the commit log and memtable on a quorum
+    /// of replica nodes in the same data center as thecoordinator node.
+    /// Avoids latency of inter-data center communication.
+    /// Used in multiple data center clusters with a rack-aware replica placement strategy,
+    /// such as NetworkTopologyStrategy, and a properly configured snitch.
+    /// Use to maintain consistency locally (within the single data center).
+    /// Can be used with SimpleStrategy.
     LocalQuorum,
-    #[allow(missing_docs)]
+    /// Strong consistency. A write must be written to the commit log and memtable on a quorum of
+    /// replica nodes in all data center.
+    /// Used in multiple data center clusters to strictly maintain consistency at the same level
+    /// in each data center. For example, choose this level
+    /// if you want a read to fail when a data center is down and the QUORUM
+    /// cannot be reached on that data center.
     EachQuorum,
-    #[allow(missing_docs)]
+    /// Achieves linearizable consistency for lightweight transactions by preventing unconditional
+    /// updates.	You cannot configure this level as a normal consistency level,
+    /// configured at the driver level using the consistency level field.
+    /// You configure this level using the serial consistency field
+    /// as part of the native protocol operation. See failure scenarios.
     Serial,
-    #[allow(missing_docs)]
+    /// Same as SERIAL but confined to the data center. A write must be written conditionally
+    /// to the commit log and memtable on a quorum of replica nodes in the same data center.
+    /// Same as SERIAL. Used for disaster recovery. See failure scenarios.
     LocalSerial,
-    #[allow(missing_docs)]
+    /// A write must be sent to, and successfully acknowledged by,
+    /// at least one replica node in the local data center.
+    /// In a multiple data center clusters, a consistency level of ONE is often desirable,
+    /// but cross-DC traffic is not. LOCAL_ONE accomplishes this.
+    /// For security and quality reasons, you can use this consistency level
+    /// in an offline datacenter to prevent automatic connection
+    /// to online nodes in other data centers if an offline node goes down.
     LocalOne,
+    /// This is an error scenario either the client code doesn't support it or server is sending
+    /// bad headers
+    Unknown,
 }
 
 impl Default for Consistency {
@@ -55,6 +91,8 @@ impl IntoBytes for Consistency {
             &Consistency::Serial => to_short(0x0008),
             &Consistency::LocalSerial => to_short(0x0009),
             &Consistency::LocalOne => to_short(0x000A),
+            &Consistency::Unknown => to_short(0x0063),
+            //giving Unknown a value of 99
         };
     }
 }
@@ -73,7 +111,7 @@ impl From<i32> for Consistency {
             0x0008 => Consistency::Serial,
             0x0009 => Consistency::LocalSerial,
             0x000A => Consistency::LocalOne,
-            _ => unreachable!(),
+            _ => Consistency::Unknown,
         };
     }
 }
@@ -92,7 +130,7 @@ impl FromBytes for Consistency {
             0x0008 => Consistency::Serial,
             0x0009 => Consistency::LocalSerial,
             0x000A => Consistency::LocalOne,
-            _ => unreachable!(),
+            _ => Consistency::Unknown,
         };
     }
 }
@@ -140,6 +178,7 @@ mod tests {
         assert_eq!(Consistency::from(8), Consistency::Serial);
         assert_eq!(Consistency::from(9), Consistency::LocalSerial);
         assert_eq!(Consistency::from(10), Consistency::LocalOne);
+        assert_eq!(Consistency::from(11), Consistency::Unknown);
     }
 
     #[test]
@@ -157,6 +196,7 @@ mod tests {
         assert_eq!(Consistency::from_bytes(vec![0, 9]),
                    Consistency::LocalSerial);
         assert_eq!(Consistency::from_bytes(vec![0, 10]), Consistency::LocalOne);
+        assert_eq!(Consistency::from_bytes(vec![0, 11]), Consistency::Unknown);
     }
 
     #[test]
