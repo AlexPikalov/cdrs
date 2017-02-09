@@ -138,7 +138,9 @@ impl IntoBytes for ParamsReqQuery {
         v.push(self.flags_as_byte());
         if QueryFlags::has_value(self.flags_as_byte()) {
             // XXX clone
-            for val in self.values.clone().unwrap().iter() {
+            let values = self.values.clone().unwrap();
+            v.extend_from_slice(to_short(values.len() as u64).as_slice());
+            for val in values.iter() {
                 v.extend_from_slice(val.into_cbytes().as_slice());
             }
         }
