@@ -12,8 +12,10 @@ use frame::frame_batch::{BatchType, BatchQuery, BodyReqBatch, BatchQuerySubj};
 ///            self
 /// }
 /// ```
-/// and repeating it for all the attributes; it is extracted out as a macro so that code is more concise
-/// see @https://doc.rust-lang.org/book/method-syntax.html
+/// and repeating it for all the attributes; it is extracted out as a macro so that code
+/// is more concise see
+/// @https://doc.rust-lang.org/book/method-syntax.html
+///
 ///
 ///
 macro_rules! builder_opt_field {
@@ -38,7 +40,7 @@ pub struct Query {
     pub page_size: Option<i32>,
     pub paging_state: Option<CBytes>,
     pub serial_consistency: Option<Consistency>,
-    pub timestamp: Option<i64>
+    pub timestamp: Option<i64>,
 }
 
 /// QueryBuilder is a helper sturcture that helps to construct `Query`. `Query` itself
@@ -54,17 +56,14 @@ pub struct QueryBuilder {
     page_size: Option<i32>,
     paging_state: Option<CBytes>,
     serial_consistency: Option<Consistency>,
-    timestamp: Option<i64>
+    timestamp: Option<i64>,
 }
 
 impl QueryBuilder {
     /// Factory function that takes CQL `&str` as an argument and returns new `QueryBuilder`.
     /// Default consistency level is `One`
     pub fn new(query: &str) -> QueryBuilder {
-        return QueryBuilder {
-            query: query.to_string(),
-            ..Default::default()
-        };
+        return QueryBuilder { query: query.to_string(), ..Default::default() };
     }
 
     /// Sets new query consistency
@@ -113,7 +112,7 @@ impl QueryBuilder {
             page_size: self.page_size.clone(),
             paging_state: self.paging_state.clone(),
             serial_consistency: self.serial_consistency.clone(),
-            timestamp: self.timestamp.clone()
+            timestamp: self.timestamp.clone(),
         };
     }
 }
@@ -129,7 +128,7 @@ pub struct QueryParamsBuilder {
     page_size: Option<i32>,
     paging_state: Option<CBytes>,
     serial_consistency: Option<Consistency>,
-    timestamp: Option<i64>
+    timestamp: Option<i64>,
 }
 
 impl QueryParamsBuilder {
@@ -141,8 +140,8 @@ impl QueryParamsBuilder {
             page_size: None,
             paging_state: None,
             serial_consistency: None,
-            timestamp: None
-        }
+            timestamp: None,
+        };
     }
 
     pub fn values(&mut self, v: Vec<Value>) -> &mut Self {
@@ -181,7 +180,7 @@ impl QueryParamsBuilder {
         return self;
     }
 
-    pub fn finalize(self) -> QueryParams {
+    pub fn finalize(&self) -> QueryParams {
         // query flags
         let mut flags: Vec<QueryFlags> = vec![];
 
@@ -206,13 +205,13 @@ impl QueryParamsBuilder {
         }
 
         return QueryParams {
-            consistency: self.consistency,
-            flags: flags,
-            values: self.values,
-            page_size: self.page_size,
-            paging_state: self.paging_state,
-            serial_consistency: self.serial_consistency,
-            timestamp: self.timestamp
+            consistency: self.consistency.clone(),
+            flags: flags.clone(),
+            values: self.values.clone(),
+            page_size: self.page_size.clone(),
+            paging_state: self.paging_state.clone(),
+            serial_consistency: self.serial_consistency.clone(),
+            timestamp: self.timestamp.clone(),
         };
     }
 }
@@ -225,7 +224,7 @@ pub struct BatchQueryBuilder {
     queries: Vec<BatchQuery>,
     consistency: Consistency,
     serial_consistency: Option<Consistency>,
-    timestamp: Option<i64>
+    timestamp: Option<i64>,
 }
 
 impl BatchQueryBuilder {
@@ -235,7 +234,7 @@ impl BatchQueryBuilder {
             queries: vec![],
             consistency: Consistency::One,
             serial_consistency: None,
-            timestamp: None
+            timestamp: None,
         }
     }
 
@@ -245,29 +244,24 @@ impl BatchQueryBuilder {
     }
 
     /// Add a query (non-prepared one)
-    pub fn add_query(
-        &mut self,
-        query: String,
-        values: Vec<BatchValue>
-    ) -> &mut Self {
+    pub fn add_query(&mut self, query: String, values: Vec<BatchValue>) -> &mut Self {
         self.queries.push(BatchQuery {
             is_prepared: false,
             subject: BatchQuerySubj::QueryString(CStringLong::new(query)),
-            values: values
+            values: values,
         });
         self
     }
 
     /// Add a query (prepared one)
-    pub fn add_query_prepared(
-        &mut self,
-        query_id: CBytesShort,
-        values: Vec<BatchValue>
-    ) -> &mut Self {
+    pub fn add_query_prepared(&mut self,
+                              query_id: CBytesShort,
+                              values: Vec<BatchValue>)
+                              -> &mut Self {
         self.queries.push(BatchQuery {
             is_prepared: true,
             subject: BatchQuerySubj::PreparedId(query_id),
-            values: values
+            values: values,
         });
         self
     }
@@ -282,10 +276,7 @@ impl BatchQueryBuilder {
         self
     }
 
-    pub fn serial_consistency(
-        &mut self,
-        serial_consistency: Option<Consistency>
-    ) -> &mut Self {
+    pub fn serial_consistency(&mut self, serial_consistency: Option<Consistency>) -> &mut Self {
         self.serial_consistency = serial_consistency;
         self
     }
@@ -316,11 +307,8 @@ impl BatchQueryBuilder {
                 .any(|q| q.values.iter().any(|v| v.0.is_some()));
 
             if some_names_for_values {
-                return Err(
-                    CError::General(
-                        String::from("Inconsistent query values - mixed with and without names values")
-                    )
-                );
+                return Err(CError::General(String::from("Inconsistent query values - mixed \
+                                                         with and without names values")));
             }
         }
 
@@ -334,7 +322,7 @@ impl BatchQueryBuilder {
             query_flags: flags.clone(),
             consistency: self.consistency.clone(),
             serial_consistency: self.serial_consistency.clone(),
-            timestamp: self.timestamp.clone()
+            timestamp: self.timestamp.clone(),
         })
     }
 }

@@ -6,7 +6,7 @@ use super::*;
 pub enum ValueType {
     Normal(i32),
     Null,
-    NotSet
+    NotSet,
 }
 
 impl IntoBytes for ValueType {
@@ -14,7 +14,7 @@ impl IntoBytes for ValueType {
         return match *self {
             ValueType::Normal(n) => to_int(n as i64),
             ValueType::Null => i_to_n_bytes(-1, INT_LEN),
-            ValueType::NotSet => i_to_n_bytes(-2, INT_LEN)
+            ValueType::NotSet => i_to_n_bytes(-2, INT_LEN),
         };
     }
 }
@@ -23,7 +23,7 @@ impl IntoBytes for ValueType {
 #[derive(Debug, Clone)]
 pub struct Value {
     pub body: Vec<u8>,
-    pub value_type: ValueType
+    pub value_type: ValueType,
 }
 
 impl Value {
@@ -32,7 +32,7 @@ impl Value {
         let l = body.len() as i32;
         return Value {
             body: body,
-            value_type: ValueType::Normal(l)
+            value_type: ValueType::Normal(l),
         };
     }
 
@@ -40,7 +40,7 @@ impl Value {
     pub fn new_null() -> Value {
         return Value {
             body: vec![],
-            value_type: ValueType::Null
+            value_type: ValueType::Null,
         };
     }
 
@@ -48,7 +48,7 @@ impl Value {
     pub fn new_not_set() -> Value {
         return Value {
             body: vec![],
-            value_type: ValueType::NotSet
+            value_type: ValueType::NotSet,
         };
     }
 }
@@ -89,7 +89,7 @@ mod tests {
         assert_eq!(normal_value.body, plain_value);
         match normal_value.value_type {
             ValueType::Normal(l) => assert_eq!(l, len),
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 
@@ -99,7 +99,7 @@ mod tests {
         assert_eq!(null_value.body, vec![]);
         match null_value.value_type {
             ValueType::Null => assert!(true),
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 
@@ -109,7 +109,7 @@ mod tests {
         assert_eq!(not_set_value.body, vec![]);
         match not_set_value.value_type {
             ValueType::NotSet => assert!(true),
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 

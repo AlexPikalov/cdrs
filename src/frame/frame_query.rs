@@ -1,6 +1,6 @@
 #![warn(missing_docs)]
 //! Contains Query Frame related functionality.
-// use self::frame::*;
+//! use self::frame::*;
 use super::*;
 use consistency::Consistency;
 use {AsByte, IntoBytes};
@@ -13,51 +13,52 @@ pub struct BodyReqQuery {
     /// Query string.
     pub query: CStringLong,
     /// Query parameters.
-    pub query_params: ParamsReqQuery
+    pub query_params: ParamsReqQuery,
 }
 
 impl BodyReqQuery {
     // Fabric function that produces Query request body.
     fn new(query: String,
-            consistency: Consistency,
-            values: Option<Vec<Value>>,
-            with_names: Option<bool>,
-            page_size: Option<i32>,
-            paging_state: Option<CBytes>,
-            serial_consistency: Option<Consistency>,
-            timestamp: Option<i64>) -> BodyReqQuery {
+           consistency: Consistency,
+           values: Option<Vec<Value>>,
+           with_names: Option<bool>,
+           page_size: Option<i32>,
+           paging_state: Option<CBytes>,
+           serial_consistency: Option<Consistency>,
+           timestamp: Option<i64>)
+           -> BodyReqQuery {
 
-            // query flags
-            let mut flags: Vec<QueryFlags> = vec![];
-            if values.is_some() {
-                flags.push(QueryFlags::Value);
-            }
-            if with_names.unwrap_or(false) {
-                flags.push(QueryFlags::WithNamesForValues);
-            }
-            if page_size.is_some() {
-                flags.push(QueryFlags::PageSize);
-            }
-            if serial_consistency.is_some() {
-                flags.push(QueryFlags::WithSerialConsistency);
-            }
-            if timestamp.is_some() {
-                flags.push(QueryFlags::WithDefaultTimestamp);
-            }
-
-            BodyReqQuery {
-                query: CStringLong::new(query),
-                query_params: ParamsReqQuery {
-                    consistency: consistency,
-                    flags: flags,
-                    values: values,
-                    page_size: page_size,
-                    paging_state: paging_state,
-                    serial_consistency: serial_consistency,
-                    timestamp: timestamp
-                }
-            }
+        // query flags
+        let mut flags: Vec<QueryFlags> = vec![];
+        if values.is_some() {
+            flags.push(QueryFlags::Value);
         }
+        if with_names.unwrap_or(false) {
+            flags.push(QueryFlags::WithNamesForValues);
+        }
+        if page_size.is_some() {
+            flags.push(QueryFlags::PageSize);
+        }
+        if serial_consistency.is_some() {
+            flags.push(QueryFlags::WithSerialConsistency);
+        }
+        if timestamp.is_some() {
+            flags.push(QueryFlags::WithDefaultTimestamp);
+        }
+
+        BodyReqQuery {
+            query: CStringLong::new(query),
+            query_params: ParamsReqQuery {
+                consistency: consistency,
+                flags: flags,
+                values: values,
+                page_size: page_size,
+                paging_state: paging_state,
+                serial_consistency: serial_consistency,
+                timestamp: timestamp,
+            },
+        }
+    }
 }
 
 impl IntoBytes for BodyReqQuery {
@@ -85,7 +86,7 @@ pub struct ParamsReqQuery {
     /// Serial `Consistency`.
     pub serial_consistency: Option<Consistency>,
     /// Timestamp.
-    pub timestamp: Option<i64>
+    pub timestamp: Option<i64>,
 }
 
 impl ParamsReqQuery {
@@ -137,7 +138,9 @@ impl IntoBytes for ParamsReqQuery {
         v.push(self.flags_as_byte());
         if QueryFlags::has_value(self.flags_as_byte()) {
             // XXX clone
-            for val in self.values.clone().unwrap().iter() {
+            let values = self.values.clone().unwrap();
+            v.extend_from_slice(to_short(values.len() as u64).as_slice());
+            for val in values.iter() {
                 v.extend_from_slice(val.into_cbytes().as_slice());
             }
         }
@@ -181,7 +184,7 @@ pub enum QueryFlags {
     /// If set indicates that Query Params contains default timestamp.
     WithDefaultTimestamp,
     /// If set indicates that Query Params values are named ones.
-    WithNamesForValues
+    WithNamesForValues,
 }
 
 impl QueryFlags {
@@ -275,19 +278,27 @@ impl AsByte for QueryFlags {
 impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
     pub fn new_req_query<'a>(query: String,
-            consistency: Consistency,
-            values: Option<Vec<Value>>,
-            with_names: Option<bool>,
-            page_size: Option<i32>,
-            paging_state: Option<CBytes>,
-            serial_consistency: Option<Consistency>,
-            timestamp: Option<i64>,
-            flags: Vec<Flag>) -> Frame {
+                             consistency: Consistency,
+                             values: Option<Vec<Value>>,
+                             with_names: Option<bool>,
+                             page_size: Option<i32>,
+                             paging_state: Option<CBytes>,
+                             serial_consistency: Option<Consistency>,
+                             timestamp: Option<i64>,
+                             flags: Vec<Flag>)
+                             -> Frame {
         let version = Version::Request;
         // sync client
         let stream: u64 = 0;
         let opcode = Opcode::Query;
-        let body = BodyReqQuery::new(query, consistency, values, with_names, page_size, paging_state, serial_consistency, timestamp);
+        let body = BodyReqQuery::new(query,
+                                     consistency,
+                                     values,
+                                     with_names,
+                                     page_size,
+                                     paging_state,
+                                     serial_consistency,
+                                     timestamp);
 
         Frame {
             version: version,
@@ -297,7 +308,7 @@ impl Frame {
             body: body.into_cbytes(),
             // for request frames it's always None
             tracing_id: None,
-            warnings: vec![]
+            warnings: vec![],
         }
     }
 }

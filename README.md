@@ -1,6 +1,10 @@
 # CDRS [![Build Status](https://travis-ci.org/AlexPikalov/cdrs.svg?branch=master)](https://travis-ci.org/AlexPikalov/cdrs)
 [![crates.io version](https://img.shields.io/crates/v/cdrs.svg)](https://crates.io/crates/cdrs)
 
+[![Coverage Status](https://coveralls.io/repos/github/harrydevnull/cdrs/badge.svg?branch=master)](https://coveralls.io/github/harrydevnull/cdrs?branch=master)
+[![codecov](https://codecov.io/gh/harrydevnull/cdrs/branch/master/graph/badge.svg)](https://codecov.io/gh/harrydevnull/cdrs)
+
+
 **CDRS** is a native Cassandra driver written in [Rust](https://www.rust-lang.org).
 The motivation to write it in Rust is a lack of native one.
 Existing ones are bindings to C clients.
@@ -26,23 +30,22 @@ into Rust structures.
 * [Listen to server events](#listen-to-server-events)
 * [Supported features](#supported-features)
 
-### Creating new connection and authorization
 
-To use password authenticator, just include the one implemented in
-`cdrs::authenticators`.
+### Creating new connection
+
 
 ```rust
 use cdrs::client::CDRS;
-use cdrs::authenticators::PasswordAuthenticator;
-use cdrs::transport::Transport;
+use cdrs::authenticators::NoneAuthenticator;
+use cdrs::transport::TransportPlain;
 ```
 
 After that you can create a new instance of `CDRS` and establish new connection:
 
 ```rust
-let authenticator = PasswordAuthenticator::new("user", "pass");
+let authenticator = NoneAuthenticator;
 let addr = "127.0.0.1:9042";
-let tcp_transport = Transport::new(addr).unwrap();
+let tcp_transport = TransportPlain::new(addr).unwrap();
 
 // pass authenticator and transport into CDRS' constructor
 let client = CDRS::new(tcp_transport, authenticator);
@@ -51,8 +54,33 @@ use cdrs::compression;
 let mut session = try!(client.start(compression::None));
 ```
 
-If Server does not require authorization `authenticator` won't be used, but is still
-required for the constructor (most probably it will be refactored in future).
+
+
+### Creating new connection with authentication
+
+To use password authenticator, just include the one implemented in
+`cdrs::authenticators`.
+
+```rust
+use cdrs::client::CDRS;
+use cdrs::authenticators::PasswordAuthenticator;
+use cdrs::transport::TransportPlain;
+```
+
+After that you can create a new instance of `CDRS` and establish new connection:
+
+```rust
+let authenticator = PasswordAuthenticator::new("user", "pass");
+let addr = "127.0.0.1:9042";
+let tcp_transport = TransportPlain::new(addr).unwrap();
+
+// pass authenticator and transport into CDRS' constructor
+let client = CDRS::new(tcp_transport, authenticator);
+use cdrs::compression;
+// start session without compression
+let mut session = try!(client.start(compression::None));
+```
+
 
 ### Creating new encrypted connection
 
@@ -71,7 +99,7 @@ features = ["ssl"]
 ```rust
 use cdrs::client::CDRS;
 use cdrs::authenticators::PasswordAuthenticator;
-use cdrs::transport_ssl::Transport;
+use cdrs::transport::TransportTls;
 use openssl::ssl::{SslConnectorBuilder, SslMethod};
 use std::path::Path;
 ```
@@ -88,7 +116,7 @@ let mut ssl_connector_builder = SslConnectorBuilder::new(SslMethod::tls()).unwra
 ssl_connector_builder.builder_mut().set_ca_file(path).unwrap();
 let connector = ssl_connector_builder.build();
 
-let ssl_transport = Transport::new(addr, &connector).unwrap();
+let ssl_transport = TransportTls::new(addr, &connector).unwrap();
 
 // pass authenticator and SSL transport into CDRS' constructor
 let client = CDRS::new(ssl_transport, authenticator);
@@ -105,7 +133,7 @@ use cdrs::connection_manager::ConnectionManager;
 let config = r2d2::Config::builder()
     .pool_size(15)
     .build();
-let transport = Transport::new(ADDR).unwrap();
+let transport = TransportPlain::new(ADDR).unwrap();
 let authenticator = PasswordAuthenticator::new(USER, PASS);
 let manager = ConnectionManager::new(transport, authenticator, Compression::None);
 
@@ -211,7 +239,7 @@ use std::default::Default;
 use cdrs::client::Query;
 use cdrs::consistency::Consistency;
 
-let select_query: Query = QueryBuilder::new(use_query.clone()).finalize();
+let select_query: Query = QueryBuilder::new("SELECT * FROM keyspace.table;").finalize();
 let with_tracing = false;
 let with_warnings = false;
 
@@ -379,6 +407,48 @@ To find an examples please refer to [examples](./examples/server_events.rs).
 - [x] EVENT
 - [x] AUTH_CHALLENGE
 - [x] AUTH_SUCCESS
+
+
+Issues
+------
+
+Feel free to submit issues and enhancement requests.
+
+Contributing
+------------
+
+Please refer to each project's style guidelines and guidelines for submitting patches and additions. In general, we follow the "fork-and-pull" Git workflow.
+
+ 1. **Fork** the repo on GitHub
+ 2. **Clone** the project to your own machine
+ 3. **Commit** changes to your own branch
+ 4. **Run  ```cargo test --all-features && cargo fmt -- --write-mode=diff```
+ 5. **Push** your work back up to your fork
+ 6. Submit a **Pull request** so that we can review your changes
+
+NOTE: Be sure to merge the latest from "upstream" before making a pull request!
+while running the tests you might need a local cassandra server working.
+The easiest way was to run cassandra on docker on local machine
+
+
+Running Cassandra on Local
+---------------------------
+
+ 1. If you have docker on the machine type the below command
+     ```
+     docker run --name cassandra-1 -d -p 9042:9042 -p 9160:9160 cassandra:2.2.1
+
+     ```
+     `docker ps `
+       should show an output like below
+
+     ```
+        CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                                                                     NAMES
+        a78c3a43bf1b        cassandra:2.2.1     "/docker-entrypoin..."   4 days ago          Up 4 days           7000-7001/tcp, 0.0.0.0:9042->9042/tcp, 7199/tcp, 0.0.0.0:9160->9160/tcp   cassandra-1
+      ```
+
+ 2. If docker is new to your tool set; it is never too late to know this awesome tool https://docs.docker.com/docker-for-mac/
+
 
 
 ### License

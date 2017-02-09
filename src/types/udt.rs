@@ -11,16 +11,16 @@ use error::Result;
 
 #[derive(Debug)]
 pub struct UDT {
-    data: HashMap<String, (ColTypeOption, CBytes)>
+    data: HashMap<String, (ColTypeOption, CBytes)>,
 }
 
 impl UDT {
     pub fn new(data: Vec<CBytes>, metadata: CUdt) -> UDT {
         let meta_iter = metadata.descriptions.iter();
 
-        let acc: HashMap<String, (ColTypeOption, CBytes)> = HashMap::with_capacity(metadata.descriptions.len());
-        let d = meta_iter
-            .zip(data.iter())
+        let acc: HashMap<String, (ColTypeOption, CBytes)> =
+            HashMap::with_capacity(metadata.descriptions.len());
+        let d = meta_iter.zip(data.iter())
             .fold(acc, |mut a, v| {
                 let (m, val_b) = v;
                 let &(ref name_b, ref val_type) = m;
@@ -29,9 +29,7 @@ impl UDT {
                 return a;
             });
 
-        return UDT {
-            data: d
-        };
+        return UDT { data: d };
     }
 }
 
@@ -41,8 +39,8 @@ impl IntoRustByName<Vec<u8>> for UDT {
             let &(ref col_type, ref bytes) = v;
             return match col_type.id {
                 ColType::Blob => decode_blob(bytes.as_plain()).map_err(|err| err.into()),
-                _ => unreachable!()
-            }
+                _ => unreachable!(),
+            };
         });
     }
 }
@@ -55,7 +53,7 @@ impl IntoRustByName<String> for UDT {
                 ColType::Custom => decode_custom(bytes.as_plain()),
                 ColType::Ascii => decode_ascii(bytes.as_plain()),
                 ColType::Varchar => decode_varchar(bytes.as_plain()),
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
         });
@@ -68,7 +66,7 @@ impl IntoRustByName<bool> for UDT {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
                 ColType::Boolean => decode_boolean(bytes.as_plain()),
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
         });
@@ -84,7 +82,7 @@ impl IntoRustByName<i64> for UDT {
                 ColType::Timestamp => decode_timestamp(bytes.as_plain()),
                 ColType::Time => decode_time(bytes.as_plain()),
                 ColType::Varint => decode_varint(bytes.as_plain()),
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
         });
@@ -98,7 +96,7 @@ impl IntoRustByName<i32> for UDT {
             let converted = match col_type.id {
                 ColType::Int => decode_int(bytes.as_plain()),
                 ColType::Date => decode_date(bytes.as_plain()),
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
         });
@@ -111,7 +109,7 @@ impl IntoRustByName<i16> for UDT {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
                 ColType::Smallint => decode_smallint(bytes.as_plain()),
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
         });
@@ -124,7 +122,7 @@ impl IntoRustByName<f64> for UDT {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
                 ColType::Double => decode_double(bytes.as_plain()),
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
         });
@@ -138,7 +136,7 @@ impl IntoRustByName<f32> for UDT {
             let converted = match col_type.id {
                 ColType::Decimal => decode_decimal(bytes.as_plain()),
                 ColType::Float => decode_float(bytes.as_plain()),
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
         });
@@ -151,7 +149,7 @@ impl IntoRustByName<net::IpAddr> for UDT {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
                 ColType::Inet => decode_inet(bytes.as_plain()),
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
         });
@@ -165,7 +163,7 @@ impl IntoRustByName<Uuid> for UDT {
             let converted = match col_type.id {
                 ColType::Uuid => decode_timeuuid(bytes.as_plain()),
                 ColType::Timeuuid => decode_timeuuid(bytes.as_plain()),
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
         });
@@ -180,13 +178,13 @@ impl IntoRustByName<List> for UDT {
                 ColType::List => {
                     let list_bytes = decode_list(bytes.as_plain()).unwrap();
                     Ok(List::new(list_bytes, col_type.clone().clone()))
-                },
+                }
                 ColType::Set => {
                     let list_bytes = decode_set(bytes.as_plain()).unwrap();
                     Ok(List::new(list_bytes, col_type.clone().clone()))
-                },
-                _ => unreachable!()
-            }
+                }
+                _ => unreachable!(),
+            };
         });
     }
 }
@@ -198,8 +196,8 @@ impl IntoRustByName<Map> for UDT {
             let list_bytes = decode_map(bytes.as_plain()).unwrap();
             return match col_type.id {
                 ColType::Map => Ok(Map::new(list_bytes, col_type.clone().clone())),
-                _ => unreachable!()
-            }
+                _ => unreachable!(),
+            };
         });
     }
 }
@@ -216,13 +214,13 @@ impl IntoRustByName<UDT> for UDT {
 
             let col_type_value = match col_type.value.as_ref() {
                 Some(&ColTypeOptionValue::UdtType(ref ctv)) => ctv,
-                _ => unreachable!()
-            };;
+                _ => unreachable!(),
+            };
 
             return match col_type.id {
                 ColType::Udt => Ok(UDT::new(list_bytes, col_type_value.clone())),
-                _ => unreachable!()
-            }
+                _ => unreachable!(),
+            };
         });
     }
 }

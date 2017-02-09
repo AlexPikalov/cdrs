@@ -1,4 +1,5 @@
-//! This modules contains [Cassandra's errors](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1011)
+//! This modules contains [Cassandra's errors]
+//! (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1011)
 //! which server could respond to client.
 
 use std::io;
@@ -24,7 +25,7 @@ pub struct CDRSError {
     /// Error message string.
     pub message: CString,
     /// Additional information.
-    pub additional_info: AdditionalErrorInfo
+    pub additional_info: AdditionalErrorInfo,
 }
 
 impl FromCursor for CDRSError {
@@ -35,12 +36,14 @@ impl FromCursor for CDRSError {
         CDRSError {
             error_code: error_code,
             message: message,
-            additional_info: additional_info
+            additional_info: additional_info,
         }
     }
 }
 
-/// Additional error info in accordance to [Cassandra protocol v4](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1011).
+/// Additional error info in accordance to
+/// [Cassandra protocol v4]
+/// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1011).
 #[derive(Debug)]
 pub enum AdditionalErrorInfo {
     Server(SimpleError),
@@ -60,12 +63,13 @@ pub enum AdditionalErrorInfo {
     Invalid(SimpleError),
     Config(SimpleError),
     AlreadyExists(AlreadyExistsError),
-    Unprepared(UnpreparedError)
+    Unprepared(UnpreparedError),
 }
 
 impl AdditionalErrorInfo {
-    pub fn from_cursor_with_code(mut cursor: &mut io::Cursor<Vec<u8>>, error_code: CInt)
-        -> AdditionalErrorInfo {
+    pub fn from_cursor_with_code(mut cursor: &mut io::Cursor<Vec<u8>>,
+                                 error_code: CInt)
+                                 -> AdditionalErrorInfo {
         match error_code {
             0x0000 => AdditionalErrorInfo::Server(SimpleError::from_cursor(&mut cursor)),
             0x000A => AdditionalErrorInfo::Protocol(SimpleError::from_cursor(&mut cursor)),
@@ -74,18 +78,26 @@ impl AdditionalErrorInfo {
             0x1001 => AdditionalErrorInfo::Overloaded(SimpleError::from_cursor(&mut cursor)),
             0x1002 => AdditionalErrorInfo::IsBootstrapping(SimpleError::from_cursor(&mut cursor)),
             0x1003 => AdditionalErrorInfo::Truncate(SimpleError::from_cursor(&mut cursor)),
-            0x1100 => AdditionalErrorInfo::WriteTimeout(WriteTimeoutError::from_cursor(&mut cursor)),
+            0x1100 => {
+                AdditionalErrorInfo::WriteTimeout(WriteTimeoutError::from_cursor(&mut cursor))
+            }
             0x1200 => AdditionalErrorInfo::ReadTimeout(ReadTimeoutError::from_cursor(&mut cursor)),
             0x1300 => AdditionalErrorInfo::ReadFailure(ReadFailureError::from_cursor(&mut cursor)),
-            0x1400 => AdditionalErrorInfo::FunctionFailure(FunctionFailureError::from_cursor(&mut cursor)),
-            0x1500 => AdditionalErrorInfo::WriteFailure(WriteFailureError::from_cursor(&mut cursor)),
+            0x1400 => {
+                AdditionalErrorInfo::FunctionFailure(FunctionFailureError::from_cursor(&mut cursor))
+            }
+            0x1500 => {
+                AdditionalErrorInfo::WriteFailure(WriteFailureError::from_cursor(&mut cursor))
+            }
             0x2000 => AdditionalErrorInfo::Syntax(SimpleError::from_cursor(&mut cursor)),
             0x2100 => AdditionalErrorInfo::Unauthorized(SimpleError::from_cursor(&mut cursor)),
             0x2200 => AdditionalErrorInfo::Invalid(SimpleError::from_cursor(&mut cursor)),
             0x2300 => AdditionalErrorInfo::Config(SimpleError::from_cursor(&mut cursor)),
-            0x2400 => AdditionalErrorInfo::AlreadyExists(AlreadyExistsError::from_cursor(&mut cursor)),
+            0x2400 => {
+                AdditionalErrorInfo::AlreadyExists(AlreadyExistsError::from_cursor(&mut cursor))
+            }
             0x2500 => AdditionalErrorInfo::Unprepared(UnpreparedError::from_cursor(&mut cursor)),
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -100,7 +112,9 @@ impl FromCursor for SimpleError {
     }
 }
 
-/// Additional info about [unavailable exception](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1025)
+/// Additional info about
+/// [unavailable exception]
+/// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1025)
 #[derive(Debug)]
 pub struct UnavailableError {
     /// Consistency level of query.
@@ -108,7 +122,7 @@ pub struct UnavailableError {
     /// Number of nodes that should be available to respect `cl`.
     pub required: CInt,
     /// Number of replicas that we were know to be alive.
-    pub alive: CInt
+    pub alive: CInt,
 }
 
 impl FromCursor for UnavailableError {
@@ -120,7 +134,7 @@ impl FromCursor for UnavailableError {
         UnavailableError {
             cl: cl,
             required: required,
-            alive: alive
+            alive: alive,
         }
     }
 }
@@ -135,7 +149,7 @@ pub struct WriteTimeoutError {
     /// `i32` representing the number of replicas whose acknowledgement is required to achieve `cl`.
     pub blockfor: CInt,
     /// Describes the type of the write that timed out
-    pub write_type: WriteType
+    pub write_type: WriteType,
 }
 
 impl FromCursor for WriteTimeoutError {
@@ -149,7 +163,7 @@ impl FromCursor for WriteTimeoutError {
             cl: cl,
             received: received,
             blockfor: blockfor,
-            write_type: write_type
+            write_type: write_type,
         };
     }
 }
@@ -163,7 +177,7 @@ pub struct ReadTimeoutError {
     pub received: CInt,
     /// `i32` representing the number of replicas whose acknowledgement is required to achieve `cl`.
     pub blockfor: CInt,
-    data_present: u8
+    data_present: u8,
 }
 
 impl ReadTimeoutError {
@@ -183,7 +197,7 @@ impl FromCursor for ReadTimeoutError {
             cl: cl,
             received: received,
             blockfor: blockfor,
-            data_present: data_present
+            data_present: data_present,
         }
     }
 }
@@ -199,7 +213,7 @@ pub struct ReadFailureError {
     pub blockfor: CInt,
     /// Represents the number of nodes that experience a failure while executing the request.
     pub num_failures: CInt,
-    data_present: u8
+    data_present: u8,
 }
 
 impl ReadFailureError {
@@ -221,7 +235,7 @@ impl FromCursor for ReadFailureError {
             received: received,
             blockfor: blockfor,
             num_failures: num_failures,
-            data_present: data_present
+            data_present: data_present,
         }
     }
 }
@@ -234,7 +248,7 @@ pub struct FunctionFailureError {
     /// The name of the failed function
     pub function: CString,
     /// `Vec<CString>` one string for each argument type (as CQL type) of the failed function.
-    pub arg_types: CStringList
+    pub arg_types: CStringList,
 }
 
 impl FromCursor for FunctionFailureError {
@@ -245,12 +259,13 @@ impl FromCursor for FunctionFailureError {
         FunctionFailureError {
             keyspace: keyspace,
             function: function,
-            arg_types: arg_types
+            arg_types: arg_types,
         }
     }
 }
 
-/// A non-timeout exception during a write request. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1106)
+/// A non-timeout exception during a write request.
+/// [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1106)
 #[derive(Debug)]
 pub struct WriteFailureError {
     /// Consistency of the query having triggered the exception.
@@ -262,7 +277,7 @@ pub struct WriteFailureError {
     /// Represents the number of nodes that experience a failure while executing the request.
     pub num_failures: CInt,
     /// describes the type of the write that failed.
-    pub write_type: WriteType
+    pub write_type: WriteType,
 }
 
 impl FromCursor for WriteFailureError {
@@ -277,12 +292,13 @@ impl FromCursor for WriteFailureError {
             received: received,
             blockfor: blockfor,
             num_failures: num_failures,
-            write_type: write_type
+            write_type: write_type,
         }
     }
 }
 
-/// Describes the type of the write that failed. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1118)
+/// Describes the type of the write that failed.
+/// [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1118)
 #[derive(Debug)]
 pub enum WriteType {
     /// The write was a non-batched non-counter write
@@ -297,7 +313,7 @@ pub enum WriteType {
     Counter,
     /// The failure occured during the write to the batch log when a (logged) batch
     /// write was requested.
-    BatchLog
+    BatchLog,
 }
 
 impl FromCursor for WriteType {
@@ -308,7 +324,7 @@ impl FromCursor for WriteType {
             "UNLOGGED_BATCH" => WriteType::UnloggedBatch,
             "COUNTER" => WriteType::Counter,
             "BATCH_LOG" => WriteType::BatchLog,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -321,7 +337,7 @@ pub struct AlreadyExistsError {
     /// or the keyspace in which the table that already exists is.
     pub ks: CString,
     /// Represents the name of the table that already exists.
-    pub table: CString
+    pub table: CString,
 }
 
 impl FromCursor for AlreadyExistsError {
@@ -331,26 +347,25 @@ impl FromCursor for AlreadyExistsError {
 
         AlreadyExistsError {
             ks: ks,
-            table: table
+            table: table,
         }
     }
 }
 
 /// Can be thrown while a prepared statement tries to be
 /// executed if the provided prepared statement ID is not known by
-/// this host. [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1150)
+/// this host. [Read more...]
+/// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L1150)
 #[derive(Debug)]
 pub struct UnpreparedError {
     /// Unknown ID.
-    pub id: CBytes
+    pub id: CBytes,
 }
 
 impl FromCursor for UnpreparedError {
     fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> UnpreparedError {
         let id = CBytes::from_cursor(&mut cursor);
 
-        UnpreparedError {
-            id: id
-        }
+        UnpreparedError { id: id }
     }
 }

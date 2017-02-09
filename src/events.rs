@@ -3,17 +3,11 @@ use std::iter::Iterator;
 
 use std::error::Error;
 use error;
-#[cfg(not(feature="ssl"))]
-use transport::Transport;
-#[cfg(feature="ssl")]
-use transport_ssl::Transport;
-use frame::events::{
-    ServerEvent as FrameServerEvent,
-    SimpleServerEvent as FrameSimpleServerEvent,
-    SchemaChange as FrameSchemaChange
-};
+use frame::events::{ServerEvent as FrameServerEvent, SimpleServerEvent as FrameSimpleServerEvent,
+                    SchemaChange as FrameSchemaChange};
 use frame::parser::parse_frame;
 use compression::Compression;
+use transport::CDRSTransport;
 
 /// Full Server Event which includes all details about occured change.
 pub type ServerEvent = FrameServerEvent;
@@ -33,11 +27,11 @@ pub type SchemaChange = FrameSchemaChange;
 ///
 /// `EventStream` is an iterator which returns new events once they come.
 /// It is similar to `Receiver::iter`.
-pub fn new_listener(transport: Transport) -> (Listener, EventStream) {
+pub fn new_listener<X>(transport: X) -> (Listener<X>, EventStream) {
     let (tx, rx) = channel();
     let listener = Listener {
         transport: transport,
-        tx: tx
+        tx: tx,
     };
     let stream = EventStream { rx: rx };
     (listener, stream)
@@ -46,12 +40,13 @@ pub fn new_listener(transport: Transport) -> (Listener, EventStream) {
 /// `Listener` provides only one function `start` to start listening. It
 /// blocks a thread so should be moved into a separate one to no release
 /// main thread.
-pub struct Listener {
-    transport: Transport,
-    tx: Sender<ServerEvent>
+
+pub struct Listener<X> {
+    transport: X,
+    tx: Sender<ServerEvent>,
 }
 
-impl Listener {
+impl<X: CDRSTransport> Listener<X> {
     /// It starts a process of listening to new events. Locks a frame.
     pub fn start(&mut self, compressor: &Compression) -> error::Result<()> {
         loop {
@@ -66,7 +61,7 @@ impl Listener {
             };
             match self.tx.send(event) {
                 Err(err) => return Err(error::Error::General(err.description().to_string())),
-                _ => continue
+                _ => continue,
             }
         }
     }
@@ -75,7 +70,7 @@ impl Listener {
 /// `EventStream` is an iterator which returns new events once they come.
 /// It is similar to `Receiver::iter`.
 pub struct EventStream {
-    rx: Receiver<ServerEvent>
+    rx: Receiver<ServerEvent>,
 }
 
 impl Iterator for EventStream {

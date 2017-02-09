@@ -5,14 +5,12 @@ use types::CString;
 /// A server authentication challenge.
 #[derive(Debug)]
 pub struct BodyResAuthenticate {
-    pub data: CString
+    pub data: CString,
 }
 
 impl FromCursor for BodyResAuthenticate {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResAuthenticate {
-        BodyResAuthenticate {
-            data: CString::from_cursor(&mut cursor)
-        }
+        BodyResAuthenticate { data: CString::from_cursor(&mut cursor) }
     }
 }
 

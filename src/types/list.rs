@@ -13,18 +13,20 @@ pub struct List {
     /// column spec of the list, i.e. id should be List as it's a list and value should contain
     /// a type of list items.
     metadata: ColTypeOption,
-    data: Vec<CBytes>
+    data: Vec<CBytes>,
 }
 
 impl List {
     pub fn new(data: Vec<CBytes>, metadata: ColTypeOption) -> List {
         List {
             metadata: metadata,
-            data: data
+            data: data,
         }
     }
 
-    fn map<T, F>(&self, f: F) -> Vec<T> where F: FnMut(&CBytes) -> T {
+    fn map<T, F>(&self, f: F) -> Vec<T>
+        where F: FnMut(&CBytes) -> T
+    {
         self.data
             .iter()
             .map(f)
@@ -38,21 +40,17 @@ impl AsRust<Vec<Vec<u8>>> for List {
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
                 match type_option.id {
-                    ColType::Blob => Ok(
-                            self.map(|bytes| decode_blob(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Blob => Ok(self.map(|bytes| decode_blob(bytes.as_plain()).unwrap())),
+                    _ => unreachable!(),
                 }
-            },
+            }
             ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
-                    ColType::Blob => Ok(
-                            self.map(|bytes| decode_blob(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Blob => Ok(self.map(|bytes| decode_blob(bytes.as_plain()).unwrap())),
+                    _ => unreachable!(),
                 }
-            },
-            _ => unreachable!()
+            }
+            _ => unreachable!(),
         }
     }
 }
@@ -63,33 +61,29 @@ impl AsRust<Vec<String>> for List {
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
                 match type_option.id {
-                    ColType::Custom => Ok(
-                        self.map(|bytes| decode_custom(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Ascii => Ok(
-                        self.map(|bytes| decode_ascii(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Varchar => Ok(
-                        self.map(|bytes| decode_varchar(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Custom => {
+                        Ok(self.map(|bytes| decode_custom(bytes.as_plain()).unwrap()))
+                    }
+                    ColType::Ascii => Ok(self.map(|bytes| decode_ascii(bytes.as_plain()).unwrap())),
+                    ColType::Varchar => {
+                        Ok(self.map(|bytes| decode_varchar(bytes.as_plain()).unwrap()))
+                    }
+                    _ => unreachable!(),
                 }
-            },
+            }
             ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
-                    ColType::Custom => Ok(
-                        self.map(|bytes| decode_custom(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Ascii => Ok(
-                        self.map(|bytes| decode_ascii(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Varchar => Ok(
-                        self.map(|bytes| decode_varchar(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Custom => {
+                        Ok(self.map(|bytes| decode_custom(bytes.as_plain()).unwrap()))
+                    }
+                    ColType::Ascii => Ok(self.map(|bytes| decode_ascii(bytes.as_plain()).unwrap())),
+                    ColType::Varchar => {
+                        Ok(self.map(|bytes| decode_varchar(bytes.as_plain()).unwrap()))
+                    }
+                    _ => unreachable!(),
                 }
-            },
-            _ => unreachable!()
+            }
+            _ => unreachable!(),
         }
     }
 }
@@ -100,21 +94,21 @@ impl AsRust<Vec<bool>> for List {
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
                 match type_option.id {
-                    ColType::Boolean => Ok(
-                        self.map(|bytes| decode_boolean(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Boolean => {
+                        Ok(self.map(|bytes| decode_boolean(bytes.as_plain()).unwrap()))
+                    }
+                    _ => unreachable!(),
                 }
-            },
+            }
             ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
-                    ColType::Boolean => Ok(
-                        self.map(|bytes| decode_boolean(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Boolean => {
+                        Ok(self.map(|bytes| decode_boolean(bytes.as_plain()).unwrap()))
+                    }
+                    _ => unreachable!(),
                 }
-            },
-            _ => unreachable!()
+            }
+            _ => unreachable!(),
         }
     }
 }
@@ -125,39 +119,35 @@ impl AsRust<Vec<i64>> for List {
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
                 match type_option.id {
-                    ColType::Bigint => Ok(
-                        self.map(|bytes| decode_bigint(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Timestamp => Ok(
-                        self.map(|bytes| decode_timestamp(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Time => Ok(
-                        self.map(|bytes| decode_time(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Varint => Ok(
-                        self.map(|bytes| decode_varint(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Bigint => {
+                        Ok(self.map(|bytes| decode_bigint(bytes.as_plain()).unwrap()))
+                    }
+                    ColType::Timestamp => {
+                        Ok(self.map(|bytes| decode_timestamp(bytes.as_plain()).unwrap()))
+                    }
+                    ColType::Time => Ok(self.map(|bytes| decode_time(bytes.as_plain()).unwrap())),
+                    ColType::Varint => {
+                        Ok(self.map(|bytes| decode_varint(bytes.as_plain()).unwrap()))
+                    }
+                    _ => unreachable!(),
                 }
-            },
+            }
             ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
-                    ColType::Bigint => Ok(
-                        self.map(|bytes| decode_bigint(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Timestamp => Ok(
-                        self.map(|bytes| decode_timestamp(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Time => Ok(
-                        self.map(|bytes| decode_time(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Varint => Ok(
-                        self.map(|bytes| decode_varint(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Bigint => {
+                        Ok(self.map(|bytes| decode_bigint(bytes.as_plain()).unwrap()))
+                    }
+                    ColType::Timestamp => {
+                        Ok(self.map(|bytes| decode_timestamp(bytes.as_plain()).unwrap()))
+                    }
+                    ColType::Time => Ok(self.map(|bytes| decode_time(bytes.as_plain()).unwrap())),
+                    ColType::Varint => {
+                        Ok(self.map(|bytes| decode_varint(bytes.as_plain()).unwrap()))
+                    }
+                    _ => unreachable!(),
                 }
-            },
-            _ => unreachable!()
+            }
+            _ => unreachable!(),
         }
     }
 }
@@ -168,27 +158,19 @@ impl AsRust<Vec<i32>> for List {
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
                 match type_option.id {
-                    ColType::Int => Ok(
-                        self.map(|bytes| decode_int(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Date => Ok(
-                        self.map(|bytes| decode_date(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Int => Ok(self.map(|bytes| decode_int(bytes.as_plain()).unwrap())),
+                    ColType::Date => Ok(self.map(|bytes| decode_date(bytes.as_plain()).unwrap())),
+                    _ => unreachable!(),
                 }
-            },
+            }
             ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
-                    ColType::Int => Ok(
-                        self.map(|bytes| decode_int(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Date => Ok(
-                        self.map(|bytes| decode_date(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Int => Ok(self.map(|bytes| decode_int(bytes.as_plain()).unwrap())),
+                    ColType::Date => Ok(self.map(|bytes| decode_date(bytes.as_plain()).unwrap())),
+                    _ => unreachable!(),
                 }
-            },
-            _ => unreachable!()
+            }
+            _ => unreachable!(),
         }
     }
 }
@@ -199,21 +181,21 @@ impl AsRust<Vec<i16>> for List {
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
                 match type_option.id {
-                    ColType::Smallint => Ok(
-                        self.map(|bytes| decode_smallint(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Smallint => {
+                        Ok(self.map(|bytes| decode_smallint(bytes.as_plain()).unwrap()))
+                    }
+                    _ => unreachable!(),
                 }
-            },
+            }
             ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
-                    ColType::Smallint => Ok(
-                        self.map(|bytes| decode_smallint(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Smallint => {
+                        Ok(self.map(|bytes| decode_smallint(bytes.as_plain()).unwrap()))
+                    }
+                    _ => unreachable!(),
                 }
-            },
-            _ => unreachable!()
+            }
+            _ => unreachable!(),
         }
     }
 }
@@ -224,21 +206,21 @@ impl AsRust<Vec<f64>> for List {
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
                 match type_option.id {
-                    ColType::Double => Ok(
-                        self.map(|bytes| decode_double(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Double => {
+                        Ok(self.map(|bytes| decode_double(bytes.as_plain()).unwrap()))
+                    }
+                    _ => unreachable!(),
                 }
-            },
+            }
             ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
-                    ColType::Double => Ok(
-                        self.map(|bytes| decode_double(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Double => {
+                        Ok(self.map(|bytes| decode_double(bytes.as_plain()).unwrap()))
+                    }
+                    _ => unreachable!(),
                 }
-            },
-            _ => unreachable!()
+            }
+            _ => unreachable!(),
         }
     }
 }
@@ -249,27 +231,23 @@ impl AsRust<Vec<f32>> for List {
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
                 match type_option.id {
-                    ColType::Decimal => Ok(
-                        self.map(|bytes| decode_decimal(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Float => Ok(
-                        self.map(|bytes| decode_float(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Decimal => {
+                        Ok(self.map(|bytes| decode_decimal(bytes.as_plain()).unwrap()))
+                    }
+                    ColType::Float => Ok(self.map(|bytes| decode_float(bytes.as_plain()).unwrap())),
+                    _ => unreachable!(),
                 }
-            },
+            }
             ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
-                    ColType::Decimal => Ok(
-                        self.map(|bytes| decode_decimal(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Float => Ok(
-                        self.map(|bytes| decode_float(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Decimal => {
+                        Ok(self.map(|bytes| decode_decimal(bytes.as_plain()).unwrap()))
+                    }
+                    ColType::Float => Ok(self.map(|bytes| decode_float(bytes.as_plain()).unwrap())),
+                    _ => unreachable!(),
                 }
-            },
-            _ => unreachable!()
+            }
+            _ => unreachable!(),
         }
     }
 }
@@ -280,21 +258,17 @@ impl AsRust<Vec<net::IpAddr>> for List {
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
                 match type_option.id {
-                    ColType::Inet => Ok(
-                        self.map(|bytes| decode_inet(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Inet => Ok(self.map(|bytes| decode_inet(bytes.as_plain()).unwrap())),
+                    _ => unreachable!(),
                 }
-            },
+            }
             ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
-                    ColType::Inet => Ok(
-                        self.map(|bytes| decode_inet(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Inet => Ok(self.map(|bytes| decode_inet(bytes.as_plain()).unwrap())),
+                    _ => unreachable!(),
                 }
-            },
-            _ => unreachable!()
+            }
+            _ => unreachable!(),
         }
     }
 }
@@ -305,27 +279,27 @@ impl AsRust<Vec<Uuid>> for List {
         match self.metadata.value.clone().unwrap() {
             ColTypeOptionValue::CList(ref type_option) => {
                 match type_option.id {
-                    ColType::Uuid => Ok(
-                        self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Timeuuid => Ok(
-                        self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Uuid => {
+                        Ok(self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap()))
+                    }
+                    ColType::Timeuuid => {
+                        Ok(self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap()))
+                    }
+                    _ => unreachable!(),
                 }
-            },
+            }
             ColTypeOptionValue::CSet(ref type_option) => {
                 match type_option.id {
-                    ColType::Uuid => Ok(
-                        self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap())
-                    ),
-                    ColType::Timeuuid => Ok(
-                        self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap())
-                    ),
-                    _ => unreachable!()
+                    ColType::Uuid => {
+                        Ok(self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap()))
+                    }
+                    ColType::Timeuuid => {
+                        Ok(self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap()))
+                    }
+                    _ => unreachable!(),
                 }
-            },
-            _ => unreachable!()
+            }
+            _ => unreachable!(),
         }
     }
 }
@@ -341,21 +315,22 @@ impl AsRust<Vec<List>> for List {
                 let list_type_option: &ColTypeOption = list_type_option_box.as_ref();
                 match id {
                     // T is another List
-                    &ColType::List => Ok(
-                        self.map(|bytes| List::new(
-                            decode_list(bytes.as_plain()).unwrap(),
-                            list_type_option.clone())
-                        )
-                    ),
+                    &ColType::List => {
+                        Ok(self.map(|bytes| {
+                            List::new(decode_list(bytes.as_plain()).unwrap(),
+                                      list_type_option.clone())
+                        }))
+                    }
                     // T is another Set
-                    &ColType::Set => Ok(
-                        self.map(|bytes| List::new(
-                            decode_list(bytes.as_plain()).unwrap(),
-                            list_type_option.clone()))
-                        ),
-                    _ => unreachable!()
+                    &ColType::Set => {
+                        Ok(self.map(|bytes| {
+                            List::new(decode_list(bytes.as_plain()).unwrap(),
+                                      list_type_option.clone())
+                        }))
+                    }
+                    _ => unreachable!(),
                 }
-            },
+            }
             // convert CSet of T-s into List of T-s
             ColTypeOptionValue::CSet(ref type_option) => {
                 let ref id = type_option.id;
@@ -363,23 +338,23 @@ impl AsRust<Vec<List>> for List {
                 let list_type_option: &ColTypeOption = list_type_option_box.as_ref();
                 match id {
                     // T is another List
-                    &ColType::List => Ok(
-                        self.map(|bytes| List::new(
-                            decode_list(bytes.as_plain()).unwrap(),
-                            list_type_option.clone())
-                        )
-                    ),
+                    &ColType::List => {
+                        Ok(self.map(|bytes| {
+                            List::new(decode_list(bytes.as_plain()).unwrap(),
+                                      list_type_option.clone())
+                        }))
+                    }
                     // T is another Set
-                    &ColType::Set => Ok(
-                        self.map(|bytes| List::new(
-                            decode_list(bytes.as_plain()).unwrap(),
-                            list_type_option.clone())
-                        )
-                    ),
-                    _ => unreachable!()
+                    &ColType::Set => {
+                        Ok(self.map(|bytes| {
+                            List::new(decode_list(bytes.as_plain()).unwrap(),
+                                      list_type_option.clone())
+                        }))
+                    }
+                    _ => unreachable!(),
                 }
             }
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -395,15 +370,15 @@ impl AsRust<Vec<Map>> for List {
                 let list_type_option: &ColTypeOption = list_type_option_box.as_ref();
                 match id {
                     // T is Map
-                    &ColType::Map => Ok(
-                        self.map(|bytes| Map::new(
-                            decode_map(bytes.as_plain()).unwrap(),
-                            list_type_option.clone())
-                        )
-                    ),
-                    _ => unreachable!()
+                    &ColType::Map => {
+                        Ok(self.map(|bytes| {
+                            Map::new(decode_map(bytes.as_plain()).unwrap(),
+                                     list_type_option.clone())
+                        }))
+                    }
+                    _ => unreachable!(),
                 }
-            },
+            }
             // convert CSet of T-s into List of T-s
             ColTypeOptionValue::CSet(ref type_option) => {
                 let ref id = type_option.id;
@@ -411,16 +386,16 @@ impl AsRust<Vec<Map>> for List {
                 let list_type_option: &ColTypeOption = list_type_option_box.as_ref();
                 match id {
                     // T is Map
-                    &ColType::Map => Ok(
-                        self.map(|bytes| Map::new(
-                            decode_map(bytes.as_plain()).unwrap(),
-                            list_type_option.clone())
-                        )
-                    ),
-                    _ => unreachable!()
+                    &ColType::Map => {
+                        Ok(self.map(|bytes| {
+                            Map::new(decode_map(bytes.as_plain()).unwrap(),
+                                     list_type_option.clone())
+                        }))
+                    }
+                    _ => unreachable!(),
                 }
             }
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -435,39 +410,39 @@ impl AsRust<Vec<UDT>> for List {
                 let list_type_option_box: Box<ColTypeOption> = type_option.clone();
                 let list_type_option = match list_type_option_box.value {
                     Some(ColTypeOptionValue::UdtType(t)) => t,
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 };
                 match id {
                     // T is Udt
-                    &ColType::Udt => Ok(
-                        self.map(|bytes| UDT::new(
-                            decode_udt(bytes.as_plain()).unwrap(),
-                            list_type_option.clone())
-                        )
-                    ),
-                    _ => unreachable!()
+                    &ColType::Udt => {
+                        Ok(self.map(|bytes| {
+                            UDT::new(decode_udt(bytes.as_plain()).unwrap(),
+                                     list_type_option.clone())
+                        }))
+                    }
+                    _ => unreachable!(),
                 }
-            },
+            }
             // convert CSet of T-s into List of T-s
             ColTypeOptionValue::CSet(ref type_option) => {
                 let ref id = type_option.id;
                 let list_type_option_box: Box<ColTypeOption> = type_option.clone();
                 let list_type_option = match list_type_option_box.value {
                     Some(ColTypeOptionValue::UdtType(t)) => t,
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 };
                 match id {
                     // T is Udt
-                    &ColType::Udt => Ok(
-                        self.map(|bytes| UDT::new(
-                            decode_udt(bytes.as_plain()).unwrap(),
-                            list_type_option.clone())
-                        )
-                    ),
-                    _ => unreachable!()
+                    &ColType::Udt => {
+                        Ok(self.map(|bytes| {
+                            UDT::new(decode_udt(bytes.as_plain()).unwrap(),
+                                     list_type_option.clone())
+                        }))
+                    }
+                    _ => unreachable!(),
                 }
             }
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
