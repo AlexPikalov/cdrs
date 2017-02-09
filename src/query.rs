@@ -196,7 +196,6 @@ impl QueryParamsBuilder {
             flags.push(QueryFlags::PageSize);
         }
 
-
         if self.serial_consistency.is_some() {
             flags.push(QueryFlags::WithSerialConsistency);
         }

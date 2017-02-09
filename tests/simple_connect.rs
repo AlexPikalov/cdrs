@@ -21,12 +21,14 @@ fn connect_to_cassandra() {
     let client = CDRS::new(tcp_transport.unwrap(), authenticator);
     let mut session = client.start(Compression::None).unwrap();
 
-    let select_peers = "SELECT peer,data_center,rack,tokens,rpc_address,release_version FROM system.peers";
+    let select_peers = "SELECT peer,data_center,rack,tokens,rpc_address,release_version FROM \
+                        system.peers";
     let with_tracing = false;
     let with_warnings = false;
 
 
-    let select_peers_query = QueryBuilder::new(select_peers).consistency(Consistency::One).finalize();
+    let select_peers_query =
+        QueryBuilder::new(select_peers).consistency(Consistency::One).finalize();
 
     let select_peers_query_result = session.query(select_peers_query, with_tracing, with_warnings);
 

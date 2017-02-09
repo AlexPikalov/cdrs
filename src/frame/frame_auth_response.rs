@@ -50,7 +50,6 @@ mod tests {
     use super::*;
     use types::CBytes;
     use IntoBytes;
-    use super::super::*;
 
 
     #[test]
