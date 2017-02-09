@@ -180,7 +180,7 @@ impl QueryParamsBuilder {
         return self;
     }
 
-    pub fn finalize(self) -> QueryParams {
+    pub fn finalize(&self) -> QueryParams {
         // query flags
         let mut flags: Vec<QueryFlags> = vec![];
 
@@ -196,6 +196,7 @@ impl QueryParamsBuilder {
             flags.push(QueryFlags::PageSize);
         }
 
+
         if self.serial_consistency.is_some() {
             flags.push(QueryFlags::WithSerialConsistency);
         }
@@ -204,15 +205,16 @@ impl QueryParamsBuilder {
             flags.push(QueryFlags::WithDefaultTimestamp);
         }
 
-        return QueryParams {
-            consistency: self.consistency,
+        //TODO need to revisit// borrow checker was complaining do without the clone
+        QueryParams {
+            consistency: self.consistency.clone(),
             flags: flags,
-            values: self.values,
-            page_size: self.page_size,
-            paging_state: self.paging_state,
-            serial_consistency: self.serial_consistency,
+            values: self.values.clone(),
+            page_size: self.page_size.clone(),
+            paging_state: self.paging_state.clone(),
+            serial_consistency: self.serial_consistency.clone(),
             timestamp: self.timestamp,
-        };
+        }
     }
 }
 
