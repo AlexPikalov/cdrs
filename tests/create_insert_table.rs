@@ -122,20 +122,20 @@ fn insert_data_users() {
 
 }
 
-//#[test]
-//fn drop_keyspace() {
-//    let ctx = TestContext::new();
-//    let mut session = ctx.client.start(Compression::None).unwrap();
-//    let drop_ks = "DROP KEYSPACE user_keyspace;";
-//    let with_tracing = false;
-//    let with_warnings = false;
-//    let drop_ks_query = QueryBuilder::new(drop_ks).consistency(Consistency::One).finalize();
-//    let drop_ks_query_result = session.query(drop_ks_query, with_tracing, with_warnings);
-//
-//    assert_eq!(drop_ks_query_result.is_ok(), true);
-//
-//    match drop_ks_query_result {
-//        Ok(ref res) => println!("keyspace dropped: {:?}", res.get_body()),
-//        Err(ref err) => println!("Error occured: {:?}", err),
-//    }
-//}
+#[test]
+fn drop_keyspace() {
+    let ctx = TestContext::new();
+    let mut session = ctx.client.start(Compression::None).unwrap();
+    let drop_ks = "DROP KEYSPACE user_keyspace;";
+    let with_tracing = false;
+    let with_warnings = false;
+    let drop_ks_query = QueryBuilder::new(drop_ks).consistency(Consistency::One).finalize();
+    let drop_ks_query_result = session.query(drop_ks_query, with_tracing, with_warnings);
+
+    assert_eq!(drop_ks_query_result.is_ok(), true);
+
+    match drop_ks_query_result {
+        Ok(ref res) => println!("keyspace dropped: {:?}", res.get_body()),
+        Err(ref err) => println!("Error occured: {:?}", err),
+    }
+}
