@@ -387,3 +387,46 @@ mod schema_change_type_test {
         let _ = ChangeType::from_cursor(&mut wrong);
     }
 }
+
+#[cfg(test)]
+mod schema_change_target_test {
+    use super::*;
+    use std::io::Cursor;
+    use FromCursor;
+
+    #[test]
+    fn from_cursor() {
+        let mut keyspace: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 8, 75, 69, 89, 83, 80, 65, 67, 69]);
+        assert_eq!(Target::from_cursor(&mut keyspace),
+            Target::Keyspace);
+
+        let mut table: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 5, 84, 65, 66, 76, 69]);
+        assert_eq!(Target::from_cursor(&mut table),
+            Target::Table);
+
+        let mut _type: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 4, 84, 89, 80, 69]);
+        assert_eq!(Target::from_cursor(&mut _type),
+            Target::Type);
+
+        let mut function: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 8, 70, 85, 78, 67, 84, 73, 79, 78]);
+        assert_eq!(Target::from_cursor(&mut function),
+            Target::Function);
+
+        let mut aggregate: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 9, 65, 71, 71, 82, 69, 71, 65, 84, 69]);
+        assert_eq!(Target::from_cursor(&mut aggregate),
+            Target::Aggregate);
+    }
+
+    #[test]
+    #[should_panic]
+    fn from_cursor_wrong() {
+        let mut wrong: Cursor<Vec<u8>> =
+            Cursor::new(vec![0, 1, 78]);
+        let _ = Target::from_cursor(&mut wrong);
+    }
+}
