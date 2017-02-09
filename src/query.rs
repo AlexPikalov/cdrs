@@ -213,8 +213,9 @@ impl QueryParamsBuilder {
             page_size: self.page_size.clone(),
             paging_state: self.paging_state.clone(),
             serial_consistency: self.serial_consistency.clone(),
-            timestamp: self.timestamp,
+            timestamp: self.timestamp.clone(),
         }
+
     }
 }
 
