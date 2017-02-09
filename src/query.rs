@@ -180,7 +180,7 @@ impl QueryParamsBuilder {
         return self;
     }
 
-    pub fn finalize(self) -> QueryParams {
+    pub fn finalize(&self) -> QueryParams {
         // query flags
         let mut flags: Vec<QueryFlags> = vec![];
 
@@ -205,13 +205,13 @@ impl QueryParamsBuilder {
         }
 
         return QueryParams {
-            consistency: self.consistency,
-            flags: flags,
-            values: self.values,
-            page_size: self.page_size,
-            paging_state: self.paging_state,
-            serial_consistency: self.serial_consistency,
-            timestamp: self.timestamp,
+            consistency: self.consistency.clone(),
+            flags: flags.clone(),
+            values: self.values.clone(),
+            page_size: self.page_size.clone(),
+            paging_state: self.paging_state.clone(),
+            serial_consistency: self.serial_consistency.clone(),
+            timestamp: self.timestamp.clone(),
         };
     }
 }
