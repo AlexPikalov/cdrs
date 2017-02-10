@@ -136,9 +136,7 @@ pub fn decode_map(bytes: Vec<u8>) -> Result<Vec<(CBytes, CBytes)>, io::Error> {
     let mut cursor: io::Cursor<Vec<u8>> = io::Cursor::new(bytes);
     let l = CInt::from_cursor(&mut cursor);
     let list = (0..l)
-        .map(|_| {
-            (CBytes::from_cursor(&mut cursor), CBytes::from_cursor(&mut cursor))
-        })
+        .map(|_| (CBytes::from_cursor(&mut cursor), CBytes::from_cursor(&mut cursor)))
         .collect();
     Ok(list)
 }
