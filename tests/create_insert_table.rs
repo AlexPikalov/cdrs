@@ -12,6 +12,7 @@ use cdrs::transport::TransportPlain;
 use cdrs::query::QueryParamsBuilder;
 use cdrs::types::value::Value;
 use std::panic;
+use cdrs::types::IntoRustByName;
 
 
 // default credentials
@@ -21,6 +22,16 @@ const _ADDR: &'static str = "127.0.0.1:9042";
 pub struct TestContext {
     pub client: cdrs::client::CDRS<NoneAuthenticator, TransportPlain>,
 }
+
+#[derive(Debug, Default)]
+struct User {
+    pub user_name: String,
+    pub password: String,
+    pub gender: String,
+    pub session_token: String,
+    pub state: String,
+}
+
 
 impl TestContext {
     fn new() -> TestContext {
@@ -77,8 +88,15 @@ fn create_table() {
 
 
 #[test]
-fn test_something_interesting() {
-    run_test(|| insert_data_users())
+fn write_and_read_from_cassandra() {
+    run_test(|| read_write())
+}
+
+fn read_write() {
+    println!("read_write");
+    insert_data_users();
+    read_from_user_table();
+
 }
 
 
@@ -105,6 +123,7 @@ fn teardown() {
 
 
 fn insert_data_users() {
+    println!("insert_data_users");
     let ctx = TestContext::new();
     let mut session = ctx.client.start(Compression::None).unwrap();
     let insert_table_cql = " insert into user_keyspace.users
@@ -129,16 +148,70 @@ fn insert_data_users() {
     let execution_params = QueryParamsBuilder::new(Consistency::One).values(v).finalize();
 
     let query_id = prepared.id;
-    //    let executed = session.execute(query_id, execution_params, true, true)
-    //        .unwrap()
-    //        .get_body()
-    //        .into_set_keyspace()
-    //        .unwrap();
+    //        let executed = session.execute(query_id, execution_params, true, true)
+    //            .unwrap()
+    //            .get_body()
+    //            .into_set_keyspace()
+    //            .unwrap();
 
     let executed = session.execute(query_id, execution_params, true, true);
 
 
     info!("executed:\n{:?}", executed);
+}
+
+fn read_from_user_table() {
+    println!("read_from_user_table");
+    let ctx = TestContext::new();
+    let mut session = ctx.client.start(Compression::None).unwrap();
+    let select_query = QueryBuilder::new("SELECT user_name ,password,gender,session_token, state\
+     FROM user_keyspace.users")
+        .finalize();
+
+
+    let query_op = session.query(select_query, true, true);
+
+    match query_op {
+        Ok(res) => {
+            let res_body = res.get_body();
+            if let Some(rows) = res_body.into_rows() {
+                let users: Vec<User> = rows.iter()
+                    .map(|row| {
+                        let mut user = User { ..Default::default() };
+                        if let Some(Ok(user_name)) = row.get_by_name("user_name") {
+                            user.user_name = user_name;
+                        }
+
+                        if let Some(Ok(password)) = row.get_by_name("password") {
+                            user.password = password;
+                        }
+
+                        if let Some(Ok(gender)) = row.get_by_name("gender") {
+                            user.gender = gender;
+                        }
+
+                        if let Some(Ok(session_token)) = row.get_by_name("session_token") {
+                            user.session_token = session_token;
+                        }
+
+                        if let Some(Ok(state)) = row.get_by_name("state") {
+                            user.state = state;
+                        }
+
+                        user
+                    })
+                    .collect();
+                println!("Users {:?}", users);
+
+
+                assert_eq!(users[0].user_name, "harry");
+                assert_eq!(users[0].password, "pwd");
+                assert_eq!(users[0].gender, "male");
+                assert_eq!(users[0].state, "fl");
+            }
+        }
+        Err(err) => println!("{:?}", err),
+    }
 }
 
 
