@@ -164,7 +164,7 @@ fn read_from_user_table() {
     println!("read_from_user_table");
     let ctx = TestContext::new();
     let mut session = ctx.client.start(Compression::None).unwrap();
-    let select_query = QueryBuilder::new("SELECT user_name ,password,gender,session_token, state\
+    let select_query = QueryBuilder::new("SELECT user_name ,password,gender,session_token, state
      FROM user_keyspace.users")
         .finalize();
 
@@ -207,7 +207,7 @@ fn read_from_user_table() {
                 assert_eq!(users[0].user_name, "harry");
                 assert_eq!(users[0].password, "pwd");
                 assert_eq!(users[0].gender, "male");
-                assert_eq!(users[0].state, "fl");
+                assert_eq!(users[0].state, "FL");
             }
         }
         Err(err) => println!("{:?}", err),
