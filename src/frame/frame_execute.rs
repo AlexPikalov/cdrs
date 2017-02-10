@@ -41,6 +41,9 @@ impl Frame {
         // sync client
         let stream: u64 = 0;
         let opcode = Opcode::Execute;
+        debug!("prepared statement id{:?} getting executed  with parameters  {:?}",
+               id,
+               query_parameters);
         let body = BodyReqExecute::new(id, query_parameters);
 
         Frame {

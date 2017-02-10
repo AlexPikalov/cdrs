@@ -52,9 +52,7 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
 
         return parse_frame(&mut self.transport, &self.compressor)
             .map(|frame| match frame.get_body() {
-                ResponseBody::Supported(ref supported_body) => {
-                    return supported_body.data.clone();
-                }
+                ResponseBody::Supported(ref supported_body) => supported_body.data.clone(),
                 _ => unreachable!(),
             });
     }
@@ -103,7 +101,7 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
                                                    authenticator.as_str()));
                         return Err(error::Error::Io(io_err));
                     }
-                    return Ok(());
+                    Ok(())
                 });
 
             if let Err(err) = auth_check {
@@ -208,7 +206,7 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
         }
         let options_frame = Frame::new_req_execute(id, query_parameters, flags).into_cbytes();
 
-        try!(self.cdrs.transport.write(options_frame.as_slice()));
+        (self.cdrs.transport.write(options_frame.as_slice()))?;
         return parse_frame(&mut self.cdrs.transport, &self.compressor);
     }
 

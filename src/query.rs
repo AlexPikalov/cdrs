@@ -204,15 +204,17 @@ impl QueryParamsBuilder {
             flags.push(QueryFlags::WithDefaultTimestamp);
         }
 
-        return QueryParams {
+        //TODO need to revisit// borrow checker was complaining do without the clone
+        QueryParams {
             consistency: self.consistency.clone(),
-            flags: flags.clone(),
+            flags: flags,
             values: self.values.clone(),
             page_size: self.page_size.clone(),
             paging_state: self.paging_state.clone(),
             serial_consistency: self.serial_consistency.clone(),
             timestamp: self.timestamp.clone(),
-        };
+        }
+
     }
 }
 
