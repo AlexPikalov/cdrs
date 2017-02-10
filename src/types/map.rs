@@ -29,7 +29,7 @@ impl Map {
 
         // check that key could be converted into String
         let serializer = if let ColTypeOptionValue::CMap((key_type, _)) =
-            map_option_type.unwrap() {
+                                map_option_type.unwrap() {
             match key_type.id {
                 ColType::Custom => decode_custom,
                 ColType::Ascii => decode_ascii,
