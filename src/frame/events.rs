@@ -263,7 +263,7 @@ impl ChangeSchemeOptions {
             &Target::Keyspace => ChangeSchemeOptions::from_cursor_keyspace(&mut cursor),
             &Target::Table | &Target::Type => {
                 ChangeSchemeOptions::from_cursor_table_type(&mut cursor)
-            },
+            }
             &Target::Function |
             &Target::Aggregate => ChangeSchemeOptions::from_cursor_function_aggregate(&mut cursor),
         }
@@ -439,7 +439,7 @@ mod server_event {
             ServerEvent::TopologyChange(ref tc) => {
                 assert_eq!(tc.change_type, TopologyChangeType::NewNode);
                 assert_eq!(format!("{:?}", tc.addr.addr), "V4(127.0.0.1:1)");
-            },
+            }
             _ => panic!("should be topology change event"),
         }
     }
@@ -460,7 +460,7 @@ mod server_event {
             ServerEvent::TopologyChange(ref tc) => {
                 assert_eq!(tc.change_type, TopologyChangeType::RemovedNode);
                 assert_eq!(format!("{:?}", tc.addr.addr), "V4(127.0.0.1:1)");
-            },
+            }
             _ => panic!("should be topology change event"),
         }
     }
@@ -481,7 +481,7 @@ mod server_event {
             ServerEvent::StatusChange(ref tc) => {
                 assert_eq!(tc.change_type, StatusChangeType::Up);
                 assert_eq!(format!("{:?}", tc.addr.addr), "V4(127.0.0.1:1)");
-            },
+            }
             _ => panic!("should be status change up"),
         }
     }
@@ -502,7 +502,7 @@ mod server_event {
             ServerEvent::StatusChange(ref tc) => {
                 assert_eq!(tc.change_type, StatusChangeType::Down);
                 assert_eq!(format!("{:?}", tc.addr.addr), "V4(127.0.0.1:1)");
-            },
+            }
             _ => panic!("should be status change down"),
         }
     }
@@ -530,7 +530,7 @@ mod server_event {
                     ChangeSchemeOptions::Keyspace(ref ks) => assert_eq!(ks.as_str(), "my_ks"),
                     _ => panic!("should be keyspace"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
         // table
@@ -555,10 +555,10 @@ mod server_event {
                 match _c.options {
                     ChangeSchemeOptions::TableType(ref tt) => {
                         assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
-                    },
+                    }
                     _ => panic!("should be table"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
         // type
@@ -583,10 +583,10 @@ mod server_event {
                 match _c.options {
                     ChangeSchemeOptions::TableType(ref tt) => {
                         assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
-                    },
+                    }
                     _ => panic!("should be type"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
         // function
@@ -613,10 +613,10 @@ mod server_event {
                 match _c.options {
                     ChangeSchemeOptions::FunctionAggregate(ref tt) => {
                         assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![]))
-                    },
+                    }
                     _ => panic!("should be function"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
         // function
@@ -643,10 +643,10 @@ mod server_event {
                 match _c.options {
                     ChangeSchemeOptions::FunctionAggregate(ref tt) => {
                         assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![]))
-                    },
+                    }
                     _ => panic!("should be aggregate"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
     }
@@ -674,7 +674,7 @@ mod server_event {
                     ChangeSchemeOptions::Keyspace(ref ks) => assert_eq!(ks.as_str(), "my_ks"),
                     _ => panic!("should be keyspace"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
         // table
@@ -699,10 +699,10 @@ mod server_event {
                 match _c.options {
                     ChangeSchemeOptions::TableType(ref tt) => {
                         assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
-                    },
+                    }
                     _ => panic!("should be table"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
         // type
@@ -727,10 +727,10 @@ mod server_event {
                 match _c.options {
                     ChangeSchemeOptions::TableType(ref tt) => {
                         assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
-                    },
+                    }
                     _ => panic!("should be type"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
         // function
@@ -757,10 +757,10 @@ mod server_event {
                 match _c.options {
                     ChangeSchemeOptions::FunctionAggregate(ref tt) => {
                         assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![]))
-                    },
+                    }
                     _ => panic!("should be function"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
         // function
@@ -787,10 +787,10 @@ mod server_event {
                 match _c.options {
                     ChangeSchemeOptions::FunctionAggregate(ref tt) => {
                         assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![]))
-                    },
+                    }
                     _ => panic!("should be aggregate"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
     }
@@ -818,7 +818,7 @@ mod server_event {
                     ChangeSchemeOptions::Keyspace(ref ks) => assert_eq!(ks.as_str(), "my_ks"),
                     _ => panic!("should be keyspace"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
         // table
@@ -843,10 +843,10 @@ mod server_event {
                 match _c.options {
                     ChangeSchemeOptions::TableType(ref tt) => {
                         assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
-                    },
+                    }
                     _ => panic!("should be table"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
         // type
@@ -871,10 +871,10 @@ mod server_event {
                 match _c.options {
                     ChangeSchemeOptions::TableType(ref tt) => {
                         assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
-                    },
+                    }
                     _ => panic!("should be type"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
         // function
@@ -901,10 +901,10 @@ mod server_event {
                 match _c.options {
                     ChangeSchemeOptions::FunctionAggregate(ref tt) => {
                         assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![]))
-                    },
+                    }
                     _ => panic!("should be function"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
         // function
@@ -931,10 +931,10 @@ mod server_event {
                 match _c.options {
                     ChangeSchemeOptions::FunctionAggregate(ref tt) => {
                         assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![]))
-                    },
+                    }
                     _ => panic!("should be aggregate"),
                 }
-            },
+            }
             _ => panic!("should be schema change"),
         }
     }

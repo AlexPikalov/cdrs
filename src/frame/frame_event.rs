@@ -38,7 +38,7 @@ mod tests {
             ServerEvent::TopologyChange(ref tc) => {
                 assert_eq!(tc.change_type, TopologyChangeType::NewNode);
                 assert_eq!(format!("{:?}", tc.addr.addr), "V4(127.0.0.1:1)");
-            },
+            }
             _ => panic!("should be topology change event"),
         }
     }
