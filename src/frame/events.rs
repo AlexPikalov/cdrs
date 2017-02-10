@@ -261,7 +261,9 @@ impl ChangeSchemeOptions {
                               -> ChangeSchemeOptions {
         match target {
             &Target::Keyspace => ChangeSchemeOptions::from_cursor_keyspace(&mut cursor),
-            &Target::Table | &Target::Type => ChangeSchemeOptions::from_cursor_table_type(&mut cursor),
+            &Target::Table | &Target::Type => {
+                ChangeSchemeOptions::from_cursor_table_type(&mut cursor)
+            },
             &Target::Function |
             &Target::Aggregate => ChangeSchemeOptions::from_cursor_function_aggregate(&mut cursor),
         }
@@ -305,8 +307,7 @@ mod topology_change_type_test {
 
     #[test]
     fn from_cursor() {
-        let mut new_node: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 8, 78, 69, 87, 95, 78, 79, 68, 69]);
+        let mut new_node: Cursor<Vec<u8>> = Cursor::new(vec![0, 8, 78, 69, 87, 95, 78, 79, 68, 69]);
         assert_eq!(TopologyChangeType::from_cursor(&mut new_node),
             TopologyChangeType::NewNode);
 
@@ -319,8 +320,7 @@ mod topology_change_type_test {
     #[test]
     #[should_panic]
     fn from_cursor_wrong() {
-        let mut wrong: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 1, 78]);
+        let mut wrong: Cursor<Vec<u8>> = Cursor::new(vec![0, 1, 78]);
         let _ = TopologyChangeType::from_cursor(&mut wrong);
     }
 }
@@ -333,13 +333,11 @@ mod status_change_type_test {
 
     #[test]
     fn from_cursor() {
-        let mut up: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 2, 85, 80]);
+        let mut up: Cursor<Vec<u8>> = Cursor::new(vec![0, 2, 85, 80]);
         assert_eq!(StatusChangeType::from_cursor(&mut up),
             StatusChangeType::Up);
 
-        let mut down: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 4, 68, 79, 87, 78]);
+        let mut down: Cursor<Vec<u8>> = Cursor::new(vec![0, 4, 68, 79, 87, 78]);
         assert_eq!(StatusChangeType::from_cursor(&mut down),
             StatusChangeType::Down);
     }
@@ -347,8 +345,7 @@ mod status_change_type_test {
     #[test]
     #[should_panic]
     fn from_cursor_wrong() {
-        let mut wrong: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 1, 78]);
+        let mut wrong: Cursor<Vec<u8>> = Cursor::new(vec![0, 1, 78]);
         let _ = StatusChangeType::from_cursor(&mut wrong);
     }
 }
@@ -361,18 +358,15 @@ mod schema_change_type_test {
 
     #[test]
     fn from_cursor() {
-        let mut created: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 7, 67, 82, 69, 65, 84, 69, 68]);
+        let mut created: Cursor<Vec<u8>> = Cursor::new(vec![0, 7, 67, 82, 69, 65, 84, 69, 68]);
         assert_eq!(ChangeType::from_cursor(&mut created),
             ChangeType::Created);
 
-        let mut updated: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 7, 85, 80, 68, 65, 84, 69, 68]);
+        let mut updated: Cursor<Vec<u8>> = Cursor::new(vec![0, 7, 85, 80, 68, 65, 84, 69, 68]);
         assert_eq!(ChangeType::from_cursor(&mut updated),
             ChangeType::Updated);
 
-        let mut dropped: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 7, 68, 82, 79, 80, 80, 69, 68]);
+        let mut dropped: Cursor<Vec<u8>> = Cursor::new(vec![0, 7, 68, 82, 79, 80, 80, 69, 68]);
         assert_eq!(ChangeType::from_cursor(&mut dropped),
             ChangeType::Dropped);
     }
@@ -380,8 +374,7 @@ mod schema_change_type_test {
     #[test]
     #[should_panic]
     fn from_cursor_wrong() {
-        let mut wrong: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 1, 78]);
+        let mut wrong: Cursor<Vec<u8>> = Cursor::new(vec![0, 1, 78]);
         let _ = ChangeType::from_cursor(&mut wrong);
     }
 }
@@ -394,23 +387,19 @@ mod schema_change_target_test {
 
     #[test]
     fn from_cursor() {
-        let mut keyspace: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 8, 75, 69, 89, 83, 80, 65, 67, 69]);
+        let mut keyspace: Cursor<Vec<u8>> = Cursor::new(vec![0, 8, 75, 69, 89, 83, 80, 65, 67, 69]);
         assert_eq!(Target::from_cursor(&mut keyspace),
             Target::Keyspace);
 
-        let mut table: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 5, 84, 65, 66, 76, 69]);
+        let mut table: Cursor<Vec<u8>> = Cursor::new(vec![0, 5, 84, 65, 66, 76, 69]);
         assert_eq!(Target::from_cursor(&mut table),
             Target::Table);
 
-        let mut _type: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 4, 84, 89, 80, 69]);
+        let mut _type: Cursor<Vec<u8>> = Cursor::new(vec![0, 4, 84, 89, 80, 69]);
         assert_eq!(Target::from_cursor(&mut _type),
             Target::Type);
 
-        let mut function: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 8, 70, 85, 78, 67, 84, 73, 79, 78]);
+        let mut function: Cursor<Vec<u8>> = Cursor::new(vec![0, 8, 70, 85, 78, 67, 84, 73, 79, 78]);
         assert_eq!(Target::from_cursor(&mut function),
             Target::Function);
 
@@ -423,8 +412,7 @@ mod schema_change_target_test {
     #[test]
     #[should_panic]
     fn from_cursor_wrong() {
-        let mut wrong: Cursor<Vec<u8>> =
-            Cursor::new(vec![0, 1, 78]);
+        let mut wrong: Cursor<Vec<u8>> = Cursor::new(vec![0, 1, 78]);
         let _ = Target::from_cursor(&mut wrong);
     }
 }
@@ -452,7 +440,7 @@ mod server_event {
                 assert_eq!(tc.change_type, TopologyChangeType::NewNode);
                 assert_eq!(format!("{:?}", tc.addr.addr), "V4(127.0.0.1:1)");
             },
-            _ => panic!("should be topology change event")
+            _ => panic!("should be topology change event"),
         }
     }
 
@@ -473,7 +461,7 @@ mod server_event {
                 assert_eq!(tc.change_type, TopologyChangeType::RemovedNode);
                 assert_eq!(format!("{:?}", tc.addr.addr), "V4(127.0.0.1:1)");
             },
-            _ => panic!("should be topology change event")
+            _ => panic!("should be topology change event"),
         }
     }
 
@@ -494,7 +482,7 @@ mod server_event {
                 assert_eq!(tc.change_type, StatusChangeType::Up);
                 assert_eq!(format!("{:?}", tc.addr.addr), "V4(127.0.0.1:1)");
             },
-            _ => panic!("should be status change up")
+            _ => panic!("should be status change up"),
         }
     }
 
@@ -515,7 +503,7 @@ mod server_event {
                 assert_eq!(tc.change_type, StatusChangeType::Down);
                 assert_eq!(format!("{:?}", tc.addr.addr), "V4(127.0.0.1:1)");
             },
-            _ => panic!("should be status change down")
+            _ => panic!("should be status change down"),
         }
     }
 
@@ -539,12 +527,11 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Created);
                 assert_eq!(_c.target, Target::Keyspace);
                 match _c.options {
-                    ChangeSchemeOptions::Keyspace(ref ks) =>
-                        assert_eq!(ks.as_str(), "my_ks"),
-                    _ => panic!("should be keyspace")
+                    ChangeSchemeOptions::Keyspace(ref ks) => assert_eq!(ks.as_str(), "my_ks"),
+                    _ => panic!("should be keyspace"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
         // table
         let table = vec![
@@ -566,12 +553,13 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Created);
                 assert_eq!(_c.target, Target::Table);
                 match _c.options {
-                    ChangeSchemeOptions::TableType(ref tt) =>
-                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string())),
-                    _ => panic!("should be table")
+                    ChangeSchemeOptions::TableType(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
+                    },
+                    _ => panic!("should be table"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
         // type
         let _type = vec![
@@ -593,12 +581,13 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Created);
                 assert_eq!(_c.target, Target::Type);
                 match _c.options {
-                    ChangeSchemeOptions::TableType(ref tt) =>
-                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string())),
-                    _ => panic!("should be type")
+                    ChangeSchemeOptions::TableType(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
+                    },
+                    _ => panic!("should be type"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
         // function
         let function = vec![
@@ -622,12 +611,13 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Created);
                 assert_eq!(_c.target, Target::Function);
                 match _c.options {
-                    ChangeSchemeOptions::FunctionAggregate(ref tt) =>
-                        assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![])),
-                    _ => panic!("should be function")
+                    ChangeSchemeOptions::FunctionAggregate(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![]))
+                    },
+                    _ => panic!("should be function"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
         // function
         let aggregate = vec![
@@ -651,12 +641,13 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Created);
                 assert_eq!(_c.target, Target::Aggregate);
                 match _c.options {
-                    ChangeSchemeOptions::FunctionAggregate(ref tt) =>
-                        assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![])),
-                    _ => panic!("should be aggregate")
+                    ChangeSchemeOptions::FunctionAggregate(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![]))
+                    },
+                    _ => panic!("should be aggregate"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
     }
 
@@ -680,12 +671,11 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Updated);
                 assert_eq!(_c.target, Target::Keyspace);
                 match _c.options {
-                    ChangeSchemeOptions::Keyspace(ref ks) =>
-                        assert_eq!(ks.as_str(), "my_ks"),
-                    _ => panic!("should be keyspace")
+                    ChangeSchemeOptions::Keyspace(ref ks) => assert_eq!(ks.as_str(), "my_ks"),
+                    _ => panic!("should be keyspace"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
         // table
         let table = vec![
@@ -707,12 +697,13 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Updated);
                 assert_eq!(_c.target, Target::Table);
                 match _c.options {
-                    ChangeSchemeOptions::TableType(ref tt) =>
-                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string())),
-                    _ => panic!("should be table")
+                    ChangeSchemeOptions::TableType(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
+                    },
+                    _ => panic!("should be table"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
         // type
         let _type = vec![
@@ -734,12 +725,13 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Updated);
                 assert_eq!(_c.target, Target::Type);
                 match _c.options {
-                    ChangeSchemeOptions::TableType(ref tt) =>
-                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string())),
-                    _ => panic!("should be type")
+                    ChangeSchemeOptions::TableType(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
+                    },
+                    _ => panic!("should be type"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
         // function
         let function = vec![
@@ -763,12 +755,13 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Updated);
                 assert_eq!(_c.target, Target::Function);
                 match _c.options {
-                    ChangeSchemeOptions::FunctionAggregate(ref tt) =>
-                        assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![])),
-                    _ => panic!("should be function")
+                    ChangeSchemeOptions::FunctionAggregate(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![]))
+                    },
+                    _ => panic!("should be function"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
         // function
         let aggregate = vec![
@@ -792,12 +785,13 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Updated);
                 assert_eq!(_c.target, Target::Aggregate);
                 match _c.options {
-                    ChangeSchemeOptions::FunctionAggregate(ref tt) =>
-                        assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![])),
-                    _ => panic!("should be aggregate")
+                    ChangeSchemeOptions::FunctionAggregate(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![]))
+                    },
+                    _ => panic!("should be aggregate"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
     }
 
@@ -821,12 +815,11 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Dropped);
                 assert_eq!(_c.target, Target::Keyspace);
                 match _c.options {
-                    ChangeSchemeOptions::Keyspace(ref ks) =>
-                        assert_eq!(ks.as_str(), "my_ks"),
-                    _ => panic!("should be keyspace")
+                    ChangeSchemeOptions::Keyspace(ref ks) => assert_eq!(ks.as_str(), "my_ks"),
+                    _ => panic!("should be keyspace"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
         // table
         let table = vec![
@@ -848,12 +841,13 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Dropped);
                 assert_eq!(_c.target, Target::Table);
                 match _c.options {
-                    ChangeSchemeOptions::TableType(ref tt) =>
-                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string())),
-                    _ => panic!("should be table")
+                    ChangeSchemeOptions::TableType(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
+                    },
+                    _ => panic!("should be table"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
         // type
         let _type = vec![
@@ -875,12 +869,13 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Dropped);
                 assert_eq!(_c.target, Target::Type);
                 match _c.options {
-                    ChangeSchemeOptions::TableType(ref tt) =>
-                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string())),
-                    _ => panic!("should be type")
+                    ChangeSchemeOptions::TableType(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
+                    },
+                    _ => panic!("should be type"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
         // function
         let function = vec![
@@ -904,12 +899,13 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Dropped);
                 assert_eq!(_c.target, Target::Function);
                 match _c.options {
-                    ChangeSchemeOptions::FunctionAggregate(ref tt) =>
-                        assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![])),
-                    _ => panic!("should be function")
+                    ChangeSchemeOptions::FunctionAggregate(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![]))
+                    },
+                    _ => panic!("should be function"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
         // function
         let aggregate = vec![
@@ -933,12 +929,13 @@ mod server_event {
                 assert_eq!(_c.change_type, ChangeType::Dropped);
                 assert_eq!(_c.target, Target::Aggregate);
                 match _c.options {
-                    ChangeSchemeOptions::FunctionAggregate(ref tt) =>
-                        assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![])),
-                    _ => panic!("should be aggregate")
+                    ChangeSchemeOptions::FunctionAggregate(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "name".to_string(), vec![]))
+                    },
+                    _ => panic!("should be aggregate"),
                 }
             },
-            _ => panic!("should be schema change")
+            _ => panic!("should be schema change"),
         }
     }
 }
