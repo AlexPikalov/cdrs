@@ -1,5 +1,6 @@
 use super::super::IntoBytes;
 use super::*;
+use std::convert::Into;
 
 /// Types of Cassandra value: normal value (bits), null value and not-set value
 #[derive(Debug, Clone)]
@@ -25,6 +26,13 @@ pub struct Value {
     pub body: Vec<u8>,
     pub value_type: ValueType,
 }
+
+impl Into<Value> for String {
+    fn into(self) -> Value {
+        Value::new_normal(self.into_bytes())
+    }
+}
+
 
 impl Value {
     /// The factory method which creates a normal type value basing on provided bytes.

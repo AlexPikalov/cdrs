@@ -33,60 +33,6 @@ struct User {
 }
 
 
-impl TestContext {
-    fn new() -> TestContext {
-        const _ADDR: &'static str = "127.0.0.1:9042";
-        let authenticator = NoneAuthenticator;
-        let tcp_transport = TransportPlain::new(_ADDR);
-        let client = CDRS::new(tcp_transport.unwrap(), authenticator);
-        TestContext { client: client }
-    }
-}
-
-
-fn create_keyspace() {
-    let ctx = TestContext::new();
-    let mut session = ctx.client.start(Compression::None).unwrap();
-    let create_ks_cql = "CREATE KEYSPACE user_keyspace WITH REPLICATION = { 'class' : \
-                         'SimpleStrategy', 'replication_factor' : 1 } ;";
-
-    let create_ks_query = QueryBuilder::new(create_ks_cql)
-        .consistency(Consistency::One)
-        .finalize();
-
-    let create_ks_query_result = session.query(create_ks_query, false, false);
-
-    assert_eq!(create_ks_query_result.is_ok(), true);
-}
-
-
-fn create_table() {
-    let ctx = TestContext::new();
-    let mut session = ctx.client.start(Compression::None).unwrap();
-    let create_table_cql = "CREATE TABLE user_keyspace.users (
-        user_name varchar PRIMARY KEY,
-        password varchar,
-        gender varchar,
-        session_token varchar,
-        state varchar,
-        birth_year bigint
-    );";
-
-    let create_table_query = QueryBuilder::new(create_table_cql)
-        .consistency(Consistency::One)
-        .finalize();
-
-    let create_table_query_result = session.query(create_table_query, false, false);
-
-    assert_eq!(create_table_query_result.is_ok(), true);
-
-    match create_table_query_result {
-        Ok(ref res) => println!("table created: {:?}", res.get_body()),
-        Err(ref err) => println!("Error occured: {:?}", err),
-    }
-}
-
-
 #[test]
 fn write_and_read_from_cassandra() {
     run_test(|| read_write())
@@ -96,10 +42,17 @@ fn read_write() {
     println!("read_write");
     insert_data_users();
     read_from_user_table();
-
 }
 
-
+///
+/// right now we don't have setup and teardown that is the reason for this monstrosity
+/// there might be better ways to write testing code; have to revisit later
+/// the flow goes likes this
+/// 1. setup() ==> create new keyspace -> create new tables
+/// 2. read_write ==>
+///     a) insert_data_users()
+///     b) read_from_user_table()
+/// 3. teardown() ==> drop the keyspace
 fn run_test<T>(test: T) -> ()
     where T: FnOnce() -> () + panic::UnwindSafe
 {
@@ -139,21 +92,14 @@ fn insert_data_users() {
 
     println!("prepared:\n{:?}", prepared);
 
-
-    let v: Vec<Value> = vec![Value::new_normal(String::from("harry").into_bytes()),
-                             Value::new_normal(String::from("pwd").into_bytes()),
-                             Value::new_normal(String::from("male").into_bytes()),
-                             Value::new_normal(String::from("09000").into_bytes()),
-                             Value::new_normal(String::from("FL").into_bytes())];
+    let v: Vec<Value> = vec!["harry".to_string().into(),
+                             "pwd".to_string().into(),
+                             "male".to_string().into(),
+                             "09000".to_string().into(),
+                             "FL".to_string().into()];
     let execution_params = QueryParamsBuilder::new(Consistency::One).values(v).finalize();
 
     let query_id = prepared.id;
-    //        let executed = session.execute(query_id, execution_params, true, true)
-    //            .unwrap()
-    //            .get_body()
-    //            .into_set_keyspace()
-    //            .unwrap();
-
     let executed = session.execute(query_id, execution_params, true, true);
 
 
@@ -211,6 +157,60 @@ fn read_from_user_table() {
             }
         }
         Err(err) => println!("{:?}", err),
+    }
+}
+
+
+impl TestContext {
+    fn new() -> TestContext {
+        const _ADDR: &'static str = "127.0.0.1:9042";
+        let authenticator = NoneAuthenticator;
+        let tcp_transport = TransportPlain::new(_ADDR);
+        let client = CDRS::new(tcp_transport.unwrap(), authenticator);
+        TestContext { client: client }
+    }
+}
+
+
+fn create_keyspace() {
+    let ctx = TestContext::new();
+    let mut session = ctx.client.start(Compression::None).unwrap();
+    let create_ks_cql = "CREATE KEYSPACE user_keyspace WITH REPLICATION = { 'class' : \
+                         'SimpleStrategy', 'replication_factor' : 1 } ;";
+
+    let create_ks_query = QueryBuilder::new(create_ks_cql)
+        .consistency(Consistency::One)
+        .finalize();
+
+    let create_ks_query_result = session.query(create_ks_query, false, false);
+
+    assert_eq!(create_ks_query_result.is_ok(), true);
+}
+
+
+fn create_table() {
+    let ctx = TestContext::new();
+    let mut session = ctx.client.start(Compression::None).unwrap();
+    let create_table_cql = "CREATE TABLE user_keyspace.users (
+        user_name varchar PRIMARY KEY,
+        password varchar,
+        gender varchar,
+        session_token varchar,
+        state varchar,
+        birth_year bigint
+    );";
+
+    let create_table_query = QueryBuilder::new(create_table_cql)
+        .consistency(Consistency::One)
+        .finalize();
+
+    let create_table_query_result = session.query(create_table_query, false, false);
+
+    assert_eq!(create_table_query_result.is_ok(), true);
+
+    match create_table_query_result {
+        Ok(ref res) => println!("table created: {:?}", res.get_body()),
+        Err(ref err) => println!("Error occured: {:?}", err),
     }
 }
 
