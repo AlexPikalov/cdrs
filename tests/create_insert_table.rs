@@ -1,4 +1,3 @@
-
 extern crate cdrs;
 #[macro_use]
 extern crate log;
@@ -12,12 +11,11 @@ use cdrs::consistency::Consistency;
 use cdrs::transport::TransportPlain;
 use cdrs::query::QueryParamsBuilder;
 use cdrs::types::value::Value;
-
+use std::panic;
 
 
 // default credentials
 const _ADDR: &'static str = "127.0.0.1:9042";
-
 
 
 pub struct TestContext {
@@ -34,7 +32,7 @@ impl TestContext {
     }
 }
 
-#[test]
+
 fn create_keyspace() {
     let ctx = TestContext::new();
     let mut session = ctx.client.start(Compression::None).unwrap();
@@ -48,11 +46,9 @@ fn create_keyspace() {
     let create_ks_query_result = session.query(create_ks_query, false, false);
 
     assert_eq!(create_ks_query_result.is_ok(), true);
-
-
 }
 
-#[test]
+
 fn create_table() {
     let ctx = TestContext::new();
     let mut session = ctx.client.start(Compression::None).unwrap();
@@ -77,14 +73,38 @@ fn create_table() {
         Ok(ref res) => println!("table created: {:?}", res.get_body()),
         Err(ref err) => println!("Error occured: {:?}", err),
     }
-
-
 }
 
 
 #[test]
-fn insert_data_users() {
+fn test_something_interesting() {
+    run_test(|| insert_data_users())
+}
 
+
+fn run_test<T>(test: T) -> ()
+    where T: FnOnce() -> () + panic::UnwindSafe
+{
+    setup();
+
+    let result = panic::catch_unwind(|| test());
+
+    teardown();
+
+    assert!(result.is_ok())
+}
+
+fn setup() {
+    create_keyspace();
+    create_table();
+}
+
+fn teardown() {
+    drop_keyspace();
+}
+
+
+fn insert_data_users() {
     let ctx = TestContext::new();
     let mut session = ctx.client.start(Compression::None).unwrap();
     let insert_table_cql = " insert into user_keyspace.users
@@ -119,10 +139,9 @@ fn insert_data_users() {
 
 
     info!("executed:\n{:?}", executed);
-
 }
 
-#[test]
+
 fn drop_keyspace() {
     let ctx = TestContext::new();
     let mut session = ctx.client.start(Compression::None).unwrap();
