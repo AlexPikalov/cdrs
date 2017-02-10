@@ -1,6 +1,7 @@
 # CDRS [![Build Status](https://travis-ci.org/AlexPikalov/cdrs.svg?branch=master)](https://travis-ci.org/AlexPikalov/cdrs)
-[![crates.io version](https://img.shields.io/crates/v/cdrs.svg)](https://crates.io/crates/cdrs)
 
+[![crates.io version](https://img.shields.io/crates/v/cdrs.svg)](https://crates.io/crates/cdrs)
+[![Join the chat at https://gitter.im/cdrs-rs/Lobby](https://badges.gitter.im/cdrs-rs/Lobby.svg)](https://gitter.im/cdrs-rs/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Coverage Status](https://coveralls.io/repos/github/harrydevnull/cdrs/badge.svg?branch=master)](https://coveralls.io/github/harrydevnull/cdrs?branch=master)
 [![codecov](https://codecov.io/gh/harrydevnull/cdrs/branch/master/graph/badge.svg)](https://codecov.io/gh/harrydevnull/cdrs)
 
