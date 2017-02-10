@@ -373,7 +373,7 @@ impl FromBytes for Vec<u8> {
 /// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L222).
 #[derive(Debug)]
 pub struct CInet {
-    addr: SocketAddr,
+    pub addr: SocketAddr,
 }
 
 impl FromCursor for CInet {

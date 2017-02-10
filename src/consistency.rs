@@ -92,7 +92,7 @@ impl IntoBytes for Consistency {
             &Consistency::LocalSerial => to_short(0x0009),
             &Consistency::LocalOne => to_short(0x000A),
             &Consistency::Unknown => to_short(0x0063),
-            //giving Unknown a value of 99
+            // giving Unknown a value of 99
         };
     }
 }
