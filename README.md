@@ -346,6 +346,8 @@ Prepare-execute query is also supported:
     .unwrap();
 ```
 
+It's also makes sense to use prepare query in pair with [batching](https://github.com/AlexPikalov/cdrs/blob/master/examples/batch_queries.rs) few queries.
+
 ### Listen to Server events
 
 CDRS provides functionality which allows listening to server events. Events
