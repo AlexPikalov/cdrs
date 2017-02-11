@@ -21,23 +21,20 @@ impl Map {
     // return Err otherwise return Ok.
     pub fn new(data: Vec<(CBytes, CBytes)>, meta: ColTypeOption) -> Map {
         let accumulator: HashMap<String, CBytes> = HashMap::new();
-        let map_option_type = meta.value.clone();
-
-        if map_option_type.is_none() {
-            unimplemented!();
-        }
 
         // check that key could be converted into String
-        let serializer = if let ColTypeOptionValue::CMap((key_type, _)) =
-            map_option_type.unwrap() {
+        let serializer = if let Some(ColTypeOptionValue::CMap((ref key_type, _))) = meta.value {
             match key_type.id {
                 ColType::Custom => decode_custom,
                 ColType::Ascii => decode_ascii,
                 ColType::Varchar => decode_varchar,
+                // unreachable ??
+                // do we need this arm? is it reachable due to the protocol?
                 _ => unimplemented!(),
             }
         } else {
-            unimplemented!();
+            // do we need this arm? is it reachable due to the protocol?
+            unreachable!();
         };
 
         let map: HashMap<String, CBytes> = data.iter()
@@ -63,8 +60,8 @@ impl AsRust<HashMap<String, Vec<u8>>> for Map {
     fn as_rust(&self) -> Result<HashMap<String, Vec<u8>>> {
         let map: HashMap<String, Vec<u8>> = HashMap::new();
 
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CMap((_, value_type_option)) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
                 match value_type_option.id {
                     ColType::Blob => {
                         Ok(self.data
@@ -87,8 +84,8 @@ impl AsRust<HashMap<String, String>> for Map {
     fn as_rust(&self) -> Result<HashMap<String, String>> {
         let map: HashMap<String, String> = HashMap::new();
 
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CMap((_, value_type_option)) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
                 match value_type_option.id {
                     ColType::Custom => {
                         Ok(self.data
@@ -127,8 +124,8 @@ impl AsRust<HashMap<String, bool>> for Map {
     fn as_rust(&self) -> Result<HashMap<String, bool>> {
         let map: HashMap<String, bool> = HashMap::new();
 
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CMap((_, value_type_option)) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
                 match value_type_option.id {
                     ColType::Boolean => {
                         Ok(self.data
@@ -151,8 +148,8 @@ impl AsRust<HashMap<String, i64>> for Map {
     fn as_rust(&self) -> Result<HashMap<String, i64>> {
         let map: HashMap<String, i64> = HashMap::new();
 
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CMap((_, value_type_option)) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
                 match value_type_option.id {
                     ColType::Bigint => {
                         Ok(self.data
@@ -199,8 +196,9 @@ impl AsRust<HashMap<String, i32>> for Map {
     fn as_rust(&self) -> Result<HashMap<String, i32>> {
         let map: HashMap<String, i32> = HashMap::new();
 
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CMap((_, value_type_option)) => {
+        // FIXME: implement via maps
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
                 match value_type_option.id {
                     ColType::Int => {
                         Ok(self.data
@@ -231,8 +229,9 @@ impl AsRust<HashMap<String, i16>> for Map {
     fn as_rust(&self) -> Result<HashMap<String, i16>> {
         let map: HashMap<String, i16> = HashMap::new();
 
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CMap((_, value_type_option)) => {
+        // FIXME
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
                 match value_type_option.id {
                     ColType::Smallint => {
                         Ok(self.data
@@ -255,8 +254,8 @@ impl AsRust<HashMap<String, f64>> for Map {
     fn as_rust(&self) -> Result<HashMap<String, f64>> {
         let map: HashMap<String, f64> = HashMap::new();
 
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CMap((_, value_type_option)) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
                 match value_type_option.id {
                     ColType::Double => {
                         Ok(self.data
@@ -279,8 +278,8 @@ impl AsRust<HashMap<String, f32>> for Map {
     fn as_rust(&self) -> Result<HashMap<String, f32>> {
         let map: HashMap<String, f32> = HashMap::new();
 
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CMap((_, value_type_option)) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
                 match value_type_option.id {
                     ColType::Decimal => {
                         Ok(self.data
@@ -311,8 +310,8 @@ impl AsRust<HashMap<String, net::IpAddr>> for Map {
     fn as_rust(&self) -> Result<HashMap<String, net::IpAddr>> {
         let map: HashMap<String, net::IpAddr> = HashMap::new();
 
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CMap((_, value_type_option)) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
                 match value_type_option.id {
                     ColType::Inet => {
                         Ok(self.data
@@ -335,8 +334,8 @@ impl AsRust<HashMap<String, Uuid>> for Map {
     fn as_rust(&self) -> Result<HashMap<String, Uuid>> {
         let map: HashMap<String, Uuid> = HashMap::new();
 
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CMap((_, value_type_option)) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
                 match value_type_option.id {
                     ColType::Uuid => {
                         Ok(self.data
@@ -367,8 +366,8 @@ impl AsRust<HashMap<String, List>> for Map {
     fn as_rust(&self) -> Result<HashMap<String, List>> {
         let map: HashMap<String, List> = HashMap::new();
 
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CMap((_, value_type_option)) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
                 match value_type_option.id {
                     ColType::List => {
                         Ok(self.data
@@ -403,8 +402,8 @@ impl AsRust<HashMap<String, Map>> for Map {
     fn as_rust(&self) -> Result<HashMap<String, Map>> {
         let map: HashMap<String, Map> = HashMap::new();
 
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CMap((_, value_type_option)) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
                 match value_type_option.id {
                     ColType::Map => {
                         Ok(self.data
@@ -429,8 +428,8 @@ impl AsRust<HashMap<String, UDT>> for Map {
     fn as_rust(&self) -> Result<HashMap<String, UDT>> {
         let map: HashMap<String, UDT> = HashMap::new();
 
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CMap((_, value_type_option)) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
                 let list_type_option = match value_type_option.value {
                     Some(ColTypeOptionValue::UdtType(ref t)) => t,
                     _ => unreachable!(),
