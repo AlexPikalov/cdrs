@@ -37,14 +37,14 @@ impl List {
 impl AsRust<Vec<Vec<u8>>> for List {
     /// Converts cassandra list of blobs into Rust `Vec<Vec<u8>>`
     fn as_rust(&self) -> Result<Vec<Vec<u8>>> {
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CList(ref type_option) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Blob => Ok(self.map(|bytes| decode_blob(bytes.as_plain()).unwrap())),
                     _ => unreachable!(),
                 }
             }
-            ColTypeOptionValue::CSet(ref type_option) => {
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Blob => Ok(self.map(|bytes| decode_blob(bytes.as_plain()).unwrap())),
                     _ => unreachable!(),
@@ -58,8 +58,8 @@ impl AsRust<Vec<Vec<u8>>> for List {
 impl AsRust<Vec<String>> for List {
     /// Converts cassandra list of String-like values into Rust `Vec<String>`
     fn as_rust(&self) -> Result<Vec<String>> {
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CList(ref type_option) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Custom => {
                         Ok(self.map(|bytes| decode_custom(bytes.as_plain()).unwrap()))
@@ -71,7 +71,7 @@ impl AsRust<Vec<String>> for List {
                     _ => unreachable!(),
                 }
             }
-            ColTypeOptionValue::CSet(ref type_option) => {
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Custom => {
                         Ok(self.map(|bytes| decode_custom(bytes.as_plain()).unwrap()))
@@ -91,8 +91,8 @@ impl AsRust<Vec<String>> for List {
 impl AsRust<Vec<bool>> for List {
     /// Converts cassandra list of boolean-like values into Rust `Vec<bool>`
     fn as_rust(&self) -> Result<Vec<bool>> {
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CList(ref type_option) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Boolean => {
                         Ok(self.map(|bytes| decode_boolean(bytes.as_plain()).unwrap()))
@@ -100,7 +100,7 @@ impl AsRust<Vec<bool>> for List {
                     _ => unreachable!(),
                 }
             }
-            ColTypeOptionValue::CSet(ref type_option) => {
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Boolean => {
                         Ok(self.map(|bytes| decode_boolean(bytes.as_plain()).unwrap()))
@@ -116,8 +116,8 @@ impl AsRust<Vec<bool>> for List {
 impl AsRust<Vec<i64>> for List {
     /// Converts cassandra list of i64-like values into Rust `Vec<i64>`
     fn as_rust(&self) -> Result<Vec<i64>> {
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CList(ref type_option) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Bigint => {
                         Ok(self.map(|bytes| decode_bigint(bytes.as_plain()).unwrap()))
@@ -132,7 +132,7 @@ impl AsRust<Vec<i64>> for List {
                     _ => unreachable!(),
                 }
             }
-            ColTypeOptionValue::CSet(ref type_option) => {
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Bigint => {
                         Ok(self.map(|bytes| decode_bigint(bytes.as_plain()).unwrap()))
@@ -155,15 +155,15 @@ impl AsRust<Vec<i64>> for List {
 impl AsRust<Vec<i32>> for List {
     /// Converts cassandra list of i32-like values into Rust `Vec<i32>`
     fn as_rust(&self) -> Result<Vec<i32>> {
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CList(ref type_option) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Int => Ok(self.map(|bytes| decode_int(bytes.as_plain()).unwrap())),
                     ColType::Date => Ok(self.map(|bytes| decode_date(bytes.as_plain()).unwrap())),
                     _ => unreachable!(),
                 }
             }
-            ColTypeOptionValue::CSet(ref type_option) => {
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Int => Ok(self.map(|bytes| decode_int(bytes.as_plain()).unwrap())),
                     ColType::Date => Ok(self.map(|bytes| decode_date(bytes.as_plain()).unwrap())),
@@ -178,8 +178,8 @@ impl AsRust<Vec<i32>> for List {
 impl AsRust<Vec<i16>> for List {
     /// Converts cassandra list of i16-like values into Rust `Vec<i16>`
     fn as_rust(&self) -> Result<Vec<i16>> {
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CList(ref type_option) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Smallint => {
                         Ok(self.map(|bytes| decode_smallint(bytes.as_plain()).unwrap()))
@@ -187,7 +187,7 @@ impl AsRust<Vec<i16>> for List {
                     _ => unreachable!(),
                 }
             }
-            ColTypeOptionValue::CSet(ref type_option) => {
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Smallint => {
                         Ok(self.map(|bytes| decode_smallint(bytes.as_plain()).unwrap()))
@@ -203,8 +203,8 @@ impl AsRust<Vec<i16>> for List {
 impl AsRust<Vec<f64>> for List {
     /// Converts cassandra list of f64-like values into Rust `Vec<f64>`
     fn as_rust(&self) -> Result<Vec<f64>> {
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CList(ref type_option) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Double => {
                         Ok(self.map(|bytes| decode_double(bytes.as_plain()).unwrap()))
@@ -212,7 +212,7 @@ impl AsRust<Vec<f64>> for List {
                     _ => unreachable!(),
                 }
             }
-            ColTypeOptionValue::CSet(ref type_option) => {
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Double => {
                         Ok(self.map(|bytes| decode_double(bytes.as_plain()).unwrap()))
@@ -228,8 +228,8 @@ impl AsRust<Vec<f64>> for List {
 impl AsRust<Vec<f32>> for List {
     /// Converts cassandra list of f32-like values into Rust `Vec<f32>`
     fn as_rust(&self) -> Result<Vec<f32>> {
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CList(ref type_option) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Decimal => {
                         Ok(self.map(|bytes| decode_decimal(bytes.as_plain()).unwrap()))
@@ -238,7 +238,7 @@ impl AsRust<Vec<f32>> for List {
                     _ => unreachable!(),
                 }
             }
-            ColTypeOptionValue::CSet(ref type_option) => {
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Decimal => {
                         Ok(self.map(|bytes| decode_decimal(bytes.as_plain()).unwrap()))
@@ -255,14 +255,14 @@ impl AsRust<Vec<f32>> for List {
 impl AsRust<Vec<net::IpAddr>> for List {
     /// Converts cassandra list of Inet values into Rust `Vec<net::IpAddr>`
     fn as_rust(&self) -> Result<Vec<net::IpAddr>> {
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CList(ref type_option) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Inet => Ok(self.map(|bytes| decode_inet(bytes.as_plain()).unwrap())),
                     _ => unreachable!(),
                 }
             }
-            ColTypeOptionValue::CSet(ref type_option) => {
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Inet => Ok(self.map(|bytes| decode_inet(bytes.as_plain()).unwrap())),
                     _ => unreachable!(),
@@ -276,8 +276,8 @@ impl AsRust<Vec<net::IpAddr>> for List {
 impl AsRust<Vec<Uuid>> for List {
     /// Converts cassandra list of UUID values into Rust `Vec<uuid::Uuid>`
     fn as_rust(&self) -> Result<Vec<Uuid>> {
-        match self.metadata.value.clone().unwrap() {
-            ColTypeOptionValue::CList(ref type_option) => {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Uuid => {
                         Ok(self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap()))
@@ -288,7 +288,7 @@ impl AsRust<Vec<Uuid>> for List {
                     _ => unreachable!(),
                 }
             }
-            ColTypeOptionValue::CSet(ref type_option) => {
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Uuid => {
                         Ok(self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap()))
@@ -307,48 +307,42 @@ impl AsRust<Vec<Uuid>> for List {
 impl AsRust<Vec<List>> for List {
     /// Converts cassandra list of Inet values into Rust `Vec<List>`
     fn as_rust(&self) -> Result<Vec<List>> {
-        match self.metadata.value.clone().unwrap() {
+        match self.metadata.value {
             // convert CList of T-s into List of T-s
-            ColTypeOptionValue::CList(ref type_option) => {
-                let ref id = type_option.id;
-                let list_type_option_box: Box<ColTypeOption> = type_option.clone();
-                let list_type_option: &ColTypeOption = list_type_option_box.as_ref();
-                match id {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
+                match type_option.id {
                     // T is another List
-                    &ColType::List => {
+                    ColType::List => {
                         Ok(self.map(|bytes| {
                             List::new(decode_list(bytes.as_plain()).unwrap(),
-                                      list_type_option.clone())
+                                      type_option.as_ref().clone())
                         }))
                     }
                     // T is another Set
-                    &ColType::Set => {
+                    ColType::Set => {
                         Ok(self.map(|bytes| {
                             List::new(decode_list(bytes.as_plain()).unwrap(),
-                                      list_type_option.clone())
+                                      type_option.as_ref().clone())
                         }))
                     }
                     _ => unreachable!(),
                 }
             }
             // convert CSet of T-s into List of T-s
-            ColTypeOptionValue::CSet(ref type_option) => {
-                let ref id = type_option.id;
-                let list_type_option_box: Box<ColTypeOption> = type_option.clone();
-                let list_type_option: &ColTypeOption = list_type_option_box.as_ref();
-                match id {
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
+                match type_option.id {
                     // T is another List
-                    &ColType::List => {
+                    ColType::List => {
                         Ok(self.map(|bytes| {
                             List::new(decode_list(bytes.as_plain()).unwrap(),
-                                      list_type_option.clone())
+                                      type_option.as_ref().clone())
                         }))
                     }
                     // T is another Set
-                    &ColType::Set => {
+                    ColType::Set => {
                         Ok(self.map(|bytes| {
                             List::new(decode_list(bytes.as_plain()).unwrap(),
-                                      list_type_option.clone())
+                                      type_option.as_ref().clone())
                         }))
                     }
                     _ => unreachable!(),
@@ -362,34 +356,28 @@ impl AsRust<Vec<List>> for List {
 impl AsRust<Vec<Map>> for List {
     /// Converts cassandra list of Inet values into Rust `Vec<List>`
     fn as_rust(&self) -> Result<Vec<Map>> {
-        match self.metadata.value.clone().unwrap() {
+        match self.metadata.value {
             // convert CList of T-s into List of T-s
-            ColTypeOptionValue::CList(ref type_option) => {
-                let ref id = type_option.id;
-                let list_type_option_box: Box<ColTypeOption> = type_option.clone();
-                let list_type_option: &ColTypeOption = list_type_option_box.as_ref();
-                match id {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
+                match type_option.id {
                     // T is Map
-                    &ColType::Map => {
+                    ColType::Map => {
                         Ok(self.map(|bytes| {
                             Map::new(decode_map(bytes.as_plain()).unwrap(),
-                                     list_type_option.clone())
+                                     type_option.as_ref().clone())
                         }))
                     }
                     _ => unreachable!(),
                 }
             }
             // convert CSet of T-s into List of T-s
-            ColTypeOptionValue::CSet(ref type_option) => {
-                let ref id = type_option.id;
-                let list_type_option_box: Box<ColTypeOption> = type_option.clone();
-                let list_type_option: &ColTypeOption = list_type_option_box.as_ref();
-                match id {
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
+                match type_option.id {
                     // T is Map
-                    &ColType::Map => {
+                    ColType::Map => {
                         Ok(self.map(|bytes| {
                             Map::new(decode_map(bytes.as_plain()).unwrap(),
-                                     list_type_option.clone())
+                                     type_option.as_ref().clone())
                         }))
                     }
                     _ => unreachable!(),
@@ -403,18 +391,16 @@ impl AsRust<Vec<Map>> for List {
 impl AsRust<Vec<UDT>> for List {
     /// Converts cassandra list of Inet values into Rust `Vec<List>`
     fn as_rust(&self) -> Result<Vec<UDT>> {
-        match self.metadata.value.clone().unwrap() {
+        match self.metadata.value {
             // convert CList of T-s into List of T-s
-            ColTypeOptionValue::CList(ref type_option) => {
-                let ref id = type_option.id;
-                let list_type_option_box: Box<ColTypeOption> = type_option.clone();
-                let list_type_option = match list_type_option_box.value {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
+                let list_type_option = match type_option.value {
                     Some(ColTypeOptionValue::UdtType(ref t)) => t,
                     _ => unreachable!(),
                 };
-                match id {
+                match type_option.id {
                     // T is Udt
-                    &ColType::Udt => {
+                    ColType::Udt => {
                         Ok(self.map(|bytes| {
                             UDT::new(decode_udt(bytes.as_plain()).unwrap(), list_type_option)
                         }))
@@ -423,16 +409,14 @@ impl AsRust<Vec<UDT>> for List {
                 }
             }
             // convert CSet of T-s into List of T-s
-            ColTypeOptionValue::CSet(ref type_option) => {
-                let ref id = type_option.id;
-                let list_type_option_box: Box<ColTypeOption> = type_option.clone();
-                let list_type_option = match list_type_option_box.value {
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
+                let list_type_option = match type_option.value {
                     Some(ColTypeOptionValue::UdtType(ref t)) => t,
                     _ => unreachable!(),
                 };
-                match id {
+                match type_option.id {
                     // T is Udt
-                    &ColType::Udt => {
+                    ColType::Udt => {
                         Ok(self.map(|bytes| {
                             UDT::new(decode_udt(bytes.as_plain()).unwrap(), list_type_option)
                         }))
