@@ -20,8 +20,8 @@ use frame::frame_batch::{BatchType, BatchQuery, BodyReqBatch, BatchQuerySubj};
 ///
 macro_rules! builder_opt_field {
     ($field:ident, $field_type:ty) => {
-        pub fn $field<'a>(&'a mut self,
-                          $field: $field_type) -> &'a mut Self {
+        pub fn $field(mut self,
+                          $field: $field_type) -> Self {
             self.$field = Some($field);
             self
         }
@@ -67,7 +67,7 @@ impl QueryBuilder {
     }
 
     /// Sets new query consistency
-    pub fn consistency(&mut self, consistency: Consistency) -> &mut Self {
+    pub fn consistency(mut self, consistency: Consistency) -> Self {
         self.consistency = consistency;
 
         return self;
@@ -91,7 +91,7 @@ impl QueryBuilder {
     /// Sets new quey timestamp
     builder_opt_field!(timestamp, i64);
 
-    pub fn apply_query_params(&mut self, params: QueryParams) -> &mut Self {
+    pub fn apply_query_params(mut self, params: QueryParams) -> Self {
         self.consistency = params.consistency;
         self.values = params.values;
         self.page_size = params.page_size;
@@ -103,16 +103,16 @@ impl QueryBuilder {
     }
 
     /// Finalizes query building process and returns query itself
-    pub fn finalize(&self) -> Query {
+    pub fn finalize(self) -> Query {
         return Query {
-            query: self.query.clone(),
-            consistency: self.consistency.clone(),
-            values: self.values.clone(),
-            with_names: self.with_names.clone(),
-            page_size: self.page_size.clone(),
-            paging_state: self.paging_state.clone(),
-            serial_consistency: self.serial_consistency.clone(),
-            timestamp: self.timestamp.clone(),
+            query: self.query,
+            consistency: self.consistency,
+            values: self.values,
+            with_names: self.with_names,
+            page_size: self.page_size,
+            paging_state: self.paging_state,
+            serial_consistency: self.serial_consistency,
+            timestamp: self.timestamp,
         };
     }
 }
@@ -144,43 +144,43 @@ impl QueryParamsBuilder {
         };
     }
 
-    pub fn values(&mut self, v: Vec<Value>) -> &mut Self {
+    pub fn values(mut self, v: Vec<Value>) -> Self {
         self.values = Some(v);
 
         return self;
     }
 
-    pub fn with_names(&mut self, with_names: bool) -> &mut Self {
+    pub fn with_names(mut self, with_names: bool) -> Self {
         self.with_names = with_names;
 
         return self;
     }
 
-    pub fn page_size(&mut self, page_size: i32) -> &mut Self {
+    pub fn page_size(mut self, page_size: i32) -> Self {
         self.page_size = Some(page_size);
 
         return self;
     }
 
-    pub fn paging_state(&mut self, paging_state: CBytes) -> &mut Self {
+    pub fn paging_state(mut self, paging_state: CBytes) -> Self {
         self.paging_state = Some(paging_state);
 
         return self;
     }
 
-    pub fn serial_consistency(&mut self, serial_consistency: Consistency) -> &mut Self {
+    pub fn serial_consistency(mut self, serial_consistency: Consistency) -> Self {
         self.serial_consistency = Some(serial_consistency);
 
         return self;
     }
 
-    pub fn timestamp(&mut self, timestamp: i64) -> &mut Self {
+    pub fn timestamp(mut self, timestamp: i64) -> Self {
         self.timestamp = Some(timestamp);
 
         return self;
     }
 
-    pub fn finalize(&self) -> QueryParams {
+    pub fn finalize(self) -> QueryParams {
         // query flags
         let mut flags: Vec<QueryFlags> = vec![];
 
@@ -206,13 +206,13 @@ impl QueryParamsBuilder {
 
         //TODO need to revisit// borrow checker was complaining do without the clone
         QueryParams {
-            consistency: self.consistency.clone(),
+            consistency: self.consistency,
             flags: flags,
-            values: self.values.clone(),
-            page_size: self.page_size.clone(),
-            paging_state: self.paging_state.clone(),
-            serial_consistency: self.serial_consistency.clone(),
-            timestamp: self.timestamp.clone(),
+            values: self.values,
+            page_size: self.page_size,
+            paging_state: self.paging_state,
+            serial_consistency: self.serial_consistency,
+            timestamp: self.timestamp,
         }
 
     }
@@ -240,13 +240,13 @@ impl BatchQueryBuilder {
         }
     }
 
-    pub fn batch_type(&mut self, batch_type: BatchType) -> &mut Self {
+    pub fn batch_type(mut self, batch_type: BatchType) -> Self {
         self.batch_type = batch_type;
         self
     }
 
     /// Add a query (non-prepared one)
-    pub fn add_query(&mut self, query: String, values: Vec<BatchValue>) -> &mut Self {
+    pub fn add_query(mut self, query: String, values: Vec<BatchValue>) -> Self {
         self.queries.push(BatchQuery {
             is_prepared: false,
             subject: BatchQuerySubj::QueryString(CStringLong::new(query)),
@@ -256,10 +256,7 @@ impl BatchQueryBuilder {
     }
 
     /// Add a query (prepared one)
-    pub fn add_query_prepared(&mut self,
-                              query_id: CBytesShort,
-                              values: Vec<BatchValue>)
-                              -> &mut Self {
+    pub fn add_query_prepared(mut self, query_id: CBytesShort, values: Vec<BatchValue>) -> Self {
         self.queries.push(BatchQuery {
             is_prepared: true,
             subject: BatchQuerySubj::PreparedId(query_id),
@@ -268,27 +265,27 @@ impl BatchQueryBuilder {
         self
     }
 
-    pub fn clear_queries(&mut self) -> &mut Self {
+    pub fn clear_queries(mut self) -> Self {
         self.queries = vec![];
         self
     }
 
-    pub fn consistency(&mut self, consistency: Consistency) -> &mut Self {
+    pub fn consistency(mut self, consistency: Consistency) -> Self {
         self.consistency = consistency;
         self
     }
 
-    pub fn serial_consistency(&mut self, serial_consistency: Option<Consistency>) -> &mut Self {
+    pub fn serial_consistency(mut self, serial_consistency: Option<Consistency>) -> Self {
         self.serial_consistency = serial_consistency;
         self
     }
 
-    pub fn timestamp(&mut self, timestamp: Option<i64>) -> &mut Self {
+    pub fn timestamp(mut self, timestamp: Option<i64>) -> Self {
         self.timestamp = timestamp;
         self
     }
 
-    pub fn finalize(&self) -> CResult<BodyReqBatch> {
+    pub fn finalize(self) -> CResult<BodyReqBatch> {
         let mut flags = vec![];
 
         if self.serial_consistency.is_some() {
@@ -319,14 +316,91 @@ impl BatchQueryBuilder {
         }
 
         Ok(BodyReqBatch {
-            batch_type: self.batch_type.clone(),
-            queries: self.queries.clone(),
-            query_flags: flags.clone(),
-            consistency: self.consistency.clone(),
-            serial_consistency: self.serial_consistency.clone(),
-            timestamp: self.timestamp.clone(),
+            batch_type: self.batch_type,
+            queries: self.queries,
+            query_flags: flags,
+            consistency: self.consistency,
+            serial_consistency: self.serial_consistency,
+            timestamp: self.timestamp,
         })
     }
 }
 
 pub type BatchValue = (Option<CString>, Value);
+
+#[cfg(test)]
+mod query_builder {
+    use super::*;
+
+    #[test]
+    fn new() {
+        let _ = QueryBuilder::new("USE keyspace").finalize();
+    }
+
+    #[test]
+    fn with_parameters() {
+        let _ = QueryBuilder::new("USE keyspace")
+            .consistency(Consistency::Two)
+            .values(vec![Value::new_null()])
+            .with_names(true)
+            .page_size(11)
+            .paging_state(CBytes::new(vec![1, 2, 3, 4, 5]))
+            .serial_consistency(Consistency::One)
+            .timestamp(1245678)
+            .finalize();
+    }
+}
+
+#[cfg(test)]
+mod query_params_builder {
+    use super::*;
+
+    #[test]
+    fn new() {
+        let _ = QueryParamsBuilder::new(Consistency::Two).finalize();
+    }
+
+    #[test]
+    fn with_parameters() {
+        let _ = QueryParamsBuilder::new(Consistency::Two)
+            .values(vec![Value::new_null()])
+            .with_names(true)
+            .page_size(11)
+            .paging_state(CBytes::new(vec![1, 2, 3, 4, 5]))
+            .serial_consistency(Consistency::One)
+            .timestamp(1245678)
+            .finalize();
+    }
+}
+
+#[cfg(test)]
+mod batch_query_builder {
+    use super::*;
+
+    #[test]
+    fn new() {
+        assert!(BatchQueryBuilder::new().finalize().is_ok());
+    }
+
+    #[test]
+    fn with_parameters() {
+        let q = BatchQueryBuilder::new()
+            .batch_type(BatchType::Logged)
+            .add_query("some query".to_string(), vec![])
+            .add_query_prepared(CBytesShort::new(vec![1, 2, 3]), vec![])
+            .consistency(Consistency::One)
+            .serial_consistency(Some(Consistency::Two))
+            .timestamp(Some(1234))
+            .finalize();
+        assert!(q.is_ok())
+    }
+
+    #[test]
+    fn clear_queries() {
+        let q = BatchQueryBuilder::new()
+            .add_query("some query".to_string(), vec![])
+            .clear_queries()
+            .finalize();
+        assert!(q.is_ok())
+    }
+}
