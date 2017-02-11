@@ -95,7 +95,7 @@ impl AsRust<Vec<bool>> for List {
             Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Boolean => {
-                        Ok(self.map(|bytes| decode_boolean(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_boolean(bytes.as_slice()).unwrap()))
                     }
                     _ => unreachable!(),
                 }
@@ -103,7 +103,7 @@ impl AsRust<Vec<bool>> for List {
             Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Boolean => {
-                        Ok(self.map(|bytes| decode_boolean(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_boolean(bytes.as_slice()).unwrap()))
                     }
                     _ => unreachable!(),
                 }
@@ -258,13 +258,13 @@ impl AsRust<Vec<net::IpAddr>> for List {
         match self.metadata.value {
             Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
-                    ColType::Inet => Ok(self.map(|bytes| decode_inet(bytes.as_plain()).unwrap())),
+                    ColType::Inet => Ok(self.map(|bytes| decode_inet(bytes.as_slice()).unwrap())),
                     _ => unreachable!(),
                 }
             }
             Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
-                    ColType::Inet => Ok(self.map(|bytes| decode_inet(bytes.as_plain()).unwrap())),
+                    ColType::Inet => Ok(self.map(|bytes| decode_inet(bytes.as_slice()).unwrap())),
                     _ => unreachable!(),
                 }
             }

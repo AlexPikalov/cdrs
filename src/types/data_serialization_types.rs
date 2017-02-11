@@ -36,11 +36,13 @@ pub fn decode_blob(bytes: Vec<u8>) -> Result<Vec<u8>, io::Error> {
 }
 
 // Decodes Cassandra `boolean` data (bytes) into Rust's `Result<i32, io::Error>`
-pub fn decode_boolean(bytes: Vec<u8>) -> Result<bool, io::Error> {
+pub fn decode_boolean(bytes: &[u8]) -> Result<bool, io::Error> {
     let false_byte: u8 = 0;
-    bytes.first()
-        .ok_or(io::Error::new(io::ErrorKind::UnexpectedEof, "no bytes were found"))
-        .map(|b| b != &false_byte)
+    if bytes.is_empty() {
+        Err(io::Error::new(io::ErrorKind::UnexpectedEof, "no bytes were found"))
+    } else {
+        Ok(bytes[0] != false_byte)
+    }
 }
 
 // Decodes Cassandra `int` data (bytes) into Rust's `Result<i32, io::Error>`
@@ -87,7 +89,7 @@ pub fn decode_float(bytes: Vec<u8>) -> Result<f32, io::Error> {
 }
 
 // Decodes Cassandra `inet` data (bytes) into Rust's `Result<net::IpAddr, io::Error>`
-pub fn decode_inet(bytes: Vec<u8>) -> Result<net::IpAddr, io::Error> {
+pub fn decode_inet(bytes: &[u8]) -> Result<net::IpAddr, io::Error> {
     match bytes.len() {
         // v4
         4 => Ok(net::IpAddr::V4(net::Ipv4Addr::new(bytes[0], bytes[1], bytes[2], bytes[3]))),

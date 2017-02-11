@@ -65,7 +65,7 @@ impl IntoRustByName<bool> for UDT {
         return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
-                ColType::Boolean => decode_boolean(bytes.as_plain()),
+                ColType::Boolean => decode_boolean(bytes.as_slice()),
                 _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
@@ -148,7 +148,7 @@ impl IntoRustByName<net::IpAddr> for UDT {
         return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
-                ColType::Inet => decode_inet(bytes.as_plain()),
+                ColType::Inet => decode_inet(bytes.as_slice()),
                 _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());

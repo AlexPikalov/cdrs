@@ -279,6 +279,7 @@ impl CBytes {
     pub fn into_plain(self) -> Vec<u8> {
         return self.bytes;
     }
+    // TODO: try to replace usage of `as_plain` by `as_slice`
     pub fn as_plain(&self) -> Vec<u8> {
         return self.bytes.clone();
     }
@@ -384,8 +385,7 @@ pub struct CInet {
 impl FromCursor for CInet {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CInet {
         let n = CIntShort::from_cursor(&mut cursor);
-        let bytes = cursor_next_value(&mut cursor, n as u64);
-        let ip = decode_inet(bytes).unwrap();
+        let ip = decode_inet(cursor_next_value(&mut cursor, n as u64).as_slice()).unwrap();
         let port = CInt::from_cursor(&mut cursor);
         let socket_addr = SocketAddr::new(ip, port as u16);
 

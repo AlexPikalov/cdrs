@@ -131,7 +131,7 @@ impl AsRust<HashMap<String, bool>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_boolean(vb.as_plain()).unwrap());
+                                acc.insert(k.clone(), decode_boolean(vb.as_slice()).unwrap());
                                 return acc;
                             }))
                     }
@@ -317,7 +317,7 @@ impl AsRust<HashMap<String, net::IpAddr>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_inet(vb.as_plain()).unwrap());
+                                acc.insert(k.clone(), decode_inet(vb.as_slice()).unwrap());
                                 return acc;
                             }))
                     }

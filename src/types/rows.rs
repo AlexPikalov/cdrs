@@ -89,7 +89,7 @@ impl IntoRustByName<String> for Row {
 impl IntoRustByName<bool> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<bool>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain();
+            let bytes = cbytes.as_slice();
 
             let converted = match cassandra_type {
                 &ColType::Boolean => decode_boolean(bytes),
@@ -226,7 +226,7 @@ impl IntoRustByName<f32> for Row {
 impl IntoRustByName<net::IpAddr> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<net::IpAddr>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain();
+            let bytes = cbytes.as_slice();
 
             let converted = match cassandra_type {
                 &ColType::Inet => decode_inet(bytes),
