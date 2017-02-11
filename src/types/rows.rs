@@ -55,7 +55,7 @@ impl Row {
 impl IntoRustByName<Vec<u8>> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<Vec<u8>>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain().clone();
+            let bytes = cbytes.as_plain();
             let converted = match cassandra_type {
                 &ColType::Blob => decode_blob(bytes),
                 _ => unreachable!(),
@@ -68,7 +68,7 @@ impl IntoRustByName<Vec<u8>> for Row {
 impl IntoRustByName<String> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<String>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain().clone();
+            let bytes = cbytes.as_plain();
 
             let converted = match cassandra_type {
                 &ColType::Custom => decode_custom(bytes),
@@ -89,7 +89,7 @@ impl IntoRustByName<String> for Row {
 impl IntoRustByName<bool> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<bool>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain().clone();
+            let bytes = cbytes.as_plain();
 
             let converted = match cassandra_type {
                 &ColType::Boolean => decode_boolean(bytes),
@@ -111,7 +111,7 @@ impl IntoRustByName<bool> for Row {
 impl IntoRustByName<i64> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<i64>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain().clone();
+            let bytes = cbytes.as_plain();
             let converted = match cassandra_type {
                 &ColType::Int => decode_bigint(bytes),
                 &ColType::Bigint => decode_bigint(bytes),
@@ -137,7 +137,7 @@ impl IntoRustByName<i64> for Row {
 impl IntoRustByName<i32> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<i32>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain().clone();
+            let bytes = cbytes.as_plain();
 
             let converted = match cassandra_type {
                 &ColType::Int => decode_int(bytes),
@@ -160,7 +160,7 @@ impl IntoRustByName<i32> for Row {
 impl IntoRustByName<i16> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<i16>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain().clone();
+            let bytes = cbytes.as_plain();
 
             let converted = match cassandra_type {
                 &ColType::Smallint => decode_smallint(bytes),
@@ -181,7 +181,7 @@ impl IntoRustByName<i16> for Row {
 impl IntoRustByName<f64> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<f64>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain().clone();
+            let bytes = cbytes.as_plain();
 
             let converted = match cassandra_type {
                 &ColType::Double => decode_double(bytes),
@@ -203,7 +203,7 @@ impl IntoRustByName<f64> for Row {
 impl IntoRustByName<f32> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<f32>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain().clone();
+            let bytes = cbytes.as_plain();
 
             let converted = match cassandra_type {
                 &ColType::Decimal => decode_decimal(bytes),
@@ -226,7 +226,7 @@ impl IntoRustByName<f32> for Row {
 impl IntoRustByName<net::IpAddr> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<net::IpAddr>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain().clone();
+            let bytes = cbytes.as_plain();
 
             let converted = match cassandra_type {
                 &ColType::Inet => decode_inet(bytes),
@@ -248,7 +248,7 @@ impl IntoRustByName<net::IpAddr> for Row {
 impl IntoRustByName<Uuid> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<Uuid>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain().clone();
+            let bytes = cbytes.as_plain();
 
             let converted = match cassandra_type {
                 &ColType::Uuid => decode_timeuuid(bytes),
@@ -264,7 +264,7 @@ impl IntoRustByName<Uuid> for Row {
 impl IntoRustByName<List> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<List>> {
         return self.get_col_spec_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain().clone();
+            let bytes = cbytes.as_plain();
 
             return match cassandra_type.col_type.id {
                 // in fact, both decode_list and decode_set return Ok
