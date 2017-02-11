@@ -203,7 +203,7 @@ impl IntoRustByName<f64> for Row {
 impl IntoRustByName<f32> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<f32>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain();
+            let bytes = cbytes.as_slice();
 
             let converted = match cassandra_type {
                 &ColType::Decimal => decode_decimal(bytes),

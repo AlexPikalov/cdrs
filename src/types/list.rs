@@ -232,18 +232,18 @@ impl AsRust<Vec<f32>> for List {
             Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Decimal => {
-                        Ok(self.map(|bytes| decode_decimal(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_decimal(bytes.as_slice()).unwrap()))
                     }
-                    ColType::Float => Ok(self.map(|bytes| decode_float(bytes.as_plain()).unwrap())),
+                    ColType::Float => Ok(self.map(|bytes| decode_float(bytes.as_slice()).unwrap())),
                     _ => unreachable!(),
                 }
             }
             Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Decimal => {
-                        Ok(self.map(|bytes| decode_decimal(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_decimal(bytes.as_slice()).unwrap()))
                     }
-                    ColType::Float => Ok(self.map(|bytes| decode_float(bytes.as_plain()).unwrap())),
+                    ColType::Float => Ok(self.map(|bytes| decode_float(bytes.as_slice()).unwrap())),
                     _ => unreachable!(),
                 }
             }

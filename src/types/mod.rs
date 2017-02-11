@@ -85,7 +85,7 @@ pub fn try_i32_from_bytes(bytes: Vec<u8>) -> Result<i32, io::Error> {
 }
 
 /// Tries to decode bytes array into `f32`.
-pub fn try_f32_from_bytes(bytes: Vec<u8>) -> Result<f32, io::Error> {
+pub fn try_f32_from_bytes(bytes: &[u8]) -> Result<f32, io::Error> {
     let mut c = Cursor::new(bytes);
     return c.read_f32::<BigEndian>();
 }

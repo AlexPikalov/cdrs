@@ -60,7 +60,7 @@ pub fn decode_date(bytes: &[u8]) -> Result<i32, io::Error> {
 
 // TODO: make sure this method meets the specification.
 // Decodes Cassandra `decimal` data (bytes) into Rust's `Result<f32, io::Error>`
-pub fn decode_decimal(bytes: Vec<u8>) -> Result<f32, io::Error> {
+pub fn decode_decimal(bytes: &[u8]) -> Result<f32, io::Error> {
     let ref separator = b'E';
     let lr: Vec<Vec<u8>> = bytes.split(|ch| ch == separator).map(|p| p.to_vec()).collect();
     let unscaled = try_i_from_bytes(lr[0].as_slice());
@@ -84,7 +84,7 @@ pub fn decode_double(bytes: Vec<u8>) -> Result<f64, io::Error> {
 }
 
 // Decodes Cassandra `float` data (bytes) into Rust's `Result<f32, io::Error>`
-pub fn decode_float(bytes: Vec<u8>) -> Result<f32, io::Error> {
+pub fn decode_float(bytes: &[u8]) -> Result<f32, io::Error> {
     try_f32_from_bytes(bytes)
 }
 

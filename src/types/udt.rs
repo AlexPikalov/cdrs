@@ -134,8 +134,8 @@ impl IntoRustByName<f32> for UDT {
         return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
-                ColType::Decimal => decode_decimal(bytes.as_plain()),
-                ColType::Float => decode_float(bytes.as_plain()),
+                ColType::Decimal => decode_decimal(bytes.as_slice()),
+                ColType::Float => decode_float(bytes.as_slice()),
                 _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
