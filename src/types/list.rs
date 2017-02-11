@@ -280,10 +280,10 @@ impl AsRust<Vec<Uuid>> for List {
             Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Uuid => {
-                        Ok(self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_timeuuid(bytes.as_slice()).unwrap()))
                     }
                     ColType::Timeuuid => {
-                        Ok(self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_timeuuid(bytes.as_slice()).unwrap()))
                     }
                     _ => unreachable!(),
                 }
@@ -291,10 +291,10 @@ impl AsRust<Vec<Uuid>> for List {
             Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Uuid => {
-                        Ok(self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_timeuuid(bytes.as_slice()).unwrap()))
                     }
                     ColType::Timeuuid => {
-                        Ok(self.map(|bytes| decode_timeuuid(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_timeuuid(bytes.as_slice()).unwrap()))
                     }
                     _ => unreachable!(),
                 }

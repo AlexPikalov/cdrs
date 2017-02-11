@@ -161,8 +161,8 @@ impl IntoRustByName<Uuid> for UDT {
         return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
-                ColType::Uuid => decode_timeuuid(bytes.as_plain()),
-                ColType::Timeuuid => decode_timeuuid(bytes.as_plain()),
+                ColType::Uuid => decode_timeuuid(bytes.as_slice()),
+                ColType::Timeuuid => decode_timeuuid(bytes.as_slice()),
                 _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());

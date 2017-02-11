@@ -248,7 +248,7 @@ impl IntoRustByName<net::IpAddr> for Row {
 impl IntoRustByName<Uuid> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<Uuid>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain();
+            let bytes = cbytes.as_slice();
 
             let converted = match cassandra_type {
                 &ColType::Uuid => decode_timeuuid(bytes),

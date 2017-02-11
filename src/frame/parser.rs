@@ -49,9 +49,10 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
         unsafe {
             tracing_bytes.set_len(UUID_LEN);
         }
+        // TODO: try to use slice instead
         try!(body_cursor.read_exact(&mut tracing_bytes));
 
-        decode_timeuuid(tracing_bytes).ok()
+        decode_timeuuid(tracing_bytes.as_slice()).ok()
     } else {
         None
     };
