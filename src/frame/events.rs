@@ -94,7 +94,7 @@ impl PartialEq<SimpleServerEvent> for ServerEvent {
 }
 
 impl FromCursor for ServerEvent {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ServerEvent {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> ServerEvent {
         let event_type = CString::from_cursor(&mut cursor);
         match event_type.as_str() {
             TOPOLOGY_CHANGE => {
@@ -115,7 +115,7 @@ pub struct TopologyChange {
 }
 
 impl FromCursor for TopologyChange {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> TopologyChange {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> TopologyChange {
         let change_type = TopologyChangeType::from_cursor(&mut cursor);
         let addr = CInet::from_cursor(&mut cursor);
 
@@ -133,7 +133,7 @@ pub enum TopologyChangeType {
 }
 
 impl FromCursor for TopologyChangeType {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> TopologyChangeType {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> TopologyChangeType {
         match CString::from_cursor(&mut cursor).as_str() {
             NEW_NODE => TopologyChangeType::NewNode,
             REMOVED_NODE => TopologyChangeType::RemovedNode,
@@ -150,7 +150,7 @@ pub struct StatusChange {
 }
 
 impl FromCursor for StatusChange {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> StatusChange {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> StatusChange {
         let change_type = StatusChangeType::from_cursor(&mut cursor);
         let addr = CInet::from_cursor(&mut cursor);
 
@@ -168,7 +168,7 @@ pub enum StatusChangeType {
 }
 
 impl FromCursor for StatusChangeType {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> StatusChangeType {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> StatusChangeType {
         match CString::from_cursor(&mut cursor).as_str() {
             UP => StatusChangeType::Up,
             DOWN => StatusChangeType::Down,
@@ -186,7 +186,7 @@ pub struct SchemaChange {
 }
 
 impl FromCursor for SchemaChange {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> SchemaChange {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> SchemaChange {
         let change_type = ChangeType::from_cursor(&mut cursor);
         let target = Target::from_cursor(&mut cursor);
         let options = ChangeSchemeOptions::from_cursor_and_target(&mut cursor, &target);
@@ -208,7 +208,7 @@ pub enum ChangeType {
 }
 
 impl FromCursor for ChangeType {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeType {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> ChangeType {
         match CString::from_cursor(&mut cursor).as_str() {
             CREATED => ChangeType::Created,
             UPDATED => ChangeType::Updated,
@@ -229,7 +229,7 @@ pub enum Target {
 }
 
 impl FromCursor for Target {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> Target {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> Target {
         match CString::from_cursor(&mut cursor).as_str() {
             KEYSPACE => Target::Keyspace,
             TABLE => Target::Table,
@@ -256,7 +256,7 @@ pub enum ChangeSchemeOptions {
 }
 
 impl ChangeSchemeOptions {
-    fn from_cursor_and_target(mut cursor: &mut Cursor<Vec<u8>>,
+    fn from_cursor_and_target(mut cursor: &mut Cursor<&[u8]>,
                               target: &Target)
                               -> ChangeSchemeOptions {
         match target {
@@ -269,17 +269,17 @@ impl ChangeSchemeOptions {
         }
     }
 
-    fn from_cursor_keyspace(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeSchemeOptions {
+    fn from_cursor_keyspace(mut cursor: &mut Cursor<&[u8]>) -> ChangeSchemeOptions {
         ChangeSchemeOptions::Keyspace(CString::from_cursor(&mut cursor).into_plain())
     }
 
-    fn from_cursor_table_type(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeSchemeOptions {
+    fn from_cursor_table_type(mut cursor: &mut Cursor<&[u8]>) -> ChangeSchemeOptions {
         let keyspace = CString::from_cursor(&mut cursor).into_plain();
         let name = CString::from_cursor(&mut cursor).into_plain();
         ChangeSchemeOptions::TableType((keyspace, name))
     }
 
-    fn from_cursor_function_aggregate(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeSchemeOptions {
+    fn from_cursor_function_aggregate(mut cursor: &mut Cursor<&[u8]>) -> ChangeSchemeOptions {
         let keyspace = CString::from_cursor(&mut cursor).into_plain();
         let name = CString::from_cursor(&mut cursor).into_plain();
         let types = CStringList::from_cursor(&mut cursor).into_plain();

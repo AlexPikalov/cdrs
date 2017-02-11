@@ -373,7 +373,7 @@ impl AsRust<HashMap<String, List>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                let list = List::new(decode_list(vb.as_plain()).unwrap(),
+                                let list = List::new(decode_list(vb.as_slice()).unwrap(),
                                                      value_type_option.as_ref().clone());
                                 acc.insert(k.clone(), list);
                                 return acc;
@@ -383,7 +383,7 @@ impl AsRust<HashMap<String, List>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                let list = List::new(decode_list(vb.as_plain()).unwrap(),
+                                let list = List::new(decode_list(vb.as_slice()).unwrap(),
                                                      value_type_option.as_ref().clone());
                                 acc.insert(k.clone(), list);
                                 return acc;
@@ -409,7 +409,7 @@ impl AsRust<HashMap<String, Map>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                let list = Map::new(decode_map(vb.as_plain()).unwrap(),
+                                let list = Map::new(decode_map(vb.as_slice()).unwrap(),
                                                     value_type_option.as_ref().clone());
                                 acc.insert(k.clone(), list);
                                 return acc;
@@ -440,7 +440,7 @@ impl AsRust<HashMap<String, UDT>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                let list = UDT::new(decode_udt(vb.as_plain()).unwrap(),
+                                let list = UDT::new(decode_udt(vb.as_slice()).unwrap(),
                                                     list_type_option);
                                 acc.insert(k.clone(), list);
                                 return acc;

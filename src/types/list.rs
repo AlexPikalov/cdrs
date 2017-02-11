@@ -314,14 +314,14 @@ impl AsRust<Vec<List>> for List {
                     // T is another List
                     ColType::List => {
                         Ok(self.map(|bytes| {
-                            List::new(decode_list(bytes.as_plain()).unwrap(),
+                            List::new(decode_list(bytes.as_slice()).unwrap(),
                                       type_option.as_ref().clone())
                         }))
                     }
                     // T is another Set
                     ColType::Set => {
                         Ok(self.map(|bytes| {
-                            List::new(decode_list(bytes.as_plain()).unwrap(),
+                            List::new(decode_list(bytes.as_slice()).unwrap(),
                                       type_option.as_ref().clone())
                         }))
                     }
@@ -334,14 +334,14 @@ impl AsRust<Vec<List>> for List {
                     // T is another List
                     ColType::List => {
                         Ok(self.map(|bytes| {
-                            List::new(decode_list(bytes.as_plain()).unwrap(),
+                            List::new(decode_list(bytes.as_slice()).unwrap(),
                                       type_option.as_ref().clone())
                         }))
                     }
                     // T is another Set
                     ColType::Set => {
                         Ok(self.map(|bytes| {
-                            List::new(decode_list(bytes.as_plain()).unwrap(),
+                            List::new(decode_list(bytes.as_slice()).unwrap(),
                                       type_option.as_ref().clone())
                         }))
                     }
@@ -363,7 +363,7 @@ impl AsRust<Vec<Map>> for List {
                     // T is Map
                     ColType::Map => {
                         Ok(self.map(|bytes| {
-                            Map::new(decode_map(bytes.as_plain()).unwrap(),
+                            Map::new(decode_map(bytes.as_slice()).unwrap(),
                                      type_option.as_ref().clone())
                         }))
                     }
@@ -376,7 +376,7 @@ impl AsRust<Vec<Map>> for List {
                     // T is Map
                     ColType::Map => {
                         Ok(self.map(|bytes| {
-                            Map::new(decode_map(bytes.as_plain()).unwrap(),
+                            Map::new(decode_map(bytes.as_slice()).unwrap(),
                                      type_option.as_ref().clone())
                         }))
                     }
@@ -402,7 +402,7 @@ impl AsRust<Vec<UDT>> for List {
                     // T is Udt
                     ColType::Udt => {
                         Ok(self.map(|bytes| {
-                            UDT::new(decode_udt(bytes.as_plain()).unwrap(), list_type_option)
+                            UDT::new(decode_udt(bytes.as_slice()).unwrap(), list_type_option)
                         }))
                     }
                     _ => unreachable!(),
@@ -418,7 +418,7 @@ impl AsRust<Vec<UDT>> for List {
                     // T is Udt
                     ColType::Udt => {
                         Ok(self.map(|bytes| {
-                            UDT::new(decode_udt(bytes.as_plain()).unwrap(), list_type_option)
+                            UDT::new(decode_udt(bytes.as_slice()).unwrap(), list_type_option)
                         }))
                     }
                     _ => unreachable!(),

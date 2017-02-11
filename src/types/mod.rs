@@ -79,7 +79,7 @@ pub fn try_i_from_bytes(bytes: &[u8]) -> Result<i64, io::Error> {
 }
 
 /// Tries to decode bytes array into `i32`.
-pub fn try_i32_from_bytes(bytes: Vec<u8>) -> Result<i32, io::Error> {
+pub fn try_i32_from_bytes(bytes: &[u8]) -> Result<i32, io::Error> {
     let mut c = Cursor::new(bytes);
     return c.read_i32::<BigEndian>();
 }
@@ -163,7 +163,7 @@ impl IntoBytes for CString {
 impl FromCursor for CString {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [string].
     /// It reads required number of bytes and returns a String
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CString {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CString {
         let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
         let len: u64 = from_bytes(len_bytes.as_slice());
         let body_bytes = cursor_next_value(&mut cursor, len);
@@ -209,7 +209,7 @@ impl IntoBytes for CStringLong {
 impl FromCursor for CStringLong {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [string].
     /// It reads required number of bytes and returns a String
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CStringLong {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CStringLong {
         let len_bytes = cursor_next_value(&mut cursor, INT_LEN as u64);
         let len: u64 = from_bytes(len_bytes.as_slice());
         let body_bytes = cursor_next_value(&mut cursor, len);
@@ -251,7 +251,7 @@ impl IntoBytes for CStringList {
 }
 
 impl FromCursor for CStringList {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CStringList {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CStringList {
         // TODO: try to use slice instead
         let mut len_bytes = [0; SHORT_LEN];
         if let Err(err) = cursor.read(&mut len_bytes) {
@@ -292,7 +292,7 @@ impl CBytes {
 impl FromCursor for CBytes {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].
     /// It reads required number of bytes and returns a CBytes
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CBytes {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CBytes {
         let len: u64 = CInt::from_cursor(&mut cursor) as u64;
         return CBytes { bytes: cursor_next_value(&mut cursor, len) };
     }
@@ -328,7 +328,7 @@ impl CBytesShort {
 impl FromCursor for CBytesShort {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].
     /// It reads required number of bytes and returns a CBytes
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CBytesShort {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CBytesShort {
         let len: u64 = CIntShort::from_cursor(&mut cursor) as u64;
         return CBytesShort { bytes: cursor_next_value(&mut cursor, len) };
     }
@@ -350,7 +350,7 @@ impl IntoBytes for CBytesShort {
 pub type CInt = i32;
 
 impl FromCursor for CInt {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CInt {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CInt {
         let bytes = cursor_next_value(&mut cursor, INT_LEN as u64);
         return from_bytes(bytes.as_slice()) as CInt;
     }
@@ -360,7 +360,7 @@ impl FromCursor for CInt {
 pub type CIntShort = i16;
 
 impl FromCursor for CIntShort {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CIntShort {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CIntShort {
         let bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
         return from_bytes(bytes.as_slice()) as CIntShort;
     }
@@ -368,7 +368,7 @@ impl FromCursor for CIntShort {
 
 // Use extended Rust Vec<u8> as Cassandra [bytes]
 impl FromBytes for Vec<u8> {
-    fn from_bytes(bytes: Vec<u8>) -> Vec<u8> {
+    fn from_bytes(bytes: &[u8]) -> Vec<u8> {
         let mut cursor = Cursor::new(bytes);
         let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
         let len: u64 = from_bytes(len_bytes.as_slice());
@@ -384,7 +384,7 @@ pub struct CInet {
 }
 
 impl FromCursor for CInet {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CInet {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CInet {
         let n = CIntShort::from_cursor(&mut cursor);
         let ip = decode_inet(cursor_next_value(&mut cursor, n as u64).as_slice()).unwrap();
         let port = CInt::from_cursor(&mut cursor);
@@ -394,7 +394,7 @@ impl FromCursor for CInet {
     }
 }
 
-pub fn cursor_next_value(mut cursor: &mut Cursor<Vec<u8>>, len: u64) -> Vec<u8> {
+pub fn cursor_next_value(mut cursor: &mut Cursor<&[u8]>, len: u64) -> Vec<u8> {
     let l = len as usize;
     let current_position = cursor.position();
     let mut buff: Vec<u8> = Vec::with_capacity(l);

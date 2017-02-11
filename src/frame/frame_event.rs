@@ -8,7 +8,7 @@ pub struct BodyResEvent {
 }
 
 impl FromCursor for BodyResEvent {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResEvent {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> BodyResEvent {
         let event = ServerEvent::from_cursor(&mut cursor);
         BodyResEvent { event: event }
     }

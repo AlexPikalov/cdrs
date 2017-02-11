@@ -51,7 +51,7 @@ pub struct Frame {
 
 impl Frame {
     pub fn get_body(&self) -> ResponseBody {
-        ResponseBody::from(self.body.clone(), &self.opcode)
+        ResponseBody::from(self.body.as_slice(), &self.opcode)
     }
 
     pub fn tracing_id(&self) -> Option<Uuid> {

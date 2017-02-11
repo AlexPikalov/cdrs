@@ -118,24 +118,24 @@ pub fn decode_timestamp(bytes: &[u8]) -> Result<i64, io::Error> {
 }
 
 // Decodes Cassandra `list` data (bytes) into Rust's `Result<Vec<CBytes>, io::Error>`
-pub fn decode_list(bytes: Vec<u8>) -> Result<Vec<CBytes>, io::Error> {
-    let mut cursor: io::Cursor<Vec<u8>> = io::Cursor::new(bytes);
+pub fn decode_list(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
+    let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
     let l = CInt::from_cursor(&mut cursor);
     let list = (0..l).map(|_| CBytes::from_cursor(&mut cursor)).collect();
     Ok(list)
 }
 
 // Decodes Cassandra `set` data (bytes) into Rust's `Result<Vec<CBytes>, io::Error>`
-pub fn decode_set(bytes: Vec<u8>) -> Result<Vec<CBytes>, io::Error> {
-    let mut cursor: io::Cursor<Vec<u8>> = io::Cursor::new(bytes);
+pub fn decode_set(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
+    let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
     let l = CInt::from_cursor(&mut cursor);
     let list = (0..l).map(|_| CBytes::from_cursor(&mut cursor)).collect();
     Ok(list)
 }
 
 // Decodes Cassandra `map` data (bytes) into Rust's `Result<Vec<(CBytes, CBytes)>, io::Error>`
-pub fn decode_map(bytes: Vec<u8>) -> Result<Vec<(CBytes, CBytes)>, io::Error> {
-    let mut cursor: io::Cursor<Vec<u8>> = io::Cursor::new(bytes);
+pub fn decode_map(bytes: &[u8]) -> Result<Vec<(CBytes, CBytes)>, io::Error> {
+    let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
     let l = CInt::from_cursor(&mut cursor);
     let list = (0..l)
         .map(|_| (CBytes::from_cursor(&mut cursor), CBytes::from_cursor(&mut cursor)))
@@ -170,8 +170,8 @@ pub fn decode_varint(bytes: &[u8]) -> Result<i64, io::Error> {
 
 // Decodes Cassandra `Udt` data (bytes) into Rust's `Result<Vec<CBytes>, io::Error>`
 // each `CBytes` is encoded type of field of user defined type
-pub fn decode_udt(bytes: Vec<u8>) -> Result<Vec<CBytes>, io::Error> {
-    let mut cursor: io::Cursor<Vec<u8>> = io::Cursor::new(bytes);
+pub fn decode_udt(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
+    let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
     let l = CInt::from_cursor(&mut cursor);
     let list = (0..l).map(|_| CBytes::from_cursor(&mut cursor)).collect();
     Ok(list)

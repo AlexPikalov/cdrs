@@ -33,8 +33,8 @@ impl IntoBytes for ResultKind {
 }
 
 impl FromBytes for ResultKind {
-    fn from_bytes(bytes: Vec<u8>) -> ResultKind {
-        match from_bytes(bytes.as_slice()) {
+    fn from_bytes(bytes: &[u8]) -> ResultKind {
+        match from_bytes(bytes) {
             0x0001 => ResultKind::Void,
             0x0002 => ResultKind::Rows,
             0x0003 => ResultKind::SetKeyspace,
@@ -46,8 +46,8 @@ impl FromBytes for ResultKind {
 }
 
 impl FromCursor for ResultKind {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ResultKind {
-        ResultKind::from_bytes(cursor_next_value(&mut cursor, INT_LEN as u64))
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> ResultKind {
+        ResultKind::from_bytes(cursor_next_value(&mut cursor, INT_LEN as u64).as_slice())
     }
 }
 
@@ -71,7 +71,7 @@ pub enum ResResultBody {
 impl ResResultBody {
     /// It retrieves`ResResultBody` from `io::Cursor`
     /// having knowledge about expected kind of result.
-    fn parse_body_from_cursor(mut cursor: &mut Cursor<Vec<u8>>,
+    fn parse_body_from_cursor(mut cursor: &mut Cursor<&[u8]>,
                               result_kind: ResultKind)
                               -> ResResultBody {
         match result_kind {
@@ -118,7 +118,7 @@ impl ResResultBody {
 }
 
 impl FromCursor for ResResultBody {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ResResultBody {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> ResResultBody {
         let result_kind = ResultKind::from_cursor(&mut cursor);
         ResResultBody::parse_body_from_cursor(&mut cursor, result_kind)
     }
@@ -136,14 +136,14 @@ impl BodyResResultVoid {
 }
 
 impl FromBytes for BodyResResultVoid {
-    fn from_bytes(_bytes: Vec<u8>) -> BodyResResultVoid {
+    fn from_bytes(_bytes: &[u8]) -> BodyResResultVoid {
         // as it's empty by definition just create BodyResVoid
         BodyResResultVoid::new()
     }
 }
 
 impl FromCursor for BodyResResultVoid {
-    fn from_cursor(mut _cursor: &mut Cursor<Vec<u8>>) -> BodyResResultVoid {
+    fn from_cursor(mut _cursor: &mut Cursor<&[u8]>) -> BodyResResultVoid {
         BodyResResultVoid::new()
     }
 }
@@ -164,7 +164,7 @@ impl BodyResResultSetKeyspace {
 }
 
 impl FromCursor for BodyResResultSetKeyspace {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResResultSetKeyspace {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> BodyResResultSetKeyspace {
         BodyResResultSetKeyspace::new(CString::from_cursor(&mut cursor))
     }
 }
@@ -184,7 +184,7 @@ pub struct BodyResResultRows {
 
 impl BodyResResultRows {
     /// It retrieves rows content having knowledge about number of rows and columns.
-    fn get_rows_content(mut cursor: &mut Cursor<Vec<u8>>,
+    fn get_rows_content(mut cursor: &mut Cursor<&[u8]>,
                         rows_count: i32,
                         columns_count: i32)
                         -> Vec<Vec<CBytes>> {
@@ -213,7 +213,7 @@ impl BodyResResultRows {
 }
 
 impl FromCursor for BodyResResultRows {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResResultRows {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> BodyResResultRows {
         let metadata = RowsMetadata::from_cursor(&mut cursor);
         let rows_count = CInt::from_cursor(&mut cursor);
         let rows_content: Vec<Vec<CBytes>> =
@@ -246,7 +246,7 @@ pub struct RowsMetadata {
 }
 
 impl FromCursor for RowsMetadata {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> RowsMetadata {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> RowsMetadata {
         let flags = CInt::from_cursor(&mut cursor);
         let columns_count = CInt::from_cursor(&mut cursor);
 
@@ -329,8 +329,8 @@ impl IntoBytes for RowsMetadataFlag {
 }
 
 impl FromBytes for RowsMetadataFlag {
-    fn from_bytes(bytes: Vec<u8>) -> RowsMetadataFlag {
-        match from_bytes(bytes.as_slice()) as i32 {
+    fn from_bytes(bytes: &[u8]) -> RowsMetadataFlag {
+        match from_bytes(bytes) as i32 {
             GLOBAL_TABLE_SPACE => RowsMetadataFlag::GlobalTableSpace,
             HAS_MORE_PAGES => RowsMetadataFlag::HasMorePages,
             NO_METADATA => RowsMetadataFlag::NoMetadata,
@@ -361,7 +361,7 @@ impl ColSpec {
     /// parse_colspecs tables mutable cursor,
     /// number of columns (column_count) and flags that indicates
     /// if Global_tables_spec is specified. It returns column_count of ColSpecs.
-    pub fn parse_colspecs(mut cursor: &mut Cursor<Vec<u8>>,
+    pub fn parse_colspecs(mut cursor: &mut Cursor<&[u8]>,
                           column_count: i32,
                           with_globale_table_spec: bool)
                           -> Vec<ColSpec> {
@@ -419,8 +419,8 @@ pub enum ColType {
 }
 
 impl FromBytes for ColType {
-    fn from_bytes(bytes: Vec<u8>) -> ColType {
-        match from_bytes(bytes.as_slice()) {
+    fn from_bytes(bytes: &[u8]) -> ColType {
+        match from_bytes(bytes) {
             0x0000 => ColType::Custom,
             0x0001 => ColType::Ascii,
             0x0002 => ColType::Bigint,
@@ -452,9 +452,9 @@ impl FromBytes for ColType {
 }
 
 impl FromCursor for ColType {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ColType {
-        let option_id_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
-        let col_type = ColType::from_bytes(option_id_bytes);
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> ColType {
+        let col_type = ColType::from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)
+            .as_slice());
         col_type
     }
 }
@@ -471,7 +471,7 @@ pub struct ColTypeOption {
 }
 
 impl FromCursor for ColTypeOption {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ColTypeOption {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> ColTypeOption {
         let id = ColType::from_cursor(&mut cursor);
         let value = match id {
             ColType::Custom => Some(ColTypeOptionValue::CString(CString::from_cursor(&mut cursor))),
@@ -523,7 +523,7 @@ pub struct CUdt {
 }
 
 impl FromCursor for CUdt {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CUdt {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CUdt {
         let ks = CString::from_cursor(&mut cursor);
         let udt_name = CString::from_cursor(&mut cursor);
         let n = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64).as_slice());
@@ -556,7 +556,7 @@ pub struct BodyResResultPrepared {
 }
 
 impl FromCursor for BodyResResultPrepared {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResResultPrepared {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> BodyResResultPrepared {
         let id = CBytesShort::from_cursor(&mut cursor);
         let metadata = PreparedMetadata::from_cursor(&mut cursor);
         let result_metadata = RowsMetadata::from_cursor(&mut cursor);
@@ -581,7 +581,7 @@ pub struct PreparedMetadata {
 }
 
 impl FromCursor for PreparedMetadata {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> PreparedMetadata {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> PreparedMetadata {
         let flags = CInt::from_cursor(&mut cursor);
         let columns_count = CInt::from_cursor(&mut cursor);
         let pk_count = CInt::from_cursor(&mut cursor);

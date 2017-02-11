@@ -176,11 +176,11 @@ impl IntoRustByName<List> for UDT {
             let &(ref col_type, ref bytes) = v;
             return match col_type.id {
                 ColType::List => {
-                    let list_bytes = decode_list(bytes.as_plain()).unwrap();
+                    let list_bytes = decode_list(bytes.as_slice()).unwrap();
                     Ok(List::new(list_bytes, col_type.clone().clone()))
                 }
                 ColType::Set => {
-                    let list_bytes = decode_set(bytes.as_plain()).unwrap();
+                    let list_bytes = decode_set(bytes.as_slice()).unwrap();
                     Ok(List::new(list_bytes, col_type.clone().clone()))
                 }
                 _ => unreachable!(),
@@ -193,7 +193,7 @@ impl IntoRustByName<Map> for UDT {
     fn get_by_name(&self, name: &str) -> Option<Result<Map>> {
         return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
-            let list_bytes = decode_map(bytes.as_plain()).unwrap();
+            let list_bytes = decode_map(bytes.as_slice()).unwrap();
             return match col_type.id {
                 ColType::Map => Ok(Map::new(list_bytes, col_type.clone().clone())),
                 _ => unreachable!(),
@@ -206,7 +206,7 @@ impl IntoRustByName<UDT> for UDT {
     fn get_by_name(&self, name: &str) -> Option<Result<UDT>> {
         return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
-            let list_bytes: Vec<CBytes> = try!(decode_udt(bytes.as_plain()));
+            let list_bytes: Vec<CBytes> = try!(decode_udt(bytes.as_slice()));
 
             if col_type.value.is_none() {
                 unreachable!();

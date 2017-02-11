@@ -42,7 +42,7 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
     };
 
     // Use cursor to get tracing id, warnings and actual body
-    let mut body_cursor = Cursor::new(full_body);
+    let mut body_cursor = Cursor::new(full_body.as_slice());
 
     let tracing_id = if flags.iter().any(|flag| flag == &Flag::Tracing) {
         let mut tracing_bytes = Vec::with_capacity(UUID_LEN);

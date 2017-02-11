@@ -264,7 +264,7 @@ impl IntoRustByName<Uuid> for Row {
 impl IntoRustByName<List> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<List>> {
         return self.get_col_spec_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain();
+            let bytes = cbytes.as_slice();
 
             return match cassandra_type.col_type.id {
                 // in fact, both decode_list and decode_set return Ok
@@ -283,7 +283,7 @@ impl IntoRustByName<List> for Row {
 impl IntoRustByName<Map> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<Map>> {
         return self.get_col_spec_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain().clone();
+            let bytes = cbytes.as_slice();
 
             return match cassandra_type.col_type.id {
                 // in fact, both decode_map and decode_set return Ok
@@ -299,7 +299,7 @@ impl IntoRustByName<Map> for Row {
 impl IntoRustByName<UDT> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<UDT>> {
         return self.get_col_spec_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain();
+            let bytes = cbytes.as_slice();
             let cudt = match cassandra_type.col_type.value {
                 Some(ColTypeOptionValue::UdtType(ref t)) => t,
                 _ => unreachable!(),

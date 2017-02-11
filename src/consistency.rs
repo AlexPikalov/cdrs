@@ -117,8 +117,8 @@ impl From<i32> for Consistency {
 }
 
 impl FromBytes for Consistency {
-    fn from_bytes(bytes: Vec<u8>) -> Consistency {
-        return match from_bytes(bytes.as_slice()) {
+    fn from_bytes(bytes: &[u8]) -> Consistency {
+        return match from_bytes(bytes) {
             0x0000 => Consistency::Any,
             0x0001 => Consistency::One,
             0x0002 => Consistency::Two,
@@ -136,7 +136,7 @@ impl FromBytes for Consistency {
 }
 
 impl FromCursor for Consistency {
-    fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> Consistency {
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> Consistency {
         let consistency_num = CIntShort::from_cursor(&mut cursor) as i32;
         return Consistency::from(consistency_num);
     }
