@@ -442,7 +442,7 @@ impl AsRust<HashMap<String, UDT>> for Map {
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
                                 let list = UDT::new(decode_udt(vb.as_plain()).unwrap(),
-                                                    list_type_option.clone());
+                                                    list_type_option);
                                 acc.insert(k.clone(), list);
                                 return acc;
                             }))

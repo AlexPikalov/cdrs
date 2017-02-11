@@ -15,7 +15,7 @@ pub struct UDT {
 }
 
 impl UDT {
-    pub fn new(data: Vec<CBytes>, metadata: CUdt) -> UDT {
+    pub fn new<'a>(data: Vec<CBytes>, metadata: &'a CUdt) -> UDT {
         let meta_iter = metadata.descriptions.iter();
 
         let acc: HashMap<String, (ColTypeOption, CBytes)> =
@@ -218,7 +218,7 @@ impl IntoRustByName<UDT> for UDT {
             };
 
             return match col_type.id {
-                ColType::Udt => Ok(UDT::new(list_bytes, col_type_value.clone())),
+                ColType::Udt => Ok(UDT::new(list_bytes, col_type_value)),
                 _ => unreachable!(),
             };
         });

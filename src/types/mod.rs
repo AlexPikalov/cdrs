@@ -58,39 +58,41 @@ pub fn i_to_n_bytes(int: i64, n: usize) -> Vec<u8> {
     return try_i_to_n_bytes(int, n).unwrap();
 }
 
-///
+/// Tryies to decode bytes array into `u64`.
 pub fn try_from_bytes(bytes: Vec<u8>) -> Result<u64, io::Error> {
-    let mut c = Cursor::new(bytes.clone());
-    return c.read_uint::<BigEndian>(bytes.len());
+    let l = bytes.len();
+    let mut c = Cursor::new(bytes);
+    return c.read_uint::<BigEndian>(l);
 }
 
-///
+/// Tryies to decode bytes array into `u16`.
 pub fn try_u16_from_bytes(bytes: Vec<u8>) -> Result<u16, io::Error> {
-    let mut c = Cursor::new(bytes.clone());
+    let mut c = Cursor::new(bytes);
     return c.read_u16::<BigEndian>();
 }
 
-///
+/// Tries to decode bytes array into `i64`.
 pub fn try_i_from_bytes(bytes: Vec<u8>) -> Result<i64, io::Error> {
-    let mut c = Cursor::new(bytes.clone());
-    return c.read_int::<BigEndian>(bytes.len());
+    let l = bytes.len();
+    let mut c = Cursor::new(bytes);
+    return c.read_int::<BigEndian>(l);
 }
 
-///
+/// Tries to decode bytes array into `i32`.
 pub fn try_i32_from_bytes(bytes: Vec<u8>) -> Result<i32, io::Error> {
-    let mut c = Cursor::new(bytes.clone());
+    let mut c = Cursor::new(bytes);
     return c.read_i32::<BigEndian>();
 }
 
-///
+/// Tries to decode bytes array into `f32`.
 pub fn try_f32_from_bytes(bytes: Vec<u8>) -> Result<f32, io::Error> {
-    let mut c = Cursor::new(bytes.clone());
+    let mut c = Cursor::new(bytes);
     return c.read_f32::<BigEndian>();
 }
 
-///
+/// Tries to decode bytes array into `f64`.
 pub fn try_f64_from_bytes(bytes: Vec<u8>) -> Result<f64, io::Error> {
-    let mut c = Cursor::new(bytes.clone());
+    let mut c = Cursor::new(bytes);
     return c.read_f64::<BigEndian>();
 }
 

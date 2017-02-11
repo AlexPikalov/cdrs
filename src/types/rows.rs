@@ -299,9 +299,9 @@ impl IntoRustByName<Map> for Row {
 impl IntoRustByName<UDT> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<UDT>> {
         return self.get_col_spec_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain().clone();
+            let bytes = cbytes.as_plain();
             let cudt = match cassandra_type.col_type.value {
-                Some(ColTypeOptionValue::UdtType(ref t)) => t.clone(),
+                Some(ColTypeOptionValue::UdtType(ref t)) => t,
                 _ => unreachable!(),
             };
 

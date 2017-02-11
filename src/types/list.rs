@@ -409,15 +409,14 @@ impl AsRust<Vec<UDT>> for List {
                 let ref id = type_option.id;
                 let list_type_option_box: Box<ColTypeOption> = type_option.clone();
                 let list_type_option = match list_type_option_box.value {
-                    Some(ColTypeOptionValue::UdtType(t)) => t,
+                    Some(ColTypeOptionValue::UdtType(ref t)) => t,
                     _ => unreachable!(),
                 };
                 match id {
                     // T is Udt
                     &ColType::Udt => {
                         Ok(self.map(|bytes| {
-                            UDT::new(decode_udt(bytes.as_plain()).unwrap(),
-                                     list_type_option.clone())
+                            UDT::new(decode_udt(bytes.as_plain()).unwrap(), list_type_option)
                         }))
                     }
                     _ => unreachable!(),
@@ -428,15 +427,14 @@ impl AsRust<Vec<UDT>> for List {
                 let ref id = type_option.id;
                 let list_type_option_box: Box<ColTypeOption> = type_option.clone();
                 let list_type_option = match list_type_option_box.value {
-                    Some(ColTypeOptionValue::UdtType(t)) => t,
+                    Some(ColTypeOptionValue::UdtType(ref t)) => t,
                     _ => unreachable!(),
                 };
                 match id {
                     // T is Udt
                     &ColType::Udt => {
                         Ok(self.map(|bytes| {
-                            UDT::new(decode_udt(bytes.as_plain()).unwrap(),
-                                     list_type_option.clone())
+                            UDT::new(decode_udt(bytes.as_plain()).unwrap(), list_type_option)
                         }))
                     }
                     _ => unreachable!(),
