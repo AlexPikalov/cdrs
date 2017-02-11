@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/harrydevnull/cdrs/branch/master/graph/badge.svg)](https://codecov.io/gh/harrydevnull/cdrs)
 
 
-**CDRS** is a native Cassandra driver written in [Rust](https://www.rust-lang.org).
+**CDRS** is a native driver for [Apache Cassandra](http://cassandra.apache.org) written in [Rust](https://www.rust-lang.org).
 The motivation to write it in Rust is a lack of native one.
 Existing ones are bindings to C clients.
 
