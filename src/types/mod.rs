@@ -91,7 +91,7 @@ pub fn try_f32_from_bytes(bytes: &[u8]) -> Result<f32, io::Error> {
 }
 
 /// Tries to decode bytes array into `f64`.
-pub fn try_f64_from_bytes(bytes: Vec<u8>) -> Result<f64, io::Error> {
+pub fn try_f64_from_bytes(bytes: &[u8]) -> Result<f64, io::Error> {
     let mut c = Cursor::new(bytes);
     return c.read_f64::<BigEndian>();
 }

@@ -79,7 +79,7 @@ pub fn decode_decimal(bytes: &[u8]) -> Result<f32, io::Error> {
 }
 
 // Decodes Cassandra `double` data (bytes) into Rust's `Result<f32, io::Error>`
-pub fn decode_double(bytes: Vec<u8>) -> Result<f64, io::Error> {
+pub fn decode_double(bytes: &[u8]) -> Result<f64, io::Error> {
     try_f64_from_bytes(bytes)
 }
 

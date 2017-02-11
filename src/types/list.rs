@@ -207,7 +207,7 @@ impl AsRust<Vec<f64>> for List {
             Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Double => {
-                        Ok(self.map(|bytes| decode_double(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_double(bytes.as_slice()).unwrap()))
                     }
                     _ => unreachable!(),
                 }
@@ -215,7 +215,7 @@ impl AsRust<Vec<f64>> for List {
             Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Double => {
-                        Ok(self.map(|bytes| decode_double(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_double(bytes.as_slice()).unwrap()))
                     }
                     _ => unreachable!(),
                 }

@@ -181,7 +181,7 @@ impl IntoRustByName<i16> for Row {
 impl IntoRustByName<f64> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<f64>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain();
+            let bytes = cbytes.as_slice();
 
             let converted = match cassandra_type {
                 &ColType::Double => decode_double(bytes),

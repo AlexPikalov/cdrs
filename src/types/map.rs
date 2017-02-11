@@ -261,7 +261,7 @@ impl AsRust<HashMap<String, f64>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_double(vb.as_plain()).unwrap());
+                                acc.insert(k.clone(), decode_double(vb.as_slice()).unwrap());
                                 return acc;
                             }))
                     }
