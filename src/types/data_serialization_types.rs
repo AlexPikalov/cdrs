@@ -95,14 +95,14 @@ pub fn decode_inet(bytes: &[u8]) -> Result<net::IpAddr, io::Error> {
         4 => Ok(net::IpAddr::V4(net::Ipv4Addr::new(bytes[0], bytes[1], bytes[2], bytes[3]))),
         // v6
         16 => {
-            let a = from_u16_bytes(bytes[0..2].to_vec());
-            let b = from_u16_bytes(bytes[2..4].to_vec());
-            let c = from_u16_bytes(bytes[4..6].to_vec());
-            let d = from_u16_bytes(bytes[6..8].to_vec());
-            let e = from_u16_bytes(bytes[8..10].to_vec());
-            let f = from_u16_bytes(bytes[10..12].to_vec());
-            let g = from_u16_bytes(bytes[12..14].to_vec());
-            let h = from_u16_bytes(bytes[14..16].to_vec());
+            let a = from_u16_bytes(&bytes[0..2]);
+            let b = from_u16_bytes(&bytes[2..4]);
+            let c = from_u16_bytes(&bytes[4..6]);
+            let d = from_u16_bytes(&bytes[6..8]);
+            let e = from_u16_bytes(&bytes[8..10]);
+            let f = from_u16_bytes(&bytes[10..12]);
+            let g = from_u16_bytes(&bytes[12..14]);
+            let h = from_u16_bytes(&bytes[14..16]);
             Ok(net::IpAddr::V6(net::Ipv6Addr::new(a, b, c, d, e, f, g, h)))
         }
         _ => unreachable!(),

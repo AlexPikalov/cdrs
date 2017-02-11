@@ -66,7 +66,7 @@ pub fn try_from_bytes(bytes: &[u8]) -> Result<u64, io::Error> {
 }
 
 /// Tryies to decode bytes array into `u16`.
-pub fn try_u16_from_bytes(bytes: Vec<u8>) -> Result<u16, io::Error> {
+pub fn try_u16_from_bytes(bytes: &[u8]) -> Result<u16, io::Error> {
     let mut c = Cursor::new(bytes);
     return c.read_u16::<BigEndian>();
 }
@@ -107,7 +107,7 @@ pub fn from_i_bytes(bytes: &[u8]) -> i64 {
 }
 
 /// Converts byte-array into u16
-pub fn from_u16_bytes(bytes: Vec<u8>) -> u16 {
+pub fn from_u16_bytes(bytes: &[u8]) -> u16 {
     return try_u16_from_bytes(bytes).unwrap();
 }
 
