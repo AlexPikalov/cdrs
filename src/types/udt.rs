@@ -78,10 +78,10 @@ impl IntoRustByName<i64> for UDT {
         return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
-                ColType::Bigint => decode_bigint(bytes.as_plain()),
-                ColType::Timestamp => decode_timestamp(bytes.as_plain()),
-                ColType::Time => decode_time(bytes.as_plain()),
-                ColType::Varint => decode_varint(bytes.as_plain()),
+                ColType::Bigint => decode_bigint(bytes.as_slice()),
+                ColType::Timestamp => decode_timestamp(bytes.as_slice()),
+                ColType::Time => decode_time(bytes.as_slice()),
+                ColType::Varint => decode_varint(bytes.as_slice()),
                 _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
@@ -94,8 +94,8 @@ impl IntoRustByName<i32> for UDT {
         return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
-                ColType::Int => decode_int(bytes.as_plain()),
-                ColType::Date => decode_date(bytes.as_plain()),
+                ColType::Int => decode_int(bytes.as_slice()),
+                ColType::Date => decode_date(bytes.as_slice()),
                 _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
@@ -108,7 +108,7 @@ impl IntoRustByName<i16> for UDT {
         return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
-                ColType::Smallint => decode_smallint(bytes.as_plain()),
+                ColType::Smallint => decode_smallint(bytes.as_slice()),
                 _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());

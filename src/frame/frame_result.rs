@@ -34,7 +34,7 @@ impl IntoBytes for ResultKind {
 
 impl FromBytes for ResultKind {
     fn from_bytes(bytes: Vec<u8>) -> ResultKind {
-        match from_bytes(bytes.clone()) {
+        match from_bytes(bytes.as_slice()) {
             0x0001 => ResultKind::Void,
             0x0002 => ResultKind::Rows,
             0x0003 => ResultKind::SetKeyspace,
@@ -330,7 +330,7 @@ impl IntoBytes for RowsMetadataFlag {
 
 impl FromBytes for RowsMetadataFlag {
     fn from_bytes(bytes: Vec<u8>) -> RowsMetadataFlag {
-        match from_bytes(bytes.clone()) as i32 {
+        match from_bytes(bytes.as_slice()) as i32 {
             GLOBAL_TABLE_SPACE => RowsMetadataFlag::GlobalTableSpace,
             HAS_MORE_PAGES => RowsMetadataFlag::HasMorePages,
             NO_METADATA => RowsMetadataFlag::NoMetadata,
@@ -420,7 +420,7 @@ pub enum ColType {
 
 impl FromBytes for ColType {
     fn from_bytes(bytes: Vec<u8>) -> ColType {
-        match from_bytes(bytes.clone()) {
+        match from_bytes(bytes.as_slice()) {
             0x0000 => ColType::Custom,
             0x0001 => ColType::Ascii,
             0x0002 => ColType::Bigint,
@@ -526,7 +526,7 @@ impl FromCursor for CUdt {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CUdt {
         let ks = CString::from_cursor(&mut cursor);
         let udt_name = CString::from_cursor(&mut cursor);
-        let n = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64));
+        let n = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64).as_slice());
         let descriptions: Vec<(CString, ColTypeOption)> = (0..n)
             .map(|_| {
                 let name = CString::from_cursor(&mut cursor);
@@ -586,7 +586,8 @@ impl FromCursor for PreparedMetadata {
         let columns_count = CInt::from_cursor(&mut cursor);
         let pk_count = CInt::from_cursor(&mut cursor);
         let pk_indexes: Vec<i16> = (0..pk_count).fold(vec![], |mut acc, _| {
-            let idx = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)) as i16;
+            let idx = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64).as_slice()) as
+                      i16;
             acc.push(idx);
             acc
         });

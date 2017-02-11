@@ -120,14 +120,14 @@ impl AsRust<Vec<i64>> for List {
             Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Bigint => {
-                        Ok(self.map(|bytes| decode_bigint(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_bigint(bytes.as_slice()).unwrap()))
                     }
                     ColType::Timestamp => {
-                        Ok(self.map(|bytes| decode_timestamp(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_timestamp(bytes.as_slice()).unwrap()))
                     }
-                    ColType::Time => Ok(self.map(|bytes| decode_time(bytes.as_plain()).unwrap())),
+                    ColType::Time => Ok(self.map(|bytes| decode_time(bytes.as_slice()).unwrap())),
                     ColType::Varint => {
-                        Ok(self.map(|bytes| decode_varint(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_varint(bytes.as_slice()).unwrap()))
                     }
                     _ => unreachable!(),
                 }
@@ -135,14 +135,14 @@ impl AsRust<Vec<i64>> for List {
             Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Bigint => {
-                        Ok(self.map(|bytes| decode_bigint(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_bigint(bytes.as_slice()).unwrap()))
                     }
                     ColType::Timestamp => {
-                        Ok(self.map(|bytes| decode_timestamp(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_timestamp(bytes.as_slice()).unwrap()))
                     }
-                    ColType::Time => Ok(self.map(|bytes| decode_time(bytes.as_plain()).unwrap())),
+                    ColType::Time => Ok(self.map(|bytes| decode_time(bytes.as_slice()).unwrap())),
                     ColType::Varint => {
-                        Ok(self.map(|bytes| decode_varint(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_varint(bytes.as_slice()).unwrap()))
                     }
                     _ => unreachable!(),
                 }
@@ -158,15 +158,15 @@ impl AsRust<Vec<i32>> for List {
         match self.metadata.value {
             Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
-                    ColType::Int => Ok(self.map(|bytes| decode_int(bytes.as_plain()).unwrap())),
-                    ColType::Date => Ok(self.map(|bytes| decode_date(bytes.as_plain()).unwrap())),
+                    ColType::Int => Ok(self.map(|bytes| decode_int(bytes.as_slice()).unwrap())),
+                    ColType::Date => Ok(self.map(|bytes| decode_date(bytes.as_slice()).unwrap())),
                     _ => unreachable!(),
                 }
             }
             Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
-                    ColType::Int => Ok(self.map(|bytes| decode_int(bytes.as_plain()).unwrap())),
-                    ColType::Date => Ok(self.map(|bytes| decode_date(bytes.as_plain()).unwrap())),
+                    ColType::Int => Ok(self.map(|bytes| decode_int(bytes.as_slice()).unwrap())),
+                    ColType::Date => Ok(self.map(|bytes| decode_date(bytes.as_slice()).unwrap())),
                     _ => unreachable!(),
                 }
             }
@@ -182,7 +182,7 @@ impl AsRust<Vec<i16>> for List {
             Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Smallint => {
-                        Ok(self.map(|bytes| decode_smallint(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_smallint(bytes.as_slice()).unwrap()))
                     }
                     _ => unreachable!(),
                 }
@@ -190,7 +190,7 @@ impl AsRust<Vec<i16>> for List {
             Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Smallint => {
-                        Ok(self.map(|bytes| decode_smallint(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_smallint(bytes.as_slice()).unwrap()))
                     }
                     _ => unreachable!(),
                 }

@@ -192,7 +192,7 @@ impl FromCursor for ReadTimeoutError {
         let cl = Consistency::from_cursor(&mut cursor);
         let received = CInt::from_cursor(&mut cursor);
         let blockfor = CInt::from_cursor(&mut cursor);
-        let data_present = from_bytes(cursor_next_value(&mut cursor, 1)) as u8;
+        let data_present = from_bytes(cursor_next_value(&mut cursor, 1).as_slice()) as u8;
         ReadTimeoutError {
             cl: cl,
             received: received,
@@ -229,7 +229,7 @@ impl FromCursor for ReadFailureError {
         let received = CInt::from_cursor(&mut cursor);
         let blockfor = CInt::from_cursor(&mut cursor);
         let num_failures = CInt::from_cursor(&mut cursor);
-        let data_present = from_bytes(cursor_next_value(&mut cursor, 1)) as u8;
+        let data_present = from_bytes(cursor_next_value(&mut cursor, 1).as_slice()) as u8;
         ReadFailureError {
             cl: cl,
             received: received,

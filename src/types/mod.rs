@@ -59,7 +59,7 @@ pub fn i_to_n_bytes(int: i64, n: usize) -> Vec<u8> {
 }
 
 /// Tryies to decode bytes array into `u64`.
-pub fn try_from_bytes(bytes: Vec<u8>) -> Result<u64, io::Error> {
+pub fn try_from_bytes(bytes: &[u8]) -> Result<u64, io::Error> {
     let l = bytes.len();
     let mut c = Cursor::new(bytes);
     return c.read_uint::<BigEndian>(l);
@@ -72,7 +72,7 @@ pub fn try_u16_from_bytes(bytes: Vec<u8>) -> Result<u16, io::Error> {
 }
 
 /// Tries to decode bytes array into `i64`.
-pub fn try_i_from_bytes(bytes: Vec<u8>) -> Result<i64, io::Error> {
+pub fn try_i_from_bytes(bytes: &[u8]) -> Result<i64, io::Error> {
     let l = bytes.len();
     let mut c = Cursor::new(bytes);
     return c.read_int::<BigEndian>(l);
@@ -97,12 +97,12 @@ pub fn try_f64_from_bytes(bytes: Vec<u8>) -> Result<f64, io::Error> {
 }
 
 /// Converts byte-array into u64
-pub fn from_bytes(bytes: Vec<u8>) -> u64 {
+pub fn from_bytes(bytes: &[u8]) -> u64 {
     return try_from_bytes(bytes).unwrap();
 }
 
 /// Converts byte-array into i64
-pub fn from_i_bytes(bytes: Vec<u8>) -> i64 {
+pub fn from_i_bytes(bytes: &[u8]) -> i64 {
     return try_i_from_bytes(bytes).unwrap();
 }
 
@@ -165,7 +165,7 @@ impl FromCursor for CString {
     /// It reads required number of bytes and returns a String
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CString {
         let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
-        let len: u64 = from_bytes(len_bytes.to_vec());
+        let len: u64 = from_bytes(len_bytes.as_slice());
         let body_bytes = cursor_next_value(&mut cursor, len);
 
         return CString { string: String::from_utf8(body_bytes).unwrap() };
@@ -211,7 +211,7 @@ impl FromCursor for CStringLong {
     /// It reads required number of bytes and returns a String
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CStringLong {
         let len_bytes = cursor_next_value(&mut cursor, INT_LEN as u64);
-        let len: u64 = from_bytes(len_bytes.to_vec());
+        let len: u64 = from_bytes(len_bytes.as_slice());
         let body_bytes = cursor_next_value(&mut cursor, len);
 
         return CStringLong { string: String::from_utf8(body_bytes).unwrap() };
@@ -252,12 +252,13 @@ impl IntoBytes for CStringList {
 
 impl FromCursor for CStringList {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CStringList {
+        // TODO: try to use slice instead
         let mut len_bytes = [0; SHORT_LEN];
         if let Err(err) = cursor.read(&mut len_bytes) {
             error!("Read Cassandra bytes error: {}", err);
             panic!(err);
         }
-        let len: u64 = from_bytes(len_bytes.to_vec());
+        let len: u64 = from_bytes(len_bytes.to_vec().as_slice());
         let list = (0..len).map(|_| CString::from_cursor(&mut cursor)).collect();
         return CStringList { list: list };
     }
@@ -351,7 +352,7 @@ pub type CInt = i32;
 impl FromCursor for CInt {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CInt {
         let bytes = cursor_next_value(&mut cursor, INT_LEN as u64);
-        return from_bytes(bytes) as CInt;
+        return from_bytes(bytes.as_slice()) as CInt;
     }
 }
 
@@ -361,7 +362,7 @@ pub type CIntShort = i16;
 impl FromCursor for CIntShort {
     fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CIntShort {
         let bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
-        return from_bytes(bytes) as CIntShort;
+        return from_bytes(bytes.as_slice()) as CIntShort;
     }
 }
 
@@ -370,7 +371,7 @@ impl FromBytes for Vec<u8> {
     fn from_bytes(bytes: Vec<u8>) -> Vec<u8> {
         let mut cursor = Cursor::new(bytes);
         let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
-        let len: u64 = from_bytes(len_bytes);
+        let len: u64 = from_bytes(len_bytes.as_slice());
         return cursor_next_value(&mut cursor, len);
     }
 }

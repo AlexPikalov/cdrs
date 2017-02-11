@@ -9,6 +9,7 @@ use types::data_serialization_types::decode_timeuuid;
 use error;
 
 pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Result<Frame> {
+    // TODO: try to use slices instead
     let mut version_bytes = [0; VERSION_LEN];
     let mut flag_bytes = [0; FLAG_LEN];
     let mut opcode_bytes = [0; OPCODE_LEN];
@@ -24,9 +25,9 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
 
     let version = Version::from(version_bytes.to_vec());
     let flags = Flag::get_collection(flag_bytes[0]);
-    let stream = from_bytes(stream_bytes.to_vec());
+    let stream = from_bytes(stream_bytes.to_vec().as_slice());
     let opcode = Opcode::from(opcode_bytes[0]);
-    let length = from_bytes(length_bytes.to_vec()) as usize;
+    let length = from_bytes(length_bytes.to_vec().as_slice()) as usize;
 
     let mut body_bytes = Vec::with_capacity(length);
     unsafe {

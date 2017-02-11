@@ -25,7 +25,7 @@ pub fn decode_varchar(bytes: &[u8]) -> Result<String, FromUtf8Error> {
 }
 
 // Decodes Cassandra `bigint` data (bytes) into Rust's `Result<i32, io::Error>`
-pub fn decode_bigint(bytes: Vec<u8>) -> Result<i64, io::Error> {
+pub fn decode_bigint(bytes: &[u8]) -> Result<i64, io::Error> {
     try_from_bytes(bytes).map(|i| i as i64)
 }
 
@@ -46,7 +46,7 @@ pub fn decode_boolean(bytes: &[u8]) -> Result<bool, io::Error> {
 }
 
 // Decodes Cassandra `int` data (bytes) into Rust's `Result<i32, io::Error>`
-pub fn decode_int(bytes: Vec<u8>) -> Result<i32, io::Error> {
+pub fn decode_int(bytes: &[u8]) -> Result<i32, io::Error> {
     try_from_bytes(bytes).map(|i| i as i32)
 }
 
@@ -54,7 +54,7 @@ pub fn decode_int(bytes: Vec<u8>) -> Result<i32, io::Error> {
 //    0: -5877641-06-23
 // 2^31: 1970-1-1
 // 2^32: 5881580-07-11
-pub fn decode_date(bytes: Vec<u8>) -> Result<i32, io::Error> {
+pub fn decode_date(bytes: &[u8]) -> Result<i32, io::Error> {
     try_from_bytes(bytes).map(|i| i as i32)
 }
 
@@ -63,11 +63,11 @@ pub fn decode_date(bytes: Vec<u8>) -> Result<i32, io::Error> {
 pub fn decode_decimal(bytes: Vec<u8>) -> Result<f32, io::Error> {
     let ref separator = b'E';
     let lr: Vec<Vec<u8>> = bytes.split(|ch| ch == separator).map(|p| p.to_vec()).collect();
-    let unscaled = try_i_from_bytes(lr[0].clone());
+    let unscaled = try_i_from_bytes(lr[0].as_slice());
     if unscaled.is_err() {
         return Err(unscaled.unwrap_err());
     }
-    let scaled = try_i_from_bytes(lr[1].clone());
+    let scaled = try_i_from_bytes(lr[1].as_slice());
     if scaled.is_err() {
         return Err(scaled.unwrap_err());
     }
@@ -113,7 +113,7 @@ pub fn decode_inet(bytes: &[u8]) -> Result<net::IpAddr, io::Error> {
 // `i32` represets a millisecond-precision
 //  offset from the unix epoch (00:00:00, January 1st, 1970).  Negative values
 //  represent a negative offset from the epoch.
-pub fn decode_timestamp(bytes: Vec<u8>) -> Result<i64, io::Error> {
+pub fn decode_timestamp(bytes: &[u8]) -> Result<i64, io::Error> {
     try_from_bytes(bytes).map(|i| i as i64)
 }
 
@@ -144,17 +144,17 @@ pub fn decode_map(bytes: Vec<u8>) -> Result<Vec<(CBytes, CBytes)>, io::Error> {
 }
 
 // Decodes Cassandra `smallint` data (bytes) into Rust's `Result<i16, io::Error>`
-pub fn decode_smallint(bytes: Vec<u8>) -> Result<i16, io::Error> {
+pub fn decode_smallint(bytes: &[u8]) -> Result<i16, io::Error> {
     try_from_bytes(bytes).map(|i| i as i16)
 }
 
 // Decodes Cassandra `text` data (bytes) into Rust's `Result<String, FromUtf8Error>`.
-pub fn decode_text(bytes: Vec<u8>) -> Result<String, FromUtf8Error> {
-    String::from_utf8(bytes)
+pub fn decode_text(bytes: &[u8]) -> Result<String, FromUtf8Error> {
+    Ok(String::from_utf8_lossy(bytes).into_owned())
 }
 
 // Decodes Cassandra `time` data (bytes) into Rust's `Result<String, FromUtf8Error>`.
-pub fn decode_time(bytes: Vec<u8>) -> Result<i64, io::Error> {
+pub fn decode_time(bytes: &[u8]) -> Result<i64, io::Error> {
     try_i_from_bytes(bytes)
 }
 
@@ -164,7 +164,7 @@ pub fn decode_timeuuid(bytes: Vec<u8>) -> Result<uuid::Uuid, uuid::ParseError> {
 }
 
 // Decodes Cassandra `varint` data (bytes) into Rust's `Result<i64, io::Error>`
-pub fn decode_varint(bytes: Vec<u8>) -> Result<i64, io::Error> {
+pub fn decode_varint(bytes: &[u8]) -> Result<i64, io::Error> {
     try_i_from_bytes(bytes)
 }
 

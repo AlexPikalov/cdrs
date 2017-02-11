@@ -111,7 +111,7 @@ impl IntoRustByName<bool> for Row {
 impl IntoRustByName<i64> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<i64>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain();
+            let bytes = cbytes.as_slice();
             let converted = match cassandra_type {
                 &ColType::Int => decode_bigint(bytes),
                 &ColType::Bigint => decode_bigint(bytes),
@@ -137,7 +137,7 @@ impl IntoRustByName<i64> for Row {
 impl IntoRustByName<i32> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<i32>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain();
+            let bytes = cbytes.as_slice();
 
             let converted = match cassandra_type {
                 &ColType::Int => decode_int(bytes),
@@ -160,7 +160,7 @@ impl IntoRustByName<i32> for Row {
 impl IntoRustByName<i16> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<i16>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
-            let bytes = cbytes.as_plain();
+            let bytes = cbytes.as_slice();
 
             let converted = match cassandra_type {
                 &ColType::Smallint => decode_smallint(bytes),

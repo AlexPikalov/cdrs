@@ -155,7 +155,7 @@ impl AsRust<HashMap<String, i64>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_bigint(vb.as_plain()).unwrap());
+                                acc.insert(k.clone(), decode_bigint(vb.as_slice()).unwrap());
                                 return acc;
                             }))
                     }
@@ -163,7 +163,7 @@ impl AsRust<HashMap<String, i64>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_timestamp(vb.as_plain()).unwrap());
+                                acc.insert(k.clone(), decode_timestamp(vb.as_slice()).unwrap());
                                 return acc;
                             }))
                     }
@@ -171,7 +171,7 @@ impl AsRust<HashMap<String, i64>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_time(vb.as_plain()).unwrap());
+                                acc.insert(k.clone(), decode_time(vb.as_slice()).unwrap());
                                 return acc;
                             }))
                     }
@@ -179,7 +179,7 @@ impl AsRust<HashMap<String, i64>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_varint(vb.as_plain()).unwrap());
+                                acc.insert(k.clone(), decode_varint(vb.as_slice()).unwrap());
                                 return acc;
                             }))
                     }
@@ -204,7 +204,7 @@ impl AsRust<HashMap<String, i32>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_int(vb.as_plain()).unwrap());
+                                acc.insert(k.clone(), decode_int(vb.as_slice()).unwrap());
                                 return acc;
                             }))
                     }
@@ -212,7 +212,7 @@ impl AsRust<HashMap<String, i32>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_date(vb.as_plain()).unwrap());
+                                acc.insert(k.clone(), decode_date(vb.as_slice()).unwrap());
                                 return acc;
                             }))
                     }
@@ -237,7 +237,7 @@ impl AsRust<HashMap<String, i16>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_smallint(vb.as_plain()).unwrap());
+                                acc.insert(k.clone(), decode_smallint(vb.as_slice()).unwrap());
                                 return acc;
                             }))
                     }
