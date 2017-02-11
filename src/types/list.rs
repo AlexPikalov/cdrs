@@ -62,11 +62,11 @@ impl AsRust<Vec<String>> for List {
             Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     ColType::Custom => {
-                        Ok(self.map(|bytes| decode_custom(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_custom(bytes.as_slice()).unwrap()))
                     }
-                    ColType::Ascii => Ok(self.map(|bytes| decode_ascii(bytes.as_plain()).unwrap())),
+                    ColType::Ascii => Ok(self.map(|bytes| decode_ascii(bytes.as_slice()).unwrap())),
                     ColType::Varchar => {
-                        Ok(self.map(|bytes| decode_varchar(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_varchar(bytes.as_slice()).unwrap()))
                     }
                     _ => unreachable!(),
                 }
@@ -74,11 +74,11 @@ impl AsRust<Vec<String>> for List {
             Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
                     ColType::Custom => {
-                        Ok(self.map(|bytes| decode_custom(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_custom(bytes.as_slice()).unwrap()))
                     }
-                    ColType::Ascii => Ok(self.map(|bytes| decode_ascii(bytes.as_plain()).unwrap())),
+                    ColType::Ascii => Ok(self.map(|bytes| decode_ascii(bytes.as_slice()).unwrap())),
                     ColType::Varchar => {
-                        Ok(self.map(|bytes| decode_varchar(bytes.as_plain()).unwrap()))
+                        Ok(self.map(|bytes| decode_varchar(bytes.as_slice()).unwrap()))
                     }
                     _ => unreachable!(),
                 }

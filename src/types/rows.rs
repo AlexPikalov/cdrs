@@ -71,9 +71,9 @@ impl IntoRustByName<String> for Row {
             let bytes = cbytes.as_plain();
 
             let converted = match cassandra_type {
-                &ColType::Custom => decode_custom(bytes),
-                &ColType::Ascii => decode_ascii(bytes),
-                &ColType::Varchar => decode_varchar(bytes),
+                &ColType::Custom => decode_custom(bytes.as_slice()),
+                &ColType::Ascii => decode_ascii(bytes.as_slice()),
+                &ColType::Varchar => decode_varchar(bytes.as_slice()),
                 // TODO: clarify when to use decode_text.
                 // it's not mentioned in
                 // https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L582

@@ -282,6 +282,9 @@ impl CBytes {
     pub fn as_plain(&self) -> Vec<u8> {
         return self.bytes.clone();
     }
+    pub fn as_slice(&self) -> &[u8] {
+        self.bytes.as_slice()
+    }
 }
 
 impl FromCursor for CBytes {

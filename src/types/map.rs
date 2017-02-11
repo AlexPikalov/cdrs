@@ -40,7 +40,7 @@ impl Map {
         let map: HashMap<String, CBytes> = data.iter()
             .fold(accumulator, |mut acc, kv| {
                 let (key_b, value_b) = kv.clone();
-                let key: String = serializer(key_b.as_plain()).unwrap();
+                let key: String = serializer(key_b.as_slice()).unwrap();
 
                 acc.insert(key, value_b);
 
@@ -91,7 +91,7 @@ impl AsRust<HashMap<String, String>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_custom(vb.as_plain()).unwrap());
+                                acc.insert(k.clone(), decode_custom(vb.as_slice()).unwrap());
                                 return acc;
                             }))
                     }
@@ -99,7 +99,7 @@ impl AsRust<HashMap<String, String>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_ascii(vb.as_plain()).unwrap());
+                                acc.insert(k.clone(), decode_ascii(vb.as_slice()).unwrap());
                                 return acc;
                             }))
                     }
@@ -107,7 +107,7 @@ impl AsRust<HashMap<String, String>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_varchar(vb.as_plain()).unwrap());
+                                acc.insert(k.clone(), decode_varchar(vb.as_slice()).unwrap());
                                 return acc;
                             }))
                     }

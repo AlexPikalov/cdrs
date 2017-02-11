@@ -50,9 +50,9 @@ impl IntoRustByName<String> for UDT {
         return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
-                ColType::Custom => decode_custom(bytes.as_plain()),
-                ColType::Ascii => decode_ascii(bytes.as_plain()),
-                ColType::Varchar => decode_varchar(bytes.as_plain()),
+                ColType::Custom => decode_custom(bytes.as_slice()),
+                ColType::Ascii => decode_ascii(bytes.as_slice()),
+                ColType::Varchar => decode_varchar(bytes.as_slice()),
                 _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());

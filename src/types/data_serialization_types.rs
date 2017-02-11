@@ -10,18 +10,18 @@ use FromCursor;
 // https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L813
 
 // Decodes Cassandra `ascii` data (bytes) into Rust's `Result<String, FromUtf8Error>`.
-pub fn decode_custom(bytes: Vec<u8>) -> Result<String, FromUtf8Error> {
-    String::from_utf8(bytes)
+pub fn decode_custom(bytes: &[u8]) -> Result<String, FromUtf8Error> {
+    Ok(String::from_utf8_lossy(bytes).into_owned())
 }
 
 // Decodes Cassandra `ascii` data (bytes) into Rust's `Result<String, FromUtf8Error>`.
-pub fn decode_ascii(bytes: Vec<u8>) -> Result<String, FromUtf8Error> {
-    String::from_utf8(bytes)
+pub fn decode_ascii(bytes: &[u8]) -> Result<String, FromUtf8Error> {
+    Ok(String::from_utf8_lossy(bytes).into_owned())
 }
 
 // Decodes Cassandra `varchar` data (bytes) into Rust's `Result<String, FromUtf8Error>`.
-pub fn decode_varchar(bytes: Vec<u8>) -> Result<String, FromUtf8Error> {
-    String::from_utf8(bytes)
+pub fn decode_varchar(bytes: &[u8]) -> Result<String, FromUtf8Error> {
+    Ok(String::from_utf8_lossy(bytes).into_owned())
 }
 
 // Decodes Cassandra `bigint` data (bytes) into Rust's `Result<i32, io::Error>`
