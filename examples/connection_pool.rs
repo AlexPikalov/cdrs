@@ -9,7 +9,7 @@ use cdrs::connection_manager::ConnectionManager;
 use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::compression::Compression;
 use cdrs::query::QueryBuilder;
-use cdrs::transport::TransportPlain;
+use cdrs::transport::TransportTcp;
 
 // default credentials
 const _USER: &'static str = "cassandra";
@@ -20,7 +20,7 @@ fn main() {
     let config = r2d2::Config::builder()
         .pool_size(15)
         .build();
-    let transport = TransportPlain::new(_ADDR).unwrap();
+    let transport = TransportTcp::new(_ADDR).unwrap();
     let authenticator = PasswordAuthenticator::new(_USER, _PASS);
     let manager = ConnectionManager::new(transport, authenticator, Compression::None);
 
