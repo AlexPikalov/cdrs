@@ -15,14 +15,14 @@ pub struct TransportTcp {
 }
 
 impl TransportTcp {
-    /// Constructs a new `TransportPlain`.
+    /// Constructs a new `TransportTcp`.
     ///
     /// # Examples
     ///
     /// ```
-    /// use cdrs::transport::TransportPlain;
+    /// use cdrs::transport::TransportTcp;
     /// let addr = "127.0.0.1:9042";
-    /// let tcp_transport = TransportPlain::new(addr).unwrap();
+    /// let tcp_transport = TransportTcp::new(addr).unwrap();
     /// ```
     pub fn new(addr: &str) -> io::Result<TransportTcp> {
         TcpStream::connect(addr).map(|socket| TransportTcp { tcp: socket })
