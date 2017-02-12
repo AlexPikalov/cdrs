@@ -99,7 +99,7 @@ fn insert_data_users() {
                              "FL".to_string().into()];
     let execution_params = QueryParamsBuilder::new(Consistency::One).values(v).finalize();
 
-    let query_id = prepared.id;
+    let ref query_id = prepared.id;
     let executed = session.execute(query_id, execution_params, true, true);
 
 

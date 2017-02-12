@@ -33,7 +33,7 @@ fn main() {
     println!("prepared:\n{:?}", prepared);
 
     let execution_params = QueryParamsBuilder::new(Consistency::One).finalize();
-    let query_id = prepared.id;
+    let ref query_id = prepared.id;
     let executed = session.execute(query_id, execution_params, false, false)
         .unwrap()
         .get_body()

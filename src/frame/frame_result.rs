@@ -196,20 +196,6 @@ impl BodyResResultRows {
             })
             .collect()
     }
-
-    /// Returns a list of tuples `(CBytes, ColType)` with value and type of values respectively.
-    /// `n` is a number of row.
-    pub fn nth_row_val_types(&self, n: usize) -> Vec<(CBytes, ColType)> {
-        let col_types = self.metadata
-            .col_specs
-            .iter()
-            .map(|col_spec| col_spec.col_type.id.clone());
-        self.rows_content[n]
-            .iter()
-            .map(|cbyte| cbyte.clone())
-            .zip(col_types)
-            .collect()
-    }
 }
 
 impl FromCursor for BodyResResultRows {

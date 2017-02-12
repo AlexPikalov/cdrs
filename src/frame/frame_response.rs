@@ -112,9 +112,9 @@ impl ResponseBody {
         }
     }
 
-    pub fn get_authenticator(&self) -> Option<String> {
+    pub fn get_authenticator<'a>(&'a self) -> Option<&'a str> {
         match self {
-            &ResponseBody::Authenticate(ref auth) => Some(auth.data.clone().into_plain()),
+            &ResponseBody::Authenticate(ref auth) => Some(auth.data.as_str()),
             _ => None,
         }
     }
