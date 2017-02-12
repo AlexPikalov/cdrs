@@ -444,12 +444,13 @@ mod tests {
         let foo = "foo".to_string();
         let cstring = CString::new(foo);
 
-        assert_eq!(cstring.into_cbytes(), vec![0, 3, 102, 111, 111]);
+        assert_eq!(cstring.into_cbytes(), &[0, 3, 102, 111, 111]);
     }
 
     #[test]
     fn test_cstring_from_cursor() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 3, 102, 111, 111, 0]);
+        let a = &[0, 3, 102, 111, 111, 0];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let cstring = CString::from_cursor(&mut cursor);
         println!("{:?}", &cursor);
         assert_eq!(cstring.as_str(), "foo");
@@ -483,12 +484,13 @@ mod tests {
         let foo = "foo".to_string();
         let cstring = CStringLong::new(foo);
 
-        assert_eq!(cstring.into_cbytes(), vec![0, 0, 0, 3, 102, 111, 111]);
+        assert_eq!(cstring.into_cbytes(), &[0, 0, 0, 3, 102, 111, 111]);
     }
 
     #[test]
     fn test_cstringlong_from_cursor() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 0, 0, 3, 102, 111, 111, 0]);
+        let a = &[0, 0, 0, 3, 102, 111, 111, 0];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let cstring = CStringLong::from_cursor(&mut cursor);
         println!("{:?}", &cursor);
         assert_eq!(cstring.as_str(), "foo");
@@ -497,8 +499,8 @@ mod tests {
     // CStringList
     #[test]
     fn test_cstringlist() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 2, 0, 3, 102, 111, 111, 0, 3, 102,
-                                                           111, 111]);
+        let a = &[0, 2, 0, 3, 102, 111, 111, 0, 3, 102, 111, 111];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let list = CStringList::from_cursor(&mut cursor);
         let plain = list.into_plain();
         assert_eq!(plain.len(), 2);
@@ -510,61 +512,64 @@ mod tests {
     // CBytes
     #[test]
     fn test_cbytes_new() {
-        let bytes_vec: Vec<u8> = vec![1, 2, 3];
+        let bytes_vec = vec![1, 2, 3];
         let _ = CBytes::new(bytes_vec);
     }
 
     #[test]
     fn test_cbytes_into_plain() {
         let cbytes = CBytes::new(vec![1, 2, 3]);
-        assert_eq!(cbytes.into_plain(), vec![1, 2, 3]);
+        assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
     }
 
     #[test]
     fn test_cbytes_from_cursor() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 0, 0, 3, 1, 2, 3]);
+        let a = &[0, 0, 0, 3, 1, 2, 3];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let cbytes = CBytes::from_cursor(&mut cursor);
-        assert_eq!(cbytes.into_plain(), vec![1, 2, 3]);
+        assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
     }
 
     #[test]
     fn test_cbytes_into_cbytes() {
-        let bytes_vec: Vec<u8> = vec![1, 2, 3];
+        let bytes_vec = vec![1, 2, 3];
         let cbytes = CBytes::new(bytes_vec);
-        assert_eq!(cbytes.into_cbytes(), vec![0, 0, 0, 3, 1, 2, 3]);
+        assert_eq!(cbytes.into_cbytes(), &[0, 0, 0, 3, 1, 2, 3]);
     }
 
     // CBytesShort
     #[test]
     fn test_cbytesshort_new() {
-        let bytes_vec: Vec<u8> = vec![1, 2, 3];
+        let bytes_vec = vec![1, 2, 3];
         let _ = CBytesShort::new(bytes_vec);
     }
 
     #[test]
     fn test_cbytesshort_into_plain() {
         let cbytes = CBytesShort::new(vec![1, 2, 3]);
-        assert_eq!(cbytes.into_plain(), vec![1, 2, 3]);
+        assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
     }
 
     #[test]
     fn test_cbytesshort_from_cursor() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 3, 1, 2, 3]);
+        let a = &[0, 3, 1, 2, 3];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let cbytes = CBytesShort::from_cursor(&mut cursor);
-        assert_eq!(cbytes.into_plain(), vec![1, 2, 3]);
+        assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
     }
 
     #[test]
     fn test_cbytesshort_into_cbytes() {
         let bytes_vec: Vec<u8> = vec![1, 2, 3];
         let cbytes = CBytesShort::new(bytes_vec);
-        assert_eq!(cbytes.into_cbytes(), vec![0, 3, 1, 2, 3]);
+        assert_eq!(cbytes.into_cbytes(), &[0, 3, 1, 2, 3]);
     }
 
     // CInt
     #[test]
     fn test_cint_from_cursor() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 0, 0, 5]);
+        let a = &[0, 0, 0, 5];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let i = CInt::from_cursor(&mut cursor);
         assert_eq!(i, 5);
     }
@@ -572,7 +577,8 @@ mod tests {
     // CIntShort
     #[test]
     fn test_cintshort_from_cursor() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 5]);
+        let a = &[0, 5];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let i = CIntShort::from_cursor(&mut cursor);
         assert_eq!(i, 5);
     }
@@ -580,7 +586,8 @@ mod tests {
     // cursor_next_value
     #[test]
     fn test_cursor_next_value() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 1, 2, 3, 4]);
+        let a = &[0, 1, 2, 3, 4];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let l: u64 = 3;
         let val = cursor_next_value(&mut cursor, l);
         assert_eq!(val, vec![0, 1, 2]);

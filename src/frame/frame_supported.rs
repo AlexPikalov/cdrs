@@ -31,22 +31,22 @@ mod tests {
 
     #[test]
     fn test_name() {
-        let bytes = vec![0,
-                         1, // n options
-                         // 1-st option
-                         0,
-                         2,
-                         97,
-                         98, // key [string] "ab"
-                         0,
-                         2,
-                         0,
-                         1,
-                         97,
-                         0,
-                         1,
-                         98 /* value ["a", "b"] */];
-        let mut cursor = Cursor::new(bytes);
+        let bytes = [0,
+                     1, // n options
+                     // 1-st option
+                     0,
+                     2,
+                     97,
+                     98, // key [string] "ab"
+                     0,
+                     2,
+                     0,
+                     1,
+                     97,
+                     0,
+                     1,
+                     98 /* value ["a", "b"] */];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(&bytes);
         let options = BodyResSupported::from_cursor(&mut cursor).data;
         assert_eq!(options.len(), 1);
         let option_ab = options.get(&"ab".to_string()).unwrap();
