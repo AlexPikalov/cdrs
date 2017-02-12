@@ -38,7 +38,7 @@ into Rust structures.
 ```rust
 use cdrs::client::CDRS;
 use cdrs::authenticators::NoneAuthenticator;
-use cdrs::transport::TransportPlain;
+use cdrs::transport::TransportTcp;
 ```
 
 After that you can create a new instance of `CDRS` and establish new connection:
@@ -46,7 +46,7 @@ After that you can create a new instance of `CDRS` and establish new connection:
 ```rust
 let authenticator = NoneAuthenticator;
 let addr = "127.0.0.1:9042";
-let tcp_transport = TransportPlain::new(addr).unwrap();
+let tcp_transport = TransportTcp::new(addr).unwrap();
 
 // pass authenticator and transport into CDRS' constructor
 let client = CDRS::new(tcp_transport, authenticator);
@@ -65,7 +65,7 @@ To use password authenticator, just include the one implemented in
 ```rust
 use cdrs::client::CDRS;
 use cdrs::authenticators::PasswordAuthenticator;
-use cdrs::transport::TransportPlain;
+use cdrs::transport::TransportTcp;
 ```
 
 After that you can create a new instance of `CDRS` and establish new connection:
@@ -73,7 +73,7 @@ After that you can create a new instance of `CDRS` and establish new connection:
 ```rust
 let authenticator = PasswordAuthenticator::new("user", "pass");
 let addr = "127.0.0.1:9042";
-let tcp_transport = TransportPlain::new(addr).unwrap();
+let tcp_transport = TransportTcp::new(addr).unwrap();
 
 // pass authenticator and transport into CDRS' constructor
 let client = CDRS::new(tcp_transport, authenticator);
@@ -134,7 +134,7 @@ use cdrs::connection_manager::ConnectionManager;
 let config = r2d2::Config::builder()
     .pool_size(15)
     .build();
-let transport = TransportPlain::new(ADDR).unwrap();
+let transport = TransportTcp::new(ADDR).unwrap();
 let authenticator = PasswordAuthenticator::new(USER, PASS);
 let manager = ConnectionManager::new(transport, authenticator, Compression::None);
 
