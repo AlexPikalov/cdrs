@@ -94,7 +94,7 @@ impl PartialEq<SimpleServerEvent> for ServerEvent {
 }
 
 impl FromCursor for ServerEvent {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ServerEvent {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> ServerEvent {
         let event_type = CString::from_cursor(&mut cursor);
         match event_type.as_str() {
             TOPOLOGY_CHANGE => {
@@ -115,7 +115,7 @@ pub struct TopologyChange {
 }
 
 impl FromCursor for TopologyChange {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> TopologyChange {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> TopologyChange {
         let change_type = TopologyChangeType::from_cursor(&mut cursor);
         let addr = CInet::from_cursor(&mut cursor);
 
@@ -133,7 +133,7 @@ pub enum TopologyChangeType {
 }
 
 impl FromCursor for TopologyChangeType {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> TopologyChangeType {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> TopologyChangeType {
         match CString::from_cursor(&mut cursor).as_str() {
             NEW_NODE => TopologyChangeType::NewNode,
             REMOVED_NODE => TopologyChangeType::RemovedNode,
@@ -150,7 +150,7 @@ pub struct StatusChange {
 }
 
 impl FromCursor for StatusChange {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> StatusChange {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> StatusChange {
         let change_type = StatusChangeType::from_cursor(&mut cursor);
         let addr = CInet::from_cursor(&mut cursor);
 
@@ -168,7 +168,7 @@ pub enum StatusChangeType {
 }
 
 impl FromCursor for StatusChangeType {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> StatusChangeType {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> StatusChangeType {
         match CString::from_cursor(&mut cursor).as_str() {
             UP => StatusChangeType::Up,
             DOWN => StatusChangeType::Down,
@@ -186,7 +186,7 @@ pub struct SchemaChange {
 }
 
 impl FromCursor for SchemaChange {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> SchemaChange {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> SchemaChange {
         let change_type = ChangeType::from_cursor(&mut cursor);
         let target = Target::from_cursor(&mut cursor);
         let options = ChangeSchemeOptions::from_cursor_and_target(&mut cursor, &target);
@@ -208,7 +208,7 @@ pub enum ChangeType {
 }
 
 impl FromCursor for ChangeType {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeType {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> ChangeType {
         match CString::from_cursor(&mut cursor).as_str() {
             CREATED => ChangeType::Created,
             UPDATED => ChangeType::Updated,
@@ -229,7 +229,7 @@ pub enum Target {
 }
 
 impl FromCursor for Target {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> Target {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> Target {
         match CString::from_cursor(&mut cursor).as_str() {
             KEYSPACE => Target::Keyspace,
             TABLE => Target::Table,
@@ -256,7 +256,7 @@ pub enum ChangeSchemeOptions {
 }
 
 impl ChangeSchemeOptions {
-    fn from_cursor_and_target(mut cursor: &mut Cursor<Vec<u8>>,
+    fn from_cursor_and_target(mut cursor: &mut Cursor<&[u8]>,
                               target: &Target)
                               -> ChangeSchemeOptions {
         match target {
@@ -269,17 +269,17 @@ impl ChangeSchemeOptions {
         }
     }
 
-    fn from_cursor_keyspace(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeSchemeOptions {
+    fn from_cursor_keyspace(mut cursor: &mut Cursor<&[u8]>) -> ChangeSchemeOptions {
         ChangeSchemeOptions::Keyspace(CString::from_cursor(&mut cursor).into_plain())
     }
 
-    fn from_cursor_table_type(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeSchemeOptions {
+    fn from_cursor_table_type(mut cursor: &mut Cursor<&[u8]>) -> ChangeSchemeOptions {
         let keyspace = CString::from_cursor(&mut cursor).into_plain();
         let name = CString::from_cursor(&mut cursor).into_plain();
         ChangeSchemeOptions::TableType((keyspace, name))
     }
 
-    fn from_cursor_function_aggregate(mut cursor: &mut Cursor<Vec<u8>>) -> ChangeSchemeOptions {
+    fn from_cursor_function_aggregate(mut cursor: &mut Cursor<&[u8]>) -> ChangeSchemeOptions {
         let keyspace = CString::from_cursor(&mut cursor).into_plain();
         let name = CString::from_cursor(&mut cursor).into_plain();
         let types = CStringList::from_cursor(&mut cursor).into_plain();
@@ -310,12 +310,13 @@ mod topology_change_type_test {
 
     #[test]
     fn from_cursor() {
-        let mut new_node: Cursor<Vec<u8>> = Cursor::new(vec![0, 8, 78, 69, 87, 95, 78, 79, 68, 69]);
+        let a = &[0, 8, 78, 69, 87, 95, 78, 79, 68, 69];
+        let mut new_node: Cursor<&[u8]> = Cursor::new(a);
         assert_eq!(TopologyChangeType::from_cursor(&mut new_node),
                    TopologyChangeType::NewNode);
 
-        let mut removed_node: Cursor<Vec<u8>> = Cursor::new(vec![0, 12, 82, 69, 77, 79, 86, 69,
-                                                                 68, 95, 78, 79, 68, 69]);
+        let b = &[0, 12, 82, 69, 77, 79, 86, 69, 68, 95, 78, 79, 68, 69];
+        let mut removed_node: Cursor<&[u8]> = Cursor::new(b);
         assert_eq!(TopologyChangeType::from_cursor(&mut removed_node),
                    TopologyChangeType::RemovedNode);
     }
@@ -323,7 +324,8 @@ mod topology_change_type_test {
     #[test]
     #[should_panic]
     fn from_cursor_wrong() {
-        let mut wrong: Cursor<Vec<u8>> = Cursor::new(vec![0, 1, 78]);
+        let a = &[0, 1, 78];
+        let mut wrong: Cursor<&[u8]> = Cursor::new(a);
         let _ = TopologyChangeType::from_cursor(&mut wrong);
     }
 }
@@ -336,10 +338,12 @@ mod status_change_type_test {
 
     #[test]
     fn from_cursor() {
-        let mut up: Cursor<Vec<u8>> = Cursor::new(vec![0, 2, 85, 80]);
+        let a = &[0, 2, 85, 80];
+        let mut up: Cursor<&[u8]> = Cursor::new(a);
         assert_eq!(StatusChangeType::from_cursor(&mut up), StatusChangeType::Up);
 
-        let mut down: Cursor<Vec<u8>> = Cursor::new(vec![0, 4, 68, 79, 87, 78]);
+        let b = &[0, 4, 68, 79, 87, 78];
+        let mut down: Cursor<&[u8]> = Cursor::new(b);
         assert_eq!(StatusChangeType::from_cursor(&mut down),
                    StatusChangeType::Down);
     }
@@ -347,7 +351,8 @@ mod status_change_type_test {
     #[test]
     #[should_panic]
     fn from_cursor_wrong() {
-        let mut wrong: Cursor<Vec<u8>> = Cursor::new(vec![0, 1, 78]);
+        let a = &[0, 1, 78];
+        let mut wrong: Cursor<&[u8]> = Cursor::new(a);
         let _ = StatusChangeType::from_cursor(&mut wrong);
     }
 }
@@ -360,20 +365,24 @@ mod schema_change_type_test {
 
     #[test]
     fn from_cursor() {
-        let mut created: Cursor<Vec<u8>> = Cursor::new(vec![0, 7, 67, 82, 69, 65, 84, 69, 68]);
+        let a = &[0, 7, 67, 82, 69, 65, 84, 69, 68];
+        let mut created: Cursor<&[u8]> = Cursor::new(a);
         assert_eq!(ChangeType::from_cursor(&mut created), ChangeType::Created);
 
-        let mut updated: Cursor<Vec<u8>> = Cursor::new(vec![0, 7, 85, 80, 68, 65, 84, 69, 68]);
+        let b = &[0, 7, 85, 80, 68, 65, 84, 69, 68];
+        let mut updated: Cursor<&[u8]> = Cursor::new(b);
         assert_eq!(ChangeType::from_cursor(&mut updated), ChangeType::Updated);
 
-        let mut dropped: Cursor<Vec<u8>> = Cursor::new(vec![0, 7, 68, 82, 79, 80, 80, 69, 68]);
+        let c = &[0, 7, 68, 82, 79, 80, 80, 69, 68];
+        let mut dropped: Cursor<&[u8]> = Cursor::new(c);
         assert_eq!(ChangeType::from_cursor(&mut dropped), ChangeType::Dropped);
     }
 
     #[test]
     #[should_panic]
     fn from_cursor_wrong() {
-        let mut wrong: Cursor<Vec<u8>> = Cursor::new(vec![0, 1, 78]);
+        let a = &[0, 1, 78];
+        let mut wrong: Cursor<&[u8]> = Cursor::new(a);
         let _ = ChangeType::from_cursor(&mut wrong);
     }
 }
@@ -386,27 +395,32 @@ mod schema_change_target_test {
 
     #[test]
     fn from_cursor() {
-        let mut keyspace: Cursor<Vec<u8>> = Cursor::new(vec![0, 8, 75, 69, 89, 83, 80, 65, 67, 69]);
+        let a = &[0, 8, 75, 69, 89, 83, 80, 65, 67, 69];
+        let mut keyspace: Cursor<&[u8]> = Cursor::new(a);
         assert_eq!(Target::from_cursor(&mut keyspace), Target::Keyspace);
 
-        let mut table: Cursor<Vec<u8>> = Cursor::new(vec![0, 5, 84, 65, 66, 76, 69]);
+        let b = &[0, 5, 84, 65, 66, 76, 69];
+        let mut table: Cursor<&[u8]> = Cursor::new(b);
         assert_eq!(Target::from_cursor(&mut table), Target::Table);
 
-        let mut _type: Cursor<Vec<u8>> = Cursor::new(vec![0, 4, 84, 89, 80, 69]);
+        let c = &[0, 4, 84, 89, 80, 69];
+        let mut _type: Cursor<&[u8]> = Cursor::new(c);
         assert_eq!(Target::from_cursor(&mut _type), Target::Type);
 
-        let mut function: Cursor<Vec<u8>> = Cursor::new(vec![0, 8, 70, 85, 78, 67, 84, 73, 79, 78]);
+        let d = &[0, 8, 70, 85, 78, 67, 84, 73, 79, 78];
+        let mut function: Cursor<&[u8]> = Cursor::new(d);
         assert_eq!(Target::from_cursor(&mut function), Target::Function);
 
-        let mut aggregate: Cursor<Vec<u8>> = Cursor::new(vec![0, 9, 65, 71, 71, 82, 69, 71, 65,
-                                                              84, 69]);
+        let e = &[0, 9, 65, 71, 71, 82, 69, 71, 65, 84, 69];
+        let mut aggregate: Cursor<&[u8]> = Cursor::new(e);
         assert_eq!(Target::from_cursor(&mut aggregate), Target::Aggregate);
     }
 
     #[test]
     #[should_panic]
     fn from_cursor_wrong() {
-        let mut wrong: Cursor<Vec<u8>> = Cursor::new(vec![0, 1, 78]);
+        let a = &[0, 1, 78];
+        let mut wrong: Cursor<&[u8]> = Cursor::new(a);
         let _ = Target::from_cursor(&mut wrong);
     }
 }
@@ -419,47 +433,47 @@ mod server_event {
 
     #[test]
     fn topology_change_new_node() {
-        let bytes = vec![// topology change
-                         0,
-                         15,
-                         84,
-                         79,
-                         80,
-                         79,
-                         76,
-                         79,
-                         71,
-                         89,
-                         95,
-                         67,
-                         72,
-                         65,
-                         78,
-                         71,
-                         69,
-                         // new node
-                         0,
-                         8,
-                         78,
-                         69,
-                         87,
-                         95,
-                         78,
-                         79,
-                         68,
-                         69,
-                         // 127.0.0.1:1
-                         0,
-                         4,
-                         127,
-                         0,
-                         0,
-                         1,
-                         0,
-                         0,
-                         0,
-                         1];
-        let mut c: Cursor<Vec<u8>> = Cursor::new(bytes);
+        let bytes = &[// topology change
+                      0,
+                      15,
+                      84,
+                      79,
+                      80,
+                      79,
+                      76,
+                      79,
+                      71,
+                      89,
+                      95,
+                      67,
+                      72,
+                      65,
+                      78,
+                      71,
+                      69,
+                      // new node
+                      0,
+                      8,
+                      78,
+                      69,
+                      87,
+                      95,
+                      78,
+                      79,
+                      68,
+                      69,
+                      // 127.0.0.1:1
+                      0,
+                      4,
+                      127,
+                      0,
+                      0,
+                      1,
+                      0,
+                      0,
+                      0,
+                      1];
+        let mut c: Cursor<&[u8]> = Cursor::new(bytes);
         let event = ServerEvent::from_cursor(&mut c);
         match event {
             ServerEvent::TopologyChange(ref tc) => {
@@ -472,51 +486,51 @@ mod server_event {
 
     #[test]
     fn topology_change_removed_node() {
-        let bytes = vec![// topology change
-                         0,
-                         15,
-                         84,
-                         79,
-                         80,
-                         79,
-                         76,
-                         79,
-                         71,
-                         89,
-                         95,
-                         67,
-                         72,
-                         65,
-                         78,
-                         71,
-                         69,
-                         // removed node
-                         0,
-                         12,
-                         82,
-                         69,
-                         77,
-                         79,
-                         86,
-                         69,
-                         68,
-                         95,
-                         78,
-                         79,
-                         68,
-                         69,
-                         // 127.0.0.1:1
-                         0,
-                         4,
-                         127,
-                         0,
-                         0,
-                         1,
-                         0,
-                         0,
-                         0,
-                         1];
-        let mut c: Cursor<Vec<u8>> = Cursor::new(bytes);
+        let bytes = &[// topology change
+                      0,
+                      15,
+                      84,
+                      79,
+                      80,
+                      79,
+                      76,
+                      79,
+                      71,
+                      89,
+                      95,
+                      67,
+                      72,
+                      65,
+                      78,
+                      71,
+                      69,
+                      // removed node
+                      0,
+                      12,
+                      82,
+                      69,
+                      77,
+                      79,
+                      86,
+                      69,
+                      68,
+                      95,
+                      78,
+                      79,
+                      68,
+                      69,
+                      // 127.0.0.1:1
+                      0,
+                      4,
+                      127,
+                      0,
+                      0,
+                      1,
+                      0,
+                      0,
+                      0,
+                      1];
+        let mut c: Cursor<&[u8]> = Cursor::new(bytes);
         let event = ServerEvent::from_cursor(&mut c);
         match event {
             ServerEvent::TopologyChange(ref tc) => {
@@ -529,39 +543,39 @@ mod server_event {
 
     #[test]
     fn status_change_up() {
-        let bytes = vec![// status change
-                         0,
-                         13,
-                         83,
-                         84,
-                         65,
-                         84,
-                         85,
-                         83,
-                         95,
-                         67,
-                         72,
-                         65,
-                         78,
-                         71,
-                         69,
-                         // up
-                         0,
-                         2,
-                         85,
-                         80,
-                         // 127.0.0.1:1
-                         0,
-                         4,
-                         127,
-                         0,
-                         0,
-                         1,
-                         0,
-                         0,
-                         0,
-                         1];
-        let mut c: Cursor<Vec<u8>> = Cursor::new(bytes);
+        let bytes = &[// status change
+                      0,
+                      13,
+                      83,
+                      84,
+                      65,
+                      84,
+                      85,
+                      83,
+                      95,
+                      67,
+                      72,
+                      65,
+                      78,
+                      71,
+                      69,
+                      // up
+                      0,
+                      2,
+                      85,
+                      80,
+                      // 127.0.0.1:1
+                      0,
+                      4,
+                      127,
+                      0,
+                      0,
+                      1,
+                      0,
+                      0,
+                      0,
+                      1];
+        let mut c: Cursor<&[u8]> = Cursor::new(bytes);
         let event = ServerEvent::from_cursor(&mut c);
         match event {
             ServerEvent::StatusChange(ref tc) => {
@@ -574,41 +588,41 @@ mod server_event {
 
     #[test]
     fn status_change_down() {
-        let bytes = vec![// status change
-                         0,
-                         13,
-                         83,
-                         84,
-                         65,
-                         84,
-                         85,
-                         83,
-                         95,
-                         67,
-                         72,
-                         65,
-                         78,
-                         71,
-                         69,
-                         // down
-                         0,
-                         4,
-                         68,
-                         79,
-                         87,
-                         78,
-                         // 127.0.0.1:1
-                         0,
-                         4,
-                         127,
-                         0,
-                         0,
-                         1,
-                         0,
-                         0,
-                         0,
-                         1];
-        let mut c: Cursor<Vec<u8>> = Cursor::new(bytes);
+        let bytes = &[// status change
+                      0,
+                      13,
+                      83,
+                      84,
+                      65,
+                      84,
+                      85,
+                      83,
+                      95,
+                      67,
+                      72,
+                      65,
+                      78,
+                      71,
+                      69,
+                      // down
+                      0,
+                      4,
+                      68,
+                      79,
+                      87,
+                      78,
+                      // 127.0.0.1:1
+                      0,
+                      4,
+                      127,
+                      0,
+                      0,
+                      1,
+                      0,
+                      0,
+                      0,
+                      1];
+        let mut c: Cursor<&[u8]> = Cursor::new(bytes);
         let event = ServerEvent::from_cursor(&mut c);
         match event {
             ServerEvent::StatusChange(ref tc) => {
@@ -622,66 +636,7 @@ mod server_event {
     #[test]
     fn schema_change_created() {
         // keyspace
-        let keyspace = vec![// schema change
-                            0,
-                            13,
-                            83,
-                            67,
-                            72,
-                            69,
-                            77,
-                            65,
-                            95,
-                            67,
-                            72,
-                            65,
-                            78,
-                            71,
-                            69,
-                            // created
-                            0,
-                            7,
-                            67,
-                            82,
-                            69,
-                            65,
-                            84,
-                            69,
-                            68,
-                            // keyspace
-                            0,
-                            8,
-                            75,
-                            69,
-                            89,
-                            83,
-                            80,
-                            65,
-                            67,
-                            69,
-                            // my_ks
-                            0,
-                            5,
-                            109,
-                            121,
-                            95,
-                            107,
-                            115];
-        let mut ks: Cursor<Vec<u8>> = Cursor::new(keyspace);
-        let ks_event = ServerEvent::from_cursor(&mut ks);
-        match ks_event {
-            ServerEvent::SchemaChange(ref _c) => {
-                assert_eq!(_c.change_type, ChangeType::Created);
-                assert_eq!(_c.target, Target::Keyspace);
-                match _c.options {
-                    ChangeSchemeOptions::Keyspace(ref ks) => assert_eq!(ks.as_str(), "my_ks"),
-                    _ => panic!("should be keyspace"),
-                }
-            }
-            _ => panic!("should be schema change"),
-        }
-        // table
-        let table = vec![// schema change
+        let keyspace = &[// schema change
                          0,
                          13,
                          83,
@@ -707,13 +662,16 @@ mod server_event {
                          84,
                          69,
                          68,
-                         // table
+                         // keyspace
                          0,
-                         5,
-                         84,
+                         8,
+                         75,
+                         69,
+                         89,
+                         83,
+                         80,
                          65,
-                         66,
-                         76,
+                         67,
                          69,
                          // my_ks
                          0,
@@ -722,19 +680,75 @@ mod server_event {
                          121,
                          95,
                          107,
-                         115,
-                         // my_table
-                         0,
-                         8,
-                         109,
-                         121,
-                         95,
-                         116,
-                         97,
-                         98,
-                         108,
-                         101];
-        let mut tb: Cursor<Vec<u8>> = Cursor::new(table);
+                         115];
+        let mut ks: Cursor<&[u8]> = Cursor::new(keyspace);
+        let ks_event = ServerEvent::from_cursor(&mut ks);
+        match ks_event {
+            ServerEvent::SchemaChange(ref _c) => {
+                assert_eq!(_c.change_type, ChangeType::Created);
+                assert_eq!(_c.target, Target::Keyspace);
+                match _c.options {
+                    ChangeSchemeOptions::Keyspace(ref ks) => assert_eq!(ks.as_str(), "my_ks"),
+                    _ => panic!("should be keyspace"),
+                }
+            }
+            _ => panic!("should be schema change"),
+        }
+        // table
+        let table = &[// schema change
+                      0,
+                      13,
+                      83,
+                      67,
+                      72,
+                      69,
+                      77,
+                      65,
+                      95,
+                      67,
+                      72,
+                      65,
+                      78,
+                      71,
+                      69,
+                      // created
+                      0,
+                      7,
+                      67,
+                      82,
+                      69,
+                      65,
+                      84,
+                      69,
+                      68,
+                      // table
+                      0,
+                      5,
+                      84,
+                      65,
+                      66,
+                      76,
+                      69,
+                      // my_ks
+                      0,
+                      5,
+                      109,
+                      121,
+                      95,
+                      107,
+                      115,
+                      // my_table
+                      0,
+                      8,
+                      109,
+                      121,
+                      95,
+                      116,
+                      97,
+                      98,
+                      108,
+                      101];
+        let mut tb: Cursor<&[u8]> = Cursor::new(table);
         let tb_event = ServerEvent::from_cursor(&mut tb);
         match tb_event {
             ServerEvent::SchemaChange(ref _c) => {
@@ -750,7 +764,75 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // type
-        let _type = vec![// schema change
+        let _type = &[// schema change
+                      0,
+                      13,
+                      83,
+                      67,
+                      72,
+                      69,
+                      77,
+                      65,
+                      95,
+                      67,
+                      72,
+                      65,
+                      78,
+                      71,
+                      69,
+                      // created
+                      0,
+                      7,
+                      67,
+                      82,
+                      69,
+                      65,
+                      84,
+                      69,
+                      68,
+                      // type
+                      0,
+                      4,
+                      84,
+                      89,
+                      80,
+                      69,
+                      // my_ks
+                      0,
+                      5,
+                      109,
+                      121,
+                      95,
+                      107,
+                      115,
+                      // my_table
+                      0,
+                      8,
+                      109,
+                      121,
+                      95,
+                      116,
+                      97,
+                      98,
+                      108,
+                      101];
+        let mut tp: Cursor<&[u8]> = Cursor::new(_type);
+        let tp_event = ServerEvent::from_cursor(&mut tp);
+        match tp_event {
+            ServerEvent::SchemaChange(ref _c) => {
+                assert_eq!(_c.change_type, ChangeType::Created);
+                assert_eq!(_c.target, Target::Type);
+                match _c.options {
+                    ChangeSchemeOptions::TableType(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
+                    }
+                    _ => panic!("should be type"),
+                }
+            }
+            _ => panic!("should be schema change"),
+        }
+        // function
+        let function = &[// schema change
                          0,
                          13,
                          83,
@@ -776,13 +858,17 @@ mod server_event {
                          84,
                          69,
                          68,
-                         // type
+                         // function
                          0,
-                         4,
+                         8,
+                         70,
+                         85,
+                         78,
+                         67,
                          84,
-                         89,
-                         80,
-                         69,
+                         73,
+                         79,
+                         78,
                          // my_ks
                          0,
                          5,
@@ -791,89 +877,17 @@ mod server_event {
                          95,
                          107,
                          115,
-                         // my_table
+                         // name
                          0,
-                         8,
-                         109,
-                         121,
-                         95,
-                         116,
+                         4,
+                         110,
                          97,
-                         98,
-                         108,
-                         101];
-        let mut tp: Cursor<Vec<u8>> = Cursor::new(_type);
-        let tp_event = ServerEvent::from_cursor(&mut tp);
-        match tp_event {
-            ServerEvent::SchemaChange(ref _c) => {
-                assert_eq!(_c.change_type, ChangeType::Created);
-                assert_eq!(_c.target, Target::Type);
-                match _c.options {
-                    ChangeSchemeOptions::TableType(ref tt) => {
-                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
-                    }
-                    _ => panic!("should be type"),
-                }
-            }
-            _ => panic!("should be schema change"),
-        }
-        // function
-        let function = vec![// schema change
-                            0,
-                            13,
-                            83,
-                            67,
-                            72,
-                            69,
-                            77,
-                            65,
-                            95,
-                            67,
-                            72,
-                            65,
-                            78,
-                            71,
-                            69,
-                            // created
-                            0,
-                            7,
-                            67,
-                            82,
-                            69,
-                            65,
-                            84,
-                            69,
-                            68,
-                            // function
-                            0,
-                            8,
-                            70,
-                            85,
-                            78,
-                            67,
-                            84,
-                            73,
-                            79,
-                            78,
-                            // my_ks
-                            0,
-                            5,
-                            109,
-                            121,
-                            95,
-                            107,
-                            115,
-                            // name
-                            0,
-                            4,
-                            110,
-                            97,
-                            109,
-                            101,
-                            // empty list of parameters
-                            0,
-                            0];
-        let mut fnct: Cursor<Vec<u8>> = Cursor::new(function);
+                         109,
+                         101,
+                         // empty list of parameters
+                         0,
+                         0];
+        let mut fnct: Cursor<&[u8]> = Cursor::new(function);
         let fnct_event = ServerEvent::from_cursor(&mut fnct);
         match fnct_event {
             ServerEvent::SchemaChange(ref _c) => {
@@ -889,63 +903,63 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // function
-        let aggregate = vec![// schema change
-                             0,
-                             13,
-                             83,
-                             67,
-                             72,
-                             69,
-                             77,
-                             65,
-                             95,
-                             67,
-                             72,
-                             65,
-                             78,
-                             71,
-                             69,
-                             // created
-                             0,
-                             7,
-                             67,
-                             82,
-                             69,
-                             65,
-                             84,
-                             69,
-                             68,
-                             // aggregate
-                             0,
-                             9,
-                             65,
-                             71,
-                             71,
-                             82,
-                             69,
-                             71,
-                             65,
-                             84,
-                             69,
-                             // my_ks
-                             0,
-                             5,
-                             109,
-                             121,
-                             95,
-                             107,
-                             115,
-                             // name
-                             0,
-                             4,
-                             110,
-                             97,
-                             109,
-                             101,
-                             // empty list of parameters
-                             0,
-                             0];
-        let mut aggr: Cursor<Vec<u8>> = Cursor::new(aggregate);
+        let aggregate = &[// schema change
+                          0,
+                          13,
+                          83,
+                          67,
+                          72,
+                          69,
+                          77,
+                          65,
+                          95,
+                          67,
+                          72,
+                          65,
+                          78,
+                          71,
+                          69,
+                          // created
+                          0,
+                          7,
+                          67,
+                          82,
+                          69,
+                          65,
+                          84,
+                          69,
+                          68,
+                          // aggregate
+                          0,
+                          9,
+                          65,
+                          71,
+                          71,
+                          82,
+                          69,
+                          71,
+                          65,
+                          84,
+                          69,
+                          // my_ks
+                          0,
+                          5,
+                          109,
+                          121,
+                          95,
+                          107,
+                          115,
+                          // name
+                          0,
+                          4,
+                          110,
+                          97,
+                          109,
+                          101,
+                          // empty list of parameters
+                          0,
+                          0];
+        let mut aggr: Cursor<&[u8]> = Cursor::new(aggregate);
         let aggr_event = ServerEvent::from_cursor(&mut aggr);
         match aggr_event {
             ServerEvent::SchemaChange(ref _c) => {
@@ -965,66 +979,7 @@ mod server_event {
     #[test]
     fn schema_change_updated() {
         // keyspace
-        let keyspace = vec![// schema change
-                            0,
-                            13,
-                            83,
-                            67,
-                            72,
-                            69,
-                            77,
-                            65,
-                            95,
-                            67,
-                            72,
-                            65,
-                            78,
-                            71,
-                            69,
-                            // updated
-                            0,
-                            7,
-                            85,
-                            80,
-                            68,
-                            65,
-                            84,
-                            69,
-                            68,
-                            // keyspace
-                            0,
-                            8,
-                            75,
-                            69,
-                            89,
-                            83,
-                            80,
-                            65,
-                            67,
-                            69,
-                            // my_ks
-                            0,
-                            5,
-                            109,
-                            121,
-                            95,
-                            107,
-                            115];
-        let mut ks: Cursor<Vec<u8>> = Cursor::new(keyspace);
-        let ks_event = ServerEvent::from_cursor(&mut ks);
-        match ks_event {
-            ServerEvent::SchemaChange(ref _c) => {
-                assert_eq!(_c.change_type, ChangeType::Updated);
-                assert_eq!(_c.target, Target::Keyspace);
-                match _c.options {
-                    ChangeSchemeOptions::Keyspace(ref ks) => assert_eq!(ks.as_str(), "my_ks"),
-                    _ => panic!("should be keyspace"),
-                }
-            }
-            _ => panic!("should be schema change"),
-        }
-        // table
-        let table = vec![// schema change
+        let keyspace = &[// schema change
                          0,
                          13,
                          83,
@@ -1050,13 +1005,16 @@ mod server_event {
                          84,
                          69,
                          68,
-                         // table
+                         // keyspace
                          0,
-                         5,
-                         84,
+                         8,
+                         75,
+                         69,
+                         89,
+                         83,
+                         80,
                          65,
-                         66,
-                         76,
+                         67,
                          69,
                          // my_ks
                          0,
@@ -1065,19 +1023,75 @@ mod server_event {
                          121,
                          95,
                          107,
-                         115,
-                         // my_table
-                         0,
-                         8,
-                         109,
-                         121,
-                         95,
-                         116,
-                         97,
-                         98,
-                         108,
-                         101];
-        let mut tb: Cursor<Vec<u8>> = Cursor::new(table);
+                         115];
+        let mut ks: Cursor<&[u8]> = Cursor::new(keyspace);
+        let ks_event = ServerEvent::from_cursor(&mut ks);
+        match ks_event {
+            ServerEvent::SchemaChange(ref _c) => {
+                assert_eq!(_c.change_type, ChangeType::Updated);
+                assert_eq!(_c.target, Target::Keyspace);
+                match _c.options {
+                    ChangeSchemeOptions::Keyspace(ref ks) => assert_eq!(ks.as_str(), "my_ks"),
+                    _ => panic!("should be keyspace"),
+                }
+            }
+            _ => panic!("should be schema change"),
+        }
+        // table
+        let table = &[// schema change
+                      0,
+                      13,
+                      83,
+                      67,
+                      72,
+                      69,
+                      77,
+                      65,
+                      95,
+                      67,
+                      72,
+                      65,
+                      78,
+                      71,
+                      69,
+                      // updated
+                      0,
+                      7,
+                      85,
+                      80,
+                      68,
+                      65,
+                      84,
+                      69,
+                      68,
+                      // table
+                      0,
+                      5,
+                      84,
+                      65,
+                      66,
+                      76,
+                      69,
+                      // my_ks
+                      0,
+                      5,
+                      109,
+                      121,
+                      95,
+                      107,
+                      115,
+                      // my_table
+                      0,
+                      8,
+                      109,
+                      121,
+                      95,
+                      116,
+                      97,
+                      98,
+                      108,
+                      101];
+        let mut tb: Cursor<&[u8]> = Cursor::new(table);
         let tb_event = ServerEvent::from_cursor(&mut tb);
         match tb_event {
             ServerEvent::SchemaChange(ref _c) => {
@@ -1093,7 +1107,75 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // type
-        let _type = vec![// schema change
+        let _type = &[// schema change
+                      0,
+                      13,
+                      83,
+                      67,
+                      72,
+                      69,
+                      77,
+                      65,
+                      95,
+                      67,
+                      72,
+                      65,
+                      78,
+                      71,
+                      69,
+                      // updated
+                      0,
+                      7,
+                      85,
+                      80,
+                      68,
+                      65,
+                      84,
+                      69,
+                      68,
+                      // type
+                      0,
+                      4,
+                      84,
+                      89,
+                      80,
+                      69,
+                      // my_ks
+                      0,
+                      5,
+                      109,
+                      121,
+                      95,
+                      107,
+                      115,
+                      // my_table
+                      0,
+                      8,
+                      109,
+                      121,
+                      95,
+                      116,
+                      97,
+                      98,
+                      108,
+                      101];
+        let mut tp: Cursor<&[u8]> = Cursor::new(_type);
+        let tp_event = ServerEvent::from_cursor(&mut tp);
+        match tp_event {
+            ServerEvent::SchemaChange(ref _c) => {
+                assert_eq!(_c.change_type, ChangeType::Updated);
+                assert_eq!(_c.target, Target::Type);
+                match _c.options {
+                    ChangeSchemeOptions::TableType(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
+                    }
+                    _ => panic!("should be type"),
+                }
+            }
+            _ => panic!("should be schema change"),
+        }
+        // function
+        let function = &[// schema change
                          0,
                          13,
                          83,
@@ -1119,13 +1201,17 @@ mod server_event {
                          84,
                          69,
                          68,
-                         // type
+                         // function
                          0,
-                         4,
+                         8,
+                         70,
+                         85,
+                         78,
+                         67,
                          84,
-                         89,
-                         80,
-                         69,
+                         73,
+                         79,
+                         78,
                          // my_ks
                          0,
                          5,
@@ -1134,89 +1220,17 @@ mod server_event {
                          95,
                          107,
                          115,
-                         // my_table
+                         // name
                          0,
-                         8,
-                         109,
-                         121,
-                         95,
-                         116,
+                         4,
+                         110,
                          97,
-                         98,
-                         108,
-                         101];
-        let mut tp: Cursor<Vec<u8>> = Cursor::new(_type);
-        let tp_event = ServerEvent::from_cursor(&mut tp);
-        match tp_event {
-            ServerEvent::SchemaChange(ref _c) => {
-                assert_eq!(_c.change_type, ChangeType::Updated);
-                assert_eq!(_c.target, Target::Type);
-                match _c.options {
-                    ChangeSchemeOptions::TableType(ref tt) => {
-                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
-                    }
-                    _ => panic!("should be type"),
-                }
-            }
-            _ => panic!("should be schema change"),
-        }
-        // function
-        let function = vec![// schema change
-                            0,
-                            13,
-                            83,
-                            67,
-                            72,
-                            69,
-                            77,
-                            65,
-                            95,
-                            67,
-                            72,
-                            65,
-                            78,
-                            71,
-                            69,
-                            // updated
-                            0,
-                            7,
-                            85,
-                            80,
-                            68,
-                            65,
-                            84,
-                            69,
-                            68,
-                            // function
-                            0,
-                            8,
-                            70,
-                            85,
-                            78,
-                            67,
-                            84,
-                            73,
-                            79,
-                            78,
-                            // my_ks
-                            0,
-                            5,
-                            109,
-                            121,
-                            95,
-                            107,
-                            115,
-                            // name
-                            0,
-                            4,
-                            110,
-                            97,
-                            109,
-                            101,
-                            // empty list of parameters
-                            0,
-                            0];
-        let mut fnct: Cursor<Vec<u8>> = Cursor::new(function);
+                         109,
+                         101,
+                         // empty list of parameters
+                         0,
+                         0];
+        let mut fnct: Cursor<&[u8]> = Cursor::new(function);
         let fnct_event = ServerEvent::from_cursor(&mut fnct);
         match fnct_event {
             ServerEvent::SchemaChange(ref _c) => {
@@ -1232,63 +1246,63 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // function
-        let aggregate = vec![// schema change
-                             0,
-                             13,
-                             83,
-                             67,
-                             72,
-                             69,
-                             77,
-                             65,
-                             95,
-                             67,
-                             72,
-                             65,
-                             78,
-                             71,
-                             69,
-                             // updated
-                             0,
-                             7,
-                             85,
-                             80,
-                             68,
-                             65,
-                             84,
-                             69,
-                             68,
-                             // aggregate
-                             0,
-                             9,
-                             65,
-                             71,
-                             71,
-                             82,
-                             69,
-                             71,
-                             65,
-                             84,
-                             69,
-                             // my_ks
-                             0,
-                             5,
-                             109,
-                             121,
-                             95,
-                             107,
-                             115,
-                             // name
-                             0,
-                             4,
-                             110,
-                             97,
-                             109,
-                             101,
-                             // empty list of parameters
-                             0,
-                             0];
-        let mut aggr: Cursor<Vec<u8>> = Cursor::new(aggregate);
+        let aggregate = &[// schema change
+                          0,
+                          13,
+                          83,
+                          67,
+                          72,
+                          69,
+                          77,
+                          65,
+                          95,
+                          67,
+                          72,
+                          65,
+                          78,
+                          71,
+                          69,
+                          // updated
+                          0,
+                          7,
+                          85,
+                          80,
+                          68,
+                          65,
+                          84,
+                          69,
+                          68,
+                          // aggregate
+                          0,
+                          9,
+                          65,
+                          71,
+                          71,
+                          82,
+                          69,
+                          71,
+                          65,
+                          84,
+                          69,
+                          // my_ks
+                          0,
+                          5,
+                          109,
+                          121,
+                          95,
+                          107,
+                          115,
+                          // name
+                          0,
+                          4,
+                          110,
+                          97,
+                          109,
+                          101,
+                          // empty list of parameters
+                          0,
+                          0];
+        let mut aggr: Cursor<&[u8]> = Cursor::new(aggregate);
         let aggr_event = ServerEvent::from_cursor(&mut aggr);
         match aggr_event {
             ServerEvent::SchemaChange(ref _c) => {
@@ -1308,66 +1322,7 @@ mod server_event {
     #[test]
     fn schema_change_dropped() {
         // keyspace
-        let keyspace = vec![// schema change
-                            0,
-                            13,
-                            83,
-                            67,
-                            72,
-                            69,
-                            77,
-                            65,
-                            95,
-                            67,
-                            72,
-                            65,
-                            78,
-                            71,
-                            69,
-                            // dropped
-                            0,
-                            7,
-                            68,
-                            82,
-                            79,
-                            80,
-                            80,
-                            69,
-                            68,
-                            // keyspace
-                            0,
-                            8,
-                            75,
-                            69,
-                            89,
-                            83,
-                            80,
-                            65,
-                            67,
-                            69,
-                            // my_ks
-                            0,
-                            5,
-                            109,
-                            121,
-                            95,
-                            107,
-                            115];
-        let mut ks: Cursor<Vec<u8>> = Cursor::new(keyspace);
-        let ks_event = ServerEvent::from_cursor(&mut ks);
-        match ks_event {
-            ServerEvent::SchemaChange(ref _c) => {
-                assert_eq!(_c.change_type, ChangeType::Dropped);
-                assert_eq!(_c.target, Target::Keyspace);
-                match _c.options {
-                    ChangeSchemeOptions::Keyspace(ref ks) => assert_eq!(ks.as_str(), "my_ks"),
-                    _ => panic!("should be keyspace"),
-                }
-            }
-            _ => panic!("should be schema change"),
-        }
-        // table
-        let table = vec![// schema change
+        let keyspace = &[// schema change
                          0,
                          13,
                          83,
@@ -1393,13 +1348,16 @@ mod server_event {
                          80,
                          69,
                          68,
-                         // table
+                         // keyspace
                          0,
-                         5,
-                         84,
+                         8,
+                         75,
+                         69,
+                         89,
+                         83,
+                         80,
                          65,
-                         66,
-                         76,
+                         67,
                          69,
                          // my_ks
                          0,
@@ -1408,19 +1366,75 @@ mod server_event {
                          121,
                          95,
                          107,
-                         115,
-                         // my_table
-                         0,
-                         8,
-                         109,
-                         121,
-                         95,
-                         116,
-                         97,
-                         98,
-                         108,
-                         101];
-        let mut tb: Cursor<Vec<u8>> = Cursor::new(table);
+                         115];
+        let mut ks: Cursor<&[u8]> = Cursor::new(keyspace);
+        let ks_event = ServerEvent::from_cursor(&mut ks);
+        match ks_event {
+            ServerEvent::SchemaChange(ref _c) => {
+                assert_eq!(_c.change_type, ChangeType::Dropped);
+                assert_eq!(_c.target, Target::Keyspace);
+                match _c.options {
+                    ChangeSchemeOptions::Keyspace(ref ks) => assert_eq!(ks.as_str(), "my_ks"),
+                    _ => panic!("should be keyspace"),
+                }
+            }
+            _ => panic!("should be schema change"),
+        }
+        // table
+        let table = &[// schema change
+                      0,
+                      13,
+                      83,
+                      67,
+                      72,
+                      69,
+                      77,
+                      65,
+                      95,
+                      67,
+                      72,
+                      65,
+                      78,
+                      71,
+                      69,
+                      // dropped
+                      0,
+                      7,
+                      68,
+                      82,
+                      79,
+                      80,
+                      80,
+                      69,
+                      68,
+                      // table
+                      0,
+                      5,
+                      84,
+                      65,
+                      66,
+                      76,
+                      69,
+                      // my_ks
+                      0,
+                      5,
+                      109,
+                      121,
+                      95,
+                      107,
+                      115,
+                      // my_table
+                      0,
+                      8,
+                      109,
+                      121,
+                      95,
+                      116,
+                      97,
+                      98,
+                      108,
+                      101];
+        let mut tb: Cursor<&[u8]> = Cursor::new(table);
         let tb_event = ServerEvent::from_cursor(&mut tb);
         match tb_event {
             ServerEvent::SchemaChange(ref _c) => {
@@ -1436,7 +1450,75 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // type
-        let _type = vec![// schema change
+        let _type = &[// schema change
+                      0,
+                      13,
+                      83,
+                      67,
+                      72,
+                      69,
+                      77,
+                      65,
+                      95,
+                      67,
+                      72,
+                      65,
+                      78,
+                      71,
+                      69,
+                      // dropped
+                      0,
+                      7,
+                      68,
+                      82,
+                      79,
+                      80,
+                      80,
+                      69,
+                      68,
+                      // type
+                      0,
+                      4,
+                      84,
+                      89,
+                      80,
+                      69,
+                      // my_ks
+                      0,
+                      5,
+                      109,
+                      121,
+                      95,
+                      107,
+                      115,
+                      // my_table
+                      0,
+                      8,
+                      109,
+                      121,
+                      95,
+                      116,
+                      97,
+                      98,
+                      108,
+                      101];
+        let mut tp: Cursor<&[u8]> = Cursor::new(_type);
+        let tp_event = ServerEvent::from_cursor(&mut tp);
+        match tp_event {
+            ServerEvent::SchemaChange(ref _c) => {
+                assert_eq!(_c.change_type, ChangeType::Dropped);
+                assert_eq!(_c.target, Target::Type);
+                match _c.options {
+                    ChangeSchemeOptions::TableType(ref tt) => {
+                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
+                    }
+                    _ => panic!("should be type"),
+                }
+            }
+            _ => panic!("should be schema change"),
+        }
+        // function
+        let function = &[// schema change
                          0,
                          13,
                          83,
@@ -1462,13 +1544,17 @@ mod server_event {
                          80,
                          69,
                          68,
-                         // type
+                         // function
                          0,
-                         4,
+                         8,
+                         70,
+                         85,
+                         78,
+                         67,
                          84,
-                         89,
-                         80,
-                         69,
+                         73,
+                         79,
+                         78,
                          // my_ks
                          0,
                          5,
@@ -1477,89 +1563,17 @@ mod server_event {
                          95,
                          107,
                          115,
-                         // my_table
+                         // name
                          0,
-                         8,
-                         109,
-                         121,
-                         95,
-                         116,
+                         4,
+                         110,
                          97,
-                         98,
-                         108,
-                         101];
-        let mut tp: Cursor<Vec<u8>> = Cursor::new(_type);
-        let tp_event = ServerEvent::from_cursor(&mut tp);
-        match tp_event {
-            ServerEvent::SchemaChange(ref _c) => {
-                assert_eq!(_c.change_type, ChangeType::Dropped);
-                assert_eq!(_c.target, Target::Type);
-                match _c.options {
-                    ChangeSchemeOptions::TableType(ref tt) => {
-                        assert_eq!(tt, &("my_ks".to_string(), "my_table".to_string()))
-                    }
-                    _ => panic!("should be type"),
-                }
-            }
-            _ => panic!("should be schema change"),
-        }
-        // function
-        let function = vec![// schema change
-                            0,
-                            13,
-                            83,
-                            67,
-                            72,
-                            69,
-                            77,
-                            65,
-                            95,
-                            67,
-                            72,
-                            65,
-                            78,
-                            71,
-                            69,
-                            // dropped
-                            0,
-                            7,
-                            68,
-                            82,
-                            79,
-                            80,
-                            80,
-                            69,
-                            68,
-                            // function
-                            0,
-                            8,
-                            70,
-                            85,
-                            78,
-                            67,
-                            84,
-                            73,
-                            79,
-                            78,
-                            // my_ks
-                            0,
-                            5,
-                            109,
-                            121,
-                            95,
-                            107,
-                            115,
-                            // name
-                            0,
-                            4,
-                            110,
-                            97,
-                            109,
-                            101,
-                            // empty list of parameters
-                            0,
-                            0];
-        let mut fnct: Cursor<Vec<u8>> = Cursor::new(function);
+                         109,
+                         101,
+                         // empty list of parameters
+                         0,
+                         0];
+        let mut fnct: Cursor<&[u8]> = Cursor::new(function);
         let fnct_event = ServerEvent::from_cursor(&mut fnct);
         match fnct_event {
             ServerEvent::SchemaChange(ref _c) => {
@@ -1575,63 +1589,63 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // function
-        let aggregate = vec![// schema change
-                             0,
-                             13,
-                             83,
-                             67,
-                             72,
-                             69,
-                             77,
-                             65,
-                             95,
-                             67,
-                             72,
-                             65,
-                             78,
-                             71,
-                             69,
-                             // dropped
-                             0,
-                             7,
-                             68,
-                             82,
-                             79,
-                             80,
-                             80,
-                             69,
-                             68,
-                             // aggregate
-                             0,
-                             9,
-                             65,
-                             71,
-                             71,
-                             82,
-                             69,
-                             71,
-                             65,
-                             84,
-                             69,
-                             // my_ks
-                             0,
-                             5,
-                             109,
-                             121,
-                             95,
-                             107,
-                             115,
-                             // name
-                             0,
-                             4,
-                             110,
-                             97,
-                             109,
-                             101,
-                             // empty list of parameters
-                             0,
-                             0];
-        let mut aggr: Cursor<Vec<u8>> = Cursor::new(aggregate);
+        let aggregate = &[// schema change
+                          0,
+                          13,
+                          83,
+                          67,
+                          72,
+                          69,
+                          77,
+                          65,
+                          95,
+                          67,
+                          72,
+                          65,
+                          78,
+                          71,
+                          69,
+                          // dropped
+                          0,
+                          7,
+                          68,
+                          82,
+                          79,
+                          80,
+                          80,
+                          69,
+                          68,
+                          // aggregate
+                          0,
+                          9,
+                          65,
+                          71,
+                          71,
+                          82,
+                          69,
+                          71,
+                          65,
+                          84,
+                          69,
+                          // my_ks
+                          0,
+                          5,
+                          109,
+                          121,
+                          95,
+                          107,
+                          115,
+                          // name
+                          0,
+                          4,
+                          110,
+                          97,
+                          109,
+                          101,
+                          // empty list of parameters
+                          0,
+                          0];
+        let mut aggr: Cursor<&[u8]> = Cursor::new(aggregate);
         let aggr_event = ServerEvent::from_cursor(&mut aggr);
         match aggr_event {
             ServerEvent::SchemaChange(ref _c) => {

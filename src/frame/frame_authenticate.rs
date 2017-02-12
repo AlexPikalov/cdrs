@@ -9,7 +9,7 @@ pub struct BodyResAuthenticate {
 }
 
 impl FromCursor for BodyResAuthenticate {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResAuthenticate {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> BodyResAuthenticate {
         BodyResAuthenticate { data: CString::from_cursor(&mut cursor) }
     }
 }
@@ -23,8 +23,8 @@ mod tests {
     #[test]
     fn body_res_authenticate() {
         // string "abcde"
-        let data: Vec<u8> = vec![0, 5, 97, 98, 99, 100, 101];
-        let mut cursor = Cursor::new(data);
+        let data = [0, 5, 97, 98, 99, 100, 101];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(&data);
         let body = BodyResAuthenticate::from_cursor(&mut cursor);
         assert_eq!(body.data.as_str(), "abcde");
     }

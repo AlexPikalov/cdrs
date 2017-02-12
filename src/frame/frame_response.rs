@@ -33,8 +33,8 @@ pub enum ResponseBody {
 }
 
 impl ResponseBody {
-    pub fn from(bytes: Vec<u8>, response_type: &Opcode) -> ResponseBody {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(bytes);
+    pub fn from(bytes: &[u8], response_type: &Opcode) -> ResponseBody {
+        let mut cursor: Cursor<&[u8]> = Cursor::new(bytes);
         match response_type {
             // request frames
             &Opcode::Startup => unreachable!(),

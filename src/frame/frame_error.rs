@@ -29,7 +29,7 @@ pub struct CDRSError {
 }
 
 impl FromCursor for CDRSError {
-    fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> CDRSError {
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> CDRSError {
         let error_code = CInt::from_cursor(&mut cursor);
         let message = CString::from_cursor(&mut cursor);
         let additional_info = AdditionalErrorInfo::from_cursor_with_code(&mut cursor, error_code);
@@ -67,7 +67,7 @@ pub enum AdditionalErrorInfo {
 }
 
 impl AdditionalErrorInfo {
-    pub fn from_cursor_with_code(mut cursor: &mut io::Cursor<Vec<u8>>,
+    pub fn from_cursor_with_code(mut cursor: &mut io::Cursor<&[u8]>,
                                  error_code: CInt)
                                  -> AdditionalErrorInfo {
         match error_code {
@@ -107,7 +107,7 @@ impl AdditionalErrorInfo {
 pub struct SimpleError {}
 
 impl FromCursor for SimpleError {
-    fn from_cursor(mut _cursor: &mut io::Cursor<Vec<u8>>) -> SimpleError {
+    fn from_cursor(mut _cursor: &mut io::Cursor<&[u8]>) -> SimpleError {
         SimpleError {}
     }
 }
@@ -126,7 +126,7 @@ pub struct UnavailableError {
 }
 
 impl FromCursor for UnavailableError {
-    fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> UnavailableError {
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> UnavailableError {
         let cl = Consistency::from_cursor(&mut cursor);
         let required = CInt::from_cursor(&mut cursor);
         let alive = CInt::from_cursor(&mut cursor);
@@ -153,7 +153,7 @@ pub struct WriteTimeoutError {
 }
 
 impl FromCursor for WriteTimeoutError {
-    fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> WriteTimeoutError {
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> WriteTimeoutError {
         let cl = Consistency::from_cursor(&mut cursor);
         let received = CInt::from_cursor(&mut cursor);
         let blockfor = CInt::from_cursor(&mut cursor);
@@ -188,11 +188,11 @@ impl ReadTimeoutError {
 }
 
 impl FromCursor for ReadTimeoutError {
-    fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> ReadTimeoutError {
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> ReadTimeoutError {
         let cl = Consistency::from_cursor(&mut cursor);
         let received = CInt::from_cursor(&mut cursor);
         let blockfor = CInt::from_cursor(&mut cursor);
-        let data_present = from_bytes(cursor_next_value(&mut cursor, 1)) as u8;
+        let data_present = from_bytes(cursor_next_value(&mut cursor, 1).as_slice()) as u8;
         ReadTimeoutError {
             cl: cl,
             received: received,
@@ -224,12 +224,12 @@ impl ReadFailureError {
 }
 
 impl FromCursor for ReadFailureError {
-    fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> ReadFailureError {
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> ReadFailureError {
         let cl = Consistency::from_cursor(&mut cursor);
         let received = CInt::from_cursor(&mut cursor);
         let blockfor = CInt::from_cursor(&mut cursor);
         let num_failures = CInt::from_cursor(&mut cursor);
-        let data_present = from_bytes(cursor_next_value(&mut cursor, 1)) as u8;
+        let data_present = from_bytes(cursor_next_value(&mut cursor, 1).as_slice()) as u8;
         ReadFailureError {
             cl: cl,
             received: received,
@@ -252,7 +252,7 @@ pub struct FunctionFailureError {
 }
 
 impl FromCursor for FunctionFailureError {
-    fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> FunctionFailureError {
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> FunctionFailureError {
         let keyspace = CString::from_cursor(&mut cursor);
         let function = CString::from_cursor(&mut cursor);
         let arg_types = CStringList::from_cursor(&mut cursor);
@@ -281,7 +281,7 @@ pub struct WriteFailureError {
 }
 
 impl FromCursor for WriteFailureError {
-    fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> WriteFailureError {
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> WriteFailureError {
         let cl = Consistency::from_cursor(&mut cursor);
         let received = CInt::from_cursor(&mut cursor);
         let blockfor = CInt::from_cursor(&mut cursor);
@@ -317,7 +317,7 @@ pub enum WriteType {
 }
 
 impl FromCursor for WriteType {
-    fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> WriteType {
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> WriteType {
         match CString::from_cursor(&mut cursor).as_str() {
             "SIMPLE" => WriteType::Simple,
             "BATCH" => WriteType::Batch,
@@ -341,7 +341,7 @@ pub struct AlreadyExistsError {
 }
 
 impl FromCursor for AlreadyExistsError {
-    fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> AlreadyExistsError {
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> AlreadyExistsError {
         let ks = CString::from_cursor(&mut cursor);
         let table = CString::from_cursor(&mut cursor);
 
@@ -363,7 +363,7 @@ pub struct UnpreparedError {
 }
 
 impl FromCursor for UnpreparedError {
-    fn from_cursor(mut cursor: &mut io::Cursor<Vec<u8>>) -> UnpreparedError {
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> UnpreparedError {
         let id = CBytes::from_cursor(&mut cursor);
 
         UnpreparedError { id: id }

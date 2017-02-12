@@ -9,6 +9,7 @@ use types::data_serialization_types::decode_timeuuid;
 use error;
 
 pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Result<Frame> {
+    // TODO: try to use slices instead
     let mut version_bytes = [0; VERSION_LEN];
     let mut flag_bytes = [0; FLAG_LEN];
     let mut opcode_bytes = [0; OPCODE_LEN];
@@ -24,9 +25,9 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
 
     let version = Version::from(version_bytes.to_vec());
     let flags = Flag::get_collection(flag_bytes[0]);
-    let stream = from_bytes(stream_bytes.to_vec());
+    let stream = from_bytes(stream_bytes.to_vec().as_slice());
     let opcode = Opcode::from(opcode_bytes[0]);
-    let length = from_bytes(length_bytes.to_vec()) as usize;
+    let length = from_bytes(length_bytes.to_vec().as_slice()) as usize;
 
     let mut body_bytes = Vec::with_capacity(length);
     unsafe {
@@ -41,16 +42,17 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
     };
 
     // Use cursor to get tracing id, warnings and actual body
-    let mut body_cursor = Cursor::new(full_body);
+    let mut body_cursor = Cursor::new(full_body.as_slice());
 
     let tracing_id = if flags.iter().any(|flag| flag == &Flag::Tracing) {
         let mut tracing_bytes = Vec::with_capacity(UUID_LEN);
         unsafe {
             tracing_bytes.set_len(UUID_LEN);
         }
+        // TODO: try to use slice instead
         try!(body_cursor.read_exact(&mut tracing_bytes));
 
-        decode_timeuuid(tracing_bytes).ok()
+        decode_timeuuid(tracing_bytes.as_slice()).ok()
     } else {
         None
     };

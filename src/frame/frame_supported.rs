@@ -9,8 +9,8 @@ pub struct BodyResSupported {
 }
 
 impl FromCursor for BodyResSupported {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> BodyResSupported {
-        let l = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)) as i16;
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> BodyResSupported {
+        let l = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64).as_slice()) as i16;
         let acc: HashMap<String, Vec<String>> = HashMap::new();
         let map = (0..l).fold(acc, |mut m, _| {
             let name = CString::from_cursor(&mut cursor).into_plain();
@@ -31,22 +31,22 @@ mod tests {
 
     #[test]
     fn test_name() {
-        let bytes = vec![0,
-                         1, // n options
-                         // 1-st option
-                         0,
-                         2,
-                         97,
-                         98, // key [string] "ab"
-                         0,
-                         2,
-                         0,
-                         1,
-                         97,
-                         0,
-                         1,
-                         98 /* value ["a", "b"] */];
-        let mut cursor = Cursor::new(bytes);
+        let bytes = [0,
+                     1, // n options
+                     // 1-st option
+                     0,
+                     2,
+                     97,
+                     98, // key [string] "ab"
+                     0,
+                     2,
+                     0,
+                     1,
+                     97,
+                     0,
+                     1,
+                     98 /* value ["a", "b"] */];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(&bytes);
         let options = BodyResSupported::from_cursor(&mut cursor).data;
         assert_eq!(options.len(), 1);
         let option_ab = options.get(&"ab".to_string()).unwrap();

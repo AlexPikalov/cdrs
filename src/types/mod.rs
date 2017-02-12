@@ -58,54 +58,56 @@ pub fn i_to_n_bytes(int: i64, n: usize) -> Vec<u8> {
     return try_i_to_n_bytes(int, n).unwrap();
 }
 
-///
-pub fn try_from_bytes(bytes: Vec<u8>) -> Result<u64, io::Error> {
-    let mut c = Cursor::new(bytes.clone());
-    return c.read_uint::<BigEndian>(bytes.len());
+/// Tryies to decode bytes array into `u64`.
+pub fn try_from_bytes(bytes: &[u8]) -> Result<u64, io::Error> {
+    let l = bytes.len();
+    let mut c = Cursor::new(bytes);
+    return c.read_uint::<BigEndian>(l);
 }
 
-///
-pub fn try_u16_from_bytes(bytes: Vec<u8>) -> Result<u16, io::Error> {
-    let mut c = Cursor::new(bytes.clone());
+/// Tryies to decode bytes array into `u16`.
+pub fn try_u16_from_bytes(bytes: &[u8]) -> Result<u16, io::Error> {
+    let mut c = Cursor::new(bytes);
     return c.read_u16::<BigEndian>();
 }
 
-///
-pub fn try_i_from_bytes(bytes: Vec<u8>) -> Result<i64, io::Error> {
-    let mut c = Cursor::new(bytes.clone());
-    return c.read_int::<BigEndian>(bytes.len());
+/// Tries to decode bytes array into `i64`.
+pub fn try_i_from_bytes(bytes: &[u8]) -> Result<i64, io::Error> {
+    let l = bytes.len();
+    let mut c = Cursor::new(bytes);
+    return c.read_int::<BigEndian>(l);
 }
 
-///
-pub fn try_i32_from_bytes(bytes: Vec<u8>) -> Result<i32, io::Error> {
-    let mut c = Cursor::new(bytes.clone());
+/// Tries to decode bytes array into `i32`.
+pub fn try_i32_from_bytes(bytes: &[u8]) -> Result<i32, io::Error> {
+    let mut c = Cursor::new(bytes);
     return c.read_i32::<BigEndian>();
 }
 
-///
-pub fn try_f32_from_bytes(bytes: Vec<u8>) -> Result<f32, io::Error> {
-    let mut c = Cursor::new(bytes.clone());
+/// Tries to decode bytes array into `f32`.
+pub fn try_f32_from_bytes(bytes: &[u8]) -> Result<f32, io::Error> {
+    let mut c = Cursor::new(bytes);
     return c.read_f32::<BigEndian>();
 }
 
-///
-pub fn try_f64_from_bytes(bytes: Vec<u8>) -> Result<f64, io::Error> {
-    let mut c = Cursor::new(bytes.clone());
+/// Tries to decode bytes array into `f64`.
+pub fn try_f64_from_bytes(bytes: &[u8]) -> Result<f64, io::Error> {
+    let mut c = Cursor::new(bytes);
     return c.read_f64::<BigEndian>();
 }
 
 /// Converts byte-array into u64
-pub fn from_bytes(bytes: Vec<u8>) -> u64 {
+pub fn from_bytes(bytes: &[u8]) -> u64 {
     return try_from_bytes(bytes).unwrap();
 }
 
 /// Converts byte-array into i64
-pub fn from_i_bytes(bytes: Vec<u8>) -> i64 {
+pub fn from_i_bytes(bytes: &[u8]) -> i64 {
     return try_i_from_bytes(bytes).unwrap();
 }
 
 /// Converts byte-array into u16
-pub fn from_u16_bytes(bytes: Vec<u8>) -> u16 {
+pub fn from_u16_bytes(bytes: &[u8]) -> u16 {
     return try_u16_from_bytes(bytes).unwrap();
 }
 
@@ -161,9 +163,9 @@ impl IntoBytes for CString {
 impl FromCursor for CString {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [string].
     /// It reads required number of bytes and returns a String
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CString {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CString {
         let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
-        let len: u64 = from_bytes(len_bytes.to_vec());
+        let len: u64 = from_bytes(len_bytes.as_slice());
         let body_bytes = cursor_next_value(&mut cursor, len);
 
         return CString { string: String::from_utf8(body_bytes).unwrap() };
@@ -207,9 +209,9 @@ impl IntoBytes for CStringLong {
 impl FromCursor for CStringLong {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [string].
     /// It reads required number of bytes and returns a String
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CStringLong {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CStringLong {
         let len_bytes = cursor_next_value(&mut cursor, INT_LEN as u64);
-        let len: u64 = from_bytes(len_bytes.to_vec());
+        let len: u64 = from_bytes(len_bytes.as_slice());
         let body_bytes = cursor_next_value(&mut cursor, len);
 
         return CStringLong { string: String::from_utf8(body_bytes).unwrap() };
@@ -249,13 +251,14 @@ impl IntoBytes for CStringList {
 }
 
 impl FromCursor for CStringList {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CStringList {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CStringList {
+        // TODO: try to use slice instead
         let mut len_bytes = [0; SHORT_LEN];
         if let Err(err) = cursor.read(&mut len_bytes) {
             error!("Read Cassandra bytes error: {}", err);
             panic!(err);
         }
-        let len: u64 = from_bytes(len_bytes.to_vec());
+        let len: u64 = from_bytes(len_bytes.to_vec().as_slice());
         let list = (0..len).map(|_| CString::from_cursor(&mut cursor)).collect();
         return CStringList { list: list };
     }
@@ -277,15 +280,19 @@ impl CBytes {
     pub fn into_plain(self) -> Vec<u8> {
         return self.bytes;
     }
+    // TODO: try to replace usage of `as_plain` by `as_slice`
     pub fn as_plain(&self) -> Vec<u8> {
         return self.bytes.clone();
+    }
+    pub fn as_slice(&self) -> &[u8] {
+        self.bytes.as_slice()
     }
 }
 
 impl FromCursor for CBytes {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].
     /// It reads required number of bytes and returns a CBytes
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CBytes {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CBytes {
         let len: u64 = CInt::from_cursor(&mut cursor) as u64;
         return CBytes { bytes: cursor_next_value(&mut cursor, len) };
     }
@@ -321,7 +328,7 @@ impl CBytesShort {
 impl FromCursor for CBytesShort {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].
     /// It reads required number of bytes and returns a CBytes
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CBytesShort {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CBytesShort {
         let len: u64 = CIntShort::from_cursor(&mut cursor) as u64;
         return CBytesShort { bytes: cursor_next_value(&mut cursor, len) };
     }
@@ -343,9 +350,9 @@ impl IntoBytes for CBytesShort {
 pub type CInt = i32;
 
 impl FromCursor for CInt {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CInt {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CInt {
         let bytes = cursor_next_value(&mut cursor, INT_LEN as u64);
-        return from_bytes(bytes) as CInt;
+        return from_bytes(bytes.as_slice()) as CInt;
     }
 }
 
@@ -353,18 +360,18 @@ impl FromCursor for CInt {
 pub type CIntShort = i16;
 
 impl FromCursor for CIntShort {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CIntShort {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CIntShort {
         let bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
-        return from_bytes(bytes) as CIntShort;
+        return from_bytes(bytes.as_slice()) as CIntShort;
     }
 }
 
 // Use extended Rust Vec<u8> as Cassandra [bytes]
 impl FromBytes for Vec<u8> {
-    fn from_bytes(bytes: Vec<u8>) -> Vec<u8> {
+    fn from_bytes(bytes: &[u8]) -> Vec<u8> {
         let mut cursor = Cursor::new(bytes);
         let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
-        let len: u64 = from_bytes(len_bytes);
+        let len: u64 = from_bytes(len_bytes.as_slice());
         return cursor_next_value(&mut cursor, len);
     }
 }
@@ -377,10 +384,9 @@ pub struct CInet {
 }
 
 impl FromCursor for CInet {
-    fn from_cursor(mut cursor: &mut Cursor<Vec<u8>>) -> CInet {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CInet {
         let n = CIntShort::from_cursor(&mut cursor);
-        let bytes = cursor_next_value(&mut cursor, n as u64);
-        let ip = decode_inet(bytes).unwrap();
+        let ip = decode_inet(cursor_next_value(&mut cursor, n as u64).as_slice()).unwrap();
         let port = CInt::from_cursor(&mut cursor);
         let socket_addr = SocketAddr::new(ip, port as u16);
 
@@ -388,7 +394,7 @@ impl FromCursor for CInet {
     }
 }
 
-pub fn cursor_next_value(mut cursor: &mut Cursor<Vec<u8>>, len: u64) -> Vec<u8> {
+pub fn cursor_next_value(mut cursor: &mut Cursor<&[u8]>, len: u64) -> Vec<u8> {
     let l = len as usize;
     let current_position = cursor.position();
     let mut buff: Vec<u8> = Vec::with_capacity(l);
@@ -438,12 +444,13 @@ mod tests {
         let foo = "foo".to_string();
         let cstring = CString::new(foo);
 
-        assert_eq!(cstring.into_cbytes(), vec![0, 3, 102, 111, 111]);
+        assert_eq!(cstring.into_cbytes(), &[0, 3, 102, 111, 111]);
     }
 
     #[test]
     fn test_cstring_from_cursor() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 3, 102, 111, 111, 0]);
+        let a = &[0, 3, 102, 111, 111, 0];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let cstring = CString::from_cursor(&mut cursor);
         println!("{:?}", &cursor);
         assert_eq!(cstring.as_str(), "foo");
@@ -477,12 +484,13 @@ mod tests {
         let foo = "foo".to_string();
         let cstring = CStringLong::new(foo);
 
-        assert_eq!(cstring.into_cbytes(), vec![0, 0, 0, 3, 102, 111, 111]);
+        assert_eq!(cstring.into_cbytes(), &[0, 0, 0, 3, 102, 111, 111]);
     }
 
     #[test]
     fn test_cstringlong_from_cursor() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 0, 0, 3, 102, 111, 111, 0]);
+        let a = &[0, 0, 0, 3, 102, 111, 111, 0];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let cstring = CStringLong::from_cursor(&mut cursor);
         println!("{:?}", &cursor);
         assert_eq!(cstring.as_str(), "foo");
@@ -491,8 +499,8 @@ mod tests {
     // CStringList
     #[test]
     fn test_cstringlist() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 2, 0, 3, 102, 111, 111, 0, 3, 102,
-                                                           111, 111]);
+        let a = &[0, 2, 0, 3, 102, 111, 111, 0, 3, 102, 111, 111];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let list = CStringList::from_cursor(&mut cursor);
         let plain = list.into_plain();
         assert_eq!(plain.len(), 2);
@@ -504,61 +512,64 @@ mod tests {
     // CBytes
     #[test]
     fn test_cbytes_new() {
-        let bytes_vec: Vec<u8> = vec![1, 2, 3];
+        let bytes_vec = vec![1, 2, 3];
         let _ = CBytes::new(bytes_vec);
     }
 
     #[test]
     fn test_cbytes_into_plain() {
         let cbytes = CBytes::new(vec![1, 2, 3]);
-        assert_eq!(cbytes.into_plain(), vec![1, 2, 3]);
+        assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
     }
 
     #[test]
     fn test_cbytes_from_cursor() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 0, 0, 3, 1, 2, 3]);
+        let a = &[0, 0, 0, 3, 1, 2, 3];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let cbytes = CBytes::from_cursor(&mut cursor);
-        assert_eq!(cbytes.into_plain(), vec![1, 2, 3]);
+        assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
     }
 
     #[test]
     fn test_cbytes_into_cbytes() {
-        let bytes_vec: Vec<u8> = vec![1, 2, 3];
+        let bytes_vec = vec![1, 2, 3];
         let cbytes = CBytes::new(bytes_vec);
-        assert_eq!(cbytes.into_cbytes(), vec![0, 0, 0, 3, 1, 2, 3]);
+        assert_eq!(cbytes.into_cbytes(), &[0, 0, 0, 3, 1, 2, 3]);
     }
 
     // CBytesShort
     #[test]
     fn test_cbytesshort_new() {
-        let bytes_vec: Vec<u8> = vec![1, 2, 3];
+        let bytes_vec = vec![1, 2, 3];
         let _ = CBytesShort::new(bytes_vec);
     }
 
     #[test]
     fn test_cbytesshort_into_plain() {
         let cbytes = CBytesShort::new(vec![1, 2, 3]);
-        assert_eq!(cbytes.into_plain(), vec![1, 2, 3]);
+        assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
     }
 
     #[test]
     fn test_cbytesshort_from_cursor() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 3, 1, 2, 3]);
+        let a = &[0, 3, 1, 2, 3];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let cbytes = CBytesShort::from_cursor(&mut cursor);
-        assert_eq!(cbytes.into_plain(), vec![1, 2, 3]);
+        assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
     }
 
     #[test]
     fn test_cbytesshort_into_cbytes() {
         let bytes_vec: Vec<u8> = vec![1, 2, 3];
         let cbytes = CBytesShort::new(bytes_vec);
-        assert_eq!(cbytes.into_cbytes(), vec![0, 3, 1, 2, 3]);
+        assert_eq!(cbytes.into_cbytes(), &[0, 3, 1, 2, 3]);
     }
 
     // CInt
     #[test]
     fn test_cint_from_cursor() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 0, 0, 5]);
+        let a = &[0, 0, 0, 5];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let i = CInt::from_cursor(&mut cursor);
         assert_eq!(i, 5);
     }
@@ -566,7 +577,8 @@ mod tests {
     // CIntShort
     #[test]
     fn test_cintshort_from_cursor() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 5]);
+        let a = &[0, 5];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let i = CIntShort::from_cursor(&mut cursor);
         assert_eq!(i, 5);
     }
@@ -574,7 +586,8 @@ mod tests {
     // cursor_next_value
     #[test]
     fn test_cursor_next_value() {
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(vec![0, 1, 2, 3, 4]);
+        let a = &[0, 1, 2, 3, 4];
+        let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let l: u64 = 3;
         let val = cursor_next_value(&mut cursor, l);
         assert_eq!(val, vec![0, 1, 2]);
