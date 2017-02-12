@@ -54,12 +54,12 @@ impl Frame {
         ResponseBody::from(self.body.as_slice(), &self.opcode)
     }
 
-    pub fn tracing_id(&self) -> Option<Uuid> {
-        self.tracing_id.clone()
+    pub fn tracing_id(&self) -> &Option<Uuid> {
+        &self.tracing_id
     }
 
-    pub fn warnings(&self) -> Vec<String> {
-        self.warnings.clone()
+    pub fn warnings(&self) -> &Vec<String> {
+        &self.warnings
     }
 
     pub fn encode_with(self, compressor: Compression) -> error::Result<Vec<u8>> {

@@ -5,16 +5,16 @@ use frame::frame_query::ParamsReqQuery;
 
 /// The structure that represents a body of a frame of type `execute`.
 #[derive(Debug)]
-pub struct BodyReqExecute {
+pub struct BodyReqExecute<'a> {
     /// Id of prepared query
-    id: CBytesShort,
+    id: &'a CBytesShort,
     /// Query paramaters which have the same meaning as one for `query`
     query_parameters: ParamsReqQuery,
 }
 
-impl BodyReqExecute {
+impl<'a> BodyReqExecute<'a> {
     /// The method which creates new instance of `BodyReqExecute`
-    pub fn new(id: CBytesShort, query_parameters: ParamsReqQuery) -> BodyReqExecute {
+    pub fn new(id: &CBytesShort, query_parameters: ParamsReqQuery) -> BodyReqExecute {
         BodyReqExecute {
             id: id,
             query_parameters: query_parameters,
@@ -22,7 +22,7 @@ impl BodyReqExecute {
     }
 }
 
-impl IntoBytes for BodyReqExecute {
+impl<'a> IntoBytes for BodyReqExecute<'a> {
     fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
         v.extend_from_slice(self.id.into_cbytes().as_slice());
@@ -33,7 +33,7 @@ impl IntoBytes for BodyReqExecute {
 
 impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
-    pub fn new_req_execute(id: CBytesShort,
+    pub fn new_req_execute(id: &CBytesShort,
                            query_parameters: ParamsReqQuery,
                            flags: Vec<Flag>)
                            -> Frame {

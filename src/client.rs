@@ -92,13 +92,13 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
                 .get_cassandra_name()
                 .ok_or(error::Error::General("No authenticator was provided ".to_string()))
                 .map(|auth| {
-                    if authenticator.as_str() != auth {
+                    if authenticator != auth {
                         let io_err =
                             io::Error::new(io::ErrorKind::NotFound,
                                            format!("Unsupported type of authenticator. {:?} got,
                              but {} is supported.",
                                                    authenticator,
-                                                   authenticator.as_str()));
+                                                   authenticator));
                         return Err(error::Error::Io(io_err));
                     }
                     Ok(())
@@ -191,7 +191,7 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
     /// using provided query parameters. `id` is an ID of a query which Server
     /// returns back to a driver as a response to `prepare` request.
     pub fn execute(&mut self,
-                   id: CBytesShort,
+                   id: &CBytesShort,
                    query_parameters: QueryParams,
                    with_tracing: bool,
                    with_warnings: bool)
