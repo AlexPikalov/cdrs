@@ -8,7 +8,7 @@ use cdrs::query::QueryBuilder;
 use cdrs::authenticators::NoneAuthenticator;
 use cdrs::compression::Compression;
 use cdrs::consistency::Consistency;
-use cdrs::transport::TransportPlain;
+use cdrs::transport::TransportTcp;
 use cdrs::query::QueryParamsBuilder;
 use cdrs::types::value::Value;
 use std::panic;
@@ -20,7 +20,7 @@ const _ADDR: &'static str = "127.0.0.1:9042";
 
 
 pub struct TestContext {
-    pub client: cdrs::client::CDRS<NoneAuthenticator, TransportPlain>,
+    pub client: cdrs::client::CDRS<NoneAuthenticator, TransportTcp>,
 }
 
 #[derive(Debug, Default)]
@@ -165,7 +165,7 @@ impl TestContext {
     fn new() -> TestContext {
         const _ADDR: &'static str = "127.0.0.1:9042";
         let authenticator = NoneAuthenticator;
-        let tcp_transport = TransportPlain::new(_ADDR);
+        let tcp_transport = TransportTcp::new(_ADDR);
         let client = CDRS::new(tcp_transport.unwrap(), authenticator);
         TestContext { client: client }
     }

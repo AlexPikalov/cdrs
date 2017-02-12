@@ -60,10 +60,10 @@ pub struct QueryBuilder {
 }
 
 impl QueryBuilder {
-    /// Factory function that takes CQL `&str` as an argument and returns new `QueryBuilder`.
+    /// Factory function that takes CQL as an argument and returns new `QueryBuilder`.
     /// Default consistency level is `One`
-    pub fn new(query: &str) -> QueryBuilder {
-        return QueryBuilder { query: query.to_string(), ..Default::default() };
+    pub fn new<T: Into<String>>(query: T) -> QueryBuilder {
+        return QueryBuilder { query: query.into(), ..Default::default() };
     }
 
     /// Sets new query consistency
@@ -246,10 +246,10 @@ impl BatchQueryBuilder {
     }
 
     /// Add a query (non-prepared one)
-    pub fn add_query(mut self, query: String, values: Vec<BatchValue>) -> Self {
+    pub fn add_query<T: Into<String>>(mut self, query: T, values: Vec<BatchValue>) -> Self {
         self.queries.push(BatchQuery {
             is_prepared: false,
-            subject: BatchQuerySubj::QueryString(CStringLong::new(query)),
+            subject: BatchQuerySubj::QueryString(CStringLong::new(query.into())),
             values: values,
         });
         self
