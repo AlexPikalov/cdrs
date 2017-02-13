@@ -24,6 +24,8 @@ pub mod error;
 pub mod events;
 pub mod query;
 pub mod transport;
+pub mod prepared_statement;
+
 
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.

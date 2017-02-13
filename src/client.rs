@@ -278,3 +278,63 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
         Ok(new_listener(self.cdrs.transport))
     }
 }
+/**
+Prepare and execute statement with prepared Statement
+*/
+
+pub trait Prepare_And_Executer {
+    fn prepare_statement(&mut self,
+                         query: String,
+                         with_tracing: bool,
+                         with_warnings: bool)
+                         -> error::Result<Frame>;
+    fn execute_statement(&mut self,
+                         id: &CBytesShort,
+                         query_parameters: QueryParams,
+                         with_tracing: bool,
+                         with_warnings: bool)
+                         -> error::Result<Frame>;
+}
+
+
+impl <'a, T: Authenticator + 'a, X: CDRSTransport + 'a> Prepare_And_Executer for  Session<T, X> {
+    fn prepare_statement(&mut self,
+                         query: String,
+                         with_tracing: bool,
+                         with_warnings: bool)
+                         -> error::Result<Frame> {
+        let mut flags = vec![];
+        if with_tracing {
+            flags.push(Flag::Tracing);
+        }
+        if with_warnings {
+            flags.push(Flag::Warning);
+        }
+
+        let options_frame = Frame::new_req_prepare(query, flags).into_cbytes();
+
+        (self.cdrs.transport.write(options_frame.as_slice()))?;
+
+        parse_frame(&mut self.cdrs.transport, &self.compressor)
+    }
+
+    fn execute_statement(&mut self,
+                         id: &CBytesShort,
+                         query_parameters: QueryParams,
+                         with_tracing: bool,
+                         with_warnings: bool)
+                         -> error::Result<Frame> {
+        let mut flags = vec![];
+        if with_tracing {
+            flags.push(Flag::Tracing);
+        }
+        if with_warnings {
+            flags.push(Flag::Warning);
+        }
+        let options_frame = Frame::new_req_execute(id, query_parameters, flags).into_cbytes();
+
+        (self.cdrs.transport.write(options_frame.as_slice()))?;
+        return parse_frame(&mut self.cdrs.transport, &self.compressor);
+    }
+}
+
