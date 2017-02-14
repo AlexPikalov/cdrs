@@ -12,6 +12,7 @@ use types::value::Value;
 use frame::frame_response::ResponseBody;
 use std::collections::BTreeMap;
 use std::convert::Into;
+use byteorder::{BigEndian, WriteBytesExt};
 
 #[derive(Debug)]
 pub struct PreparedStatement {
@@ -47,31 +48,53 @@ impl Default for PreparedStatement {
 }
 
 impl PreparedStatement {
-    pub fn set_string(&mut self, index: u32, val: &'static str) ->error::Result<()>{
+    /// `index` represent the position of  marker `?` in the query
+    pub fn set_string(&mut self, index: u32, val: &'static str) -> error::Result<()> {
         self.query_markers.insert(index, val.to_string().into());
         Ok(())
+    }
 
+    // /// `index` represent the position of  marker `?` in the query
+    // /// date should be in the format epochtime
+    // not yet working
+    // pub fn set_date(&mut self, index: u32, val: i64) -> error::Result<()> {
+    //     let mut wtr = vec![];
+    //     match wtr.write_i64::<BigEndian>(val) {
+    //         Ok(_) => {
+    //             self.query_markers.insert(index, Value::new_normal(wtr.clone()));
+    //             Ok(())
+    //         }
+    //         Err(err) => return Err(error::Error::from(err)),
+    //     }
+    // }
+
+    /// `index` represent the position of marker `?` in the query
+    pub fn set_int(&mut self, index: u32, val: i32) -> error::Result<()> {
+        let mut wtr = vec![];
+        match wtr.write_i32::<BigEndian>(val) {
+            Ok(_) => {
+                self.query_markers.insert(index, Value::new_normal(wtr.clone()));
+                Ok(())
+            }
+            Err(err) => return Err(error::Error::from(err)),
+        }
     }
 }
 
-/**
-Prepare and execute statement with prepared Statement
-*/
+/// This trait once imported into scope would provide the end users to set the values
+/// Prepare and execute statement with prepared Statement
+///
 
 pub trait PrepareAndExecute {
+    /// this returns a prepared statement
+    /// you can call execute_statement after setting the various parameters
     fn prepare_statement(&mut self,
                          query: String,
                          with_tracing: bool,
                          with_warnings: bool)
                          -> error::Result<PreparedStatement>;
 
-    /// id of prepared request
-    ///pub id: CBytesShort,
-    /// metadata
-    ///pub metadata: PreparedMetadata,
-    /// It is defined exactly the same as <metadata> in the Rows
-    /// documentation.
-    ///pub result_metadata: RowsMetadata,
+
     fn execute_statement(&mut self, prepared_statement: PreparedStatement) -> error::Result<Frame>;
 }
 

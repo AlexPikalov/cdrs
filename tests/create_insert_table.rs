@@ -16,7 +16,11 @@ use cdrs::prepared_statement::PrepareAndExecute;
 
 // default credentials
 const _ADDR: &'static str = "127.0.0.1:9042";
-const _customer_name: &'static str = "david candy";
+const _CUSTOMER_NAME: &'static str = "david candy";
+const _PWD: &'static str = "password";
+const _GENDER: &'static str = "male";
+const _STATE: &'static str = "FLL";
+
 
 
 pub struct TestContext {
@@ -84,15 +88,15 @@ fn insert_data_users() {
     values  (?         ,  ?     ,     ?,            ?,     ?)";
 
 
-     
+
     let mut prepared = session.prepare_statement(insert_table_cql.to_string(), true, true).unwrap();
 
-    prepared.set_string(1,_customer_name).unwrap();
-    prepared.set_string(2,"pwd").unwrap();
-    prepared.set_string(3,"male").unwrap();
-    prepared.set_string(4,"09000").unwrap();
-    prepared.set_string(5,"FL").unwrap();
-   
+    prepared.set_string(1, _CUSTOMER_NAME).unwrap();
+    prepared.set_string(2, _PWD).unwrap();
+    prepared.set_string(3, _GENDER).unwrap();
+    prepared.set_string(4, "09000").unwrap();
+    prepared.set_string(5, _STATE).unwrap();
+
     println!("prepared:\n{:?}", prepared);
 
     let executed = session.execute_statement(prepared);
@@ -145,10 +149,10 @@ fn read_from_user_table() {
                 println!("Users {:?}", users);
 
 
-                assert_eq!(users[0].user_name, _customer_name);
-                assert_eq!(users[0].password, "pwd");
-                assert_eq!(users[0].gender, "male");
-                assert_eq!(users[0].state, "FL");
+                assert_eq!(users[0].user_name, _CUSTOMER_NAME);
+                assert_eq!(users[0].password, _PWD);
+                assert_eq!(users[0].gender, _GENDER);
+                assert_eq!(users[0].state, _STATE);
             }
         }
         Err(err) => println!("{:?}", err),
