@@ -21,9 +21,9 @@ use events::{Listener, EventStream, new_listener};
 /// establishing new connection, getting supported options, preparing and executing CQL
 /// queries, using compression and other.
 pub struct CDRS<T: Authenticator, X: CDRSTransport> {
-    compressor: Compression,
+    pub compressor: Compression,
     authenticator: T,
-    transport: X,
+    pub transport: X,
 }
 
 /// Map of options supported by Cassandra server.
@@ -131,8 +131,8 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
 /// The object that provides functionality for communication with Cassandra server.
 pub struct Session<T: Authenticator, X: CDRSTransport> {
     started: bool,
-    cdrs: CDRS<T, X>,
-    compressor: Compression,
+    pub cdrs: CDRS<T, X>,
+    pub compressor: Compression,
 }
 
 impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
@@ -278,63 +278,3 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
         Ok(new_listener(self.cdrs.transport))
     }
 }
-/**
-Prepare and execute statement with prepared Statement
-*/
-
-pub trait Prepare_And_Executer {
-    fn prepare_statement(&mut self,
-                         query: String,
-                         with_tracing: bool,
-                         with_warnings: bool)
-                         -> error::Result<Frame>;
-    fn execute_statement(&mut self,
-                         id: &CBytesShort,
-                         query_parameters: QueryParams,
-                         with_tracing: bool,
-                         with_warnings: bool)
-                         -> error::Result<Frame>;
-}
-
-
-impl <'a, T: Authenticator + 'a, X: CDRSTransport + 'a> Prepare_And_Executer for  Session<T, X> {
-    fn prepare_statement(&mut self,
-                         query: String,
-                         with_tracing: bool,
-                         with_warnings: bool)
-                         -> error::Result<Frame> {
-        let mut flags = vec![];
-        if with_tracing {
-            flags.push(Flag::Tracing);
-        }
-        if with_warnings {
-            flags.push(Flag::Warning);
-        }
-
-        let options_frame = Frame::new_req_prepare(query, flags).into_cbytes();
-
-        (self.cdrs.transport.write(options_frame.as_slice()))?;
-
-        parse_frame(&mut self.cdrs.transport, &self.compressor)
-    }
-
-    fn execute_statement(&mut self,
-                         id: &CBytesShort,
-                         query_parameters: QueryParams,
-                         with_tracing: bool,
-                         with_warnings: bool)
-                         -> error::Result<Frame> {
-        let mut flags = vec![];
-        if with_tracing {
-            flags.push(Flag::Tracing);
-        }
-        if with_warnings {
-            flags.push(Flag::Warning);
-        }
-        let options_frame = Frame::new_req_execute(id, query_parameters, flags).into_cbytes();
-
-        (self.cdrs.transport.write(options_frame.as_slice()))?;
-        return parse_frame(&mut self.cdrs.transport, &self.compressor);
-    }
-}
-

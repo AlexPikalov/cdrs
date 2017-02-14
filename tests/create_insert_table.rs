@@ -9,14 +9,14 @@ use cdrs::authenticators::NoneAuthenticator;
 use cdrs::compression::Compression;
 use cdrs::consistency::Consistency;
 use cdrs::transport::TransportTcp;
-use cdrs::query::QueryParamsBuilder;
-use cdrs::types::value::Value;
 use std::panic;
 use cdrs::types::IntoRustByName;
+use cdrs::prepared_statement::PrepareAndExecute;
 
 
 // default credentials
 const _ADDR: &'static str = "127.0.0.1:9042";
+const _customer_name: &'static str = "david candy";
 
 
 pub struct TestContext {
@@ -84,23 +84,18 @@ fn insert_data_users() {
     values  (?         ,  ?     ,     ?,            ?,     ?)";
 
 
-    let prepared = session.prepare(insert_table_cql.to_string(), true, true)
-        .unwrap()
-        .get_body()
-        .into_prepared()
-        .unwrap();
+     
+    let mut prepared = session.prepare_statement(insert_table_cql.to_string(), true, true).unwrap();
 
+    prepared.set_string(1,_customer_name).unwrap();
+    prepared.set_string(2,"pwd").unwrap();
+    prepared.set_string(3,"male").unwrap();
+    prepared.set_string(4,"09000").unwrap();
+    prepared.set_string(5,"FL").unwrap();
+   
     println!("prepared:\n{:?}", prepared);
 
-    let v: Vec<Value> = vec!["harry".to_string().into(),
-                             "pwd".to_string().into(),
-                             "male".to_string().into(),
-                             "09000".to_string().into(),
-                             "FL".to_string().into()];
-    let execution_params = QueryParamsBuilder::new(Consistency::One).values(v).finalize();
-
-    let ref query_id = prepared.id;
-    let executed = session.execute(query_id, execution_params, true, true);
+    let executed = session.execute_statement(prepared);
 
 
     info!("executed:\n{:?}", executed);
@@ -150,7 +145,7 @@ fn read_from_user_table() {
                 println!("Users {:?}", users);
 
 
-                assert_eq!(users[0].user_name, "harry");
+                assert_eq!(users[0].user_name, _customer_name);
                 assert_eq!(users[0].password, "pwd");
                 assert_eq!(users[0].gender, "male");
                 assert_eq!(users[0].state, "FL");
