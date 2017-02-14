@@ -16,8 +16,10 @@ fn main() {
     let tcp_transport = TransportTcp::new(_ADDR);
     let client = CDRS::new(tcp_transport.unwrap(), NoneAuthenticator);
     let mut session = client.start(Compression::None).unwrap();
-    let insert_table_cql = " INSERT INTO my_namespace.emp (emp_id, emp_name, emp_city,emp_phone,emp_sal)
-    values   (?     ,  ?   ,     ?   ,  ?,     ?)";
+    let insert_table_cql = " INSERT INTO my_namespace.emp (emp_id, emp_name, \
+                            emp_city,emp_phone,emp_sal)
+    values   (?     ,  ?   ,     ?   ,  \
+                            ?,     ?)";
 
     let mut prepared = session.prepare_statement(insert_table_cql.to_string(), true, true).unwrap();
 
