@@ -111,14 +111,58 @@ pub fn from_u16_bytes(bytes: &[u8]) -> u16 {
     return try_u16_from_bytes(bytes).unwrap();
 }
 
-/// Converts number u64 into Cassandra's [short].
-pub fn to_short(int: u64) -> Vec<u8> {
-    return to_n_bytes(int, SHORT_LEN);
+/// Converts number i16 into Cassandra's [short].
+pub fn to_short(int: i16) -> Vec<u8> {
+    let mut bytes = vec![];
+    // should not panic as input is i16
+    let _ = bytes.write_i16::<BigEndian>(int).unwrap();
+
+    bytes
 }
 
 /// Convers integer into Cassandra's [int]
-pub fn to_int(int: i64) -> Vec<u8> {
-    return i_to_n_bytes(int, INT_LEN);
+pub fn to_int(int: i32) -> Vec<u8> {
+    let mut bytes = vec![];
+    // should not panic as input is i16
+    let _ = bytes.write_i32::<BigEndian>(int).unwrap();
+
+    bytes
+}
+
+/// Convers integer into Cassandra's [int]
+pub fn to_bigint(int: i64) -> Vec<u8> {
+    let mut bytes = vec![];
+    // should not panic as input is i16
+    let _ = bytes.write_i64::<BigEndian>(int).unwrap();
+
+    bytes
+}
+
+/// Converts number i16 into Cassandra's [short].
+pub fn to_u_short(int: u16) -> Vec<u8> {
+    let mut bytes = vec![];
+    // should not panic as input is i16
+    let _ = bytes.write_u16::<BigEndian>(int).unwrap();
+
+    bytes
+}
+
+/// Convers integer into Cassandra's [int]
+pub fn to_u(int: u32) -> Vec<u8> {
+    let mut bytes = vec![];
+    // should not panic as input is i16
+    let _ = bytes.write_u32::<BigEndian>(int).unwrap();
+
+    bytes
+}
+
+/// Convers integer into Cassandra's [int]
+pub fn to_u_big(int: u64) -> Vec<u8> {
+    let mut bytes = vec![];
+    // should not panic as input is i16
+    let _ = bytes.write_u64::<BigEndian>(int).unwrap();
+
+    bytes
 }
 
 #[derive(Debug, Clone)]
@@ -153,7 +197,7 @@ impl IntoBytes for CString {
     /// Converts into Cassandra byte representation of [string]
     fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
-        let l = self.string.len() as u64;
+        let l = self.string.len() as i16;
         v.extend_from_slice(to_short(l).as_slice());
         v.extend_from_slice(self.string.as_bytes());
         return v;
@@ -199,7 +243,7 @@ impl IntoBytes for CStringLong {
     /// Converts into Cassandra byte representation of [string]
     fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
-        let l = self.string.len() as i64;
+        let l = self.string.len() as i32;
         v.extend_from_slice(to_int(l).as_slice());
         v.extend_from_slice(self.string.as_bytes());
         return v;
@@ -236,7 +280,7 @@ impl IntoBytes for CStringList {
     fn into_cbytes(&self) -> Vec<u8> {
         let mut bytes = vec![];
 
-        let l = to_short(self.list.len() as u64);
+        let l = to_short(self.list.len() as i16);
         bytes.extend_from_slice(l.as_slice());
 
         bytes = self.list
@@ -302,7 +346,7 @@ impl FromCursor for CBytes {
 impl IntoBytes for CBytes {
     fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
-        let l = self.bytes.len() as i64;
+        let l = self.bytes.len() as i32;
         v.extend_from_slice(to_int(l).as_slice());
         v.extend_from_slice(self.bytes.as_slice());
         return v;
@@ -338,7 +382,7 @@ impl FromCursor for CBytesShort {
 impl IntoBytes for CBytesShort {
     fn into_cbytes(&self) -> Vec<u8> {
         let mut v: Vec<u8> = vec![];
-        let l = self.bytes.len() as u64;
+        let l = self.bytes.len() as i16;
         v.extend_from_slice(to_short(l).as_slice());
         v.extend_from_slice(self.bytes.as_slice());
         return v;

@@ -26,7 +26,7 @@ impl<'a> BodyReqStartup<'a> {
     // should be [u8; 2]
     // Number of key-value pairs
     fn num(&self) -> Vec<u8> {
-        to_short(self.map.len() as u64)
+        to_short(self.map.len() as i16)
     }
 }
 
@@ -37,11 +37,11 @@ impl<'a> IntoBytes for BodyReqStartup<'a> {
         v.extend_from_slice(&self.num().as_slice());
         for (key, val) in self.map.iter() {
             // push key len
-            v.extend_from_slice(to_short(key.len() as u64).as_slice());
+            v.extend_from_slice(to_short(key.len() as i16).as_slice());
             // push key itself
             v.extend_from_slice(key.as_bytes());
             // push val len
-            v.extend_from_slice(to_short(val.len() as u64).as_slice());
+            v.extend_from_slice(to_short(val.len() as i16).as_slice());
             // push val itself
             v.extend_from_slice(val.as_bytes());
         }

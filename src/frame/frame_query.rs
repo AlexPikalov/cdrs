@@ -25,7 +25,7 @@ impl BodyReqQuery {
            page_size: Option<i32>,
            paging_state: Option<CBytes>,
            serial_consistency: Option<Consistency>,
-           timestamp: Option<i64>)
+           timestamp: Option<i32>)
            -> BodyReqQuery {
 
         // query flags
@@ -86,7 +86,7 @@ pub struct ParamsReqQuery {
     /// Serial `Consistency`.
     pub serial_consistency: Option<Consistency>,
     /// Timestamp.
-    pub timestamp: Option<i64>,
+    pub timestamp: Option<i32>,
 }
 
 impl ParamsReqQuery {
@@ -139,7 +139,7 @@ impl IntoBytes for ParamsReqQuery {
         if QueryFlags::has_value(self.flags_as_byte()) {
             // XXX clone
             let values = self.values.clone().unwrap();
-            v.extend_from_slice(to_short(values.len() as u64).as_slice());
+            v.extend_from_slice(to_short(values.len() as i16).as_slice());
             for val in values.iter() {
                 v.extend_from_slice(val.into_cbytes().as_slice());
             }
@@ -284,7 +284,7 @@ impl Frame {
                              page_size: Option<i32>,
                              paging_state: Option<CBytes>,
                              serial_consistency: Option<Consistency>,
-                             timestamp: Option<i64>,
+                             timestamp: Option<i32>,
                              flags: Vec<Flag>)
                              -> Frame {
         let version = Version::Request;

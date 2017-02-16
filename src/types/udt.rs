@@ -94,7 +94,7 @@ impl IntoRustByName<i32> for UDT {
         return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
-                ColType::Int => decode_int(bytes.as_slice()),
+                ColType::Int => decode_int(&bytes.as_slice()),
                 ColType::Date => decode_date(bytes.as_slice()),
                 _ => unreachable!(),
             };
@@ -109,6 +109,19 @@ impl IntoRustByName<i16> for UDT {
             let &(ref col_type, ref bytes) = v;
             let converted = match col_type.id {
                 ColType::Smallint => decode_smallint(bytes.as_slice()),
+                _ => unreachable!(),
+            };
+            return converted.map_err(|err| err.into());
+        });
+    }
+}
+
+impl IntoRustByName<i8> for UDT {
+    fn get_by_name(&self, name: &str) -> Option<Result<i8>> {
+        return self.data.get(name).map(|v| {
+            let &(ref col_type, ref bytes) = v;
+            let converted = match col_type.id {
+                ColType::Tinyint => decode_tinyint(bytes.as_slice()),
                 _ => unreachable!(),
             };
             return converted.map_err(|err| err.into());
@@ -206,7 +219,11 @@ impl IntoRustByName<UDT> for UDT {
     fn get_by_name(&self, name: &str) -> Option<Result<UDT>> {
         return self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
-            let list_bytes: Vec<CBytes> = try!(decode_udt(bytes.as_slice()));
+            let len = match col_type.value {
+                Some(ColTypeOptionValue::UdtType(ref v)) => v.descriptions.len(),
+                _ => 0,
+            };
+            let list_bytes: Vec<CBytes> = try!(decode_udt(bytes.as_slice(), len));
 
             if col_type.value.is_none() {
                 unreachable!();

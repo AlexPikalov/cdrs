@@ -15,7 +15,7 @@ pub struct BodyReqBatch {
     /// https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L409
     pub query_flags: Vec<QueryFlags>,
     pub serial_consistency: Option<Consistency>,
-    pub timestamp: Option<i64>,
+    pub timestamp: Option<i32>,
 }
 
 impl IntoBytes for BodyReqBatch {
@@ -24,7 +24,7 @@ impl IntoBytes for BodyReqBatch {
 
         bytes.push(self.batch_type.as_byte());
 
-        bytes.extend_from_slice(to_short(self.queries.len() as u64).as_slice());
+        bytes.extend_from_slice(to_short(self.queries.len() as i16).as_slice());
 
         bytes = self.queries
             .iter()
@@ -130,7 +130,7 @@ impl IntoBytes for BatchQuery {
             }
         }
 
-        bytes.extend_from_slice(to_short(self.values.len() as u64).as_slice());
+        bytes.extend_from_slice(to_short(self.values.len() as i16).as_slice());
 
         bytes = self.values
             .iter()

@@ -178,6 +178,27 @@ impl IntoRustByName<i16> for Row {
     }
 }
 
+impl IntoRustByName<i8> for Row {
+    fn get_by_name(&self, name: &str) -> Option<Result<i8>> {
+        return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
+            let bytes = cbytes.as_slice();
+
+            let converted = match cassandra_type {
+                &ColType::Tinyint => decode_tinyint(bytes),
+                _ => {
+                    let io_err =
+                        io::Error::new(io::ErrorKind::NotFound,
+                                       format!("Unsupported type of converter. {:?} got, but
+                    (Tinyint) is only supported.",
+                                               cassandra_type));
+                    Err(io_err)
+                }
+            };
+            return converted.map_err(|err| err.into());
+        });
+    }
+}
+
 impl IntoRustByName<f64> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<f64>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
@@ -306,7 +327,9 @@ impl IntoRustByName<UDT> for Row {
             };
 
             return match cassandra_type.col_type.id {
-                ColType::Map => Ok(UDT::new(decode_udt(bytes).unwrap(), cudt)),
+                ColType::Udt => {
+                    Ok(UDT::new(decode_udt(bytes, cudt.descriptions.len()).unwrap(), cudt))
+                }
                 _ => unreachable!(),
             };
         });

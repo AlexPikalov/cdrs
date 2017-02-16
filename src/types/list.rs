@@ -200,6 +200,31 @@ impl AsRust<Vec<i16>> for List {
     }
 }
 
+impl AsRust<Vec<i8>> for List {
+    /// Converts cassandra list of i16-like values into Rust `Vec<i16>`
+    fn as_rust(&self) -> Result<Vec<i8>> {
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CList(ref type_option)) => {
+                match type_option.id {
+                    ColType::Tinyint => {
+                        Ok(self.map(|bytes| decode_tinyint(bytes.as_slice()).unwrap()))
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            Some(ColTypeOptionValue::CSet(ref type_option)) => {
+                match type_option.id {
+                    ColType::Tinyint => {
+                        Ok(self.map(|bytes| decode_tinyint(bytes.as_slice()).unwrap()))
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl AsRust<Vec<f64>> for List {
     /// Converts cassandra list of f64-like values into Rust `Vec<f64>`
     fn as_rust(&self) -> Result<Vec<f64>> {
@@ -402,7 +427,10 @@ impl AsRust<Vec<UDT>> for List {
                     // T is Udt
                     ColType::Udt => {
                         Ok(self.map(|bytes| {
-                            UDT::new(decode_udt(bytes.as_slice()).unwrap(), list_type_option)
+                            UDT::new(decode_udt(bytes.as_slice(),
+                                                list_type_option.descriptions.len())
+                                         .unwrap(),
+                                     list_type_option)
                         }))
                     }
                     _ => unreachable!(),
@@ -418,7 +446,10 @@ impl AsRust<Vec<UDT>> for List {
                     // T is Udt
                     ColType::Udt => {
                         Ok(self.map(|bytes| {
-                            UDT::new(decode_udt(bytes.as_slice()).unwrap(), list_type_option)
+                            UDT::new(decode_udt(bytes.as_slice(),
+                                                list_type_option.descriptions.len())
+                                         .unwrap(),
+                                     list_type_option)
                         }))
                     }
                     _ => unreachable!(),

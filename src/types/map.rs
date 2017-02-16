@@ -249,6 +249,31 @@ impl AsRust<HashMap<String, i16>> for Map {
     }
 }
 
+impl AsRust<HashMap<String, i8>> for Map {
+    /// Converts `Map` into `HashMap<String, i16>` for numerical values.
+    fn as_rust(&self) -> Result<HashMap<String, i8>> {
+        let map: HashMap<String, i8> = HashMap::new();
+
+        // FIXME
+        match self.metadata.value {
+            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
+                match value_type_option.id {
+                    ColType::Tinyint => {
+                        Ok(self.data
+                            .iter()
+                            .fold(map, |mut acc, (k, vb)| {
+                                acc.insert(k.clone(), decode_tinyint(vb.as_slice()).unwrap());
+                                return acc;
+                            }))
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl AsRust<HashMap<String, f64>> for Map {
     /// Converts `Map` into `HashMap<String, f64>` for numerical values.
     fn as_rust(&self) -> Result<HashMap<String, f64>> {
@@ -440,7 +465,10 @@ impl AsRust<HashMap<String, UDT>> for Map {
                         Ok(self.data
                             .iter()
                             .fold(map, |mut acc, (k, vb)| {
-                                let list = UDT::new(decode_udt(vb.as_slice()).unwrap(),
+                                let list = UDT::new(decode_udt(vb.as_slice(),
+                                                               list_type_option.descriptions
+                                                                   .len())
+                                                        .unwrap(),
                                                     list_type_option);
                                 acc.insert(k.clone(), list);
                                 return acc;

@@ -148,6 +148,11 @@ pub fn decode_smallint(bytes: &[u8]) -> Result<i16, io::Error> {
     try_from_bytes(bytes).map(|i| i as i16)
 }
 
+// Decodes Cassandra `tinyint` data (bytes) into Rust's `Result<i8, io::Error>`
+pub fn decode_tinyint(bytes: &[u8]) -> Result<i8, io::Error> {
+    Ok(bytes[0] as i8)
+}
+
 // Decodes Cassandra `text` data (bytes) into Rust's `Result<String, FromUtf8Error>`.
 pub fn decode_text(bytes: &[u8]) -> Result<String, FromUtf8Error> {
     Ok(String::from_utf8_lossy(bytes).into_owned())
@@ -170,9 +175,8 @@ pub fn decode_varint(bytes: &[u8]) -> Result<i64, io::Error> {
 
 // Decodes Cassandra `Udt` data (bytes) into Rust's `Result<Vec<CBytes>, io::Error>`
 // each `CBytes` is encoded type of field of user defined type
-pub fn decode_udt(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
+pub fn decode_udt(bytes: &[u8], l: usize) -> Result<Vec<CBytes>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
-    let l = CInt::from_cursor(&mut cursor);
     let list = (0..l).map(|_| CBytes::from_cursor(&mut cursor)).collect();
     Ok(list)
 }
