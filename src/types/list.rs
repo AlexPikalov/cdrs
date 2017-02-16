@@ -335,7 +335,6 @@ impl AsRust<Vec<List>> for List {
         match self.metadata.value {
             // convert CList of T-s into List of T-s
             Some(ColTypeOptionValue::CList(ref type_option)) => {
-                println!("list of list {:?}", type_option.id);
                 match type_option.id {
                     // T is another List
                     ColType::List => {
@@ -428,7 +427,10 @@ impl AsRust<Vec<UDT>> for List {
                     // T is Udt
                     ColType::Udt => {
                         Ok(self.map(|bytes| {
-                            UDT::new(decode_udt(bytes.as_slice()).unwrap(), list_type_option)
+                            UDT::new(decode_udt(bytes.as_slice(),
+                                                list_type_option.descriptions.len())
+                                         .unwrap(),
+                                     list_type_option)
                         }))
                     }
                     _ => unreachable!(),
@@ -444,7 +446,10 @@ impl AsRust<Vec<UDT>> for List {
                     // T is Udt
                     ColType::Udt => {
                         Ok(self.map(|bytes| {
-                            UDT::new(decode_udt(bytes.as_slice()).unwrap(), list_type_option)
+                            UDT::new(decode_udt(bytes.as_slice(),
+                                                list_type_option.descriptions.len())
+                                         .unwrap(),
+                                     list_type_option)
                         }))
                     }
                     _ => unreachable!(),

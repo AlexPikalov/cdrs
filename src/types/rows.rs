@@ -327,7 +327,9 @@ impl IntoRustByName<UDT> for Row {
             };
 
             return match cassandra_type.col_type.id {
-                ColType::Map => Ok(UDT::new(decode_udt(bytes).unwrap(), cudt)),
+                ColType::Udt => {
+                    Ok(UDT::new(decode_udt(bytes, cudt.descriptions.len()).unwrap(), cudt))
+                }
                 _ => unreachable!(),
             };
         });

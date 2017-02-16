@@ -1,4 +1,5 @@
-use super::super::IntoBytes;
+use std::collections::HashMap;
+use IntoBytes;
 use super::*;
 use std::convert::Into;
 
@@ -77,6 +78,12 @@ impl<T: Into<Bytes>> From<T> for Value {
 #[derive(Debug)]
 pub struct Bytes(Vec<u8>);
 
+impl Bytes {
+    pub fn new(bytes: Vec<u8>) -> Bytes {
+        Bytes(bytes)
+    }
+}
+
 impl Into<Bytes> for String {
     fn into(self) -> Bytes {
         Bytes(self.into_bytes())
@@ -151,6 +158,22 @@ impl<T: Into<Bytes> + Clone + Debug> From<Vec<T>> for Bytes {
             .fold(bytes, |mut acc, v| {
                 let b: Bytes = v.clone().into();
                 acc.extend_from_slice(Value::new_normal(b).into_cbytes().as_slice());
+                acc
+            });
+        Bytes(bytes)
+    }
+}
+
+impl<T: Into<Bytes> + Clone + Debug> From<HashMap<String, T>> for Bytes {
+    fn from(vec: HashMap<String, T>) -> Bytes {
+        let mut bytes: Vec<u8> = vec![];
+        bytes.extend_from_slice(to_int(vec.len() as i32).as_slice());
+        bytes = vec.iter()
+            .fold(bytes, |mut acc, (k, v)| {
+                let key_bytes: Bytes = k.clone().into();
+                let val_bytes: Bytes = v.clone().into();
+                acc.extend_from_slice(Value::new_normal(key_bytes).into_cbytes().as_slice());
+                acc.extend_from_slice(Value::new_normal(val_bytes).into_cbytes().as_slice());
                 acc
             });
         Bytes(bytes)
