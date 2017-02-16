@@ -40,7 +40,7 @@ pub struct Query {
     pub page_size: Option<i32>,
     pub paging_state: Option<CBytes>,
     pub serial_consistency: Option<Consistency>,
-    pub timestamp: Option<i64>,
+    pub timestamp: Option<i32>,
 }
 
 /// QueryBuilder is a helper sturcture that helps to construct `Query`. `Query` itself
@@ -56,7 +56,7 @@ pub struct QueryBuilder {
     page_size: Option<i32>,
     paging_state: Option<CBytes>,
     serial_consistency: Option<Consistency>,
-    timestamp: Option<i64>,
+    timestamp: Option<i32>,
 }
 
 impl QueryBuilder {
@@ -89,7 +89,7 @@ impl QueryBuilder {
     builder_opt_field!(serial_consistency, Consistency);
 
     /// Sets new quey timestamp
-    builder_opt_field!(timestamp, i64);
+    builder_opt_field!(timestamp, i32);
 
     pub fn apply_query_params(mut self, params: QueryParams) -> Self {
         self.consistency = params.consistency;
@@ -128,7 +128,7 @@ pub struct QueryParamsBuilder {
     page_size: Option<i32>,
     paging_state: Option<CBytes>,
     serial_consistency: Option<Consistency>,
-    timestamp: Option<i64>,
+    timestamp: Option<i32>,
 }
 
 impl QueryParamsBuilder {
@@ -174,7 +174,7 @@ impl QueryParamsBuilder {
         return self;
     }
 
-    pub fn timestamp(mut self, timestamp: i64) -> Self {
+    pub fn timestamp(mut self, timestamp: i32) -> Self {
         self.timestamp = Some(timestamp);
 
         return self;
@@ -226,7 +226,7 @@ pub struct BatchQueryBuilder {
     queries: Vec<BatchQuery>,
     consistency: Consistency,
     serial_consistency: Option<Consistency>,
-    timestamp: Option<i64>,
+    timestamp: Option<i32>,
 }
 
 impl BatchQueryBuilder {
@@ -280,7 +280,7 @@ impl BatchQueryBuilder {
         self
     }
 
-    pub fn timestamp(mut self, timestamp: Option<i64>) -> Self {
+    pub fn timestamp(mut self, timestamp: Option<i32>) -> Self {
         self.timestamp = timestamp;
         self
     }

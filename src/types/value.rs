@@ -2,6 +2,8 @@ use super::super::IntoBytes;
 use super::*;
 use std::convert::Into;
 
+use std::fmt::Debug;
+
 /// Types of Cassandra value: normal value (bits), null value and not-set value
 #[derive(Debug, Clone)]
 pub enum ValueType {
@@ -13,7 +15,7 @@ pub enum ValueType {
 impl IntoBytes for ValueType {
     fn into_cbytes(&self) -> Vec<u8> {
         return match *self {
-            ValueType::Normal(n) => to_int(n as i64),
+            ValueType::Normal(n) => to_int(n),
             ValueType::Null => i_to_n_bytes(-1, INT_LEN),
             ValueType::NotSet => i_to_n_bytes(-2, INT_LEN),
         };
@@ -27,19 +29,15 @@ pub struct Value {
     pub value_type: ValueType,
 }
 
-impl Into<Value> for String {
-    fn into(self) -> Value {
-        Value::new_normal(self.into_bytes())
-    }
-}
-
-
 impl Value {
     /// The factory method which creates a normal type value basing on provided bytes.
-    pub fn new_normal(body: Vec<u8>) -> Value {
-        let l = body.len() as i32;
+    pub fn new_normal<B>(v: B) -> Value
+        where B: Into<Bytes>
+    {
+        let bytes = v.into().0;
+        let l = bytes.len() as i32;
         return Value {
-            body: body,
+            body: bytes.to_vec(),
             value_type: ValueType::Normal(l),
         };
     }
@@ -70,6 +68,95 @@ impl IntoBytes for Value {
     }
 }
 
+impl<T: Into<Bytes>> From<T> for Value {
+    fn from(b: T) -> Value {
+        Value::new_normal(b.into())
+    }
+}
+
+#[derive(Debug)]
+pub struct Bytes(Vec<u8>);
+
+impl Into<Bytes> for String {
+    fn into(self) -> Bytes {
+        Bytes(self.into_bytes())
+    }
+}
+
+impl<'a> Into<Bytes> for &'a str {
+    fn into(self) -> Bytes {
+        Bytes(self.as_bytes().to_vec())
+    }
+}
+
+impl Into<Bytes> for i8 {
+    fn into(self) -> Bytes {
+        Bytes(vec![self as u8])
+    }
+}
+
+impl Into<Bytes> for i16 {
+    fn into(self) -> Bytes {
+        Bytes(to_short(self))
+    }
+}
+
+impl Into<Bytes> for i32 {
+    fn into(self) -> Bytes {
+        Bytes(to_int(self))
+    }
+}
+
+impl Into<Bytes> for i64 {
+    fn into(self) -> Bytes {
+        Bytes(to_bigint(self))
+    }
+}
+
+impl Into<Bytes> for u8 {
+    fn into(self) -> Bytes {
+        Bytes(vec![self])
+    }
+}
+
+impl Into<Bytes> for u16 {
+    fn into(self) -> Bytes {
+        Bytes(to_u_short(self))
+    }
+}
+
+impl Into<Bytes> for u32 {
+    fn into(self) -> Bytes {
+        Bytes(to_u(self))
+    }
+}
+
+impl Into<Bytes> for u64 {
+    fn into(self) -> Bytes {
+        Bytes(to_u_big(self))
+    }
+}
+
+impl Into<Bytes> for bool {
+    fn into(self) -> Bytes {
+        if self { Bytes(vec![1]) } else { Bytes(vec![0]) }
+    }
+}
+
+impl<T: Into<Bytes> + Clone + Debug> From<Vec<T>> for Bytes {
+    fn from(vec: Vec<T>) -> Bytes {
+        let mut bytes: Vec<u8> = vec![];
+        bytes.extend_from_slice(to_int(vec.len() as i32).as_slice());
+        bytes = vec.iter()
+            .fold(bytes, |mut acc, v| {
+                let b: Bytes = v.clone().into();
+                acc.extend_from_slice(Value::new_normal(b).into_cbytes().as_slice());
+                acc
+            });
+        Bytes(bytes)
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -91,14 +178,29 @@ mod tests {
 
     #[test]
     fn test_new_normal_value() {
-        let plain_value = vec![1, 1];
+        let plain_value = "hello";
         let len = plain_value.len() as i32;
-        let normal_value = Value::new_normal(plain_value.clone());
-        assert_eq!(normal_value.body, plain_value);
+        let normal_value = Value::new_normal(plain_value);
+        assert_eq!(normal_value.body, b"hello");
         match normal_value.value_type {
             ValueType::Normal(l) => assert_eq!(l, len),
             _ => unreachable!(),
         }
+    }
+
+    #[test]
+    fn test_new_normal_value_all_types() {
+        let _ = Value::new_normal("hello");
+        let _ = Value::new_normal("hello".to_string());
+        let _ = Value::new_normal(1 as u8);
+        let _ = Value::new_normal(1 as u16);
+        let _ = Value::new_normal(1 as u32);
+        let _ = Value::new_normal(1 as u64);
+        let _ = Value::new_normal(1 as i8);
+        let _ = Value::new_normal(1 as i16);
+        let _ = Value::new_normal(1 as i32);
+        let _ = Value::new_normal(1 as i64);
+        let _ = Value::new_normal(true);
     }
 
     #[test]
@@ -123,7 +225,7 @@ mod tests {
 
     #[test]
     fn test_value_into_cbytes() {
-        let value = Value::new_normal(vec![1]);
+        let value = Value::new_normal(1 as u8);
         assert_eq!(value.into_cbytes(), vec![0, 0, 0, 1, 1]);
     }
 

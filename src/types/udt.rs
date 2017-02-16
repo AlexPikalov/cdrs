@@ -116,6 +116,19 @@ impl IntoRustByName<i16> for UDT {
     }
 }
 
+impl IntoRustByName<i8> for UDT {
+    fn get_by_name(&self, name: &str) -> Option<Result<i8>> {
+        return self.data.get(name).map(|v| {
+            let &(ref col_type, ref bytes) = v;
+            let converted = match col_type.id {
+                ColType::Tinyint => decode_tinyint(bytes.as_slice()),
+                _ => unreachable!(),
+            };
+            return converted.map_err(|err| err.into());
+        });
+    }
+}
+
 impl IntoRustByName<f64> for UDT {
     fn get_by_name(&self, name: &str) -> Option<Result<f64>> {
         return self.data.get(name).map(|v| {

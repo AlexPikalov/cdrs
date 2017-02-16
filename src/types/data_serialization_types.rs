@@ -148,6 +148,11 @@ pub fn decode_smallint(bytes: &[u8]) -> Result<i16, io::Error> {
     try_from_bytes(bytes).map(|i| i as i16)
 }
 
+// Decodes Cassandra `tinyint` data (bytes) into Rust's `Result<i8, io::Error>`
+pub fn decode_tinyint(bytes: &[u8]) -> Result<i8, io::Error> {
+    Ok(bytes[0] as i8)
+}
+
 // Decodes Cassandra `text` data (bytes) into Rust's `Result<String, FromUtf8Error>`.
 pub fn decode_text(bytes: &[u8]) -> Result<String, FromUtf8Error> {
     Ok(String::from_utf8_lossy(bytes).into_owned())

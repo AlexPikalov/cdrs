@@ -307,9 +307,9 @@ impl RowsMetadataFlag {
 impl IntoBytes for RowsMetadataFlag {
     fn into_cbytes(&self) -> Vec<u8> {
         match *self {
-            RowsMetadataFlag::GlobalTableSpace => to_int(GLOBAL_TABLE_SPACE as i64),
-            RowsMetadataFlag::HasMorePages => to_int(HAS_MORE_PAGES as i64),
-            RowsMetadataFlag::NoMetadata => to_int(NO_METADATA as i64),
+            RowsMetadataFlag::GlobalTableSpace => to_int(GLOBAL_TABLE_SPACE),
+            RowsMetadataFlag::HasMorePages => to_int(HAS_MORE_PAGES),
+            RowsMetadataFlag::NoMetadata => to_int(NO_METADATA),
         }
     }
 }
