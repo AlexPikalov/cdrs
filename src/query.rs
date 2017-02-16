@@ -204,7 +204,6 @@ impl QueryParamsBuilder {
             flags.push(QueryFlags::WithDefaultTimestamp);
         }
 
-        //TODO need to revisit// borrow checker was complaining do without the clone
         QueryParams {
             consistency: self.consistency,
             flags: flags,
