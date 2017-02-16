@@ -21,9 +21,9 @@ use events::{Listener, EventStream, new_listener};
 /// establishing new connection, getting supported options, preparing and executing CQL
 /// queries, using compression and other.
 pub struct CDRS<T: Authenticator, X: CDRSTransport> {
-    compressor: Compression,
+    pub compressor: Compression,
     authenticator: T,
-    transport: X,
+    pub transport: X,
 }
 
 /// Map of options supported by Cassandra server.
@@ -131,8 +131,8 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
 /// The object that provides functionality for communication with Cassandra server.
 pub struct Session<T: Authenticator, X: CDRSTransport> {
     started: bool,
-    cdrs: CDRS<T, X>,
-    compressor: Compression,
+    pub cdrs: CDRS<T, X>,
+    pub compressor: Compression,
 }
 
 impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
