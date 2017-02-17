@@ -14,6 +14,8 @@
 | boolean | bool |
 | time | i64 |
 | timestamp | i64 |
+| float | f32 |
+| double | f64 |
 | uuid | [Uuid](https://doc.rust-lang.org/uuid/uuid/struct.Uuid.html) |
 
 #### complex types
