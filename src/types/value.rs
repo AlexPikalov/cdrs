@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use uuid::Uuid;
 use IntoBytes;
 use super::*;
 use std::convert::Into;
@@ -147,6 +148,24 @@ impl Into<Bytes> for u64 {
 impl Into<Bytes> for bool {
     fn into(self) -> Bytes {
         if self { Bytes(vec![1]) } else { Bytes(vec![0]) }
+    }
+}
+
+impl Into<Bytes> for Uuid {
+    fn into(self) -> Bytes {
+        Bytes(self.as_bytes().to_vec())
+    }
+}
+
+impl Into<Bytes> for f32 {
+    fn into(self) -> Bytes {
+        Bytes(to_float(self))
+    }
+}
+
+impl Into<Bytes> for f64 {
+    fn into(self) -> Bytes {
+        Bytes(to_float_big(self))
     }
 }
 

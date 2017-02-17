@@ -1,6 +1,8 @@
 
 extern crate cdrs;
+extern crate uuid;
 
+use uuid::Uuid;
 use std::convert::Into;
 use cdrs::IntoBytes;
 use cdrs::client::{CDRS, Session};
@@ -47,6 +49,21 @@ const SELECT_UDT: &'static str = "SELECT * FROM my_ks.udts;";
 const INSERT_INT: &'static str = "INSERT INTO my_ks.test_num (my_bigint, my_int, my_smallint, \
                                   my_tinyint) VALUES (?, ?, ?, ?)";
 const SELECT_INT: &'static str = "SELECT * FROM my_ks.test_num";
+const CREATE_TABLE_BOOL: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.bool (my_key int \
+                                        PRIMARY KEY, my_boolean boolean);";
+const INSERT_BOOL: &'static str = "INSERT INTO my_ks.bool (my_key, my_boolean) \
+                                    VALUES (?, ?);";
+const SELECT_BOOL: &'static str = "SELECT * FROM my_ks.bool;";
+const CREATE_TABLE_UUID: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.uuid (my_key int \
+                                        PRIMARY KEY, my_uuid uuid);";
+const INSERT_UUID: &'static str = "INSERT INTO my_ks.uuid (my_key, my_uuid) \
+                                    VALUES (?, ?);";
+const SELECT_UUID: &'static str = "SELECT * FROM my_ks.uuid;";
+const CREATE_TABLE_FLOAT: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.float (my_float float \
+                                        PRIMARY KEY, my_double double);";
+const INSERT_FLOAT: &'static str = "INSERT INTO my_ks.float (my_float, my_double) \
+                                    VALUES (?, ?);";
+const SELECT_FLOAT: &'static str = "SELECT * FROM my_ks.float;";
 
 // // select all
 fn main() {
@@ -133,6 +150,41 @@ fn main() {
         println!("18. udt table selected");
     }
 
+    if create_table_bool(&mut session) {
+        println!("19. bool table created");
+    }
+
+    if insert_table_bool(&mut session) {
+        println!("20. bool table inserted");
+    }
+
+    if select_table_bool(&mut session) {
+        println!("21. bool table selected");
+    }
+
+    if create_table_uuid(&mut session) {
+        println!("22. uuid table created");
+    }
+
+    if insert_table_uuid(&mut session) {
+        println!("23. uuid table inserted");
+    }
+
+    if select_table_uuid(&mut session) {
+        println!("24. uuid table selected");
+    }
+
+    if create_table_float(&mut session) {
+        println!("25. float table created");
+    }
+
+    if insert_table_float(&mut session) {
+        println!("26. float table inserted");
+    }
+
+    if select_table_float(&mut session) {
+        println!("27. float table selected");
+    }
 }
 
 fn create_keyspace(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
@@ -412,6 +464,114 @@ fn select_table_udt(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
     true
 }
 
+fn create_table_bool(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let q = QueryBuilder::new(CREATE_TABLE_BOOL).finalize();
+    match session.query(q, false, false) {
+        Err(ref err) => panic!("create_table uuid {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn insert_table_bool(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let values: Vec<Value> = vec![(1 as i32).into(), false.into()];
+
+    let query = QueryBuilder::new(INSERT_BOOL).values(values).finalize();
+    let inserted = session.query(query, false, false);
+    match inserted {
+        Err(ref err) => panic!("inserted bool {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn select_table_bool(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+
+    let select_query = QueryBuilder::new(SELECT_BOOL).finalize();
+    let all = session.query(select_query, false, false)
+        .unwrap()
+        .get_body()
+        .into_rows()
+        .unwrap();
+
+    for row in all {
+        let _: bool = row.get_by_name("my_boolean").expect("my_boolean").unwrap();
+    }
+
+    true
+}
+
+fn create_table_uuid(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let q = QueryBuilder::new(CREATE_TABLE_UUID).finalize();
+    match session.query(q, false, false) {
+        Err(ref err) => panic!("create_table uuid {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn insert_table_uuid(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let uuid: Uuid = Uuid::parse_str("0000002a-000c-0005-0c03-0938362b0809").unwrap();
+    let values: Vec<Value> = vec![(1 as i32).into(), uuid.into()];
+
+    let query = QueryBuilder::new(INSERT_UUID).values(values).finalize();
+    let inserted = session.query(query, false, false);
+    match inserted {
+        Err(ref err) => panic!("inserted UUID {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn select_table_uuid(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+
+    let select_query = QueryBuilder::new(SELECT_UUID).finalize();
+    let all = session.query(select_query, false, false)
+        .unwrap()
+        .get_body()
+        .into_rows()
+        .unwrap();
+
+    for row in all {
+        let b: Uuid = row.get_by_name("my_uuid").expect("my_uuid").unwrap();
+    }
+
+    true
+}
+
+fn create_table_float(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let q = QueryBuilder::new(CREATE_TABLE_FLOAT).finalize();
+    match session.query(q, false, false) {
+        Err(ref err) => panic!("create_table float {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn insert_table_float(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let float: f32 = 4321.0;
+    let double: f64 = 1234.0;
+    let values: Vec<Value> = vec![float.into(), double.into()];
+
+    let query = QueryBuilder::new(INSERT_FLOAT).values(values).finalize();
+    let inserted = session.query(query, false, false);
+    match inserted {
+        Err(ref err) => panic!("inserted float {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn select_table_float(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+
+    let select_query = QueryBuilder::new(SELECT_FLOAT).finalize();
+    let all = session.query(select_query, false, false)
+        .unwrap()
+        .get_body()
+        .into_rows()
+        .unwrap();
+
+    for row in all {
+        let _: f32 = row.get_by_name("my_float").expect("my_float").unwrap();
+        let _: f64 = row.get_by_name("my_double").expect("my_double").unwrap();
+    }
+
+    true
+}
 
 struct Ints {
     pub bigint: i64,
