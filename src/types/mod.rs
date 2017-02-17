@@ -150,7 +150,7 @@ pub fn to_u_short(int: u16) -> Vec<u8> {
 /// Convers integer into Cassandra's [int]
 pub fn to_u(int: u32) -> Vec<u8> {
     let mut bytes = vec![];
-    // should not panic as input is i16
+    // should not panic as input is u64
     let _ = bytes.write_u32::<BigEndian>(int).unwrap();
 
     bytes
@@ -159,8 +159,24 @@ pub fn to_u(int: u32) -> Vec<u8> {
 /// Convers integer into Cassandra's [int]
 pub fn to_u_big(int: u64) -> Vec<u8> {
     let mut bytes = vec![];
-    // should not panic as input is i16
+    // should not panic as input is u64
     let _ = bytes.write_u64::<BigEndian>(int).unwrap();
+
+    bytes
+}
+
+pub fn to_float(f: f32) -> Vec<u8> {
+    let mut bytes = vec![];
+    // should not panic as input is f32
+    let _ = bytes.write_f32::<BigEndian>(f).unwrap();
+
+    bytes
+}
+
+pub fn to_float_big(f: f64) -> Vec<u8> {
+    let mut bytes = vec![];
+    // should not panic as input is f64
+    let _ = bytes.write_f64::<BigEndian>(f).unwrap();
 
     bytes
 }
