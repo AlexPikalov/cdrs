@@ -529,7 +529,7 @@ fn select_table_uuid(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
         .unwrap();
 
     for row in all {
-        let b: Uuid = row.get_by_name("my_uuid").expect("my_uuid").unwrap();
+        let _: Uuid = row.get_by_name("my_uuid").expect("my_uuid").unwrap();
     }
 
     true
