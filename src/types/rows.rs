@@ -335,5 +335,3 @@ impl IntoRustByName<UDT> for Row {
         });
     }
 }
-
-// TODO: add uuid

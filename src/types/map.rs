@@ -481,5 +481,3 @@ impl AsRust<HashMap<String, UDT>> for Map {
         }
     }
 }
-
-// TODO: uuid

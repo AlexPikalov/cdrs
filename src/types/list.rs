@@ -459,5 +459,3 @@ impl AsRust<Vec<UDT>> for List {
         }
     }
 }
-
-// TODO: implement for list of uuid
