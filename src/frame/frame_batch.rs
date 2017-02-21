@@ -15,7 +15,7 @@ pub struct BodyReqBatch {
     /// https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L409
     pub query_flags: Vec<QueryFlags>,
     pub serial_consistency: Option<Consistency>,
-    pub timestamp: Option<i32>,
+    pub timestamp: Option<i64>,
 }
 
 impl IntoBytes for BodyReqBatch {
@@ -45,7 +45,7 @@ impl IntoBytes for BodyReqBatch {
         }
 
         if let Some(ref timestamp) = self.timestamp {
-            bytes.extend_from_slice(to_int(timestamp.clone()).as_slice());
+            bytes.extend_from_slice(to_bigint(timestamp.clone()).as_slice());
         }
 
         bytes
