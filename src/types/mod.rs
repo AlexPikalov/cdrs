@@ -433,7 +433,6 @@ impl FromCursor for CIntShort {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CIntShort {
         let bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
         try_i16_from_bytes(bytes.as_slice()).unwrap() as CIntShort
-        // return from_bytes(bytes.as_slice()) as CIntShort;
     }
 }
 
