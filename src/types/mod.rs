@@ -84,6 +84,12 @@ pub fn try_i32_from_bytes(bytes: &[u8]) -> Result<i32, io::Error> {
     return c.read_i32::<BigEndian>();
 }
 
+/// Tries to decode bytes array into `i16`.
+pub fn try_i16_from_bytes(bytes: &[u8]) -> Result<i16, io::Error> {
+    let mut c = Cursor::new(bytes);
+    return c.read_i16::<BigEndian>();
+}
+
 /// Tries to decode bytes array into `f32`.
 pub fn try_f32_from_bytes(bytes: &[u8]) -> Result<f32, io::Error> {
     let mut c = Cursor::new(bytes);
@@ -353,8 +359,12 @@ impl FromCursor for CBytes {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].
     /// It reads required number of bytes and returns a CBytes
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CBytes {
-        let len: u64 = CInt::from_cursor(&mut cursor) as u64;
-        return CBytes { bytes: cursor_next_value(&mut cursor, len) };
+        let len = CInt::from_cursor(&mut cursor);
+        // null or not set value
+        if len < 0 {
+            return CBytes { bytes: vec![] };
+        }
+        return CBytes { bytes: cursor_next_value(&mut cursor, len as u64) };
     }
 }
 
@@ -412,7 +422,7 @@ pub type CInt = i32;
 impl FromCursor for CInt {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CInt {
         let bytes = cursor_next_value(&mut cursor, INT_LEN as u64);
-        return from_bytes(bytes.as_slice()) as CInt;
+        try_i32_from_bytes(bytes.as_slice()).unwrap() as CInt
     }
 }
 
@@ -422,7 +432,8 @@ pub type CIntShort = i16;
 impl FromCursor for CIntShort {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CIntShort {
         let bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
-        return from_bytes(bytes.as_slice()) as CIntShort;
+        try_i16_from_bytes(bytes.as_slice()).unwrap() as CIntShort
+        // return from_bytes(bytes.as_slice()) as CIntShort;
     }
 }
 

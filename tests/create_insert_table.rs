@@ -79,10 +79,9 @@ fn insert_data_users() {
     println!("insert_data_users");
     let ctx = TestContext::new();
     let mut session = ctx.client.start(Compression::None).unwrap();
-    let insert_table_cql = " insert into user_keyspace.users
-            (user_name ,password,gender,session_token, state)
-    values  (?         ,  ?     ,     ?,            ?,     ?)";
-
+    let insert_table_cql = "INSERT INTO user_keyspace.users
+            (user_name, password, gender, session_token, state)
+    VALUES (?, ?, ?, ?, ?)";
 
     let prepared = session.prepare(insert_table_cql.to_string(), true, true)
         .unwrap()
@@ -92,16 +91,12 @@ fn insert_data_users() {
 
     println!("prepared:\n{:?}", prepared);
 
-    let v: Vec<Value> = vec!["harry".to_string().into(),
-                             "pwd".to_string().into(),
-                             "male".to_string().into(),
-                             "09000".to_string().into(),
-                             "FL".to_string().into()];
+    let v: Vec<Value> =
+        vec!["harry".into(), "pwd".into(), "male".into(), "09000".into(), "FL".into()];
     let execution_params = QueryParamsBuilder::new(Consistency::One).values(v).finalize();
 
     let ref query_id = prepared.id;
     let executed = session.execute(query_id, execution_params, true, true);
-
 
     info!("executed:\n{:?}", executed);
 }
@@ -110,10 +105,9 @@ fn read_from_user_table() {
     println!("read_from_user_table");
     let ctx = TestContext::new();
     let mut session = ctx.client.start(Compression::None).unwrap();
-    let select_query = QueryBuilder::new("SELECT user_name ,password,gender,session_token, state
+    let select_query = QueryBuilder::new("SELECT user_name, password, gender, session_token, state
      FROM user_keyspace.users")
         .finalize();
-
 
     let query_op = session.query(select_query, true, true);
 
@@ -175,8 +169,8 @@ impl TestContext {
 fn create_keyspace() {
     let ctx = TestContext::new();
     let mut session = ctx.client.start(Compression::None).unwrap();
-    let create_ks_cql = "CREATE KEYSPACE user_keyspace WITH REPLICATION = { 'class' : \
-                         'SimpleStrategy', 'replication_factor' : 1 } ;";
+    let create_ks_cql = "CREATE KEYSPACE IF NOT EXISTS user_keyspace WITH REPLICATION = { 'class' \
+                         : 'SimpleStrategy', 'replication_factor' : 1 } ;";
 
     let create_ks_query = QueryBuilder::new(create_ks_cql)
         .consistency(Consistency::One)
@@ -191,7 +185,7 @@ fn create_keyspace() {
 fn create_table() {
     let ctx = TestContext::new();
     let mut session = ctx.client.start(Compression::None).unwrap();
-    let create_table_cql = "CREATE TABLE user_keyspace.users (
+    let create_table_cql = "CREATE TABLE IF NOT EXISTS user_keyspace.users (
         user_name varchar PRIMARY KEY,
         password varchar,
         gender varchar,
