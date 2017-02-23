@@ -31,7 +31,7 @@ struct User {
     pub gender: String,
     pub session_token: String,
     pub state: String,
-    pub some_map: Option<Map>
+    pub some_map: Option<Map>,
 }
 
 
@@ -109,8 +109,8 @@ fn read_from_user_table() {
     let mut session = ctx.client.start(Compression::None).unwrap();
     let select_query = QueryBuilder::new("\
         SELECT user_name, password, gender, session_token, state, some_map \
-        FROM user_keyspace.users"
-    ).finalize();
+        FROM user_keyspace.users")
+        .finalize();
 
     let query_op = session.query(select_query, true, true);
 
