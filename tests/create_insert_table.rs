@@ -13,6 +13,7 @@ use cdrs::query::QueryParamsBuilder;
 use cdrs::types::value::Value;
 use std::panic;
 use cdrs::types::IntoRustByName;
+use cdrs::types::map::Map;
 
 
 // default credentials
@@ -30,6 +31,7 @@ struct User {
     pub gender: String,
     pub session_token: String,
     pub state: String,
+    pub some_map: Option<Map>,
 }
 
 
@@ -105,8 +107,9 @@ fn read_from_user_table() {
     println!("read_from_user_table");
     let ctx = TestContext::new();
     let mut session = ctx.client.start(Compression::None).unwrap();
-    let select_query = QueryBuilder::new("SELECT user_name, password, gender, session_token, state
-     FROM user_keyspace.users")
+    let select_query = QueryBuilder::new("\
+        SELECT user_name, password, gender, session_token, state, some_map \
+        FROM user_keyspace.users")
         .finalize();
 
     let query_op = session.query(select_query, true, true);
@@ -136,6 +139,10 @@ fn read_from_user_table() {
 
                         if let Some(Ok(state)) = row.get_by_name("state") {
                             user.state = state;
+                        }
+
+                        if let Some(Ok(m)) = row.get_by_name("some_map") {
+                            user.some_map = Some(m);
                         }
 
                         user
@@ -191,7 +198,8 @@ fn create_table() {
         gender varchar,
         session_token varchar,
         state varchar,
-        birth_year bigint
+        birth_year bigint,
+        some_map map<text, text>
     );";
 
     let create_table_query = QueryBuilder::new(create_table_cql)

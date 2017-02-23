@@ -30,6 +30,10 @@ pub enum Error {
     Server(CDRSError),
 }
 
+pub fn column_is_empty_err() -> Error {
+    Error::General("Column or UDT property is empty".to_string())
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {

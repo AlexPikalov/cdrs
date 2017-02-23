@@ -7,7 +7,7 @@ use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
 use types::udt::UDT;
-use error::Result;
+use error::{Result, column_is_empty_err};
 use std::io;
 
 #[derive(Debug)]
@@ -70,6 +70,10 @@ impl IntoRustByName<String> for Row {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_plain();
 
+            if bytes.is_empty() {
+                return Err(column_is_empty_err());
+            }
+
             let converted = match cassandra_type {
                 &ColType::Custom => decode_custom(bytes.as_slice()),
                 &ColType::Ascii => decode_ascii(bytes.as_slice()),
@@ -90,6 +94,10 @@ impl IntoRustByName<bool> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<bool>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_slice();
+
+            if bytes.is_empty() {
+                return Err(column_is_empty_err());
+            }
 
             let converted = match cassandra_type {
                 &ColType::Boolean => decode_boolean(bytes),
@@ -112,6 +120,11 @@ impl IntoRustByName<i64> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<i64>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_slice();
+
+            if bytes.is_empty() {
+                return Err(column_is_empty_err());
+            }
+
             let converted = match cassandra_type {
                 &ColType::Int => decode_bigint(bytes),
                 &ColType::Bigint => decode_bigint(bytes),
@@ -139,6 +152,10 @@ impl IntoRustByName<i32> for Row {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_slice();
 
+            if bytes.is_empty() {
+                return Err(column_is_empty_err());
+            }
+
             let converted = match cassandra_type {
                 &ColType::Int => decode_int(bytes),
                 &ColType::Date => decode_date(bytes),
@@ -162,6 +179,10 @@ impl IntoRustByName<i16> for Row {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_slice();
 
+            if bytes.is_empty() {
+                return Err(column_is_empty_err());
+            }
+
             let converted = match cassandra_type {
                 &ColType::Smallint => decode_smallint(bytes),
                 _ => {
@@ -182,6 +203,10 @@ impl IntoRustByName<i8> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<i8>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_slice();
+
+            if bytes.is_empty() {
+                return Err(column_is_empty_err());
+            }
 
             let converted = match cassandra_type {
                 &ColType::Tinyint => decode_tinyint(bytes),
@@ -204,6 +229,10 @@ impl IntoRustByName<f64> for Row {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_slice();
 
+            if bytes.is_empty() {
+                return Err(column_is_empty_err());
+            }
+
             let converted = match cassandra_type {
                 &ColType::Double => decode_double(bytes),
                 _ => {
@@ -225,6 +254,10 @@ impl IntoRustByName<f32> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<f32>> {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_slice();
+
+            if bytes.is_empty() {
+                return Err(column_is_empty_err());
+            }
 
             let converted = match cassandra_type {
                 &ColType::Decimal => decode_decimal(bytes),
@@ -249,6 +282,10 @@ impl IntoRustByName<net::IpAddr> for Row {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_slice();
 
+            if bytes.is_empty() {
+                return Err(column_is_empty_err());
+            }
+
             let converted = match cassandra_type {
                 &ColType::Inet => decode_inet(bytes),
                 _ => {
@@ -271,6 +308,10 @@ impl IntoRustByName<Uuid> for Row {
         return self.get_col_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_slice();
 
+            if bytes.is_empty() {
+                return Err(column_is_empty_err());
+            }
+
             let converted = match cassandra_type {
                 &ColType::Uuid => decode_timeuuid(bytes),
                 &ColType::Timeuuid => decode_timeuuid(bytes),
@@ -286,6 +327,10 @@ impl IntoRustByName<List> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<List>> {
         return self.get_col_spec_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_slice();
+
+            if bytes.is_empty() {
+                return Err(column_is_empty_err());
+            }
 
             return match cassandra_type.col_type.id {
                 // in fact, both decode_list and decode_set return Ok
@@ -306,6 +351,10 @@ impl IntoRustByName<Map> for Row {
         return self.get_col_spec_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_slice();
 
+            if bytes.is_empty() {
+                return Err(column_is_empty_err());
+            }
+
             return match cassandra_type.col_type.id {
                 // in fact, both decode_map and decode_set return Ok
                 ColType::Map => {
@@ -321,6 +370,11 @@ impl IntoRustByName<UDT> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<UDT>> {
         return self.get_col_spec_by_name(name).map(|(cassandra_type, cbytes)| {
             let bytes = cbytes.as_slice();
+
+            if bytes.is_empty() {
+                return Err(column_is_empty_err());
+            }
+
             let cudt = match cassandra_type.col_type.value {
                 Some(ColTypeOptionValue::UdtType(ref t)) => t,
                 _ => unreachable!(),
