@@ -56,7 +56,7 @@ pub trait Compressor {
 }
 
 /// Enum which represents a type of compression. Only non-startup frame's body can be compressen.
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Eq, Ord, PartialOrd)]
 pub enum Compression {
     /// [lz4](https://code.google.com/p/lz4/) compression
     Lz4,

@@ -20,6 +20,7 @@ use events::{Listener, EventStream, new_listener};
 /// CDRS driver structure that provides a basic functionality to work with DB including
 /// establishing new connection, getting supported options, preparing and executing CQL
 /// queries, using compression and other.
+#[derive(Eq,PartialEq,Ord,PartialOrd)]
 pub struct CDRS<T: Authenticator, X: CDRSTransport> {
     compressor: Compression,
     authenticator: T,
