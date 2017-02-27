@@ -73,7 +73,6 @@ fn setup() {
 }
 
 fn teardown() {
-    drop_table();
     drop_keyspace();
 }
 
@@ -216,25 +215,6 @@ fn create_table() {
         Err(ref err) => println!("Error occured: {:?}", err),
     }
 }
-
-fn drop_table() {
-    let ctx = TestContext::new();
-    let mut session = ctx.client.start(Compression::None).unwrap();
-    let drop_t = "DROP TABLE IF EXISTS user_keyspace;";
-    let with_tracing = false;
-    let with_warnings = false;
-    let drop_t_query = QueryBuilder::new(drop_t).consistency(Consistency::One).finalize();
-    let drop_t_query_result = session.query(drop_t_query, with_tracing, with_warnings);
-
-    assert!(drop_t_query_result.is_ok(),
-            "drop table - query builder failed");
-
-    match drop_t_query_result {
-        Ok(ref res) => println!("table dropped: {:?}", res.get_body()),
-        Err(ref err) => println!("Error occured: {:?}", err),
-    }
-}
-
 
 fn drop_keyspace() {
     let ctx = TestContext::new();
