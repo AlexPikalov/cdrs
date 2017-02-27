@@ -2,6 +2,7 @@ use std::convert::From;
 use std::error::Error;
 use std::result;
 use std::fmt;
+use std::io;
 use snap;
 use lz4_compress as lz4;
 
@@ -17,16 +18,16 @@ pub const SNAPPY: &'static str = "snappy";
 #[derive(Debug)]
 pub enum CompressionError {
     /// Snappy error.
-    Snappy(Box<Error>),
+    Snappy(snap::Error),
     /// Lz4 error.
-    Lz4(String),
+    Lz4(io::Error),
 }
 
 impl fmt::Display for CompressionError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &CompressionError::Snappy(ref err) => write!(f, "Snappy Error: {:?}", err),
-            &CompressionError::Lz4(ref s) => write!(f, "Lz4 Error: {:?}", s),
+            &CompressionError::Lz4(ref err) => write!(f, "Lz4 Error: {:?}", err),
         }
     }
 }
@@ -35,7 +36,7 @@ impl Error for CompressionError {
     fn description(&self) -> &str {
         match self {
             &CompressionError::Snappy(ref err) => err.description(),
-            &CompressionError::Lz4(ref s) => s.as_str(),
+            &CompressionError::Lz4(ref err) => err.description(),
         }
     }
 }
@@ -122,13 +123,13 @@ impl Compression {
     fn encode_snappy(bytes: Vec<u8>) -> Result<Vec<u8>> {
         let mut encoder = snap::Encoder::new();
         encoder.compress_vec(bytes.as_slice())
-            .map_err(|err| CompressionError::Snappy(Box::new(err)))
+            .map_err(CompressionError::Snappy)
     }
 
     fn decode_snappy(bytes: Vec<u8>) -> Result<Vec<u8>> {
         let mut decoder = snap::Decoder::new();
         decoder.decompress_vec(bytes.as_slice())
-            .map_err(|err| CompressionError::Snappy(Box::new(err)))
+            .map_err(CompressionError::Snappy)
     }
 
     fn encode_lz4(bytes: Vec<u8>) -> Result<Vec<u8>> {
@@ -138,8 +139,7 @@ impl Compression {
     fn decode_lz4(bytes: Vec<u8>) -> Result<Vec<u8>> {
         // skip first 4 bytes in accordance to
         // https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L805
-        lz4::decompress(&bytes[4..])
-            .map_err(|err| CompressionError::Lz4(err.description().to_string()))
+        lz4::decompress(&bytes[4..]).map_err(CompressionError::Lz4)
     }
 }
 
