@@ -13,6 +13,7 @@ use {FromBytes, IntoBytes, FromCursor};
 use error::Result as CDRSResult;
 use types::data_serialization_types::decode_inet;
 
+#[macro_use]
 pub mod data_serialization_types;
 pub mod list;
 pub mod map;
@@ -332,7 +333,7 @@ impl FromCursor for CStringList {
 
 //
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 /// The structure that represents Cassandra byte type
 pub struct CBytes {
     bytes: Vec<u8>,

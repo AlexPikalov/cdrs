@@ -3,6 +3,8 @@ use uuid::Uuid;
 use IntoBytes;
 use super::*;
 use std::convert::Into;
+use std::hash::Hash;
+use std::cmp::Eq;
 
 use std::fmt::Debug;
 
@@ -183,11 +185,14 @@ impl<T: Into<Bytes> + Clone + Debug> From<Vec<T>> for Bytes {
     }
 }
 
-impl<T: Into<Bytes> + Clone + Debug> From<HashMap<String, T>> for Bytes {
-    fn from(vec: HashMap<String, T>) -> Bytes {
+impl<K, V> From<HashMap<K, V>> for Bytes
+    where K: Into<Bytes> + Clone + Debug + Hash + Eq,
+          V: Into<Bytes> + Clone + Debug
+{
+    fn from(map: HashMap<K, V>) -> Bytes {
         let mut bytes: Vec<u8> = vec![];
-        bytes.extend_from_slice(to_int(vec.len() as i32).as_slice());
-        bytes = vec.iter()
+        bytes.extend_from_slice(to_int(map.len() as i32).as_slice());
+        bytes = map.iter()
             .fold(bytes, |mut acc, (k, v)| {
                 let key_bytes: Bytes = k.clone().into();
                 let val_bytes: Bytes = v.clone().into();
