@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::net;
+use std::net::IpAddr;
 use uuid::Uuid;
 
 use types::{AsRust, CBytes};
@@ -12,472 +12,332 @@ use error::Result;
 #[derive(Debug)]
 pub struct Map {
     metadata: ColTypeOption,
-    data: HashMap<String, CBytes>,
+    data: Vec<(CBytes, CBytes)>,
 }
 
 impl Map {
-    /// Creates new `Map` basing on provided data and key and value types.
-    // TODO: Need to return Result<Map>. If key has not string-like type
-    // return Err otherwise return Ok.
+    /// Creates new `Map` using the provided data and key and value types.
     pub fn new(data: Vec<(CBytes, CBytes)>, meta: ColTypeOption) -> Map {
-        let accumulator: HashMap<String, CBytes> = HashMap::new();
-
-        // check that key could be converted into String
-        let serializer = if let Some(ColTypeOptionValue::CMap((ref key_type, _))) = meta.value {
-            match key_type.id {
-                ColType::Custom => decode_custom,
-                ColType::Ascii => decode_ascii,
-                ColType::Varchar => decode_varchar,
-                // unreachable ??
-                // do we need this arm? is it reachable due to the protocol?
-                _ => unimplemented!(),
-            }
-        } else {
-            // do we need this arm? is it reachable due to the protocol?
-            unreachable!();
-        };
-
-        let map: HashMap<String, CBytes> = data.iter()
-            .fold(accumulator, |mut acc, kv| {
-                let (key_b, value_b) = kv.clone();
-                let key: String = serializer(key_b.as_slice()).unwrap();
-
-                acc.insert(key, value_b);
-
-                return acc;
-            });
-
-        return Map {
+        Map {
             metadata: meta,
-            data: map,
-        };
-    }
-}
-
-// into hash map which values are blobs
-impl AsRust<HashMap<String, Vec<u8>>> for Map {
-    /// Converts `Map` into `HashMap<String, Vec<u8>>` for blob values.
-    fn as_rust(&self) -> Result<HashMap<String, Vec<u8>>> {
-        let map: HashMap<String, Vec<u8>> = HashMap::new();
-
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                match value_type_option.id {
-                    ColType::Blob => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_blob(vb.as_plain()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
+            data: data,
         }
     }
 }
 
-impl AsRust<HashMap<String, String>> for Map {
-    /// Converts `Map` into `HashMap<String, String>` for string-like values.
-    fn as_rust(&self) -> Result<HashMap<String, String>> {
-        let map: HashMap<String, String> = HashMap::new();
-
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                match value_type_option.id {
-                    ColType::Custom => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_custom(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    ColType::Ascii => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_ascii(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    ColType::Varchar => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_varchar(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    _ => unreachable!(),
-                }
+macro_rules! data_as_rust {
+    ($data_type_option:ident, $data_value:ident, Vec<u8>) => (
+        match $data_type_option.id {
+            ColType::Blob => {
+                decode_blob($data_value.as_plain()).unwrap()
             }
-            _ => unreachable!(),
+            _ => unreachable!()
         }
-    }
+    );
+    ($data_type_option:ident, $data_value:ident, String) => (
+        match $data_type_option.id {
+            ColType::Custom => {
+                decode_custom($data_value.as_slice()).unwrap()
+            }
+            ColType::Ascii => {
+                decode_ascii($data_value.as_slice()).unwrap()
+            }
+            ColType::Varchar => {
+                decode_varchar($data_value.as_slice()).unwrap()
+            }
+            _ => unreachable!()
+        }
+    );
+    ($data_type_option:ident, $data_value:ident, bool) => (
+        match $data_type_option.id {
+            ColType::Boolean => {
+                decode_boolean($data_value.as_slice()).unwrap()
+            }
+            _ => unreachable!()
+        }
+    );
+    ($data_type_option:ident, $data_value:ident, i64) => (
+        match $data_type_option.id {
+            ColType::Bigint => {
+                decode_bigint($data_value.as_slice()).unwrap()
+            }
+            ColType::Timestamp => {
+                decode_timestamp($data_value.as_slice()).unwrap()
+            }
+            ColType::Time => {
+                decode_time($data_value.as_slice()).unwrap()
+            }
+            ColType::Varint => {
+                decode_varint($data_value.as_slice()).unwrap()
+            }
+            _ => unreachable!()
+        }
+    );
+    ($data_type_option:ident, $data_value:ident, i32) => (
+        match $data_type_option.id {
+            ColType::Int => {
+                decode_int($data_value.as_slice()).unwrap()
+            }
+            ColType::Date => {
+                decode_date($data_value.as_slice()).unwrap()
+            }
+            _ => unreachable!()
+        }
+    );
+    ($data_type_option:ident, $data_value:ident, i16) => (
+        match $data_type_option.id {
+            ColType::Smallint => {
+                decode_smallint($data_value.as_slice()).unwrap()
+            }
+            _ => unreachable!()
+        }
+    );
+    ($data_type_option:ident, $data_value:ident, i8) => (
+        match $data_type_option.id {
+            ColType::Tinyint => {
+                decode_tinyint($data_value.as_slice()).unwrap()
+            }
+            _ => unreachable!()
+        }
+    );
+    ($data_type_option:ident, $data_value:ident, f64) => (
+        match $data_type_option.id {
+            ColType::Double => {
+                decode_double($data_value.as_slice()).unwrap()
+            }
+            _ => unreachable!()
+        }
+    );
+    ($data_type_option:ident, $data_value:ident, f32) => (
+        match $data_type_option.id {
+            ColType::Decimal => {
+                decode_decimal($data_value.as_slice()).unwrap()
+            }
+            ColType::Float => {
+                decode_float($data_value.as_slice()).unwrap()
+            }
+            _ => unreachable!()
+        }
+    );
+    ($data_type_option:ident, $data_value:ident, IpAddr) => (
+        match $data_type_option.id {
+            ColType::Inet => {
+                decode_inet($data_value.as_slice()).unwrap()
+            }
+            _ => unreachable!()
+        }
+    );
+    ($data_type_option:ident, $data_value:ident, Uuid) => (
+        match $data_type_option.id {
+            ColType::Uuid => {
+                decode_timeuuid($data_value.as_slice()).unwrap()
+            }
+            ColType::Timeuuid => {
+                decode_timeuuid($data_value.as_slice()).unwrap()
+            }
+            _ => unreachable!()
+        }
+    );
+    ($data_type_option:ident, $data_value:ident, List) => (
+        match $data_type_option.id {
+            ColType::List => {
+                List::new(decode_list($data_value.as_slice()).unwrap(),
+                    $data_type_option.as_ref().clone())
+            }
+            ColType::Set => {
+                List::new(decode_list($data_value.as_slice()).unwrap(),
+                    $data_type_option.as_ref().clone())
+            }
+            _ => unreachable!()
+        }
+    );
+    ($data_type_option:ident, $data_value:ident, Map) => (
+        match $data_type_option.id {
+            ColType::Map => {
+                Map::new(decode_map($data_value.as_slice()).unwrap(),
+                    $data_type_option.as_ref().clone())
+            }
+            _ => unreachable!()
+        }
+    );
+    ($data_type_option:ident, $data_value:ident, UDT) => (
+        match *$data_type_option {
+            ColTypeOption {
+                id: ColType::Udt,
+                value: Some(ColTypeOptionValue::UdtType(ref list_type_option))
+            } => {
+                UDT::new(decode_udt($data_value.as_slice(),
+                    list_type_option.descriptions.len()).unwrap(), list_type_option)
+            }
+            _ => unreachable!()
+        }
+    );
 }
 
-impl AsRust<HashMap<String, bool>> for Map {
-    /// Converts `Map` into `HashMap<String, bool>` for boolean values.
-    fn as_rust(&self) -> Result<HashMap<String, bool>> {
-        let map: HashMap<String, bool> = HashMap::new();
+macro_rules! map_as_rust {
+    ($(K $key_type:tt)*, $(V $val_type:tt)*) => (
+        impl AsRust<HashMap<$($key_type)*, $($val_type)*>> for Map {
+            /// Converts `Map` into `HashMap` for blob values.
+            fn as_rust(&self) -> Result<HashMap<$($key_type)*, $($val_type)*>> {
+                match self.metadata.value {
+                    Some(ColTypeOptionValue::CMap((ref key_type_option, ref val_type_option))) => {
+                        let mut map = HashMap::with_capacity(self.data.len());
 
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                match value_type_option.id {
-                    ColType::Boolean => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_boolean(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
+                        for &(ref key, ref val) in self.data.iter() {
+                            let key_type_option = key_type_option.clone();
+                            let val_type_option = val_type_option.clone();
+                            let key = data_as_rust!(key_type_option, key, $($key_type)*);
+                            let val = data_as_rust!(val_type_option, val, $($val_type)*);
+                            map.insert(key, val);
+                        }
+
+                        Ok(map)
                     }
-                    _ => unreachable!(),
+                    _ => unreachable!()
                 }
             }
-            _ => unreachable!(),
         }
-    }
+    );
 }
 
-impl AsRust<HashMap<String, i64>> for Map {
-    /// Converts `Map` into `HashMap<String, i64>` for numerical values.
-    fn as_rust(&self) -> Result<HashMap<String, i64>> {
-        let map: HashMap<String, i64> = HashMap::new();
+// Generate `AsRust` implementations for all kinds of map types.
+// The macro `map_as_rust!` takes the types as lists of token trees,
+// which means that for example the type definition of `Vec<u8>` is split into
+// four tokens `Vec`, `<`, `u8` and `>`. Since `map_as_rust!` takes two lists
+// of token trees in a row, they have to be separated by a prefix.
+// So every token of the key type has to prefixed with a `K` and the value tokens with a `V`.
 
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                match value_type_option.id {
-                    ColType::Bigint => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_bigint(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    ColType::Timestamp => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_timestamp(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    ColType::Time => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_time(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    ColType::Varint => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_varint(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-}
+map_as_rust!(K Vec K < K u8 K >, V Vec V < V u8 V >);
+map_as_rust!(K Vec K < K u8 K >, V String);
+map_as_rust!(K Vec K < K u8 K >, V bool);
+map_as_rust!(K Vec K < K u8 K >, V i64);
+map_as_rust!(K Vec K < K u8 K >, V i32);
+map_as_rust!(K Vec K < K u8 K >, V i16);
+map_as_rust!(K Vec K < K u8 K >, V i8);
+map_as_rust!(K Vec K < K u8 K >, V f64);
+map_as_rust!(K Vec K < K u8 K >, V f32);
+map_as_rust!(K Vec K < K u8 K >, V IpAddr);
+map_as_rust!(K Vec K < K u8 K >, V Uuid);
+map_as_rust!(K Vec K < K u8 K >, V List);
+map_as_rust!(K Vec K < K u8 K >, V Map);
+map_as_rust!(K Vec K < K u8 K >, V UDT);
 
-impl AsRust<HashMap<String, i32>> for Map {
-    /// Converts `Map` into `HashMap<String, i32>` for numerical values.
-    fn as_rust(&self) -> Result<HashMap<String, i32>> {
-        let map: HashMap<String, i32> = HashMap::new();
+map_as_rust!(K String, V Vec V < V u8 V >);
+map_as_rust!(K String, V String);
+map_as_rust!(K String, V bool);
+map_as_rust!(K String, V i64);
+map_as_rust!(K String, V i32);
+map_as_rust!(K String, V i16);
+map_as_rust!(K String, V i8);
+map_as_rust!(K String, V f64);
+map_as_rust!(K String, V f32);
+map_as_rust!(K String, V IpAddr);
+map_as_rust!(K String, V Uuid);
+map_as_rust!(K String, V List);
+map_as_rust!(K String, V Map);
+map_as_rust!(K String, V UDT);
 
-        // FIXME: implement via maps
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                match value_type_option.id {
-                    ColType::Int => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_int(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    ColType::Date => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_date(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-}
+map_as_rust!(K bool, V Vec V < V u8 V >);
+map_as_rust!(K bool, V String);
+map_as_rust!(K bool, V bool);
+map_as_rust!(K bool, V i64);
+map_as_rust!(K bool, V i32);
+map_as_rust!(K bool, V i16);
+map_as_rust!(K bool, V i8);
+map_as_rust!(K bool, V f64);
+map_as_rust!(K bool, V f32);
+map_as_rust!(K bool, V IpAddr);
+map_as_rust!(K bool, V Uuid);
+map_as_rust!(K bool, V List);
+map_as_rust!(K bool, V Map);
+map_as_rust!(K bool, V UDT);
 
-impl AsRust<HashMap<String, i16>> for Map {
-    /// Converts `Map` into `HashMap<String, i16>` for numerical values.
-    fn as_rust(&self) -> Result<HashMap<String, i16>> {
-        let map: HashMap<String, i16> = HashMap::new();
+map_as_rust!(K i64, V Vec V < V u8 V >);
+map_as_rust!(K i64, V String);
+map_as_rust!(K i64, V bool);
+map_as_rust!(K i64, V i64);
+map_as_rust!(K i64, V i32);
+map_as_rust!(K i64, V i16);
+map_as_rust!(K i64, V i8);
+map_as_rust!(K i64, V f64);
+map_as_rust!(K i64, V f32);
+map_as_rust!(K i64, V IpAddr);
+map_as_rust!(K i64, V Uuid);
+map_as_rust!(K i64, V List);
+map_as_rust!(K i64, V Map);
+map_as_rust!(K i64, V UDT);
 
-        // FIXME
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                match value_type_option.id {
-                    ColType::Smallint => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_smallint(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-}
+map_as_rust!(K i32, V Vec V < V u8 V >);
+map_as_rust!(K i32, V String);
+map_as_rust!(K i32, V bool);
+map_as_rust!(K i32, V i64);
+map_as_rust!(K i32, V i32);
+map_as_rust!(K i32, V i16);
+map_as_rust!(K i32, V i8);
+map_as_rust!(K i32, V f64);
+map_as_rust!(K i32, V f32);
+map_as_rust!(K i32, V IpAddr);
+map_as_rust!(K i32, V Uuid);
+map_as_rust!(K i32, V List);
+map_as_rust!(K i32, V Map);
+map_as_rust!(K i32, V UDT);
 
-impl AsRust<HashMap<String, i8>> for Map {
-    /// Converts `Map` into `HashMap<String, i16>` for numerical values.
-    fn as_rust(&self) -> Result<HashMap<String, i8>> {
-        let map: HashMap<String, i8> = HashMap::new();
+map_as_rust!(K i16, V Vec V < V u8 V >);
+map_as_rust!(K i16, V String);
+map_as_rust!(K i16, V bool);
+map_as_rust!(K i16, V i64);
+map_as_rust!(K i16, V i32);
+map_as_rust!(K i16, V i16);
+map_as_rust!(K i16, V i8);
+map_as_rust!(K i16, V f64);
+map_as_rust!(K i16, V f32);
+map_as_rust!(K i16, V IpAddr);
+map_as_rust!(K i16, V Uuid);
+map_as_rust!(K i16, V List);
+map_as_rust!(K i16, V Map);
+map_as_rust!(K i16, V UDT);
 
-        // FIXME
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                match value_type_option.id {
-                    ColType::Tinyint => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_tinyint(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-}
+map_as_rust!(K i8, V Vec V < V u8 V >);
+map_as_rust!(K i8, V String);
+map_as_rust!(K i8, V bool);
+map_as_rust!(K i8, V i64);
+map_as_rust!(K i8, V i32);
+map_as_rust!(K i8, V i16);
+map_as_rust!(K i8, V i8);
+map_as_rust!(K i8, V f64);
+map_as_rust!(K i8, V f32);
+map_as_rust!(K i8, V IpAddr);
+map_as_rust!(K i8, V Uuid);
+map_as_rust!(K i8, V List);
+map_as_rust!(K i8, V Map);
+map_as_rust!(K i8, V UDT);
 
-impl AsRust<HashMap<String, f64>> for Map {
-    /// Converts `Map` into `HashMap<String, f64>` for numerical values.
-    fn as_rust(&self) -> Result<HashMap<String, f64>> {
-        let map: HashMap<String, f64> = HashMap::new();
+map_as_rust!(K IpAddr, V Vec V < V u8 V >);
+map_as_rust!(K IpAddr, V String);
+map_as_rust!(K IpAddr, V bool);
+map_as_rust!(K IpAddr, V i64);
+map_as_rust!(K IpAddr, V i32);
+map_as_rust!(K IpAddr, V i16);
+map_as_rust!(K IpAddr, V i8);
+map_as_rust!(K IpAddr, V f64);
+map_as_rust!(K IpAddr, V f32);
+map_as_rust!(K IpAddr, V IpAddr);
+map_as_rust!(K IpAddr, V Uuid);
+map_as_rust!(K IpAddr, V List);
+map_as_rust!(K IpAddr, V Map);
+map_as_rust!(K IpAddr, V UDT);
 
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                match value_type_option.id {
-                    ColType::Double => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_double(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl AsRust<HashMap<String, f32>> for Map {
-    /// Converts `Map` into `HashMap<String, f32>` for numerical values.
-    fn as_rust(&self) -> Result<HashMap<String, f32>> {
-        let map: HashMap<String, f32> = HashMap::new();
-
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                match value_type_option.id {
-                    ColType::Decimal => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_decimal(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    ColType::Float => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_float(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl AsRust<HashMap<String, net::IpAddr>> for Map {
-    /// Converts `Map` into `HashMap<String, net::IpAddr>` for IP address values.
-    fn as_rust(&self) -> Result<HashMap<String, net::IpAddr>> {
-        let map: HashMap<String, net::IpAddr> = HashMap::new();
-
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                match value_type_option.id {
-                    ColType::Inet => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_inet(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl AsRust<HashMap<String, Uuid>> for Map {
-    /// Converts `Map` into `HashMap<String, Uuid>` for IP address values.
-    fn as_rust(&self) -> Result<HashMap<String, Uuid>> {
-        let map: HashMap<String, Uuid> = HashMap::new();
-
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                match value_type_option.id {
-                    ColType::Uuid => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_timeuuid(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    ColType::Timeuuid => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                acc.insert(k.clone(), decode_timeuuid(vb.as_slice()).unwrap());
-                                return acc;
-                            }))
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl AsRust<HashMap<String, List>> for Map {
-    /// Converts `Map` into `HashMap<String, List>` for List address values.
-    fn as_rust(&self) -> Result<HashMap<String, List>> {
-        let map: HashMap<String, List> = HashMap::new();
-
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                match value_type_option.id {
-                    ColType::List => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                let list = List::new(decode_list(vb.as_slice()).unwrap(),
-                                                     value_type_option.as_ref().clone());
-                                acc.insert(k.clone(), list);
-                                return acc;
-                            }))
-                    }
-                    ColType::Set => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                let list = List::new(decode_list(vb.as_slice()).unwrap(),
-                                                     value_type_option.as_ref().clone());
-                                acc.insert(k.clone(), list);
-                                return acc;
-                            }))
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl AsRust<HashMap<String, Map>> for Map {
-    /// Converts `Map` into `HashMap<String, Map>` for Map address values.
-    fn as_rust(&self) -> Result<HashMap<String, Map>> {
-        let map: HashMap<String, Map> = HashMap::new();
-
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                match value_type_option.id {
-                    ColType::Map => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                let list = Map::new(decode_map(vb.as_slice()).unwrap(),
-                                                    value_type_option.as_ref().clone());
-                                acc.insert(k.clone(), list);
-                                return acc;
-                            }))
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl AsRust<HashMap<String, UDT>> for Map {
-    /// Converts `Map` into `HashMap<String, Map>` for Map address values.
-    fn as_rust(&self) -> Result<HashMap<String, UDT>> {
-        let map: HashMap<String, UDT> = HashMap::new();
-
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CMap((_, ref value_type_option))) => {
-                let list_type_option = match value_type_option.value {
-                    Some(ColTypeOptionValue::UdtType(ref t)) => t,
-                    _ => unreachable!(),
-                };
-
-                match value_type_option.id {
-                    ColType::Udt => {
-                        Ok(self.data
-                            .iter()
-                            .fold(map, |mut acc, (k, vb)| {
-                                let list = UDT::new(decode_udt(vb.as_slice(),
-                                                               list_type_option.descriptions
-                                                                   .len())
-                                                        .unwrap(),
-                                                    list_type_option);
-                                acc.insert(k.clone(), list);
-                                return acc;
-                            }))
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-}
+map_as_rust!(K Uuid, V Vec V < V u8 V >);
+map_as_rust!(K Uuid, V String);
+map_as_rust!(K Uuid, V bool);
+map_as_rust!(K Uuid, V i64);
+map_as_rust!(K Uuid, V i32);
+map_as_rust!(K Uuid, V i16);
+map_as_rust!(K Uuid, V i8);
+map_as_rust!(K Uuid, V f64);
+map_as_rust!(K Uuid, V f32);
+map_as_rust!(K Uuid, V IpAddr);
+map_as_rust!(K Uuid, V Uuid);
+map_as_rust!(K Uuid, V List);
+map_as_rust!(K Uuid, V Map);
+map_as_rust!(K Uuid, V UDT);
