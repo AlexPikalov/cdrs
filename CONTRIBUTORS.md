@@ -6,3 +6,4 @@ List of contributors:
 * harrydevnull
 * j4in
 * ernestas-poskus
+* dfaust
