@@ -38,9 +38,11 @@ const INSERT_LIST: &'static str = "INSERT INTO my_ks.lists (my_string_list, \
 const SELECT_LIST: &'static str = "SELECT * FROM my_ks.lists;";
 const CREATE_TABLE_MAP: &'static str =
     "CREATE TABLE IF NOT EXISTS my_ks.maps (my_string_map frozen<map<text, text>> PRIMARY KEY, \
-     my_number_map map<text, int>, my_complex_map map<text, frozen<map<text, int>>>);";
-const INSERT_MAP: &'static str = "INSERT INTO my_ks.maps (my_string_map, \
-                                   my_number_map, my_complex_map) VALUES (?, ?, ?);";
+     my_number_map map<text, int>, my_complex_map map<text, frozen<map<text, int>>>, \
+     my_int_key_map map<int, text>, my_uuid_key_map map<uuid, text>);";
+const INSERT_MAP: &'static str = "INSERT INTO my_ks.maps (my_string_map, my_number_map, \
+                                  my_complex_map, my_int_key_map, my_uuid_key_map) VALUES (?, ?, \
+                                  ?, ?, ?);";
 const SELECT_MAP: &'static str = "SELECT * FROM my_ks.maps;";
 const CREATE_TABLE_UDT: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.udts (my_key int \
                                         PRIMARY KEY, my_udt my_type);";
@@ -371,15 +373,25 @@ fn insert_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
     number_map.insert("one".to_string(), 1);
     let mut complex_map: HashMap<String, HashMap<String, i32>> = HashMap::new();
     complex_map.insert("nested".to_string(), number_map.clone());
+    let mut int_key_map: HashMap<i32, String> = HashMap::new();
+    int_key_map.insert(1, "one".to_string());
+    let uuid: Uuid = Uuid::parse_str("6f586cab-cd6e-4b05-89a8-c7f27215adc8").unwrap();
+    let mut uuid_key_map: HashMap<Uuid, String> = HashMap::new();
+    uuid_key_map.insert(uuid, "random uuid".to_string());
     let maps = Maps {
         string_map: string_map,
         number_map: number_map,
         complex_map: complex_map,
+        int_key_map: int_key_map,
+        uuid_key_map: uuid_key_map,
     };
 
 
-    let values: Vec<Value> =
-        vec![maps.string_map.into(), maps.number_map.into(), maps.complex_map.into()];
+    let values: Vec<Value> = vec![maps.string_map.into(),
+                                  maps.number_map.into(),
+                                  maps.complex_map.into(),
+                                  maps.int_key_map.into(),
+                                  maps.uuid_key_map.into()];
 
     let query = QueryBuilder::new(INSERT_MAP).values(values).finalize();
     let inserted = session.query(query, false, false);
@@ -403,6 +415,8 @@ fn select_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
             string_map: row.get_by_name("my_string_map").expect("string_map").unwrap(),
             number_map: row.get_by_name("my_number_map").expect("number_map").unwrap(),
             complex_map: row.get_by_name("my_complex_map").expect("complex_map").unwrap(),
+            int_key_map: row.get_by_name("my_int_key_map").expect("int_key_map").unwrap(),
+            uuid_key_map: row.get_by_name("my_uuid_key_map").expect("uuid_key_map").unwrap(),
         };
         let complex_map_c: HashMap<String, Map> = cm.complex_map.as_rust().expect("my_complex_map");
         let _ = Maps {
@@ -413,6 +427,8 @@ fn select_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
                     hm.insert(k.clone(), v.as_rust().expect("complex_map_c"));
                     hm
                 }),
+            int_key_map: cm.int_key_map.as_rust().expect("int_key_map"),
+            uuid_key_map: cm.uuid_key_map.as_rust().expect("uuid_key_map"),
         };
     }
 
@@ -611,12 +627,16 @@ struct Maps {
     pub string_map: HashMap<String, String>,
     pub number_map: HashMap<String, i32>,
     pub complex_map: HashMap<String, HashMap<String, i32>>,
+    pub int_key_map: HashMap<i32, String>,
+    pub uuid_key_map: HashMap<Uuid, String>,
 }
 
 struct CassandraMaps {
     pub string_map: Map,
     pub number_map: Map,
     pub complex_map: Map,
+    pub int_key_map: Map,
+    pub uuid_key_map: Map,
 }
 
 #[derive(Debug)]
