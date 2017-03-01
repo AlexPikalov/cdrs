@@ -66,6 +66,11 @@ const CREATE_TABLE_FLOAT: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.float
 const INSERT_FLOAT: &'static str = "INSERT INTO my_ks.float (my_float, my_double) \
                                     VALUES (?, ?);";
 const SELECT_FLOAT: &'static str = "SELECT * FROM my_ks.float;";
+const CREATE_TABLE_BLOB: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.blob (my_key int \
+                                        PRIMARY KEY, my_blob blob);";
+const INSERT_BLOB: &'static str = "INSERT INTO my_ks.blob (my_key, my_blob) \
+                                    VALUES (?, ?);";
+const SELECT_BLOB: &'static str = "SELECT * FROM my_ks.blob;";
 
 // // select all
 fn main() {
@@ -186,6 +191,18 @@ fn main() {
 
     if select_table_float(&mut session) {
         println!("27. float table selected");
+    }
+
+    if create_table_blob(&mut session) {
+        println!("28. blob table created");
+    }
+
+    if insert_table_blob(&mut session) {
+        println!("29. blob table inserted");
+    }
+
+    if select_table_blob(&mut session) {
+        println!("30. blob table selected");
     }
 }
 
@@ -584,6 +601,41 @@ fn select_table_float(session: &mut Session<NoneAuthenticator, TransportTcp>) ->
     for row in all {
         let _: f32 = row.get_by_name("my_float").expect("my_float").unwrap();
         let _: f64 = row.get_by_name("my_double").expect("my_double").unwrap();
+    }
+
+    true
+}
+
+fn create_table_blob(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let q = QueryBuilder::new(CREATE_TABLE_BLOB).finalize();
+    match session.query(q, false, false) {
+        Err(ref err) => panic!("create_table blob {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn insert_table_blob(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let blob: Vec<u8> = vec![0, 1, 2, 4, 8, 16, 32, 64, 128, 255];
+    let values: Vec<Value> = vec![(1 as i32).into(), Bytes::new(blob).into()];
+
+    let query = QueryBuilder::new(INSERT_BLOB).values(values).finalize();
+    let inserted = session.query(query, false, false);
+    match inserted {
+        Err(ref err) => panic!("inserted blob {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn select_table_blob(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let select_query = QueryBuilder::new(SELECT_BLOB).finalize();
+    let all = session.query(select_query, false, false)
+        .unwrap()
+        .get_body()
+        .into_rows()
+        .unwrap();
+
+    for row in all {
+        let _: Vec<u8> = row.get_by_name("my_blob").expect("my_blob").unwrap();
     }
 
     true
