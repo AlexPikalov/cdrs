@@ -23,6 +23,7 @@ snap = "0.1.2"
 lz4-compress = "0.1.0"
 r2d2 = "0.7.1"
 openssl = { version = "0.9.6", optional = true }
+rand = "0.3"
 
 [dev-dependencies]
 env_logger = "0.3"
