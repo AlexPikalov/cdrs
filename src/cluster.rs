@@ -125,7 +125,7 @@ mod tests {
         let nodes_c = nodes.clone();
         let mut load_balancer = LoadBalancer::new(nodes, LoadBalancingStrategy::RoundRobin);
         for i in 0..10 {
-            assert_eq!(nodes_c[i % 3], load_balancer.next().unwrap());
+            assert_eq!(&nodes_c[i % 3], load_balancer.next().unwrap());
         }
     }
 }
