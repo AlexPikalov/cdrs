@@ -9,6 +9,7 @@ extern crate uuid;
 #[cfg(feature = "ssl")]
 extern crate openssl;
 extern crate r2d2;
+extern crate rand;
 
 use std::io::Cursor;
 
@@ -17,6 +18,7 @@ pub mod types;
 
 pub mod authenticators;
 pub mod client;
+pub mod cluster;
 pub mod compression;
 pub mod connection_manager;
 pub mod consistency;
