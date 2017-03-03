@@ -188,7 +188,7 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, Vec<u8>) => (
         match $data_type_option.id {
             ColType::Blob => {
-                decode_blob($data_value.as_plain()).unwrap()
+                decode_blob($data_value.as_plain())?
             }
             _ => unreachable!()
         }
@@ -196,13 +196,13 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, String) => (
         match $data_type_option.id {
             ColType::Custom => {
-                decode_custom($data_value.as_slice()).unwrap()
+                decode_custom($data_value.as_slice())?
             }
             ColType::Ascii => {
-                decode_ascii($data_value.as_slice()).unwrap()
+                decode_ascii($data_value.as_slice())?
             }
             ColType::Varchar => {
-                decode_varchar($data_value.as_slice()).unwrap()
+                decode_varchar($data_value.as_slice())?
             }
             _ => unreachable!()
         }
@@ -210,7 +210,7 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, bool) => (
         match $data_type_option.id {
             ColType::Boolean => {
-                decode_boolean($data_value.as_slice()).unwrap()
+                decode_boolean($data_value.as_slice())?
             }
             _ => unreachable!()
         }
@@ -218,16 +218,16 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, i64) => (
         match $data_type_option.id {
             ColType::Bigint => {
-                decode_bigint($data_value.as_slice()).unwrap()
+                decode_bigint($data_value.as_slice())?
             }
             ColType::Timestamp => {
-                decode_timestamp($data_value.as_slice()).unwrap()
+                decode_timestamp($data_value.as_slice())?
             }
             ColType::Time => {
-                decode_time($data_value.as_slice()).unwrap()
+                decode_time($data_value.as_slice())?
             }
             ColType::Varint => {
-                decode_varint($data_value.as_slice()).unwrap()
+                decode_varint($data_value.as_slice())?
             }
             _ => unreachable!()
         }
@@ -235,10 +235,10 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, i32) => (
         match $data_type_option.id {
             ColType::Int => {
-                decode_int($data_value.as_slice()).unwrap()
+                decode_int($data_value.as_slice())?
             }
             ColType::Date => {
-                decode_date($data_value.as_slice()).unwrap()
+                decode_date($data_value.as_slice())?
             }
             _ => unreachable!()
         }
@@ -246,7 +246,7 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, i16) => (
         match $data_type_option.id {
             ColType::Smallint => {
-                decode_smallint($data_value.as_slice()).unwrap()
+                decode_smallint($data_value.as_slice())?
             }
             _ => unreachable!()
         }
@@ -254,7 +254,7 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, i8) => (
         match $data_type_option.id {
             ColType::Tinyint => {
-                decode_tinyint($data_value.as_slice()).unwrap()
+                decode_tinyint($data_value.as_slice())?
             }
             _ => unreachable!()
         }
@@ -262,7 +262,7 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, f64) => (
         match $data_type_option.id {
             ColType::Double => {
-                decode_double($data_value.as_slice()).unwrap()
+                decode_double($data_value.as_slice())?
             }
             _ => unreachable!()
         }
@@ -270,10 +270,10 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, f32) => (
         match $data_type_option.id {
             ColType::Decimal => {
-                decode_decimal($data_value.as_slice()).unwrap()
+                decode_decimal($data_value.as_slice())?
             }
             ColType::Float => {
-                decode_float($data_value.as_slice()).unwrap()
+                decode_float($data_value.as_slice())?
             }
             _ => unreachable!()
         }
@@ -281,7 +281,7 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, IpAddr) => (
         match $data_type_option.id {
             ColType::Inet => {
-                decode_inet($data_value.as_slice()).unwrap()
+                decode_inet($data_value.as_slice())?
             }
             _ => unreachable!()
         }
@@ -289,10 +289,10 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, Uuid) => (
         match $data_type_option.id {
             ColType::Uuid => {
-                decode_timeuuid($data_value.as_slice()).unwrap()
+                decode_timeuuid($data_value.as_slice())?
             }
             ColType::Timeuuid => {
-                decode_timeuuid($data_value.as_slice()).unwrap()
+                decode_timeuuid($data_value.as_slice())?
             }
             _ => unreachable!()
         }
@@ -300,11 +300,11 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, List) => (
         match $data_type_option.id {
             ColType::List => {
-                List::new(decode_list($data_value.as_slice()).unwrap(),
+                List::new(decode_list($data_value.as_slice())?,
                     $data_type_option.as_ref().clone())
             }
             ColType::Set => {
-                List::new(decode_list($data_value.as_slice()).unwrap(),
+                List::new(decode_list($data_value.as_slice())?,
                     $data_type_option.as_ref().clone())
             }
             _ => unreachable!()
@@ -313,7 +313,7 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, Map) => (
         match $data_type_option.id {
             ColType::Map => {
-                Map::new(decode_map($data_value.as_slice()).unwrap(),
+                Map::new(decode_map($data_value.as_slice())?,
                     $data_type_option.as_ref().clone())
             }
             _ => unreachable!()
@@ -325,8 +325,8 @@ macro_rules! as_rust {
                 id: ColType::Udt,
                 value: Some(ColTypeOptionValue::UdtType(ref list_type_option))
             } => {
-                UDT::new(decode_udt($data_value.as_slice(),
-                    list_type_option.descriptions.len()).unwrap(), list_type_option)
+                UDT::new(decode_udt($data_value.as_slice(), list_type_option.descriptions.len())?,
+                    list_type_option)
             }
             _ => unreachable!()
         }
