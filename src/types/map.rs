@@ -7,7 +7,7 @@ use frame::frame_result::{ColTypeOption, ColTypeOptionValue, ColType};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::udt::UDT;
-use error::Result;
+use error::{Error, Result};
 
 #[derive(Debug)]
 pub struct Map {
@@ -35,10 +35,10 @@ macro_rules! map_as_rust {
                         let mut map = HashMap::with_capacity(self.data.len());
 
                         for &(ref key, ref val) in self.data.iter() {
-                            let key_type_option = key_type_option.clone();
-                            let val_type_option = val_type_option.clone();
-                            let key = as_rust!(key_type_option, key, $($key_type)*);
-                            let val = as_rust!(val_type_option, val, $($val_type)*);
+                            let key_type_option = key_type_option.as_ref();
+                            let val_type_option = val_type_option.as_ref();
+                            let key = as_rust!(key_type_option, key, $($key_type)*)?;
+                            let val = as_rust!(val_type_option, val, $($val_type)*)?;
                             map.insert(key, val);
                         }
 

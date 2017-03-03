@@ -354,6 +354,9 @@ impl CBytes {
     pub fn as_slice(&self) -> &[u8] {
         self.bytes.as_slice()
     }
+    pub fn is_empty(&self) -> bool {
+        self.bytes.is_empty()
+    }
 }
 
 impl FromCursor for CBytes {
