@@ -7,7 +7,7 @@ use frame::frame_result::{ColTypeOption, ColTypeOptionValue, ColType};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::udt::UDT;
-use error::Result;
+use error::{Error, Result};
 
 #[derive(Debug)]
 pub struct Map {
