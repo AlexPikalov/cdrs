@@ -326,12 +326,10 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, List) => (
         match $data_type_option.id {
             ColType::List => {
-                List::new(decode_list($data_value.as_slice())?,
-                    $data_type_option.as_ref().clone())
+                List::new(decode_list($data_value.as_slice())?, $data_type_option.clone())
             }
             ColType::Set => {
-                List::new(decode_list($data_value.as_slice())?,
-                    $data_type_option.as_ref().clone())
+                List::new(decode_list($data_value.as_slice())?, $data_type_option.clone())
             }
             _ => return Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into List (valid types: List, Set).",
@@ -341,8 +339,7 @@ macro_rules! as_rust {
     ($data_type_option:ident, $data_value:ident, Map) => (
         match $data_type_option.id {
             ColType::Map => {
-                Map::new(decode_map($data_value.as_slice())?,
-                    $data_type_option.as_ref().clone())
+                Map::new(decode_map($data_value.as_slice())?, $data_type_option.clone())
             }
             _ => return Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into Map (valid types: Map).",
