@@ -47,7 +47,7 @@ impl IntoRustByName<Vec<u8>> for Row {
         self.get_col_spec_by_name(name)
             .map(|(col_spec, cbytes)| {
                 let ref col_type = col_spec.col_type;
-                Ok(as_rust!(col_type, cbytes, Vec<u8>))
+                as_rust!(col_type, cbytes, Vec<u8>)
             })
     }
 }
@@ -63,7 +63,7 @@ macro_rules! row_into_rust_by_name {
                         }
 
                         let ref col_type = col_spec.col_type;
-                        Ok(as_rust!(col_type, cbytes, $($into_type)*))
+                        as_rust!(col_type, cbytes, $($into_type)*)
                     })
             }
         }

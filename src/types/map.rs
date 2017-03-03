@@ -37,8 +37,8 @@ macro_rules! map_as_rust {
                         for &(ref key, ref val) in self.data.iter() {
                             let key_type_option = key_type_option.as_ref();
                             let val_type_option = val_type_option.as_ref();
-                            let key = as_rust!(key_type_option, key, $($key_type)*);
-                            let val = as_rust!(val_type_option, val, $($val_type)*);
+                            let key = as_rust!(key_type_option, key, $($key_type)*)?;
+                            let val = as_rust!(val_type_option, val, $($val_type)*)?;
                             map.insert(key, val);
                         }
 
