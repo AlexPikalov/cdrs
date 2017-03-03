@@ -46,14 +46,9 @@ impl Write for TransportTcp {
 }
 
 impl CDRSTransport for TransportTcp {
-    /// In opposite to `TcpStream`'s `try_clone` this method
-    /// creates absolutely new connection - it gets an address
-    /// of a peer from `Transport` and creates a new encrypted
-    /// transport with new TCP stream under hood.
     fn try_clone(&self) -> io::Result<TransportTcp> {
         let addr = try!(self.tcp.peer_addr());
         TcpStream::connect(addr).map(|socket| TransportTcp { tcp: socket })
-
     }
 
     fn close(&mut self, close: net::Shutdown) -> io::Result<()> {
@@ -108,7 +103,7 @@ impl Write for TransportTls {
 
 #[cfg(feature = "ssl")]
 impl CDRSTransport for TransportTls {
-    /// In opposite to `TcpStream`'s `try_clone` this method
+    /// This method
     /// creates absolutely new connection - it gets an address
     /// of a peer from `TransportTls` and creates a new encrypted
     /// connection with a new TCP stream under hood.
