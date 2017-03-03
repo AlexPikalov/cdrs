@@ -12,6 +12,7 @@ use transport::CDRSTransport;
 use rand;
 use std::sync::atomic::{AtomicIsize, Ordering};
 
+/// Load balancing strategy
 #[derive(PartialEq)]
 pub enum LoadBalancingStrategy {
     RoundRobin,
@@ -19,6 +20,7 @@ pub enum LoadBalancingStrategy {
 }
 
 impl LoadBalancingStrategy {
+    /// Returns next value for selected load balancing strategy
     pub fn next<'a, N>(&'a self, nodes: &'a Vec<N>, i: usize) -> Option<&N> {
         match self {
             &LoadBalancingStrategy::Random => {
@@ -40,6 +42,14 @@ impl LoadBalancingStrategy {
     }
 }
 
+/// Load balancer
+///
+/// #Example
+///
+/// ```no_run
+/// let load_balancer = LoadBalancer::new(transports, LoadBalancingStrategy::RoundRobin);
+/// let node = load_balancer.next().unwrap();
+/// ```
 pub struct LoadBalancer<T> {
     strategy: LoadBalancingStrategy,
     nodes: Vec<T>,
@@ -47,6 +57,7 @@ pub struct LoadBalancer<T> {
 }
 
 impl<T> LoadBalancer<T> {
+    /// Factory function which creates new `LoadBalancer` with provided strategy.
     pub fn new(nodes: Vec<T>, strategy: LoadBalancingStrategy) -> LoadBalancer<T> {
         LoadBalancer {
             nodes: nodes,
@@ -55,6 +66,7 @@ impl<T> LoadBalancer<T> {
         }
     }
 
+    /// Returns next node basing on provided strategy.
     pub fn next(&self) -> Option<&T> {
         let next = self.strategy.next(&self.nodes, self.i.load(Ordering::Relaxed) as usize);
         if self.strategy == LoadBalancingStrategy::RoundRobin {
