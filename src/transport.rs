@@ -48,7 +48,6 @@ impl Write for TransportTcp {
 impl CDRSTransport for TransportTcp {
     fn try_clone(&self) -> io::Result<TransportTcp> {
         let addr = try!(self.tcp.peer_addr());
-        println!("TRANSPORT ADDR: {:?}", addr);
         TcpStream::connect(addr).map(|socket| TransportTcp { tcp: socket })
     }
 
