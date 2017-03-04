@@ -91,7 +91,7 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
 
             let auth_check = self.authenticator
                 .get_cassandra_name()
-                .ok_or(error::Error::General("No authenticator was provided ".to_string()))
+                .ok_or(error::Error::General("No authenticator was provided".to_string()))
                 .map(|auth| {
                     if authenticator != auth {
                         let io_err =

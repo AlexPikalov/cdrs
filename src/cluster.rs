@@ -15,13 +15,16 @@ use std::sync::atomic::{AtomicIsize, Ordering};
 /// Load balancing strategy
 #[derive(PartialEq)]
 pub enum LoadBalancingStrategy {
+    /// Round Robin balancing strategy
     RoundRobin,
+    /// Random balancing strategy
     Random,
 }
 
 impl LoadBalancingStrategy {
     /// Returns next value for selected load balancing strategy
     pub fn next<'a, N>(&'a self, nodes: &'a Vec<N>, i: usize) -> Option<&N> {
+        println!("node# {:?}", i);
         match self {
             &LoadBalancingStrategy::Random => {
                 nodes.iter()
@@ -34,6 +37,7 @@ impl LoadBalancingStrategy {
         }
     }
 
+    /// Returns random number from a range
     fn rnd_idx(&self, bounds: (usize, Option<usize>)) -> usize {
         let min = bounds.0;
         let max = bounds.1.unwrap_or(u8::max_value() as usize);
@@ -47,6 +51,9 @@ impl LoadBalancingStrategy {
 /// #Example
 ///
 /// ```no_run
+/// use cdrs::cluster::{LoadBalancingStrategy, LoadBalancer};
+/// use cdrs::transport::TransportTcp;
+/// let transports = vec![TransportTcp::new("127.0.0.1:9042"), TransportTcp::new("127.0.0.1:9042")];
 /// let load_balancer = LoadBalancer::new(transports, LoadBalancingStrategy::RoundRobin);
 /// let node = load_balancer.next().unwrap();
 /// ```
@@ -107,7 +114,7 @@ r2d2::ManageConnection for ClusterConnectionManager<T, X> {
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
         let transport_res: CResult<X> = self.load_balancer.next()
-            .ok_or("Cannot get next node".to_string().into())
+            .ok_or("Cannot get next node".into())
             .and_then(|x| x.try_clone().map_err(|e| e.into()));
         let transport = try!(transport_res);
         let compression = self.compression.clone();

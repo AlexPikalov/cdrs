@@ -96,3 +96,9 @@ impl From<String> for Error {
         return Error::General(err);
     }
 }
+
+impl<'a> From<&'a str> for Error {
+    fn from(err: &str) -> Error {
+        return Error::General(err.to_string());
+    }
+}
