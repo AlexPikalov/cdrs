@@ -174,12 +174,13 @@ and [lz4](https://code.google.com/p/lz4/). To use compression just start connect
 with desired type:
 
 ```rust
+use cdrs::compression::Compression;
 // session without compression
-let mut session_res = client.start(compression::None);
+let mut session_res = client.start(Compression::None);
 // session  lz4 compression
-let mut session_res = client.start(compression::Lz4);
+let mut session_res = client.start(Compression::Lz4);
 // v with snappy compression
-let mut session_res = client.start(compression::Snappy);
+let mut session_res = client.start(Compression::Snappy);
 ```
 
 ### Query execution
@@ -368,6 +369,10 @@ async IO library they want.
 
 To find an examples please refer to [examples](./examples/server_events.rs).
 
+### Cassandra clusters and load balancing
+
+CDRS supports Apache Cassandra clusters and load balancing.
+
 ### Supported features
 - [x] lz4 decompression
 - [x] snappy decompression
@@ -375,7 +380,7 @@ To find an examples please refer to [examples](./examples/server_events.rs).
 - [x] tracing information
 - [x] warning information
 - [x] SSL encrypted connection
-- [ ] load balancing
+- [x] load balancing
 - [x] connection pooling
 
 ### Frames
