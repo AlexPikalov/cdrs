@@ -29,6 +29,7 @@ into Rust structures.
   * [SELECT query (mapping results)](#select-query-mapping-results)
   * [PREPARE and EXECUTE query](#prepare-and-execute-a-query)
 * [Listen to server events](#listen-to-server-events)
+* [Cassandra clusters and load balancing](#cassandra-clusters-and-load-balancing)
 * [Supported features](#supported-features)
 
 
