@@ -52,34 +52,16 @@ impl IntoRustByName<Vec<u8>> for Row {
     }
 }
 
-macro_rules! row_into_rust_by_name {
-    ($($into_type:tt)*) => (
-        impl IntoRustByName<$($into_type)*> for Row {
-            fn get_by_name(&self, name: &str) -> Option<Result<$($into_type)*>> {
-                self.get_col_spec_by_name(name)
-                    .map(|(col_spec, cbytes)| {
-                        if cbytes.is_empty() {
-                            return Err(column_is_empty_err());
-                        }
-
-                        let ref col_type = col_spec.col_type;
-                        as_rust!(col_type, cbytes, $($into_type)*)
-                    })
-            }
-        }
-    );
-}
-
-row_into_rust_by_name!(String);
-row_into_rust_by_name!(bool);
-row_into_rust_by_name!(i64);
-row_into_rust_by_name!(i32);
-row_into_rust_by_name!(i16);
-row_into_rust_by_name!(i8);
-row_into_rust_by_name!(f64);
-row_into_rust_by_name!(f32);
-row_into_rust_by_name!(IpAddr);
-row_into_rust_by_name!(Uuid);
-row_into_rust_by_name!(List);
-row_into_rust_by_name!(Map);
-row_into_rust_by_name!(UDT);
+into_rust_by_name!(Row, String);
+into_rust_by_name!(Row, bool);
+into_rust_by_name!(Row, i64);
+into_rust_by_name!(Row, i32);
+into_rust_by_name!(Row, i16);
+into_rust_by_name!(Row, i8);
+into_rust_by_name!(Row, f64);
+into_rust_by_name!(Row, f32);
+into_rust_by_name!(Row, IpAddr);
+into_rust_by_name!(Row, Uuid);
+into_rust_by_name!(Row, List);
+into_rust_by_name!(Row, Map);
+into_rust_by_name!(Row, UDT);
