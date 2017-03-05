@@ -29,6 +29,7 @@ into Rust structures.
   * [SELECT query (mapping results)](#select-query-mapping-results)
   * [PREPARE and EXECUTE query](#prepare-and-execute-a-query)
 * [Listen to server events](#listen-to-server-events)
+* [Cassandra clusters and load balancing](#cassandra-clusters-and-load-balancing)
 * [Supported features](#supported-features)
 
 
@@ -174,12 +175,13 @@ and [lz4](https://code.google.com/p/lz4/). To use compression just start connect
 with desired type:
 
 ```rust
+use cdrs::compression::Compression;
 // session without compression
-let mut session_res = client.start(compression::None);
+let mut session_res = client.start(Compression::None);
 // session  lz4 compression
-let mut session_res = client.start(compression::Lz4);
+let mut session_res = client.start(Compression::Lz4);
 // v with snappy compression
-let mut session_res = client.start(compression::Snappy);
+let mut session_res = client.start(Compression::Snappy);
 ```
 
 ### Query execution
@@ -368,6 +370,30 @@ async IO library they want.
 
 To find an examples please refer to [examples](./examples/server_events.rs).
 
+### Cassandra clusters and load balancing
+
+CDRS supports Apache Cassandra clusters and load balancing. In order to connect
+to desired nodes you have to provide related transports (either TCP or TLS)
+and to configure r2d2 pool.
+
+```rust
+let cluster = vec![_ADDR1, _ADDR2]
+    .iter()
+    .map(|addr| TransportTcp::new(addr).unwrap())
+    .collect();
+let config = r2d2::Config::builder()
+    .pool_size(15)
+    .build();
+```
+After that you need to choose desired load balancing strategy and instantiate
+cluster collection manager. At current moment
+two static strategies were implemented: `Random` and `RoundRobin`.
+```rust
+let load_balancer = LoadBalancer::new(cluster, LoadBalancingStrategy::RoundRobin);
+let manager = ClusterConnectionManager::new(load_balancer, authenticator, Compression::None);
+```
+After that you'll be able to communicate with cluster via r2d2 connection pool.
+
 ### Supported features
 - [x] lz4 decompression
 - [x] snappy decompression
@@ -375,7 +401,7 @@ To find an examples please refer to [examples](./examples/server_events.rs).
 - [x] tracing information
 - [x] warning information
 - [x] SSL encrypted connection
-- [ ] load balancing
+- [x] load balancing
 - [x] connection pooling
 
 ### Frames
@@ -452,7 +478,12 @@ Running Cassandra on Local
 
  2. If docker is new to your tool set; it is never too late to know this awesome tool https://docs.docker.com/docker-for-mac/
 
+ Running Cassandra Cluster on local
+ -----------------------------------
 
+To start Apache Cassandra cluster on local just run `tests/build-cluster.sh`.
+This script will create two nodes of Apache Cassandra 3.9 with following exposed
+ports: 9042 and 9043.
 
 ### License
 
