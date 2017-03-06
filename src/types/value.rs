@@ -78,6 +78,15 @@ impl<T: Into<Bytes>> From<T> for Value {
     }
 }
 
+impl<T: Into<Bytes>> From<Option<T>> for Value {
+    fn from(b: Option<T>) -> Value {
+        match b {
+            Some(b) => Value::new_normal(b.into()),
+            None => Value::new_null(),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Bytes(Vec<u8>);
 
