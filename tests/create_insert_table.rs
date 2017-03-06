@@ -1,3 +1,4 @@
+// NOTE: having crud_operations do we still need it?
 extern crate cdrs;
 #[macro_use]
 extern crate log;
