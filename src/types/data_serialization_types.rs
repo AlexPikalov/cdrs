@@ -417,6 +417,10 @@ macro_rules! into_rust_by_name {
 mod tests {
     use std::net::IpAddr;
     use super::*;
+    use super::super::super::frame::frame_result::*;
+    use super::super::super::*;
+    use super::super::*;
+    use super::super::super::error::*;
 
     #[test]
     fn decode_custom_test() {
@@ -554,4 +558,55 @@ mod tests {
         assert_eq!(udt[0].as_plain(), vec![1, 2]);
     }
 
+    #[test]
+    fn as_rust_blob_test() {
+        let d_type = DataType { id: ColType::Blob };
+        let data = CBytes::new(vec![1, 2, 3]);
+        assert_eq!(as_rust!(d_type, data, Vec<u8>).unwrap(), vec![1, 2, 3]);
+        let wrong_type = DataType { id: ColType::Map };
+        assert!(as_rust!(wrong_type, data, Vec<u8>).is_err());
+    }
+
+    #[test]
+    fn as_rust_string_test() {
+        let type_custom = DataType { id: ColType::Custom };
+        let type_ascii = DataType { id: ColType::Ascii };
+        let type_varchar = DataType { id: ColType::Varchar };
+        let data = CBytes::new(b"abc".to_vec());
+        assert_eq!(as_rust!(type_custom, data, String).unwrap(), "abc");
+        assert_eq!(as_rust!(type_ascii, data, String).unwrap(), "abc");
+        assert_eq!(as_rust!(type_varchar, data, String).unwrap(), "abc");
+        let wrong_type = DataType { id: ColType::Map };
+        assert!(as_rust!(wrong_type, data, String).is_err());
+    }
+
+    #[test]
+    fn as_rust_bool_test() {
+        let type_boolean = DataType { id: ColType::Boolean };
+        let data_true = CBytes::new(vec![1]);
+        let data_false = CBytes::new(vec![0]);
+        assert_eq!(as_rust!(type_boolean, data_true, bool).unwrap(), true);
+        assert_eq!(as_rust!(type_boolean, data_false, bool).unwrap(), false);
+        let wrong_type = DataType { id: ColType::Map };
+        assert!(as_rust!(wrong_type, data_false, bool).is_err());
+    }
+
+    #[test]
+    fn as_rust_i64_test() {
+        let type_bigint = DataType { id: ColType::Bigint };
+        let type_timestamp = DataType { id: ColType::Timestamp };
+        let type_time = DataType { id: ColType::Time };
+        let type_varint = DataType { id: ColType::Varint };
+        let data = CBytes::new(vec![0, 0, 0, 0, 0, 0, 0, 100]);
+        assert_eq!(as_rust!(type_bigint, data, i64).unwrap(), 100);
+        assert_eq!(as_rust!(type_timestamp, data, i64).unwrap(), 100);
+        assert_eq!(as_rust!(type_time, data, i64).unwrap(), 100);
+        assert_eq!(as_rust!(type_varint, data, i64).unwrap(), 100);
+        let wrong_type = DataType { id: ColType::Map };
+        assert!(as_rust!(wrong_type, data, i64).is_err());
+    }
+
+    struct DataType {
+        id: ColType,
+    }
 }
