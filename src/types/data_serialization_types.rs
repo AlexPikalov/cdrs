@@ -127,10 +127,7 @@ pub fn decode_list(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
 
 // Decodes Cassandra `set` data (bytes) into Rust's `Result<Vec<CBytes>, io::Error>`
 pub fn decode_set(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
-    let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
-    let l = CInt::from_cursor(&mut cursor);
-    let list = (0..l).map(|_| CBytes::from_cursor(&mut cursor)).collect();
-    Ok(list)
+    decode_list(bytes)
 }
 
 // Decodes Cassandra `map` data (bytes) into Rust's `Result<Vec<(CBytes, CBytes)>, io::Error>`
@@ -414,4 +411,147 @@ macro_rules! into_rust_by_name {
             }
         }
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use std::net::IpAddr;
+    use super::*;
+
+    #[test]
+    fn decode_custom_test() {
+        assert_eq!(decode_custom(b"abcd").unwrap(), "abcd".to_string());
+    }
+
+    #[test]
+    fn decode_ascii_test() {
+        assert_eq!(decode_ascii(b"abcd").unwrap(), "abcd".to_string());
+    }
+
+    #[test]
+    fn decode_varchar_test() {
+        assert_eq!(decode_varchar(b"abcd").unwrap(), "abcd".to_string());
+    }
+
+    #[test]
+    fn decode_bigint_test() {
+        assert_eq!(decode_bigint(&[0, 0, 0, 0, 0, 0, 0, 3]).unwrap(), 3);
+    }
+
+    #[test]
+    fn decode_blob_test() {
+        assert_eq!(decode_blob(vec![0, 0, 0, 3]).unwrap(), vec![0, 0, 0, 3]);
+    }
+
+    #[test]
+    fn decode_boolean_test() {
+        assert_eq!(decode_boolean(&[0]).unwrap(), false);
+        assert_eq!(decode_boolean(&[1]).unwrap(), true);
+        assert!(decode_boolean(&[]).is_err());
+    }
+
+    #[test]
+    fn decode_int_test() {
+        assert_eq!(decode_int(&[0, 0, 0, 3]).unwrap(), 3);
+    }
+
+    #[test]
+    fn decode_date_test() {
+        assert_eq!(decode_date(&[0, 0, 0, 3]).unwrap(), 3);
+    }
+
+    #[test]
+    fn decode_double_test() {
+        let bytes = to_float_big(0.3);
+        assert_eq!(decode_double(bytes.as_slice()).unwrap(), 0.3);
+    }
+
+    #[test]
+    fn decode_float_test() {
+        let bytes = to_float(0.3);
+        assert_eq!(decode_float(bytes.as_slice()).unwrap(), 0.3);
+    }
+
+    #[test]
+    fn decode_inet_test() {
+        let bytes_v4 = &[0, 0, 0, 0];
+        match decode_inet(bytes_v4) {
+            Ok(IpAddr::V4(ref ip)) => assert_eq!(ip.octets(), [0, 0, 0, 0]),
+            _ => panic!("wrong ip v4 address"),
+        }
+
+        let bytes_v6 = &[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        match decode_inet(bytes_v6) {
+            Ok(IpAddr::V6(ref ip)) => assert_eq!(ip.segments(), [0, 0, 0, 0, 0, 0, 0, 0]),
+            _ => panic!("wrong ip v6 address"),
+        };
+    }
+
+    #[test]
+    fn decode_timestamp_test() {
+        assert_eq!(decode_timestamp(&[0, 0, 0, 0, 0, 0, 0, 3]).unwrap(), 3);
+    }
+
+    #[test]
+    fn decode_list_test() {
+        let results = decode_list(&[0, 0, 0, 1, 0, 0, 0, 2, 1, 2]).unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].as_plain(), vec![1, 2]);
+    }
+
+    #[test]
+    fn decode_set_test() {
+        let results = decode_set(&[0, 0, 0, 1, 0, 0, 0, 2, 1, 2]).unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].as_plain(), vec![1, 2]);
+    }
+
+    #[test]
+    fn decode_map_test() {
+        let results = decode_map(&[0, 0, 0, 1, 0, 0, 0, 2, 1, 2, 0, 0, 0, 2, 2, 1]).unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].0.as_plain(), vec![1, 2]);
+        assert_eq!(results[0].1.as_plain(), vec![2, 1]);
+    }
+
+    #[test]
+    fn decode_smallint_test() {
+        assert_eq!(decode_smallint(&[0, 10]).unwrap(), 10);
+    }
+
+    #[test]
+    fn decode_tinyint_test() {
+        assert_eq!(decode_tinyint(&[10]).unwrap(), 10);
+    }
+
+    #[test]
+    fn decode_text_test() {
+        assert_eq!(decode_text(b"abcba").unwrap(), "abcba");
+    }
+
+    #[test]
+    fn decode_time_test() {
+        assert_eq!(decode_time(&[0, 0, 0, 0, 0, 0, 0, 10]).unwrap(), 10);
+    }
+
+    #[test]
+    fn decode_timeuuid_test() {
+        assert_eq!(decode_timeuuid(&[4, 54, 67, 12, 43, 2, 98, 76, 32, 50, 87, 5, 1, 33, 43, 87])
+                       .unwrap()
+                       .as_bytes(),
+                   &[4, 54, 67, 12, 43, 2, 98, 76, 32, 50, 87, 5, 1, 33, 43, 87]);
+    }
+
+    #[test]
+    fn decode_varint_test() {
+        assert_eq!(decode_varint(&[0, 0, 0, 0, 0, 0, 0, 10]).unwrap(), 10);
+    }
+
+    #[test]
+    fn decode_udt_test() {
+        let udt = decode_udt(&[0, 0, 0, 2, 1, 2], 1).unwrap();
+        assert_eq!(udt.len(), 1);
+        assert_eq!(udt[0].as_plain(), vec![1, 2]);
+    }
+
 }
