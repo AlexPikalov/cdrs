@@ -45,7 +45,7 @@ const INSERT_MAP: &'static str = "INSERT INTO my_ks.maps (my_string_map, my_numb
                                   ?, ?, ?);";
 const SELECT_MAP: &'static str = "SELECT * FROM my_ks.maps;";
 const CREATE_TABLE_UDT: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.udts (my_key int \
-                                        PRIMARY KEY, my_udt my_type);";
+                                        PRIMARY KEY, my_udt frozen<my_type>);";
 const INSERT_UDT: &'static str = "INSERT INTO my_ks.udts (my_key, my_udt) VALUES (?, ?);";
 const SELECT_UDT: &'static str = "SELECT * FROM my_ks.udts;";
 const INSERT_INT: &'static str = "INSERT INTO my_ks.test_num (my_bigint, my_int, my_smallint, \
