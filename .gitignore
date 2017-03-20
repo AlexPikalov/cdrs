@@ -3,3 +3,4 @@ target
 *.bk
 .idea/
 cdrs.iml
+.vscode/
