@@ -1,3 +1,4 @@
+
 use types::*;
 use types::value::*;
 use error::{Result as CResult, Error as CError};
@@ -5,28 +6,7 @@ use consistency::Consistency;
 use frame::frame_query::{ParamsReqQuery, QueryFlags};
 use frame::frame_batch::{BatchType, BatchQuery, BodyReqBatch, BatchQuerySubj};
 
-/// instead of writing functions which resemble
-/// ```
-/// pub fn query<'a> (&'a mut self,query: String) -> &'a mut Self{
-///     self.query = Some(query);
-///            self
-/// }
-/// ```
-/// and repeating it for all the attributes; it is extracted out as a macro so that code
-/// is more concise see
-/// @https://doc.rust-lang.org/book/method-syntax.html
-///
-///
-///
-macro_rules! builder_opt_field {
-    ($field:ident, $field_type:ty) => {
-        pub fn $field(mut self,
-                          $field: $field_type) -> Self {
-            self.$field = Some($field);
-            self
-        }
-    };
-}
+
 
 /// Structure that represents CQL query and parameters which will be applied during
 /// its execution

@@ -25,31 +25,6 @@ impl Map {
     }
 }
 
-macro_rules! map_as_rust {
-    ($(K $key_type:tt)*, $(V $val_type:tt)*) => (
-        impl AsRust<HashMap<$($key_type)*, $($val_type)*>> for Map {
-            /// Converts `Map` into `HashMap` for blob values.
-            fn as_rust(&self) -> Result<HashMap<$($key_type)*, $($val_type)*>> {
-                match self.metadata.value {
-                    Some(ColTypeOptionValue::CMap((ref key_type_option, ref val_type_option))) => {
-                        let mut map = HashMap::with_capacity(self.data.len());
-
-                        for &(ref key, ref val) in self.data.iter() {
-                            let key_type_option = key_type_option.as_ref();
-                            let val_type_option = val_type_option.as_ref();
-                            let key = as_rust!(key_type_option, key, $($key_type)*)?;
-                            let val = as_rust!(val_type_option, val, $($val_type)*)?;
-                            map.insert(key, val);
-                        }
-
-                        Ok(map)
-                    }
-                    _ => unreachable!()
-                }
-            }
-        }
-    );
-}
 
 // Generate `AsRust` implementations for all kinds of map types.
 // The macro `map_as_rust!` takes the types as lists of token trees,

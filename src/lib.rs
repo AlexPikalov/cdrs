@@ -3,6 +3,9 @@
 extern crate snap;
 extern crate byteorder;
 #[macro_use]
+pub mod macros;
+
+#[macro_use]
 extern crate log;
 extern crate lz4_compress;
 extern crate uuid;
@@ -26,6 +29,7 @@ pub mod error;
 pub mod events;
 pub mod query;
 pub mod transport;
+pub mod cluster_builder;
 
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.
