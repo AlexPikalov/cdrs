@@ -418,10 +418,6 @@ mod tests {
     use std::net::IpAddr;
     use super::*;
     use super::super::super::frame::frame_result::*;
-    use super::super::super::*;
-    use super::super::*;
-    use super::super::list::*;
-    use super::super::map::*;
     use super::super::super::error::*;
 
     #[test]
