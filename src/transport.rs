@@ -150,4 +150,9 @@ impl CDRSTransport for TransportTls {
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
             .and_then(|_| Ok(()))
     }
+
+    fn set_timeout(&mut self, dur: Option<Duration>) -> io::Result<()> {
+        let stream = self.ssl.get_mut();
+        stream.set_read_timeout(dur).and_then(|_| stream.set_write_timeout(dur))
+    }
 }
