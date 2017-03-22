@@ -79,6 +79,8 @@ const SELECT_BLOB: &'static str = "SELECT * FROM my_ks.blob;";
 // 4. insert values into x
 // 5. select values from x and map to Rust
 // ...
+
+#[cfg(not(windows))]
 #[test]
 fn main_crud_operations() {
     let authenticator = NoneAuthenticator;
