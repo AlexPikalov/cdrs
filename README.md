@@ -1,6 +1,4 @@
-# CDRS [![Build Status](https://travis-ci.org/AlexPikalov/cdrs.svg?branch=master)](https://travis-ci.org/AlexPikalov/cdrs)
-
-# [![Build status](https://ci.appveyor.com/api/projects/status/sirj4flws6o0dvb7?svg=true)](https://ci.appveyor.com/project/harrydevnull/cdrs)
+# CDRS [![Build Status](https://travis-ci.org/AlexPikalov/cdrs.svg?branch=master)](https://travis-ci.org/AlexPikalov/cdrs) [![Build status](https://ci.appveyor.com/api/projects/status/sirj4flws6o0dvb7?svg=true)](https://ci.appveyor.com/project/harrydevnull/cdrs)
 
 [![crates.io version](https://img.shields.io/crates/v/cdrs.svg)](https://crates.io/crates/cdrs)
 [![Join the chat at https://gitter.im/cdrs-rs/Lobby](https://badges.gitter.im/cdrs-rs/Lobby.svg)](https://gitter.im/cdrs-rs/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
