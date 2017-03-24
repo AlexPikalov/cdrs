@@ -16,7 +16,7 @@ impl FromCursor for BodyResSupported {
             let name = CString::from_cursor(&mut cursor).into_plain();
             let val = CStringList::from_cursor(&mut cursor).into_plain();
             m.insert(name, val);
-            return m;
+            m
         });
 
         BodyResSupported { data: map }

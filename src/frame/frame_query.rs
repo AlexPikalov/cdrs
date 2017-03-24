@@ -1,6 +1,5 @@
 #![warn(missing_docs)]
 //! Contains Query Frame related functionality.
-//! use self::frame::*;
 use super::*;
 use consistency::Consistency;
 use {AsByte, IntoBytes};
@@ -97,7 +96,7 @@ impl ParamsReqQuery {
     }
 
     fn flags_as_byte(&self) -> u8 {
-        return self.flags.iter().fold(0, |acc, flag| acc | flag.as_byte());
+        self.flags.iter().fold(0, |acc, flag| acc | flag.as_byte())
     }
 
     #[allow(dead_code)]

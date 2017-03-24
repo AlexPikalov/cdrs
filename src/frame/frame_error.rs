@@ -159,12 +159,12 @@ impl FromCursor for WriteTimeoutError {
         let blockfor = CInt::from_cursor(&mut cursor);
         let write_type = WriteType::from_cursor(&mut cursor);
 
-        return WriteTimeoutError {
+        WriteTimeoutError {
             cl: cl,
             received: received,
             blockfor: blockfor,
             write_type: write_type,
-        };
+        }
     }
 }
 

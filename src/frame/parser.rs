@@ -77,7 +77,7 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
         warnings: warnings,
     };
 
-    return conver_frame_into_result(frame);
+    conver_frame_into_result(frame)
 }
 
 fn conver_frame_into_result(frame: Frame) -> error::Result<Frame> {
