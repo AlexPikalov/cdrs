@@ -26,23 +26,23 @@ impl UDT {
                 let &(ref name_b, ref val_type) = m;
                 let name = name_b.as_plain();
                 a.insert(name, (val_type.clone(), val_b.clone()));
-                return a;
+                a
             });
 
-        return UDT { data: d };
+        UDT { data: d }
     }
 }
 
 impl IntoRustByName<Vec<u8>> for UDT {
     fn get_by_name(&self, name: &str) -> Option<Result<Vec<u8>>> {
-        return self.data.get(name).map(|v| {
+        self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
 
-            return match col_type.id {
+            match col_type.id {
                 ColType::Blob => decode_blob(bytes.as_plain()).map_err(|err| err.into()),
-                _ => unreachable!(),
-            };
-        });
+                _ => Err(Error::General(format!("Cannot parse  {:?} into UDT ", col_type.id))),
+            }
+        })
     }
 }
 

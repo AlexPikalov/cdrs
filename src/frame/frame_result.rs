@@ -51,7 +51,7 @@ impl FromCursor for ResultKind {
     }
 }
 
-/// ResponseBody is a generalized enum that represents all types of responses. Each of enum
+/// `ResponseBody` is a generalized enum that represents all types of responses. Each of enum
 /// option wraps related body type.
 #[derive(Debug)]
 pub enum ResResultBody {
@@ -190,9 +190,9 @@ impl BodyResResultRows {
                         -> Vec<Vec<CBytes>> {
         (0..rows_count)
             .map(|_| {
-                return (0..columns_count)
+                (0..columns_count)
                     .map(|_| CBytes::from_cursor(&mut cursor) as CBytes)
-                    .collect();
+                    .collect()
             })
             .collect()
     }
@@ -362,12 +362,12 @@ impl ColSpec {
                 let name = CString::from_cursor(&mut cursor);
                 let col_type = ColTypeOption::from_cursor(&mut cursor);
 
-                return ColSpec {
+                ColSpec {
                     ksname: ksname,
                     tablename: tablename,
                     name: name,
                     col_type: col_type,
-                };
+                }
             })
             .collect()
     }
@@ -439,9 +439,8 @@ impl FromBytes for ColType {
 
 impl FromCursor for ColType {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> ColType {
-        let col_type = ColType::from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)
-            .as_slice());
-        col_type
+        ColType::from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64).as_slice())
+
     }
 }
 
@@ -517,7 +516,7 @@ impl FromCursor for CUdt {
             .map(|_| {
                 let name = CString::from_cursor(&mut cursor);
                 let col_type = ColTypeOption::from_cursor(&mut cursor);
-                return (name, col_type);
+                (name, col_type)
             })
             .collect();
 
