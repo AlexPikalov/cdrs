@@ -190,7 +190,7 @@ impl BodyResResultRows {
                         -> Vec<Vec<CBytes>> {
         (0..rows_count)
             .map(|_| {
-                 (0..columns_count)
+                (0..columns_count)
                     .map(|_| CBytes::from_cursor(&mut cursor) as CBytes)
                     .collect()
             })
@@ -439,9 +439,8 @@ impl FromBytes for ColType {
 
 impl FromCursor for ColType {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> ColType {
-        ColType::from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)
-            .as_slice())
-        
+        ColType::from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64).as_slice())
+
     }
 }
 

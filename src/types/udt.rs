@@ -29,13 +29,13 @@ impl UDT {
                 a
             });
 
-         UDT { data: d }
+        UDT { data: d }
     }
 }
 
 impl IntoRustByName<Vec<u8>> for UDT {
     fn get_by_name(&self, name: &str) -> Option<Result<Vec<u8>>> {
-         self.data.get(name).map(|v| {
+        self.data.get(name).map(|v| {
             let &(ref col_type, ref bytes) = v;
 
             match col_type.id {
