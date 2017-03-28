@@ -14,9 +14,9 @@ pub struct PasswordAuthenticator<'a> {
 impl<'a> PasswordAuthenticator<'a> {
     pub fn new<'b>(username: &'b str, password: &'b str) -> PasswordAuthenticator<'b> {
         return PasswordAuthenticator {
-            username: username,
-            password: password,
-        };
+                   username: username,
+                   password: password,
+               };
     }
 }
 

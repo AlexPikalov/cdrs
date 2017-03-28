@@ -18,9 +18,7 @@ const _ADDR1: &'static str = "127.0.0.1:9042";
 const _ADDR2: &'static str = "127.0.0.1:9043";
 
 fn main() {
-    let config = r2d2::Config::builder()
-        .pool_size(15)
-        .build();
+    let config = r2d2::Config::builder().pool_size(15).build();
     // TODO: setup cluster with different nodes and test it
     let cluster = vec![_ADDR1, _ADDR2]
         .iter()

@@ -19,10 +19,10 @@ pub enum ValueType {
 impl IntoBytes for ValueType {
     fn into_cbytes(&self) -> Vec<u8> {
         return match *self {
-            ValueType::Normal(n) => to_int(n),
-            ValueType::Null => i_to_n_bytes(-1, INT_LEN),
-            ValueType::NotSet => i_to_n_bytes(-2, INT_LEN),
-        };
+                   ValueType::Normal(n) => to_int(n),
+                   ValueType::Null => i_to_n_bytes(-1, INT_LEN),
+                   ValueType::NotSet => i_to_n_bytes(-2, INT_LEN),
+               };
     }
 }
 
@@ -41,25 +41,25 @@ impl Value {
         let bytes = v.into().0;
         let l = bytes.len() as i32;
         return Value {
-            body: bytes.to_vec(),
-            value_type: ValueType::Normal(l),
-        };
+                   body: bytes.to_vec(),
+                   value_type: ValueType::Normal(l),
+               };
     }
 
     /// The factory method which creates null Cassandra value.
     pub fn new_null() -> Value {
         return Value {
-            body: vec![],
-            value_type: ValueType::Null,
-        };
+                   body: vec![],
+                   value_type: ValueType::Null,
+               };
     }
 
     /// The factory method which creates non-set Cassandra value.
     pub fn new_not_set() -> Value {
         return Value {
-            body: vec![],
-            value_type: ValueType::NotSet,
-        };
+                   body: vec![],
+                   value_type: ValueType::NotSet,
+               };
     }
 }
 

@@ -96,7 +96,9 @@ impl ParamsReqQuery {
     }
 
     fn flags_as_byte(&self) -> u8 {
-        self.flags.iter().fold(0, |acc, flag| acc | flag.as_byte())
+        self.flags
+            .iter()
+            .fold(0, |acc, flag| acc | flag.as_byte())
     }
 
     #[allow(dead_code)]
@@ -145,11 +147,19 @@ impl IntoBytes for ParamsReqQuery {
         }
         if QueryFlags::has_with_paging_state(self.flags_as_byte()) {
             // XXX clone
-            v.extend_from_slice(self.paging_state.clone().unwrap().into_cbytes().as_slice());
+            v.extend_from_slice(self.paging_state
+                                    .clone()
+                                    .unwrap()
+                                    .into_cbytes()
+                                    .as_slice());
         }
         if QueryFlags::has_with_serial_consistency(self.flags_as_byte()) {
             // XXX clone
-            v.extend_from_slice(self.serial_consistency.clone().unwrap().into_cbytes().as_slice());
+            v.extend_from_slice(self.serial_consistency
+                                    .clone()
+                                    .unwrap()
+                                    .into_cbytes()
+                                    .as_slice());
         }
         if QueryFlags::has_with_default_timestamp(self.flags_as_byte()) {
             v.extend_from_slice(to_bigint(self.timestamp.unwrap()).as_slice());

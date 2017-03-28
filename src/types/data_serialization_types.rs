@@ -62,7 +62,10 @@ pub fn decode_date(bytes: &[u8]) -> Result<i32, io::Error> {
 // Decodes Cassandra `decimal` data (bytes) into Rust's `Result<f32, io::Error>`
 pub fn decode_decimal(bytes: &[u8]) -> Result<f32, io::Error> {
     let ref separator = b'E';
-    let lr: Vec<Vec<u8>> = bytes.split(|ch| ch == separator).map(|p| p.to_vec()).collect();
+    let lr: Vec<Vec<u8>> = bytes
+        .split(|ch| ch == separator)
+        .map(|p| p.to_vec())
+        .collect();
     let unscaled = try_i_from_bytes(lr[0].as_slice());
     if unscaled.is_err() {
         return Err(unscaled.unwrap_err());
@@ -121,7 +124,9 @@ pub fn decode_timestamp(bytes: &[u8]) -> Result<i64, io::Error> {
 pub fn decode_list(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
     let l = CInt::from_cursor(&mut cursor);
-    let list = (0..l).map(|_| CBytes::from_cursor(&mut cursor)).collect();
+    let list = (0..l)
+        .map(|_| CBytes::from_cursor(&mut cursor))
+        .collect();
     Ok(list)
 }
 
@@ -174,7 +179,9 @@ pub fn decode_varint(bytes: &[u8]) -> Result<i64, io::Error> {
 // each `CBytes` is encoded type of field of user defined type
 pub fn decode_udt(bytes: &[u8], l: usize) -> Result<Vec<CBytes>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
-    let list = (0..l).map(|_| CBytes::from_cursor(&mut cursor)).collect();
+    let list = (0..l)
+        .map(|_| CBytes::from_cursor(&mut cursor))
+        .collect();
     Ok(list)
 }
 

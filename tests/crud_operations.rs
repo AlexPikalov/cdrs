@@ -36,8 +36,8 @@ const CREATE_TABLE_LIST: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.lists 
 const INSERT_LIST: &'static str = "INSERT INTO my_ks.lists (my_string_list, \
                                    my_number_list, my_complex_list) VALUES (?, ?, ?);";
 const SELECT_LIST: &'static str = "SELECT * FROM my_ks.lists;";
-const CREATE_TABLE_MAP: &'static str =
-    "CREATE TABLE IF NOT EXISTS my_ks.maps (my_string_map frozen<map<text, text>> PRIMARY KEY, \
+const CREATE_TABLE_MAP: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.maps \
+    (my_string_map frozen<map<text, text>> PRIMARY KEY, \
      my_number_map map<text, int>, my_complex_map map<text, frozen<map<text, int>>>, \
      my_int_key_map map<int, text>, my_uuid_key_map map<uuid, text>);";
 const INSERT_MAP: &'static str = "INSERT INTO my_ks.maps (my_string_map, my_number_map, \
@@ -242,7 +242,13 @@ fn create_table(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool 
 fn prepare_query(session: &mut Session<NoneAuthenticator, TransportTcp>,
                  query: &'static str)
                  -> CBytesShort {
-    session.prepare(query.to_string(), false, false).unwrap().get_body().into_prepared().unwrap().id
+    session
+        .prepare(query.to_string(), false, false)
+        .unwrap()
+        .get_body()
+        .into_prepared()
+        .unwrap()
+        .id
 }
 
 fn insert_ints(session: &mut Session<NoneAuthenticator, TransportTcp>,
@@ -257,7 +263,9 @@ fn insert_ints(session: &mut Session<NoneAuthenticator, TransportTcp>,
     let values_i: Vec<Value> =
         vec![ints.bigint.into(), ints.int.into(), ints.smallint.into(), ints.tinyint.into()];
 
-    let execute_params = QueryParamsBuilder::new(Consistency::One).values(values_i).finalize();
+    let execute_params = QueryParamsBuilder::new(Consistency::One)
+        .values(values_i)
+        .finalize();
     let executed = session.execute(prepared_id, execute_params, false, false);
     match executed {
         Err(ref err) => panic!("executed int {:?}", err),
@@ -267,14 +275,25 @@ fn insert_ints(session: &mut Session<NoneAuthenticator, TransportTcp>,
 
 fn select_all_ints(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
     let select_query = QueryBuilder::new(SELECT_INT).finalize();
-    let all = session.query(select_query, false, false).unwrap().get_body().into_rows().unwrap();
+    let all = session
+        .query(select_query, false, false)
+        .unwrap()
+        .get_body()
+        .into_rows()
+        .unwrap();
 
     for row in all {
         let _ = Ints {
-            bigint: row.get_by_name("my_bigint").expect("my_bigint").unwrap(),
+            bigint: row.get_by_name("my_bigint")
+                .expect("my_bigint")
+                .unwrap(),
             int: row.get_by_name("my_int").expect("my_int").unwrap(),
-            smallint: row.get_by_name("my_smallint").expect("my_smallint").unwrap(),
-            tinyint: row.get_by_name("my_tinyint").expect("my_tinyint").unwrap(),
+            smallint: row.get_by_name("my_smallint")
+                .expect("my_smallint")
+                .unwrap(),
+            tinyint: row.get_by_name("my_tinyint")
+                .expect("my_tinyint")
+                .unwrap(),
         };
     }
 
@@ -325,13 +344,20 @@ fn insert_table_string(session: &mut Session<NoneAuthenticator, TransportTcp>) -
 
 fn select_table_str(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
     let select_query = QueryBuilder::new(SELECT_STR).finalize();
-    let all = session.query(select_query, false, false).unwrap().get_body().into_rows().unwrap();
+    let all = session
+        .query(select_query, false, false)
+        .unwrap()
+        .get_body()
+        .into_rows()
+        .unwrap();
 
     for row in all {
         let _ = Strings {
             my_ascii: row.get_by_name("my_ascii").expect("my_ascii").unwrap(),
             my_text: row.get_by_name("my_text").expect("my_text").unwrap(),
-            my_varchar: row.get_by_name("my_varchar").expect("my_ascii").unwrap(),
+            my_varchar: row.get_by_name("my_varchar")
+                .expect("my_ascii")
+                .unwrap(),
         };
     }
 
@@ -367,7 +393,8 @@ fn insert_table_list(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
 
 fn select_table_list(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
     let select_query = QueryBuilder::new(SELECT_LIST).finalize();
-    let all = session.query(select_query, false, false)
+    let all = session
+        .query(select_query, false, false)
         .unwrap()
         .get_body()
         .into_rows()
@@ -375,15 +402,22 @@ fn select_table_list(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
 
     for row in all {
         let cl = CassandraLists {
-            string_list: row.get_by_name("my_string_list").expect("string_list").unwrap(),
-            number_list: row.get_by_name("my_number_list").expect("number_list").unwrap(),
-            complex_list: row.get_by_name("my_complex_list").expect("complex_list").unwrap(),
+            string_list: row.get_by_name("my_string_list")
+                .expect("string_list")
+                .unwrap(),
+            number_list: row.get_by_name("my_number_list")
+                .expect("number_list")
+                .unwrap(),
+            complex_list: row.get_by_name("my_complex_list")
+                .expect("complex_list")
+                .unwrap(),
         };
         let complex_list_c: Vec<List> = cl.complex_list.as_rust().expect("my_complex_list");
         let _ = Lists {
             string_list: cl.string_list.as_rust().expect("string_list"),
             number_list: cl.number_list.as_rust().expect("number_list"),
-            complex_list: complex_list_c.iter()
+            complex_list: complex_list_c
+                .iter()
                 .map(|it| it.as_rust().expect("number_list_c"))
                 .collect(),
         };
@@ -430,7 +464,8 @@ fn insert_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
 fn select_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
 
     let select_query = QueryBuilder::new(SELECT_MAP).finalize();
-    let all = session.query(select_query, false, false)
+    let all = session
+        .query(select_query, false, false)
         .unwrap()
         .get_body()
         .into_rows()
@@ -438,17 +473,28 @@ fn select_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
 
     for row in all {
         let cm = CassandraMaps {
-            string_map: row.get_by_name("my_string_map").expect("string_map").unwrap(),
-            number_map: row.get_by_name("my_number_map").expect("number_map").unwrap(),
-            complex_map: row.get_by_name("my_complex_map").expect("complex_map").unwrap(),
-            int_key_map: row.get_by_name("my_int_key_map").expect("int_key_map").unwrap(),
-            uuid_key_map: row.get_by_name("my_uuid_key_map").expect("uuid_key_map").unwrap(),
+            string_map: row.get_by_name("my_string_map")
+                .expect("string_map")
+                .unwrap(),
+            number_map: row.get_by_name("my_number_map")
+                .expect("number_map")
+                .unwrap(),
+            complex_map: row.get_by_name("my_complex_map")
+                .expect("complex_map")
+                .unwrap(),
+            int_key_map: row.get_by_name("my_int_key_map")
+                .expect("int_key_map")
+                .unwrap(),
+            uuid_key_map: row.get_by_name("my_uuid_key_map")
+                .expect("uuid_key_map")
+                .unwrap(),
         };
         let complex_map_c: HashMap<String, Map> = cm.complex_map.as_rust().expect("my_complex_map");
         let _ = Maps {
             string_map: cm.string_map.as_rust().expect("string_map"),
             number_map: cm.number_map.as_rust().expect("number_map"),
-            complex_map: complex_map_c.iter()
+            complex_map: complex_map_c
+                .iter()
                 .fold(HashMap::new(), |mut hm, (k, v)| {
                     hm.insert(k.clone(), v.as_rust().expect("complex_map_c"));
                     hm
@@ -492,7 +538,8 @@ fn insert_table_udt(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
 fn select_table_udt(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
 
     let select_query = QueryBuilder::new(SELECT_UDT).finalize();
-    let all = session.query(select_query, false, false)
+    let all = session
+        .query(select_query, false, false)
         .unwrap()
         .get_body()
         .into_rows()
@@ -528,14 +575,17 @@ fn insert_table_bool(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
 fn select_table_bool(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
 
     let select_query = QueryBuilder::new(SELECT_BOOL).finalize();
-    let all = session.query(select_query, false, false)
+    let all = session
+        .query(select_query, false, false)
         .unwrap()
         .get_body()
         .into_rows()
         .unwrap();
 
     for row in all {
-        let _: bool = row.get_by_name("my_boolean").expect("my_boolean").unwrap();
+        let _: bool = row.get_by_name("my_boolean")
+            .expect("my_boolean")
+            .unwrap();
     }
 
     true
@@ -564,7 +614,8 @@ fn insert_table_uuid(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
 fn select_table_uuid(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
 
     let select_query = QueryBuilder::new(SELECT_UUID).finalize();
-    let all = session.query(select_query, false, false)
+    let all = session
+        .query(select_query, false, false)
         .unwrap()
         .get_body()
         .into_rows()
@@ -601,7 +652,8 @@ fn insert_table_float(session: &mut Session<NoneAuthenticator, TransportTcp>) ->
 fn select_table_float(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
 
     let select_query = QueryBuilder::new(SELECT_FLOAT).finalize();
-    let all = session.query(select_query, false, false)
+    let all = session
+        .query(select_query, false, false)
         .unwrap()
         .get_body()
         .into_rows()
@@ -609,7 +661,9 @@ fn select_table_float(session: &mut Session<NoneAuthenticator, TransportTcp>) ->
 
     for row in all {
         let _: f32 = row.get_by_name("my_float").expect("my_float").unwrap();
-        let _: f64 = row.get_by_name("my_double").expect("my_double").unwrap();
+        let _: f64 = row.get_by_name("my_double")
+            .expect("my_double")
+            .unwrap();
     }
 
     true
@@ -637,7 +691,8 @@ fn insert_table_blob(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
 
 fn select_table_blob(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
     let select_query = QueryBuilder::new(SELECT_BLOB).finalize();
-    let all = session.query(select_query, false, false)
+    let all = session
+        .query(select_query, false, false)
         .unwrap()
         .get_body()
         .into_rows()

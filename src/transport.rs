@@ -69,7 +69,9 @@ impl CDRSTransport for TransportTcp {
     }
 
     fn set_timeout(&mut self, dur: Option<Duration>) -> io::Result<()> {
-        self.tcp.set_read_timeout(dur).and_then(|_| self.tcp.set_write_timeout(dur))
+        self.tcp
+            .set_read_timeout(dur)
+            .and_then(|_| self.tcp.set_write_timeout(dur))
     }
 }
 
@@ -86,19 +88,21 @@ impl TransportTls {
     pub fn new(addr: &str, connector: &SslConnector) -> io::Result<TransportTls> {
         let a: Vec<&str> = addr.split(':').collect();
         let res = net::TcpStream::connect(addr).map(|socket| {
-            connector.connect(a[0], socket)
+            connector
+                .connect(a[0], socket)
                 .map(|sslsocket| {
-                    TransportTls {
-                        ssl: sslsocket,
-                        connector: connector.clone(),
-                    }
-                })
+                         TransportTls {
+                             ssl: sslsocket,
+                             connector: connector.clone(),
+                         }
+                     })
         });
 
         res.and_then(|res| {
-            res.map(|n: TransportTls| n).map_err(|e| io::Error::new(io::ErrorKind::Other, e))
+                         res.map(|n: TransportTls| n)
+                             .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
 
-        })
+                     })
     }
 }
 #[cfg(feature = "ssl")]
@@ -132,16 +136,17 @@ impl CDRSTransport for TransportTls {
             self.connector
                 .connect(ip_string.as_str(), socket)
                 .map(|sslsocket| {
-                    TransportTls {
-                        ssl: sslsocket,
-                        connector: self.connector.clone(),
-                    }
-                })
+                         TransportTls {
+                             ssl: sslsocket,
+                             connector: self.connector.clone(),
+                         }
+                     })
         });
 
         res.and_then(|res| {
-            res.map(|n: TransportTls| n).map_err(|e| io::Error::new(io::ErrorKind::Other, e))
-        })
+                         res.map(|n: TransportTls| n)
+                             .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
+                     })
     }
 
     fn close(&mut self, _close: net::Shutdown) -> io::Result<()> {
@@ -153,6 +158,8 @@ impl CDRSTransport for TransportTls {
 
     fn set_timeout(&mut self, dur: Option<Duration>) -> io::Result<()> {
         let stream = self.ssl.get_mut();
-        stream.set_read_timeout(dur).and_then(|_| stream.set_write_timeout(dur))
+        stream
+            .set_read_timeout(dur)
+            .and_then(|_| stream.set_write_timeout(dur))
     }
 }

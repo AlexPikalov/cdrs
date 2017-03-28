@@ -293,9 +293,9 @@ pub struct CStringList {
 impl CStringList {
     pub fn into_plain(self) -> Vec<String> {
         return self.list
-            .iter()
-            .map(|string| string.clone().into_plain())
-            .collect();
+                   .iter()
+                   .map(|string| string.clone().into_plain())
+                   .collect();
     }
 }
 
@@ -326,7 +326,9 @@ impl FromCursor for CStringList {
             panic!(err);
         }
         let len: u64 = from_bytes(len_bytes.to_vec().as_slice());
-        let list = (0..len).map(|_| CString::from_cursor(&mut cursor)).collect();
+        let list = (0..len)
+            .map(|_| CString::from_cursor(&mut cursor))
+            .collect();
         return CStringList { list: list };
     }
 }

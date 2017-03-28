@@ -21,11 +21,11 @@ impl Row {
         body.rows_content
             .iter()
             .map(|row| {
-                Row {
-                    metadata: body.metadata.clone(),
-                    row_content: row.clone(),
-                }
-            })
+                     Row {
+                         metadata: body.metadata.clone(),
+                         row_content: row.clone(),
+                     }
+                 })
             .collect()
     }
 
@@ -35,10 +35,10 @@ impl Row {
             .iter()
             .position(|spec| spec.name.as_str() == name)
             .map(|i| {
-                let ref col_spec = self.metadata.col_specs[i];
-                let ref data = self.row_content[i];
-                (col_spec, data)
-            })
+                     let ref col_spec = self.metadata.col_specs[i];
+                     let ref data = self.row_content[i];
+                     (col_spec, data)
+                 })
     }
 }
 
@@ -46,9 +46,9 @@ impl IntoRustByName<Vec<u8>> for Row {
     fn get_by_name(&self, name: &str) -> Option<Result<Vec<u8>>> {
         self.get_col_spec_by_name(name)
             .map(|(col_spec, cbytes)| {
-                let ref col_type = col_spec.col_type;
-                as_rust!(col_type, cbytes, Vec<u8>)
-            })
+                     let ref col_type = col_spec.col_type;
+                     as_rust!(col_type, cbytes, Vec<u8>)
+                 })
     }
 }
 
