@@ -13,10 +13,10 @@ pub struct PasswordAuthenticator<'a> {
 
 impl<'a> PasswordAuthenticator<'a> {
     pub fn new<'b>(username: &'b str, password: &'b str) -> PasswordAuthenticator<'b> {
-        return PasswordAuthenticator {
-                   username: username,
-                   password: password,
-               };
+        PasswordAuthenticator {
+            username: username,
+            password: password,
+        }
     }
 }
 
@@ -27,11 +27,11 @@ impl<'a> Authenticator for PasswordAuthenticator<'a> {
         token.push(0);
         token.extend_from_slice(self.password.as_bytes());
 
-        return CBytes::new(token);
+        CBytes::new(token)
     }
 
     fn get_cassandra_name(&self) -> Option<&str> {
-        return Some("org.apache.cassandra.auth.PasswordAuthenticator");
+        Some("org.apache.cassandra.auth.PasswordAuthenticator")
     }
 }
 
@@ -41,11 +41,11 @@ pub struct NoneAuthenticator;
 
 impl Authenticator for NoneAuthenticator {
     fn get_auth_token(&self) -> CBytes {
-        return CBytes::new(vec![0]);
+        CBytes::new(vec![0])
     }
 
     fn get_cassandra_name(&self) -> Option<&str> {
-        return None;
+        None
     }
 }
 
