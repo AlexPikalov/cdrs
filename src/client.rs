@@ -51,12 +51,13 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
 
         try!(self.transport.write(options_frame.as_slice()));
 
-        return parse_frame(&mut self.transport, &self.compressor).map(|frame| {
-                                                                          match frame.get_body() {
+        parse_frame(&mut self.transport, &self.compressor)
+        .map(|frame| {
+                match frame.get_body() {
                 ResponseBody::Supported(ref supported_body) => supported_body.data.clone(),
                 _ => unreachable!(),
             }
-                                                                      });
+        })
     }
 
     /// The method establishes connection to the server which address was provided on previous
@@ -127,9 +128,9 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
     }
 
     fn drop_connection(&mut self) -> error::Result<()> {
-        return self.transport
-                   .close(net::Shutdown::Both)
-                   .map_err(|err| error::Error::Io(err));
+        self.transport
+            .close(net::Shutdown::Both)
+            .map_err(|err| error::Error::Io(err))
     }
 }
 
@@ -144,17 +145,17 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
     /// Creates new session basing on CDRS instance.
     pub fn start(cdrs: CDRS<T, X>) -> Session<T, X> {
         let compressor = cdrs.compressor.clone();
-        return Session {
-                   cdrs: cdrs,
-                   started: true,
-                   compressor: compressor,
-               };
+        Session {
+            cdrs: cdrs,
+            started: true,
+            compressor: compressor,
+        }
     }
 
     /// The method overrides a compression method of current session
     pub fn compressor(&mut self, compressor: Compression) -> &mut Self {
         self.compressor = compressor;
-        return self;
+        self
     }
 
     /// Manually ends current session.
@@ -212,7 +213,7 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
         let options_frame = Frame::new_req_execute(id, query_parameters, flags).into_cbytes();
 
         (self.cdrs.transport.write(options_frame.as_slice()))?;
-        return parse_frame(&mut self.cdrs.transport, &self.compressor);
+        parse_frame(&mut self.cdrs.transport, &self.compressor)
     }
 
     /// The method makes a request to DB Server to execute a query provided in `query` argument.
@@ -249,7 +250,7 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
                 .into_cbytes();
 
         try!(self.cdrs.transport.write(query_frame.as_slice()));
-        return parse_frame(&mut self.cdrs.transport, &self.compressor);
+        parse_frame(&mut self.cdrs.transport, &self.compressor)
     }
 
     pub fn batch(&mut self,
@@ -270,7 +271,7 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
         let query_frame = Frame::new_req_batch(batch_query, flags).into_cbytes();
 
         try!(self.cdrs.transport.write(query_frame.as_slice()));
-        return parse_frame(&mut self.cdrs.transport, &self.compressor);
+        parse_frame(&mut self.cdrs.transport, &self.compressor)
     }
 
     /// It consumes CDRS
