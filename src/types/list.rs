@@ -27,10 +27,7 @@ impl List {
     fn map<T, F>(&self, f: F) -> Vec<T>
         where F: FnMut(&CBytes) -> T
     {
-        self.data
-            .iter()
-            .map(f)
-            .collect()
+        self.data.iter().map(f).collect()
     }
 }
 

@@ -190,10 +190,10 @@ impl BodyResResultRows {
                         -> Vec<Vec<CBytes>> {
         (0..rows_count)
             .map(|_| {
-                (0..columns_count)
-                    .map(|_| CBytes::from_cursor(&mut cursor) as CBytes)
-                    .collect()
-            })
+                     (0..columns_count)
+                         .map(|_| CBytes::from_cursor(&mut cursor) as CBytes)
+                         .collect()
+                 })
             .collect()
     }
 }
@@ -514,10 +514,10 @@ impl FromCursor for CUdt {
         let n = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64).as_slice());
         let descriptions: Vec<(CString, ColTypeOption)> = (0..n)
             .map(|_| {
-                let name = CString::from_cursor(&mut cursor);
-                let col_type = ColTypeOption::from_cursor(&mut cursor);
-                (name, col_type)
-            })
+                     let name = CString::from_cursor(&mut cursor);
+                     let col_type = ColTypeOption::from_cursor(&mut cursor);
+                     (name, col_type)
+                 })
             .collect();
 
         CUdt {

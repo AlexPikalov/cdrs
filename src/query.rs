@@ -63,7 +63,10 @@ impl QueryBuilder {
     /// Factory function that takes CQL as an argument and returns new `QueryBuilder`.
     /// Default consistency level is `One`
     pub fn new<T: Into<String>>(query: T) -> QueryBuilder {
-        return QueryBuilder { query: query.into(), ..Default::default() };
+        return QueryBuilder {
+                   query: query.into(),
+                   ..Default::default()
+               };
     }
 
     /// Sets new query consistency
@@ -105,15 +108,15 @@ impl QueryBuilder {
     /// Finalizes query building process and returns query itself
     pub fn finalize(self) -> Query {
         return Query {
-            query: self.query,
-            consistency: self.consistency,
-            values: self.values,
-            with_names: self.with_names,
-            page_size: self.page_size,
-            paging_state: self.paging_state,
-            serial_consistency: self.serial_consistency,
-            timestamp: self.timestamp,
-        };
+                   query: self.query,
+                   consistency: self.consistency,
+                   values: self.values,
+                   with_names: self.with_names,
+                   page_size: self.page_size,
+                   paging_state: self.paging_state,
+                   serial_consistency: self.serial_consistency,
+                   timestamp: self.timestamp,
+               };
     }
 }
 
@@ -134,14 +137,14 @@ pub struct QueryParamsBuilder {
 impl QueryParamsBuilder {
     pub fn new(consistency: Consistency) -> QueryParamsBuilder {
         return QueryParamsBuilder {
-            consistency: consistency,
-            values: None,
-            with_names: false,
-            page_size: None,
-            paging_state: None,
-            serial_consistency: None,
-            timestamp: None,
-        };
+                   consistency: consistency,
+                   values: None,
+                   with_names: false,
+                   page_size: None,
+                   paging_state: None,
+                   serial_consistency: None,
+                   timestamp: None,
+               };
     }
 
     pub fn values(mut self, v: Vec<Value>) -> Self {
@@ -246,21 +249,23 @@ impl BatchQueryBuilder {
 
     /// Add a query (non-prepared one)
     pub fn add_query<T: Into<String>>(mut self, query: T, values: Vec<BatchValue>) -> Self {
-        self.queries.push(BatchQuery {
-            is_prepared: false,
-            subject: BatchQuerySubj::QueryString(CStringLong::new(query.into())),
-            values: values,
-        });
+        self.queries
+            .push(BatchQuery {
+                      is_prepared: false,
+                      subject: BatchQuerySubj::QueryString(CStringLong::new(query.into())),
+                      values: values,
+                  });
         self
     }
 
     /// Add a query (prepared one)
     pub fn add_query_prepared(mut self, query_id: CBytesShort, values: Vec<BatchValue>) -> Self {
-        self.queries.push(BatchQuery {
-            is_prepared: true,
-            subject: BatchQuerySubj::PreparedId(query_id),
-            values: values,
-        });
+        self.queries
+            .push(BatchQuery {
+                      is_prepared: true,
+                      subject: BatchQuerySubj::PreparedId(query_id),
+                      values: values,
+                  });
         self
     }
 
@@ -315,13 +320,13 @@ impl BatchQueryBuilder {
         }
 
         Ok(BodyReqBatch {
-            batch_type: self.batch_type,
-            queries: self.queries,
-            query_flags: flags,
-            consistency: self.consistency,
-            serial_consistency: self.serial_consistency,
-            timestamp: self.timestamp,
-        })
+               batch_type: self.batch_type,
+               queries: self.queries,
+               query_flags: flags,
+               consistency: self.consistency,
+               serial_consistency: self.serial_consistency,
+               timestamp: self.timestamp,
+           })
     }
 }
 

@@ -27,8 +27,7 @@ impl LoadBalancingStrategy {
         println!("node# {:?}", i);
         match self {
             &LoadBalancingStrategy::Random => {
-                nodes.iter()
-                    .nth(self.rnd_idx((0, Some(nodes.len()))))
+                nodes.iter().nth(self.rnd_idx((0, Some(nodes.len()))))
             }
             &LoadBalancingStrategy::RoundRobin => {
                 let mut cycle = nodes.iter().cycle().skip(i);
@@ -75,7 +74,8 @@ impl<T> LoadBalancer<T> {
 
     /// Returns next node basing on provided strategy.
     pub fn next(&self) -> Option<&T> {
-        let next = self.strategy.next(&self.nodes, self.i.load(Ordering::Relaxed) as usize);
+        let next = self.strategy
+            .next(&self.nodes, self.i.load(Ordering::Relaxed) as usize);
         if self.strategy == LoadBalancingStrategy::RoundRobin {
             self.i.fetch_add(1, Ordering::Relaxed);
         }

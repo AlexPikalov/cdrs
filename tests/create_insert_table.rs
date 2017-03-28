@@ -86,7 +86,8 @@ fn insert_data_users() {
             (user_name, password, gender, session_token, state)
     VALUES (?, ?, ?, ?, ?)";
 
-    let prepared = session.prepare(insert_table_cql.to_string(), true, true)
+    let prepared = session
+        .prepare(insert_table_cql.to_string(), true, true)
         .unwrap()
         .get_body()
         .into_prepared()
@@ -96,7 +97,9 @@ fn insert_data_users() {
 
     let v: Vec<Value> =
         vec!["harry".into(), "pwd".into(), "male".into(), "09000".into(), "FL".into()];
-    let execution_params = QueryParamsBuilder::new(Consistency::One).values(v).finalize();
+    let execution_params = QueryParamsBuilder::new(Consistency::One)
+        .values(v)
+        .finalize();
 
     let ref query_id = prepared.id;
     let executed = session.execute(query_id, execution_params, true, true);
@@ -111,7 +114,7 @@ fn read_from_user_table() {
     let select_query = QueryBuilder::new("\
         SELECT user_name, password, gender, session_token, state, some_map \
         FROM user_keyspace.users")
-        .finalize();
+            .finalize();
 
     let query_op = session.query(select_query, true, true);
 
@@ -223,7 +226,9 @@ fn drop_keyspace() {
     let drop_ks = "DROP KEYSPACE IF EXISTS user_keyspace;";
     let with_tracing = false;
     let with_warnings = false;
-    let drop_ks_query = QueryBuilder::new(drop_ks).consistency(Consistency::One).finalize();
+    let drop_ks_query = QueryBuilder::new(drop_ks)
+        .consistency(Consistency::One)
+        .finalize();
     let drop_ks_query_result = session.query(drop_ks_query, with_tracing, with_warnings);
 
     assert!(drop_ks_query_result.is_ok(),
