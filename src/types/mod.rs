@@ -491,6 +491,7 @@ mod tests {
     use std::io::Cursor;
     use super::*;
     use {IntoBytes, FromCursor};
+    use std::mem::transmute;
 
     // CString
     #[test]
@@ -667,6 +668,21 @@ mod tests {
         let l: u64 = 3;
         let val = cursor_next_value(&mut cursor, l);
         assert_eq!(val, vec![0, 1, 2]);
+    }
+
+
+    #[test]
+    fn test_try_u16_from_bytes() {
+        let bytes: [u8; 2] = unsafe { transmute(12u16.to_be()) }; // or .to_le()
+        let val = try_u16_from_bytes(&bytes);
+        assert_eq!(val.unwrap(), 12u16);
+    }
+
+    #[test]
+    fn test_from_i_bytes() {
+        let bytes: [u8; 8] = unsafe { transmute(12i64.to_be()) }; // or .to_le()
+        let val = from_i_bytes(&bytes);
+        assert_eq!(val, 12i64);
     }
 
 }
