@@ -16,6 +16,7 @@
 //!use cdrs::query::QueryBuilder;
 //!use cdrs::authenticators::NoneAuthenticator;
 //!use cdrs::compression::Compression;
+//!use cdrs::transport::TransportTcp;
 //!
 //!let addr = "127.0.0.1:9042";
 //!let tcp_transport = TransportTcp::new(addr).unwrap();
