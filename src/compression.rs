@@ -1,5 +1,6 @@
 //!CDRS support traffic decompression as it is described in [Apache
-//!Cassandra protocol](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L790)
+//!Cassandra protocol](
+//!https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L790)
 //!
 //!Before being used, client and server must agree on a compression algorithm to
 //!use, which is done in the STARTUP message. As a consequence, a STARTUP message
