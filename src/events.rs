@@ -55,6 +55,7 @@ impl<X: CDRSTransport> Listener<X> {
                 .into_server_event();
 
             let event = if event_opt.is_some() {
+                // unwrap is safe is we've checked that event_opt.is_some()
                 event_opt.unwrap().event as ServerEvent
             } else {
                 continue;

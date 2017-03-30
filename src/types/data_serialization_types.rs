@@ -75,8 +75,8 @@ pub fn decode_decimal(bytes: &[u8]) -> Result<f32, io::Error> {
         return Err(scaled.unwrap_err());
     }
 
-    let unscaled_unwrapped: f32 = unscaled.unwrap() as f32;
-    let scaled_unwrapped: i32 = scaled.unwrap() as i32;
+    let unscaled_unwrapped = try!(unscaled) as f32;
+    let scaled_unwrapped = try!(scaled) as i32;
     let dec: f32 = 10.0;
     Ok(unscaled_unwrapped.mul(dec.powi(scaled_unwrapped)))
 }

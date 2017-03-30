@@ -41,6 +41,10 @@ pub fn try_to_n_bytes(int: u64, n: usize) -> io::Result<Vec<u8>> {
 }
 
 /// Converts u64 numerical value into array of n bytes
+///
+/// # Panics
+///
+/// It panics if given unisigned integer could not be converted in an array of n bytes
 pub fn to_n_bytes(int: u64, n: usize) -> Vec<u8> {
     try_to_n_bytes(int, n).unwrap()
 }
@@ -55,6 +59,11 @@ pub fn try_i_to_n_bytes(int: i64, n: usize) -> io::Result<Vec<u8>> {
     Ok(bytes)
 }
 
+/// Converts u64 numerical value into array of n bytes
+///
+/// # Panics
+///
+/// It panics if given integer could not be converted in an array of n bytes
 pub fn i_to_n_bytes(int: i64, n: usize) -> Vec<u8> {
     try_i_to_n_bytes(int, n).unwrap()
 }
@@ -104,21 +113,37 @@ pub fn try_f64_from_bytes(bytes: &[u8]) -> Result<f64, io::Error> {
 }
 
 /// Converts byte-array into u64
+///
+/// # Panics
+///
+/// It panics if given bytes could not be converted into `u64`
 pub fn from_bytes(bytes: &[u8]) -> u64 {
     try_from_bytes(bytes).unwrap()
 }
 
 /// Converts byte-array into i64
+///
+/// # Panics
+///
+/// It panics if given bytes could not be converted into `i64`
 pub fn from_i_bytes(bytes: &[u8]) -> i64 {
     try_i_from_bytes(bytes).unwrap()
 }
 
 /// Converts byte-array into u16
+///
+/// # Panics
+///
+/// It panics if given bytes could not be converted into `u16`
 pub fn from_u16_bytes(bytes: &[u8]) -> u16 {
     try_u16_from_bytes(bytes).unwrap()
 }
 
 /// Converts number i16 into Cassandra's [short].
+///
+/// # Panics
+///
+/// It panics if given `i16` could not be converted into bytes
 pub fn to_short(int: i16) -> Vec<u8> {
     let mut bytes = vec![];
     // should not panic as input is i16
@@ -128,6 +153,10 @@ pub fn to_short(int: i16) -> Vec<u8> {
 }
 
 /// Convers integer into Cassandra's [int]
+///
+/// # Panics
+///
+/// It panics if given `i32` could not be converted into bytes
 pub fn to_int(int: i32) -> Vec<u8> {
     let mut bytes = vec![];
     // should not panic as input is i16
@@ -137,6 +166,10 @@ pub fn to_int(int: i32) -> Vec<u8> {
 }
 
 /// Convers integer into Cassandra's [int]
+///
+/// # Panics
+///
+/// It panics if given `i64` could not be converted into bytes
 pub fn to_bigint(int: i64) -> Vec<u8> {
     let mut bytes = vec![];
     // should not panic as input is i16
@@ -145,7 +178,11 @@ pub fn to_bigint(int: i64) -> Vec<u8> {
     bytes
 }
 
-/// Converts number i16 into Cassandra's [short].
+/// Converts number i16 into Cassandra's `short`.
+///
+/// # Panics
+///
+/// It panics if given `u16` could not be converted into bytes
 pub fn to_u_short(int: u16) -> Vec<u8> {
     let mut bytes = vec![];
     // should not panic as input is i16
@@ -155,6 +192,10 @@ pub fn to_u_short(int: u16) -> Vec<u8> {
 }
 
 /// Convers integer into Cassandra's [int]
+///
+/// # Panics
+///
+/// It panics if given `u32` could not be converted into bytes
 pub fn to_u(int: u32) -> Vec<u8> {
     let mut bytes = vec![];
     // should not panic as input is u64
@@ -163,7 +204,11 @@ pub fn to_u(int: u32) -> Vec<u8> {
     bytes
 }
 
-/// Convers integer into Cassandra's [int]
+/// Convers integer into Cassandra's `int`
+///
+/// # Panics
+///
+/// It panics if given `u64` could not be converted into `u64`
 pub fn to_u_big(int: u64) -> Vec<u8> {
     let mut bytes = vec![];
     // should not panic as input is u64
@@ -172,6 +217,11 @@ pub fn to_u_big(int: u64) -> Vec<u8> {
     bytes
 }
 
+/// Converts `f32` into bytes
+///
+/// # Panics
+///
+/// It panics if given `f32` could not be converted into bytes
 pub fn to_float(f: f32) -> Vec<u8> {
     let mut bytes = vec![];
     // should not panic as input is f32
@@ -180,6 +230,11 @@ pub fn to_float(f: f32) -> Vec<u8> {
     bytes
 }
 
+/// Converts `f64` into array of bytes
+///
+/// # Panics
+///
+/// It panics if given `f63` could not be converted into bytes
 pub fn to_float_big(f: f64) -> Vec<u8> {
     let mut bytes = vec![];
     // should not panic as input is f64
