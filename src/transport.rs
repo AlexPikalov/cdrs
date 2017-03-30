@@ -1,3 +1,31 @@
+//!This module contains a declaration of `CDRSTransport` trait which should be implemented
+//!for particular transport in order to be able using it as a trasport of CDRS client.
+//!
+//!Curently CDRS provides to concrete transports which implement `CDRSTranpsport` trait. There
+//! are:
+//!
+//! * [`TransportTcp`][tTcp] is default TCP transport which is usually used to establish
+//!connection and exchange frames.
+//!
+//! * `TransportTls` is a transport which is used to establish SSL encrypted connection
+//!with Apache Cassandra server. **Note:** this option is available if and only if CDRS is imported
+//!with `ssl` feature.
+//!
+//! # Examples
+//!
+//!```no_run
+//!    use cdrs::transport::TransportTcp;
+//!    use cdrs::authenticators::NoneAuthenticator;
+//!    use cdrs::client::CDRS;
+//!
+//!    let addr = "127.0.0.1:9042";
+//!    let tcp_transport = TransportTcp::new(addr).unwrap();
+//!
+//!    // pass authenticator into CDRS' constructor
+//!    let client = CDRS::new(tcp_transport, NoneAuthenticator);
+//!```
+//![tTcp]:struct.TransportTcp.html
+
 use std::io;
 use std::io::{Read, Write};
 use std::net;
@@ -6,6 +34,11 @@ use std::time::Duration;
 #[cfg(feature = "ssl")]
 use openssl::ssl::{SslStream, SslConnector};
 
+///General CDRS transport trait. Both [`TranportTcp`][transportTcp]
+///and [`TransportTls`][transportTls] has their own implementations of this trait. Generaly
+///speaking it extends/includes `io::Read` and `io::Write` traits and should be thread safe.
+///[transportTcp]:struct.TransportTcp.html
+///[transportTls]:struct.TransportTls.html
 pub trait CDRSTransport: Sized + Read + Write + Send + Sync {
     /// Creates a new independently owned handle to the underlying socket.
     ///
@@ -23,6 +56,7 @@ pub trait CDRSTransport: Sized + Read + Write + Send + Sync {
     fn set_timeout(&mut self, dur: Option<Duration>) -> io::Result<()>;
 }
 
+/// Default Tcp transport.
 pub struct TransportTcp {
     tcp: TcpStream,
 }
