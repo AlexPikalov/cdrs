@@ -139,29 +139,37 @@ impl IntoBytes for ParamsReqQuery {
         v.push(self.flags_as_byte());
         if QueryFlags::has_value(self.flags_as_byte()) {
             // XXX clone
+            // XXX unwrap
             let values = self.values.clone().unwrap();
             v.extend_from_slice(to_short(values.len() as i16).as_slice());
             for val in values.iter() {
                 v.extend_from_slice(val.into_cbytes().as_slice());
             }
         }
-        if QueryFlags::has_with_paging_state(self.flags_as_byte()) {
+        if QueryFlags::has_with_paging_state(self.flags_as_byte()) && self.paging_state.is_some() {
             // XXX clone
             v.extend_from_slice(self.paging_state
                                     .clone()
+                                    // unwrap is safe as we've checked that
+                                    // self.paging_state.is_some()
                                     .unwrap()
                                     .into_cbytes()
                                     .as_slice());
         }
-        if QueryFlags::has_with_serial_consistency(self.flags_as_byte()) {
+        if QueryFlags::has_with_serial_consistency(self.flags_as_byte()) &&
+           self.serial_consistency.is_some() {
             // XXX clone
             v.extend_from_slice(self.serial_consistency
                                     .clone()
+                                    // unwrap is safe as we've checked that
+                                    // self.serial_consistency.is_some()
                                     .unwrap()
                                     .into_cbytes()
                                     .as_slice());
         }
-        if QueryFlags::has_with_default_timestamp(self.flags_as_byte()) {
+        if QueryFlags::has_with_default_timestamp(self.flags_as_byte()) &&
+           self.timestamp.is_some() {
+            // unwrap is safe as we've checked that self.timestamp.is_some()
             v.extend_from_slice(to_bigint(self.timestamp.unwrap()).as_slice());
         }
 

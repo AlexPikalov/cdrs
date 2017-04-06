@@ -30,6 +30,7 @@ fn main() {
         .prepare(prepare_query, with_tracing, with_warnings)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_prepared()
         .unwrap();
 

@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 use std::io::Cursor;
+
 use FromCursor;
-use types::{SHORT_LEN, cursor_next_value, from_bytes, CString, CStringList};
+use error;
+use types::{SHORT_LEN, cursor_next_value, try_from_bytes, CString, CStringList};
 
 #[derive(Debug)]
 pub struct BodyResSupported {
@@ -9,17 +11,20 @@ pub struct BodyResSupported {
 }
 
 impl FromCursor for BodyResSupported {
-    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> BodyResSupported {
-        let l = from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64).as_slice()) as i16;
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<BodyResSupported> {
+        let l = try_from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64).as_slice())? as i16;
         let acc: HashMap<String, Vec<String>> = HashMap::new();
         let map = (0..l).fold(acc, |mut m, _| {
-            let name = CString::from_cursor(&mut cursor).into_plain();
-            let val = CStringList::from_cursor(&mut cursor).into_plain();
+            // XXX unwrap()
+            let name = CString::from_cursor(&mut cursor).unwrap().into_plain();
+            let val = CStringList::from_cursor(&mut cursor)
+                .unwrap()
+                .into_plain();
             m.insert(name, val);
             m
         });
 
-        BodyResSupported { data: map }
+        Ok(BodyResSupported { data: map })
     }
 }
 
@@ -47,7 +52,7 @@ mod tests {
                      1,
                      98 /* value ["a", "b"] */];
         let mut cursor: Cursor<&[u8]> = Cursor::new(&bytes);
-        let options = BodyResSupported::from_cursor(&mut cursor).data;
+        let options = BodyResSupported::from_cursor(&mut cursor).unwrap().data;
         assert_eq!(options.len(), 1);
         let option_ab = options.get(&"ab".to_string()).unwrap();
         assert_eq!(option_ab[0], "a".to_string());

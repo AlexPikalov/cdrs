@@ -37,6 +37,7 @@ impl AsRust<Vec<Vec<u8>>> for List {
         match self.metadata.value {
             Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
+                    // XXX unwrap
                     ColType::Blob => Ok(self.map(|bytes| decode_blob(bytes.as_plain()).unwrap())),
                     _ => unreachable!(),
                 }
@@ -60,6 +61,7 @@ macro_rules! list_as_rust {
                     Some(ColTypeOptionValue::CList(ref type_option)) |
                     Some(ColTypeOptionValue::CSet(ref type_option)) => {
                         let type_option_ref = type_option.as_ref();
+                        // XXX unwrap
                         let convert = self
                             .map(|bytes| as_rust!(type_option_ref, bytes, $($into_type)*).unwrap());
 

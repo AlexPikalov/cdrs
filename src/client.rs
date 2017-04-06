@@ -54,7 +54,7 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
         parse_frame(&mut self.transport, &self.compressor)
         .map(|frame| {
                 match frame.get_body() {
-                ResponseBody::Supported(ref supported_body) => supported_body.data.clone(),
+                Ok(ResponseBody::Supported(ref supported_body)) => supported_body.data.clone(),
                 _ => unreachable!(),
             }
         })
@@ -79,7 +79,7 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
         }
 
         if start_response.opcode == Opcode::Authenticate {
-            let body = start_response.get_body();
+            let body = start_response.get_body()?;
             let authenticator =
                 body.get_authenticator()
                     .expect("Cassandra Server did communicate that it needed password

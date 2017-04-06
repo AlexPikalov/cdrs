@@ -237,6 +237,7 @@ fn prepare_query(session: &mut Session<NoneAuthenticator, TransportTcp>,
         .prepare(query.to_string(), false, false)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_prepared()
         .unwrap()
         .id
@@ -270,6 +271,7 @@ fn select_all_ints(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bo
         .query(select_query, false, false)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_rows()
         .unwrap();
 
@@ -339,6 +341,7 @@ fn select_table_str(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
         .query(select_query, false, false)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_rows()
         .unwrap();
 
@@ -388,6 +391,7 @@ fn select_table_list(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
         .query(select_query, false, false)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_rows()
         .unwrap();
 
@@ -459,6 +463,7 @@ fn select_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
         .query(select_query, false, false)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_rows()
         .unwrap();
 
@@ -533,6 +538,7 @@ fn select_table_udt(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
         .query(select_query, false, false)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_rows()
         .unwrap();
 
@@ -570,6 +576,7 @@ fn select_table_bool(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
         .query(select_query, false, false)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_rows()
         .unwrap();
 
@@ -609,6 +616,7 @@ fn select_table_uuid(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
         .query(select_query, false, false)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_rows()
         .unwrap();
 
@@ -647,6 +655,7 @@ fn select_table_float(session: &mut Session<NoneAuthenticator, TransportTcp>) ->
         .query(select_query, false, false)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_rows()
         .unwrap();
 
@@ -686,6 +695,7 @@ fn select_table_blob(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
         .query(select_query, false, false)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_rows()
         .unwrap();
 

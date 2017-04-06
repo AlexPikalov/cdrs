@@ -50,7 +50,7 @@ pub struct Frame {
 }
 
 impl Frame {
-    pub fn get_body(&self) -> ResponseBody {
+    pub fn get_body(&self) -> error::Result<ResponseBody> {
         ResponseBody::from(self.body.as_slice(), &self.opcode)
     }
 
