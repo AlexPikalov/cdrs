@@ -278,7 +278,7 @@ into appropriate Rust type:
 ```rust
 use cdrs::error::{Result as CResult};
 
-let res_body = parsed.get_body();
+let res_body = parsed.get_body().unwrap();
 let rows = res_body.into_rows().unwrap();
 let messages: Vec<CResult<Message>> = rows
     .iter()
@@ -303,7 +303,7 @@ struct Author {
 
 //...
 use cdrs::error::{Result as CResult};
-let res_body = parsed.get_body();
+let res_body = parsed.get_body().unwrap();
 let rows = res_body.into_rows().unwrap();
 let messages: Vec<CAuthor> = rows
     .iter()
@@ -345,6 +345,7 @@ Prepare-execute query is also supported:
   let executed = session.execute(query_id, execution_params, false, false)
     .unwrap()
     .get_body()
+    .unwrap()
     .into_set_keyspace()
     .unwrap();
 ```
