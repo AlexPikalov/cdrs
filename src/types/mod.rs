@@ -285,12 +285,14 @@ impl IntoBytes for CString {
 impl FromCursor for CString {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [string].
     /// It reads required number of bytes and returns a String
-    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CString {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CString> {
         let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
-        let len: u64 = from_bytes(len_bytes.as_slice());
+        let len: u64 = try_from_bytes(len_bytes.as_slice())?;
         let body_bytes = cursor_next_value(&mut cursor, len);
 
-        CString { string: String::from_utf8(body_bytes).unwrap() }
+        String::from_utf8(body_bytes)
+            .map_err(Into::into)
+            .map(CString::new)
     }
 }
 
@@ -331,12 +333,14 @@ impl IntoBytes for CStringLong {
 impl FromCursor for CStringLong {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [string].
     /// It reads required number of bytes and returns a String
-    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CStringLong {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CStringLong> {
         let len_bytes = cursor_next_value(&mut cursor, INT_LEN as u64);
-        let len: u64 = from_bytes(len_bytes.as_slice());
+        let len: u64 = try_from_bytes(len_bytes.as_slice())?;
         let body_bytes = cursor_next_value(&mut cursor, len);
 
-        CStringLong { string: String::from_utf8(body_bytes).unwrap() }
+        String::from_utf8(body_bytes)
+            .map_err(Into::into)
+            .map(CStringLong::new)
     }
 }
 
@@ -373,18 +377,17 @@ impl IntoBytes for CStringList {
 }
 
 impl FromCursor for CStringList {
-    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CStringList {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CStringList> {
         // TODO: try to use slice instead
         let mut len_bytes = [0; SHORT_LEN];
-        if let Err(err) = cursor.read(&mut len_bytes) {
-            error!("Read Cassandra bytes error: {}", err);
-            panic!(err);
-        }
-        let len: u64 = from_bytes(len_bytes.to_vec().as_slice());
+        try!(cursor.read(&mut len_bytes));
+        let len: u64 = try_from_bytes(len_bytes.to_vec().as_slice())?;
         let list = (0..len)
-            .map(|_| CString::from_cursor(&mut cursor))
+        // XXX unwrap
+            .map(|_| CString::from_cursor(&mut cursor).unwrap())
             .collect();
-        CStringList { list: list }
+
+        Ok(CStringList { list: list })
     }
 }
 
@@ -419,13 +422,14 @@ impl CBytes {
 impl FromCursor for CBytes {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].
     /// It reads required number of bytes and returns a CBytes
-    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CBytes {
-        let len = CInt::from_cursor(&mut cursor);
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CBytes> {
+        let len = CInt::from_cursor(&mut cursor)?;
         // null or not set value
         if len < 0 {
-            return CBytes { bytes: vec![] };
+            return Ok(CBytes { bytes: vec![] });
         }
-        CBytes { bytes: cursor_next_value(&mut cursor, len as u64) }
+
+        Ok(CBytes { bytes: cursor_next_value(&mut cursor, len as u64) })
     }
 }
 
@@ -459,9 +463,10 @@ impl CBytesShort {
 impl FromCursor for CBytesShort {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].
     /// It reads required number of bytes and returns a CBytes
-    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CBytesShort {
-        let len: u64 = CIntShort::from_cursor(&mut cursor) as u64;
-        CBytesShort { bytes: cursor_next_value(&mut cursor, len) }
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CBytesShort> {
+        let len: u64 = CIntShort::from_cursor(&mut cursor)? as u64;
+
+        Ok(CBytesShort { bytes: cursor_next_value(&mut cursor, len) })
     }
 }
 
@@ -481,9 +486,9 @@ impl IntoBytes for CBytesShort {
 pub type CInt = i32;
 
 impl FromCursor for CInt {
-    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CInt {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CInt> {
         let bytes = cursor_next_value(&mut cursor, INT_LEN as u64);
-        try_i32_from_bytes(bytes.as_slice()).unwrap() as CInt
+        try_i32_from_bytes(bytes.as_slice()).map_err(Into::into)
     }
 }
 
@@ -491,19 +496,20 @@ impl FromCursor for CInt {
 pub type CIntShort = i16;
 
 impl FromCursor for CIntShort {
-    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CIntShort {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CIntShort> {
         let bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
-        try_i16_from_bytes(bytes.as_slice()).unwrap() as CIntShort
+        try_i16_from_bytes(bytes.as_slice()).map_err(Into::into)
     }
 }
 
 // Use extended Rust Vec<u8> as Cassandra [bytes]
 impl FromBytes for Vec<u8> {
-    fn from_bytes(bytes: &[u8]) -> Vec<u8> {
+    fn from_bytes(bytes: &[u8]) -> CDRSResult<Vec<u8>> {
         let mut cursor = Cursor::new(bytes);
         let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
-        let len: u64 = from_bytes(len_bytes.as_slice());
-        cursor_next_value(&mut cursor, len)
+        let len: u64 = try_from_bytes(len_bytes.as_slice())?;
+
+        Ok(cursor_next_value(&mut cursor, len))
     }
 }
 
@@ -515,13 +521,13 @@ pub struct CInet {
 }
 
 impl FromCursor for CInet {
-    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CInet {
-        let n = CIntShort::from_cursor(&mut cursor);
-        let ip = decode_inet(cursor_next_value(&mut cursor, n as u64).as_slice()).unwrap();
-        let port = CInt::from_cursor(&mut cursor);
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CInet> {
+        let n = CIntShort::from_cursor(&mut cursor)?;
+        let ip = decode_inet(cursor_next_value(&mut cursor, n as u64).as_slice())?;
+        let port = CInt::from_cursor(&mut cursor)?;
         let socket_addr = SocketAddr::new(ip, port as u16);
 
-        CInet { addr: socket_addr }
+        Ok(CInet { addr: socket_addr })
     }
 }
 
@@ -583,8 +589,7 @@ mod tests {
     fn test_cstring_from_cursor() {
         let a = &[0, 3, 102, 111, 111, 0];
         let mut cursor: Cursor<&[u8]> = Cursor::new(a);
-        let cstring = CString::from_cursor(&mut cursor);
-        println!("{:?}", &cursor);
+        let cstring = CString::from_cursor(&mut cursor).unwrap();
         assert_eq!(cstring.as_str(), "foo");
     }
 
@@ -623,8 +628,7 @@ mod tests {
     fn test_cstringlong_from_cursor() {
         let a = &[0, 0, 0, 3, 102, 111, 111, 0];
         let mut cursor: Cursor<&[u8]> = Cursor::new(a);
-        let cstring = CStringLong::from_cursor(&mut cursor);
-        println!("{:?}", &cursor);
+        let cstring = CStringLong::from_cursor(&mut cursor).unwrap();
         assert_eq!(cstring.as_str(), "foo");
     }
 
@@ -633,7 +637,7 @@ mod tests {
     fn test_cstringlist() {
         let a = &[0, 2, 0, 3, 102, 111, 111, 0, 3, 102, 111, 111];
         let mut cursor: Cursor<&[u8]> = Cursor::new(a);
-        let list = CStringList::from_cursor(&mut cursor);
+        let list = CStringList::from_cursor(&mut cursor).unwrap();
         let plain = list.into_plain();
         assert_eq!(plain.len(), 2);
         for s in plain.iter() {
@@ -658,7 +662,7 @@ mod tests {
     fn test_cbytes_from_cursor() {
         let a = &[0, 0, 0, 3, 1, 2, 3];
         let mut cursor: Cursor<&[u8]> = Cursor::new(a);
-        let cbytes = CBytes::from_cursor(&mut cursor);
+        let cbytes = CBytes::from_cursor(&mut cursor).unwrap();
         assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
     }
 
@@ -686,7 +690,7 @@ mod tests {
     fn test_cbytesshort_from_cursor() {
         let a = &[0, 3, 1, 2, 3];
         let mut cursor: Cursor<&[u8]> = Cursor::new(a);
-        let cbytes = CBytesShort::from_cursor(&mut cursor);
+        let cbytes = CBytesShort::from_cursor(&mut cursor).unwrap();
         assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
     }
 
@@ -702,7 +706,7 @@ mod tests {
     fn test_cint_from_cursor() {
         let a = &[0, 0, 0, 5];
         let mut cursor: Cursor<&[u8]> = Cursor::new(a);
-        let i = CInt::from_cursor(&mut cursor);
+        let i = CInt::from_cursor(&mut cursor).unwrap();
         assert_eq!(i, 5);
     }
 
@@ -711,7 +715,7 @@ mod tests {
     fn test_cintshort_from_cursor() {
         let a = &[0, 5];
         let mut cursor: Cursor<&[u8]> = Cursor::new(a);
-        let i = CIntShort::from_cursor(&mut cursor);
+        let i = CIntShort::from_cursor(&mut cursor).unwrap();
         assert_eq!(i, 5);
     }
 

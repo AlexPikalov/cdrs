@@ -1,5 +1,7 @@
-use FromCursor;
 use std::io::Cursor;
+
+use FromCursor;
+use error;
 use frame::events::ServerEvent;
 
 #[derive(Debug)]
@@ -8,9 +10,10 @@ pub struct BodyResEvent {
 }
 
 impl FromCursor for BodyResEvent {
-    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> BodyResEvent {
-        let event = ServerEvent::from_cursor(&mut cursor);
-        BodyResEvent { event: event }
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<BodyResEvent> {
+        let event = ServerEvent::from_cursor(&mut cursor)?;
+
+        Ok(BodyResEvent { event: event })
     }
 }
 
@@ -64,7 +67,7 @@ mod tests {
                      0,
                      1];
         let mut cursor: Cursor<&[u8]> = Cursor::new(&bytes);
-        let event = BodyResEvent::from_cursor(&mut cursor).event;
+        let event = BodyResEvent::from_cursor(&mut cursor).unwrap().event;
 
         match event {
             ServerEvent::TopologyChange(ref tc) => {

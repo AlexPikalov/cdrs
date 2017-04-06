@@ -28,6 +28,7 @@ fn main() {
         .prepare(create_table_cql, with_tracing, with_warnings)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_prepared()
         .unwrap();
 
@@ -39,6 +40,7 @@ fn main() {
         .execute(query_id, execution_params, false, false)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_set_keyspace()
         .unwrap();
 

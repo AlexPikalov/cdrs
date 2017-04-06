@@ -1,5 +1,7 @@
 use std::io::Cursor;
+
 use FromCursor;
+use error;
 use types::CBytes;
 
 /// Server authentication challenge.
@@ -9,8 +11,8 @@ pub struct BodyResAuthChallenge {
 }
 
 impl FromCursor for BodyResAuthChallenge {
-    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> BodyResAuthChallenge {
-        BodyResAuthChallenge { data: CBytes::from_cursor(&mut cursor) }
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<BodyResAuthChallenge> {
+        CBytes::from_cursor(&mut cursor).map(|data| BodyResAuthChallenge { data: data })
     }
 }
 
@@ -24,7 +26,7 @@ mod tests {
     fn body_res_auth_challenge_from_cursor() {
         let few_bytes = &[0, 0, 0, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
         let mut cursor: Cursor<&[u8]> = Cursor::new(few_bytes);
-        let body = BodyResAuthChallenge::from_cursor(&mut cursor);
+        let body = BodyResAuthChallenge::from_cursor(&mut cursor).unwrap();
         assert_eq!(body.data.into_plain(), vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     }
 }

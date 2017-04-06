@@ -1,6 +1,7 @@
 use std::io::Cursor;
 
 use FromCursor;
+use error;
 use frame::Opcode;
 use frame::frame_result::{BodyResResultVoid, BodyResResultPrepared, BodyResResultRows,
                           BodyResResultSetKeyspace, ResResultBody};
@@ -33,37 +34,37 @@ pub enum ResponseBody {
 }
 
 impl ResponseBody {
-    pub fn from(bytes: &[u8], response_type: &Opcode) -> ResponseBody {
+    pub fn from(bytes: &[u8], response_type: &Opcode) -> error::Result<ResponseBody> {
         let mut cursor: Cursor<&[u8]> = Cursor::new(bytes);
-        match response_type {
-            // request frames
-            &Opcode::Startup => unreachable!(),
-            &Opcode::Options => unreachable!(),
-            &Opcode::Query => unreachable!(),
-            &Opcode::Prepare => unreachable!(),
-            &Opcode::Execute => unreachable!(),
-            &Opcode::Register => unreachable!(),
-            &Opcode::Batch => unreachable!(),
-            &Opcode::AuthResponse => unreachable!(),
+        Ok(match response_type {
+               // request frames
+               &Opcode::Startup => unreachable!(),
+               &Opcode::Options => unreachable!(),
+               &Opcode::Query => unreachable!(),
+               &Opcode::Prepare => unreachable!(),
+               &Opcode::Execute => unreachable!(),
+               &Opcode::Register => unreachable!(),
+               &Opcode::Batch => unreachable!(),
+               &Opcode::AuthResponse => unreachable!(),
 
-            // response frames
-            &Opcode::Error => ResponseBody::Error(CDRSError::from_cursor(&mut cursor)),
-            &Opcode::Ready => ResponseBody::Ready(BodyResResultVoid::from_cursor(&mut cursor)),
-            &Opcode::Authenticate => {
-                ResponseBody::Authenticate(BodyResAuthenticate::from_cursor(&mut cursor))
-            }
-            &Opcode::Supported => {
-                ResponseBody::Supported(BodyResSupported::from_cursor(&mut cursor))
-            }
-            &Opcode::Result => ResponseBody::Result(ResResultBody::from_cursor(&mut cursor)),
-            &Opcode::Event => ResponseBody::Event(BodyResEvent::from_cursor(&mut cursor)),
-            &Opcode::AuthChallenge => {
-                ResponseBody::AuthChallenge(BodyResAuthChallenge::from_cursor(&mut cursor))
-            }
-            &Opcode::AuthSuccess => {
-                ResponseBody::AuthSuccess(BodyReqAuthSuccess::from_cursor(&mut cursor))
-            }
-        }
+               // response frames
+               &Opcode::Error => ResponseBody::Error(CDRSError::from_cursor(&mut cursor)?),
+               &Opcode::Ready => ResponseBody::Ready(BodyResResultVoid::from_cursor(&mut cursor)?),
+               &Opcode::Authenticate => {
+                   ResponseBody::Authenticate(BodyResAuthenticate::from_cursor(&mut cursor)?)
+               }
+               &Opcode::Supported => {
+                   ResponseBody::Supported(BodyResSupported::from_cursor(&mut cursor)?)
+               }
+               &Opcode::Result => ResponseBody::Result(ResResultBody::from_cursor(&mut cursor)?),
+               &Opcode::Event => ResponseBody::Event(BodyResEvent::from_cursor(&mut cursor)?),
+               &Opcode::AuthChallenge => {
+                   ResponseBody::AuthChallenge(BodyResAuthChallenge::from_cursor(&mut cursor)?)
+               }
+               &Opcode::AuthSuccess => {
+                   ResponseBody::AuthSuccess(BodyReqAuthSuccess::from_cursor(&mut cursor)?)
+               }
+           })
     }
 
     pub fn into_rows(self) -> Option<Vec<Row>> {

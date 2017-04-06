@@ -59,7 +59,7 @@ fn main() {
 
             match query_op {
                 Ok(res) => {
-                    let res_body = res.get_body();
+                    let res_body = res.get_body().unwrap();
                     if let Some(rows) = res_body.into_rows() {
                         let employees: Vec<Employee> = rows.iter()
                             .map(|row| {

@@ -51,7 +51,7 @@ impl<X: CDRSTransport> Listener<X> {
     pub fn start(&mut self, compressor: &Compression) -> error::Result<()> {
         loop {
             let event_opt = try!(parse_frame(&mut self.transport, compressor))
-                .get_body()
+                .get_body()?
                 .into_server_event();
 
             let event = if event_opt.is_some() {

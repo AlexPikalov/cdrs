@@ -90,6 +90,7 @@ fn insert_data_users() {
         .prepare(insert_table_cql.to_string(), true, true)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_prepared()
         .unwrap();
 
@@ -120,7 +121,7 @@ fn read_from_user_table() {
 
     match query_op {
         Ok(res) => {
-            let res_body = res.get_body();
+            let res_body = res.get_body().unwrap();
             if let Some(rows) = res_body.into_rows() {
                 let users: Vec<User> = rows.iter()
                     .map(|row| {
