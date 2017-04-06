@@ -97,8 +97,9 @@ impl AdditionalErrorInfo {
                    AdditionalErrorInfo::ReadFailure(ReadFailureError::from_cursor(&mut cursor)?)
                }
                0x1400 => {
-                AdditionalErrorInfo::FunctionFailure(FunctionFailureError::from_cursor(&mut cursor)?)
-            }
+                   AdditionalErrorInfo::FunctionFailure(
+                       FunctionFailureError::from_cursor(&mut cursor)?)
+               }
                0x1500 => {
                    AdditionalErrorInfo::WriteFailure(WriteFailureError::from_cursor(&mut cursor)?)
                }
