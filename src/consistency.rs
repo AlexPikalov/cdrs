@@ -80,21 +80,21 @@ impl Default for Consistency {
 
 impl IntoBytes for Consistency {
     fn into_cbytes(&self) -> Vec<u8> {
-        return match self {
-                   &Consistency::Any => to_short(0x0000),
-                   &Consistency::One => to_short(0x0001),
-                   &Consistency::Two => to_short(0x0002),
-                   &Consistency::Three => to_short(0x0003),
-                   &Consistency::Quorum => to_short(0x0004),
-                   &Consistency::All => to_short(0x0005),
-                   &Consistency::LocalQuorum => to_short(0x0006),
-                   &Consistency::EachQuorum => to_short(0x0007),
-                   &Consistency::Serial => to_short(0x0008),
-                   &Consistency::LocalSerial => to_short(0x0009),
-                   &Consistency::LocalOne => to_short(0x000A),
-                   &Consistency::Unknown => to_short(0x0063),
-                   // giving Unknown a value of 99
-               };
+        match self {
+            &Consistency::Any => to_short(0x0000),
+            &Consistency::One => to_short(0x0001),
+            &Consistency::Two => to_short(0x0002),
+            &Consistency::Three => to_short(0x0003),
+            &Consistency::Quorum => to_short(0x0004),
+            &Consistency::All => to_short(0x0005),
+            &Consistency::LocalQuorum => to_short(0x0006),
+            &Consistency::EachQuorum => to_short(0x0007),
+            &Consistency::Serial => to_short(0x0008),
+            &Consistency::LocalSerial => to_short(0x0009),
+            &Consistency::LocalOne => to_short(0x000A),
+            &Consistency::Unknown => to_short(0x0063),
+            // giving Unknown a value of 99
+        }
     }
 }
 

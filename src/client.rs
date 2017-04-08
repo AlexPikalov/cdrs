@@ -37,11 +37,11 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
     /// that is supported by particular DB Server. There are few authenticators already
     /// provided by this trait.
     pub fn new(transport: X, authenticator: T) -> CDRS<T, X> {
-        return CDRS {
-                   compressor: Compression::None,
-                   authenticator: authenticator,
-                   transport: transport,
-               };
+        CDRS {
+            compressor: Compression::None,
+            authenticator: authenticator,
+            transport: transport,
+        }
     }
 
     /// The method makes an Option request to DB Server. As a response the server returns

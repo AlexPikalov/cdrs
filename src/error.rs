@@ -63,42 +63,42 @@ impl error::Error for Error {
 
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {
-        return Error::Io(err);
+        Error::Io(err)
     }
 }
 
 impl From<CDRSError> for Error {
     fn from(err: CDRSError) -> Error {
-        return Error::Server(err);
+        Error::Server(err)
     }
 }
 
 impl From<CompressionError> for Error {
     fn from(err: CompressionError) -> Error {
-        return Error::Compression(err);
+        Error::Compression(err)
     }
 }
 
 impl From<FromUtf8Error> for Error {
     fn from(err: FromUtf8Error) -> Error {
-        return Error::FromUtf8(err);
+        Error::FromUtf8(err)
     }
 }
 
 impl From<ParseError> for Error {
     fn from(err: ParseError) -> Error {
-        return Error::UUIDParse(err);
+        Error::UUIDParse(err)
     }
 }
 
 impl From<String> for Error {
     fn from(err: String) -> Error {
-        return Error::General(err);
+        Error::General(err)
     }
 }
 
 impl<'a> From<&'a str> for Error {
     fn from(err: &str) -> Error {
-        return Error::General(err.to_string());
+        Error::General(err.to_string())
     }
 }

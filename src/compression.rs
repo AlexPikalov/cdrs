@@ -183,7 +183,7 @@ impl From<String> for Compression {
     /// It converts `String` into `Compression`. If string is neither `lz4` nor `snappy` then
     /// `Compression::None` will be returned
     fn from(compression_string: String) -> Compression {
-        return Compression::from(compression_string.as_str());
+        Compression::from(compression_string.as_str())
     }
 }
 
