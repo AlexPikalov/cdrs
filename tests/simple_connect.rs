@@ -11,6 +11,8 @@ use cdrs::transport::TransportTcp;
 const _ADDR: &'static str = "127.0.0.1:9042";
 
 
+
+#[cfg(not(windows))]
 #[test]
 fn connect_to_cassandra() {
     const _ADDR: &'static str = "127.0.0.1:9042";
@@ -27,8 +29,9 @@ fn connect_to_cassandra() {
     let with_warnings = false;
 
 
-    let select_peers_query =
-        QueryBuilder::new(select_peers).consistency(Consistency::One).finalize();
+    let select_peers_query = QueryBuilder::new(select_peers)
+        .consistency(Consistency::One)
+        .finalize();
 
     let select_peers_query_result = session.query(select_peers_query, with_tracing, with_warnings);
 

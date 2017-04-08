@@ -26,9 +26,11 @@ fn main() {
     let with_tracing = false;
     let with_warnings = false;
 
-    let prepared = session.prepare(prepare_query, with_tracing, with_warnings)
+    let prepared = session
+        .prepare(prepare_query, with_tracing, with_warnings)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_prepared()
         .unwrap();
 

@@ -29,7 +29,6 @@ pub mod error;
 pub mod events;
 pub mod query;
 pub mod transport;
-pub mod cluster_builder;
 
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.
@@ -41,7 +40,7 @@ pub trait IntoBytes {
 /// `FromBytes` should be used to parse an array of bytes into a structure.
 pub trait FromBytes {
     /// It gets and array of bytes and should return an implementor struct.
-    fn from_bytes(&[u8]) -> Self;
+    fn from_bytes(&[u8]) -> error::Result<Self> where Self: Sized;
 }
 
 /// `AsBytes` should be used to convert a value into a single byte.
@@ -61,5 +60,5 @@ pub trait FromSingleByte {
 /// wich bound to an array of bytes.
 pub trait FromCursor {
     /// It should return an implementor from an `io::Cursor` over an array of bytes.
-    fn from_cursor(&mut Cursor<&[u8]>) -> Self;
+    fn from_cursor(&mut Cursor<&[u8]>) -> error::Result<Self> where Self: Sized;
 }

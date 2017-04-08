@@ -4,6 +4,8 @@
 
 use std::io;
 use std::result;
+
+use error;
 use consistency::Consistency;
 use types::*;
 use FromCursor;
@@ -29,15 +31,16 @@ pub struct CDRSError {
 }
 
 impl FromCursor for CDRSError {
-    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> CDRSError {
-        let error_code = CInt::from_cursor(&mut cursor);
-        let message = CString::from_cursor(&mut cursor);
-        let additional_info = AdditionalErrorInfo::from_cursor_with_code(&mut cursor, error_code);
-        CDRSError {
-            error_code: error_code,
-            message: message,
-            additional_info: additional_info,
-        }
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<CDRSError> {
+        let error_code = CInt::from_cursor(&mut cursor)?;
+        let message = CString::from_cursor(&mut cursor)?;
+        let additional_info = AdditionalErrorInfo::from_cursor_with_code(&mut cursor, error_code)?;
+
+        Ok(CDRSError {
+               error_code: error_code,
+               message: message,
+               additional_info: additional_info,
+           })
     }
 }
 
@@ -69,36 +72,50 @@ pub enum AdditionalErrorInfo {
 impl AdditionalErrorInfo {
     pub fn from_cursor_with_code(mut cursor: &mut io::Cursor<&[u8]>,
                                  error_code: CInt)
-                                 -> AdditionalErrorInfo {
-        match error_code {
-            0x0000 => AdditionalErrorInfo::Server(SimpleError::from_cursor(&mut cursor)),
-            0x000A => AdditionalErrorInfo::Protocol(SimpleError::from_cursor(&mut cursor)),
-            0x0100 => AdditionalErrorInfo::Authentication(SimpleError::from_cursor(&mut cursor)),
-            0x1000 => AdditionalErrorInfo::Unavailable(UnavailableError::from_cursor(&mut cursor)),
-            0x1001 => AdditionalErrorInfo::Overloaded(SimpleError::from_cursor(&mut cursor)),
-            0x1002 => AdditionalErrorInfo::IsBootstrapping(SimpleError::from_cursor(&mut cursor)),
-            0x1003 => AdditionalErrorInfo::Truncate(SimpleError::from_cursor(&mut cursor)),
-            0x1100 => {
-                AdditionalErrorInfo::WriteTimeout(WriteTimeoutError::from_cursor(&mut cursor))
-            }
-            0x1200 => AdditionalErrorInfo::ReadTimeout(ReadTimeoutError::from_cursor(&mut cursor)),
-            0x1300 => AdditionalErrorInfo::ReadFailure(ReadFailureError::from_cursor(&mut cursor)),
-            0x1400 => {
-                AdditionalErrorInfo::FunctionFailure(FunctionFailureError::from_cursor(&mut cursor))
-            }
-            0x1500 => {
-                AdditionalErrorInfo::WriteFailure(WriteFailureError::from_cursor(&mut cursor))
-            }
-            0x2000 => AdditionalErrorInfo::Syntax(SimpleError::from_cursor(&mut cursor)),
-            0x2100 => AdditionalErrorInfo::Unauthorized(SimpleError::from_cursor(&mut cursor)),
-            0x2200 => AdditionalErrorInfo::Invalid(SimpleError::from_cursor(&mut cursor)),
-            0x2300 => AdditionalErrorInfo::Config(SimpleError::from_cursor(&mut cursor)),
-            0x2400 => {
-                AdditionalErrorInfo::AlreadyExists(AlreadyExistsError::from_cursor(&mut cursor))
-            }
-            0x2500 => AdditionalErrorInfo::Unprepared(UnpreparedError::from_cursor(&mut cursor)),
-            _ => unreachable!(),
-        }
+                                 -> error::Result<AdditionalErrorInfo> {
+        Ok(match error_code {
+               0x0000 => AdditionalErrorInfo::Server(SimpleError::from_cursor(&mut cursor)?),
+               0x000A => AdditionalErrorInfo::Protocol(SimpleError::from_cursor(&mut cursor)?),
+               0x0100 => {
+                   AdditionalErrorInfo::Authentication(SimpleError::from_cursor(&mut cursor)?)
+               }
+               0x1000 => {
+                   AdditionalErrorInfo::Unavailable(UnavailableError::from_cursor(&mut cursor)?)
+               }
+               0x1001 => AdditionalErrorInfo::Overloaded(SimpleError::from_cursor(&mut cursor)?),
+               0x1002 => {
+                   AdditionalErrorInfo::IsBootstrapping(SimpleError::from_cursor(&mut cursor)?)
+               }
+               0x1003 => AdditionalErrorInfo::Truncate(SimpleError::from_cursor(&mut cursor)?),
+               0x1100 => {
+                   AdditionalErrorInfo::WriteTimeout(WriteTimeoutError::from_cursor(&mut cursor)?)
+               }
+               0x1200 => {
+                   AdditionalErrorInfo::ReadTimeout(ReadTimeoutError::from_cursor(&mut cursor)?)
+               }
+               0x1300 => {
+                   AdditionalErrorInfo::ReadFailure(ReadFailureError::from_cursor(&mut cursor)?)
+               }
+               0x1400 => {
+                   AdditionalErrorInfo::FunctionFailure(
+                       FunctionFailureError::from_cursor(&mut cursor)?)
+               }
+               0x1500 => {
+                   AdditionalErrorInfo::WriteFailure(WriteFailureError::from_cursor(&mut cursor)?)
+               }
+               0x2000 => AdditionalErrorInfo::Syntax(SimpleError::from_cursor(&mut cursor)?),
+               0x2100 => AdditionalErrorInfo::Unauthorized(SimpleError::from_cursor(&mut cursor)?),
+               0x2200 => AdditionalErrorInfo::Invalid(SimpleError::from_cursor(&mut cursor)?),
+               0x2300 => AdditionalErrorInfo::Config(SimpleError::from_cursor(&mut cursor)?),
+               0x2400 => {
+                   AdditionalErrorInfo::AlreadyExists(AlreadyExistsError::from_cursor(&mut cursor)?)
+               }
+               0x2500 => {
+                   AdditionalErrorInfo::Unprepared(UnpreparedError::from_cursor(&mut cursor)?)
+               }
+               // TODO: return error-like value
+               _ => unreachable!(),
+           })
     }
 }
 
@@ -107,8 +124,8 @@ impl AdditionalErrorInfo {
 pub struct SimpleError {}
 
 impl FromCursor for SimpleError {
-    fn from_cursor(mut _cursor: &mut io::Cursor<&[u8]>) -> SimpleError {
-        SimpleError {}
+    fn from_cursor(mut _cursor: &mut io::Cursor<&[u8]>) -> error::Result<SimpleError> {
+        Ok(SimpleError {})
     }
 }
 
@@ -126,16 +143,16 @@ pub struct UnavailableError {
 }
 
 impl FromCursor for UnavailableError {
-    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> UnavailableError {
-        let cl = Consistency::from_cursor(&mut cursor);
-        let required = CInt::from_cursor(&mut cursor);
-        let alive = CInt::from_cursor(&mut cursor);
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<UnavailableError> {
+        let cl = Consistency::from_cursor(&mut cursor)?;
+        let required = CInt::from_cursor(&mut cursor)?;
+        let alive = CInt::from_cursor(&mut cursor)?;
 
-        UnavailableError {
-            cl: cl,
-            required: required,
-            alive: alive,
-        }
+        Ok(UnavailableError {
+               cl: cl,
+               required: required,
+               alive: alive,
+           })
     }
 }
 
@@ -153,18 +170,18 @@ pub struct WriteTimeoutError {
 }
 
 impl FromCursor for WriteTimeoutError {
-    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> WriteTimeoutError {
-        let cl = Consistency::from_cursor(&mut cursor);
-        let received = CInt::from_cursor(&mut cursor);
-        let blockfor = CInt::from_cursor(&mut cursor);
-        let write_type = WriteType::from_cursor(&mut cursor);
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<WriteTimeoutError> {
+        let cl = Consistency::from_cursor(&mut cursor)?;
+        let received = CInt::from_cursor(&mut cursor)?;
+        let blockfor = CInt::from_cursor(&mut cursor)?;
+        let write_type = WriteType::from_cursor(&mut cursor)?;
 
-        return WriteTimeoutError {
-            cl: cl,
-            received: received,
-            blockfor: blockfor,
-            write_type: write_type,
-        };
+        Ok(WriteTimeoutError {
+               cl: cl,
+               received: received,
+               blockfor: blockfor,
+               write_type: write_type,
+           })
     }
 }
 
@@ -188,17 +205,18 @@ impl ReadTimeoutError {
 }
 
 impl FromCursor for ReadTimeoutError {
-    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> ReadTimeoutError {
-        let cl = Consistency::from_cursor(&mut cursor);
-        let received = CInt::from_cursor(&mut cursor);
-        let blockfor = CInt::from_cursor(&mut cursor);
-        let data_present = from_bytes(cursor_next_value(&mut cursor, 1).as_slice()) as u8;
-        ReadTimeoutError {
-            cl: cl,
-            received: received,
-            blockfor: blockfor,
-            data_present: data_present,
-        }
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<ReadTimeoutError> {
+        let cl = Consistency::from_cursor(&mut cursor)?;
+        let received = CInt::from_cursor(&mut cursor)?;
+        let blockfor = CInt::from_cursor(&mut cursor)?;
+        let data_present = try_from_bytes(cursor_next_value(&mut cursor, 1).as_slice())? as u8;
+
+        Ok(ReadTimeoutError {
+               cl: cl,
+               received: received,
+               blockfor: blockfor,
+               data_present: data_present,
+           })
     }
 }
 
@@ -224,19 +242,20 @@ impl ReadFailureError {
 }
 
 impl FromCursor for ReadFailureError {
-    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> ReadFailureError {
-        let cl = Consistency::from_cursor(&mut cursor);
-        let received = CInt::from_cursor(&mut cursor);
-        let blockfor = CInt::from_cursor(&mut cursor);
-        let num_failures = CInt::from_cursor(&mut cursor);
-        let data_present = from_bytes(cursor_next_value(&mut cursor, 1).as_slice()) as u8;
-        ReadFailureError {
-            cl: cl,
-            received: received,
-            blockfor: blockfor,
-            num_failures: num_failures,
-            data_present: data_present,
-        }
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<ReadFailureError> {
+        let cl = Consistency::from_cursor(&mut cursor)?;
+        let received = CInt::from_cursor(&mut cursor)?;
+        let blockfor = CInt::from_cursor(&mut cursor)?;
+        let num_failures = CInt::from_cursor(&mut cursor)?;
+        let data_present = try_from_bytes(cursor_next_value(&mut cursor, 1).as_slice())? as u8;
+
+        Ok(ReadFailureError {
+               cl: cl,
+               received: received,
+               blockfor: blockfor,
+               num_failures: num_failures,
+               data_present: data_present,
+           })
     }
 }
 
@@ -252,15 +271,16 @@ pub struct FunctionFailureError {
 }
 
 impl FromCursor for FunctionFailureError {
-    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> FunctionFailureError {
-        let keyspace = CString::from_cursor(&mut cursor);
-        let function = CString::from_cursor(&mut cursor);
-        let arg_types = CStringList::from_cursor(&mut cursor);
-        FunctionFailureError {
-            keyspace: keyspace,
-            function: function,
-            arg_types: arg_types,
-        }
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<FunctionFailureError> {
+        let keyspace = CString::from_cursor(&mut cursor)?;
+        let function = CString::from_cursor(&mut cursor)?;
+        let arg_types = CStringList::from_cursor(&mut cursor)?;
+
+        Ok(FunctionFailureError {
+               keyspace: keyspace,
+               function: function,
+               arg_types: arg_types,
+           })
     }
 }
 
@@ -281,19 +301,20 @@ pub struct WriteFailureError {
 }
 
 impl FromCursor for WriteFailureError {
-    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> WriteFailureError {
-        let cl = Consistency::from_cursor(&mut cursor);
-        let received = CInt::from_cursor(&mut cursor);
-        let blockfor = CInt::from_cursor(&mut cursor);
-        let num_failures = CInt::from_cursor(&mut cursor);
-        let write_type = WriteType::from_cursor(&mut cursor);
-        WriteFailureError {
-            cl: cl,
-            received: received,
-            blockfor: blockfor,
-            num_failures: num_failures,
-            write_type: write_type,
-        }
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<WriteFailureError> {
+        let cl = Consistency::from_cursor(&mut cursor)?;
+        let received = CInt::from_cursor(&mut cursor)?;
+        let blockfor = CInt::from_cursor(&mut cursor)?;
+        let num_failures = CInt::from_cursor(&mut cursor)?;
+        let write_type = WriteType::from_cursor(&mut cursor)?;
+
+        Ok(WriteFailureError {
+               cl: cl,
+               received: received,
+               blockfor: blockfor,
+               num_failures: num_failures,
+               write_type: write_type,
+           })
     }
 }
 
@@ -317,15 +338,16 @@ pub enum WriteType {
 }
 
 impl FromCursor for WriteType {
-    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> WriteType {
-        match CString::from_cursor(&mut cursor).as_str() {
-            "SIMPLE" => WriteType::Simple,
-            "BATCH" => WriteType::Batch,
-            "UNLOGGED_BATCH" => WriteType::UnloggedBatch,
-            "COUNTER" => WriteType::Counter,
-            "BATCH_LOG" => WriteType::BatchLog,
-            _ => unreachable!(),
-        }
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<WriteType> {
+        CString::from_cursor(&mut cursor).map(|wt| match wt.as_str() {
+                                                  "SIMPLE" => WriteType::Simple,
+                                                  "BATCH" => WriteType::Batch,
+                                                  "UNLOGGED_BATCH" => WriteType::UnloggedBatch,
+                                                  "COUNTER" => WriteType::Counter,
+                                                  "BATCH_LOG" => WriteType::BatchLog,
+                                                  // TODO: return error instead of panic
+                                                  _ => unreachable!(),
+                                              })
     }
 }
 
@@ -341,14 +363,14 @@ pub struct AlreadyExistsError {
 }
 
 impl FromCursor for AlreadyExistsError {
-    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> AlreadyExistsError {
-        let ks = CString::from_cursor(&mut cursor);
-        let table = CString::from_cursor(&mut cursor);
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<AlreadyExistsError> {
+        let ks = CString::from_cursor(&mut cursor)?;
+        let table = CString::from_cursor(&mut cursor)?;
 
-        AlreadyExistsError {
-            ks: ks,
-            table: table,
-        }
+        Ok(AlreadyExistsError {
+               ks: ks,
+               table: table,
+           })
     }
 }
 
@@ -363,9 +385,9 @@ pub struct UnpreparedError {
 }
 
 impl FromCursor for UnpreparedError {
-    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> UnpreparedError {
-        let id = CBytes::from_cursor(&mut cursor);
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<UnpreparedError> {
+        let id = CBytes::from_cursor(&mut cursor)?;
 
-        UnpreparedError { id: id }
+        Ok(UnpreparedError { id: id })
     }
 }

@@ -58,7 +58,7 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
     };
 
     let warnings = if flags.iter().any(|flag| flag == &Flag::Warning) {
-        CStringList::from_cursor(&mut body_cursor).into_plain()
+        CStringList::from_cursor(&mut body_cursor)?.into_plain()
     } else {
         vec![]
     };
@@ -77,16 +77,18 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
         warnings: warnings,
     };
 
-    return conver_frame_into_result(frame);
+    conver_frame_into_result(frame)
 }
 
 fn conver_frame_into_result(frame: Frame) -> error::Result<Frame> {
     match frame.opcode {
         Opcode::Error => {
-            match frame.get_body() {
-                ResponseBody::Error(err) => Err(error::Error::Server(err)),
-                _ => unreachable!(),
-            }
+            frame
+                .get_body()
+                .and_then(|err| match err {
+                              ResponseBody::Error(err) => Err(error::Error::Server(err)),
+                              _ => unreachable!(),
+                          })
         }
         _ => Ok(frame),
     }

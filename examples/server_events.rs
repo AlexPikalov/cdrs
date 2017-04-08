@@ -21,7 +21,9 @@ fn main() {
     let client = CDRS::new(transport, authenticator);
     let session = client.start(Compression::None).unwrap();
 
-    let (mut listener, stream) = session.listen_for(vec![SimpleServerEvent::SchemaChange]).unwrap();
+    let (mut listener, stream) = session
+        .listen_for(vec![SimpleServerEvent::SchemaChange])
+        .unwrap();
 
     thread::spawn(move || listener.start(&Compression::None).unwrap());
 

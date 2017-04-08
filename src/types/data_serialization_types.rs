@@ -62,7 +62,10 @@ pub fn decode_date(bytes: &[u8]) -> Result<i32, io::Error> {
 // Decodes Cassandra `decimal` data (bytes) into Rust's `Result<f32, io::Error>`
 pub fn decode_decimal(bytes: &[u8]) -> Result<f32, io::Error> {
     let ref separator = b'E';
-    let lr: Vec<Vec<u8>> = bytes.split(|ch| ch == separator).map(|p| p.to_vec()).collect();
+    let lr: Vec<Vec<u8>> = bytes
+        .split(|ch| ch == separator)
+        .map(|p| p.to_vec())
+        .collect();
     let unscaled = try_i_from_bytes(lr[0].as_slice());
     if unscaled.is_err() {
         return Err(unscaled.unwrap_err());
@@ -72,8 +75,8 @@ pub fn decode_decimal(bytes: &[u8]) -> Result<f32, io::Error> {
         return Err(scaled.unwrap_err());
     }
 
-    let unscaled_unwrapped: f32 = unscaled.unwrap() as f32;
-    let scaled_unwrapped: i32 = scaled.unwrap() as i32;
+    let unscaled_unwrapped = try!(unscaled) as f32;
+    let scaled_unwrapped = try!(scaled) as i32;
     let dec: f32 = 10.0;
     Ok(unscaled_unwrapped.mul(dec.powi(scaled_unwrapped)))
 }
@@ -105,7 +108,7 @@ pub fn decode_inet(bytes: &[u8]) -> Result<net::IpAddr, io::Error> {
             let h = from_u16_bytes(&bytes[14..16]);
             Ok(net::IpAddr::V6(net::Ipv6Addr::new(a, b, c, d, e, f, g, h)))
         }
-        _ => unreachable!(),
+        _ => Err(io::Error::new(io::ErrorKind::Other, "Unparseable  Ip address")),
     }
 }
 
@@ -120,8 +123,12 @@ pub fn decode_timestamp(bytes: &[u8]) -> Result<i64, io::Error> {
 // Decodes Cassandra `list` data (bytes) into Rust's `Result<Vec<CBytes>, io::Error>`
 pub fn decode_list(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
-    let l = CInt::from_cursor(&mut cursor);
-    let list = (0..l).map(|_| CBytes::from_cursor(&mut cursor)).collect();
+    let l =
+        CInt::from_cursor(&mut cursor).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let list = (0..l)
+    // XXX unwrap
+        .map(|_| CBytes::from_cursor(&mut cursor).unwrap())
+        .collect();
     Ok(list)
 }
 
@@ -133,9 +140,12 @@ pub fn decode_set(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
 // Decodes Cassandra `map` data (bytes) into Rust's `Result<Vec<(CBytes, CBytes)>, io::Error>`
 pub fn decode_map(bytes: &[u8]) -> Result<Vec<(CBytes, CBytes)>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
-    let l = CInt::from_cursor(&mut cursor);
+    let l = CInt::from_cursor(&mut cursor)
+        .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
     let list = (0..l)
-        .map(|_| (CBytes::from_cursor(&mut cursor), CBytes::from_cursor(&mut cursor)))
+        // XXX: unwrap
+        .map(|_| (CBytes::from_cursor(&mut cursor).unwrap(),
+            CBytes::from_cursor(&mut cursor).unwrap()))
         .collect();
     Ok(list)
 }
@@ -174,7 +184,10 @@ pub fn decode_varint(bytes: &[u8]) -> Result<i64, io::Error> {
 // each `CBytes` is encoded type of field of user defined type
 pub fn decode_udt(bytes: &[u8], l: usize) -> Result<Vec<CBytes>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
-    let list = (0..l).map(|_| CBytes::from_cursor(&mut cursor)).collect();
+    let list = (0..l)
+    // XXX unwrap
+        .map(|_| CBytes::from_cursor(&mut cursor).unwrap())
+        .collect();
     Ok(list)
 }
 
@@ -184,10 +197,6 @@ mod tests {
     use std::net::IpAddr;
     use super::*;
     use super::super::super::frame::frame_result::*;
-    use super::super::super::*;
-    use super::super::*;
-    use super::super::list::*;
-    use super::super::map::*;
     use super::super::super::error::*;
 
     #[test]

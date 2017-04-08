@@ -60,7 +60,7 @@ fn main() {
             match query_op {
                 Ok(res) => {
                     let res_body = res.get_body();
-                    if let Some(rows) = res_body.into_rows() {
+                    if let Some(rows) = res_body.unwrap().into_rows() {
                         let employees: Vec<Employee> = rows.iter()
                             .map(|row| {
                                 let mut employee = Employee { ..Default::default() };

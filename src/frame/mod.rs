@@ -50,7 +50,7 @@ pub struct Frame {
 }
 
 impl Frame {
-    pub fn get_body(&self) -> ResponseBody {
+    pub fn get_body(&self) -> error::Result<ResponseBody> {
         ResponseBody::from(self.body.as_slice(), &self.opcode)
     }
 
@@ -175,7 +175,8 @@ impl Flag {
 
     /// The method converts a serie of `Flag`-s into a single byte.
     pub fn many_to_cbytes(flags: &Vec<Flag>) -> u8 {
-        flags.iter()
+        flags
+            .iter()
             .fold(Flag::Ignore.as_byte(), |acc, f| acc | f.as_byte())
     }
 

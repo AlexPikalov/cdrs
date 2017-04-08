@@ -27,10 +27,7 @@ impl List {
     fn map<T, F>(&self, f: F) -> Vec<T>
         where F: FnMut(&CBytes) -> T
     {
-        self.data
-            .iter()
-            .map(f)
-            .collect()
+        self.data.iter().map(f).collect()
     }
 }
 
@@ -40,6 +37,7 @@ impl AsRust<Vec<Vec<u8>>> for List {
         match self.metadata.value {
             Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
+                    // XXX unwrap
                     ColType::Blob => Ok(self.map(|bytes| decode_blob(bytes.as_plain()).unwrap())),
                     _ => unreachable!(),
                 }

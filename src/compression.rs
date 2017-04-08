@@ -1,8 +1,42 @@
+//!CDRS support traffic decompression as it is described in [Apache
+//!Cassandra protocol](
+//!https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L790)
+//!
+//!Before being used, client and server must agree on a compression algorithm to
+//!use, which is done in the STARTUP message. As a consequence, a STARTUP message
+//!must never be compressed.  However, once the STARTUP frame has been received
+//!by the server, messages can be compressed (including the response to the STARTUP
+//!request).
+//!
+//!CDRS provides generic trait [`Compressor`][compressor].
+//!Enum [`Compression`][compression] contains implementation
+//!for `Compressor`.
+//!
+//!```no_run
+//!use cdrs::client::CDRS;
+//!use cdrs::query::QueryBuilder;
+//!use cdrs::authenticators::NoneAuthenticator;
+//!use cdrs::compression::Compression;
+//!use cdrs::transport::TransportTcp;
+//!
+//!let addr = "127.0.0.1:9042";
+//!let tcp_transport = TransportTcp::new(addr).unwrap();
+//!
+//!// pass authenticator into CDRS' constructor
+//!let client = CDRS::new(tcp_transport, NoneAuthenticator);
+//!let session = client.start(Compression::None);
+//!//let session = client.start(Compression::Lz4)
+//!//let session = client.start(Compression::Snappy)
+//!```
+//![compression]:enum.Compression.html
+//![compressor]:trait.Compressor.html
+
 use std::convert::From;
 use std::error::Error;
 use std::result;
 use std::fmt;
 use std::io;
+
 use snap;
 use lz4_compress as lz4;
 
@@ -122,13 +156,15 @@ impl Compression {
 
     fn encode_snappy(bytes: Vec<u8>) -> Result<Vec<u8>> {
         let mut encoder = snap::Encoder::new();
-        encoder.compress_vec(bytes.as_slice())
+        encoder
+            .compress_vec(bytes.as_slice())
             .map_err(CompressionError::Snappy)
     }
 
     fn decode_snappy(bytes: Vec<u8>) -> Result<Vec<u8>> {
         let mut decoder = snap::Decoder::new();
-        decoder.decompress_vec(bytes.as_slice())
+        decoder
+            .decompress_vec(bytes.as_slice())
             .map_err(CompressionError::Snappy)
     }
 
@@ -147,7 +183,7 @@ impl From<String> for Compression {
     /// It converts `String` into `Compression`. If string is neither `lz4` nor `snappy` then
     /// `Compression::None` will be returned
     fn from(compression_string: String) -> Compression {
-        return Compression::from(compression_string.as_str());
+        Compression::from(compression_string.as_str())
     }
 }
 
@@ -192,7 +228,9 @@ mod tests {
     fn test_compression_encode_snappy() {
         let snappy_compression = Compression::Snappy;
         let bytes = String::from("Hello World").into_bytes().to_vec();
-        snappy_compression.encode(bytes.clone()).expect("Should work without exceptions");
+        snappy_compression
+            .encode(bytes.clone())
+            .expect("Should work without exceptions");
     }
 
     #[test]
@@ -207,7 +245,9 @@ mod tests {
     fn test_compression_encode_lz4() {
         let snappy_compression = Compression::Lz4;
         let bytes = String::from("Hello World").into_bytes().to_vec();
-        snappy_compression.encode(bytes.clone()).expect("Should work without exceptions");
+        snappy_compression
+            .encode(bytes.clone())
+            .expect("Should work without exceptions");
     }
 
     #[test]
@@ -225,7 +265,9 @@ mod tests {
     fn test_compression_encode_none() {
         let none_compression = Compression::None;
         let bytes = String::from("Hello World").into_bytes().to_vec();
-        none_compression.encode(bytes.clone()).expect("Should work without exceptions");
+        none_compression
+            .encode(bytes.clone())
+            .expect("Should work without exceptions");
     }
 
 
@@ -252,7 +294,9 @@ mod tests {
     fn test_compression_encode_snappy_with_non_utf8() {
         let snappy_compression = Compression::Snappy;
         let v = vec![0xff, 0xff];
-        let encoded = snappy_compression.encode(v.clone()).expect("Should work without exceptions");
+        let encoded = snappy_compression
+            .encode(v.clone())
+            .expect("Should work without exceptions");
         assert_eq!(snappy_compression.decode(encoded).unwrap(), v);
     }
 

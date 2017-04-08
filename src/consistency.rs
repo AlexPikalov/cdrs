@@ -3,9 +3,10 @@
 use std::io;
 use std::convert::From;
 use std::default::Default;
-use super::{IntoBytes, FromCursor};
-use super::types::*;
-use super::FromBytes;
+
+use {IntoBytes, FromCursor, FromBytes};
+use error;
+use types::*;
 
 /// `Consistency` is an enum which represents Cassandra's consistency levels.
 /// To find more details about each consistency level please refer to Cassandra official docs.
@@ -79,7 +80,7 @@ impl Default for Consistency {
 
 impl IntoBytes for Consistency {
     fn into_cbytes(&self) -> Vec<u8> {
-        return match self {
+        match self {
             &Consistency::Any => to_short(0x0000),
             &Consistency::One => to_short(0x0001),
             &Consistency::Two => to_short(0x0002),
@@ -93,13 +94,13 @@ impl IntoBytes for Consistency {
             &Consistency::LocalOne => to_short(0x000A),
             &Consistency::Unknown => to_short(0x0063),
             // giving Unknown a value of 99
-        };
+        }
     }
 }
 
 impl From<i32> for Consistency {
     fn from(bytes: i32) -> Consistency {
-        return match bytes {
+        match bytes {
             0x0000 => Consistency::Any,
             0x0001 => Consistency::One,
             0x0002 => Consistency::Two,
@@ -112,33 +113,35 @@ impl From<i32> for Consistency {
             0x0009 => Consistency::LocalSerial,
             0x000A => Consistency::LocalOne,
             _ => Consistency::Unknown,
-        };
+        }
     }
 }
 
 impl FromBytes for Consistency {
-    fn from_bytes(bytes: &[u8]) -> Consistency {
-        return match from_bytes(bytes) {
-            0x0000 => Consistency::Any,
-            0x0001 => Consistency::One,
-            0x0002 => Consistency::Two,
-            0x0003 => Consistency::Three,
-            0x0004 => Consistency::Quorum,
-            0x0005 => Consistency::All,
-            0x0006 => Consistency::LocalQuorum,
-            0x0007 => Consistency::EachQuorum,
-            0x0008 => Consistency::Serial,
-            0x0009 => Consistency::LocalSerial,
-            0x000A => Consistency::LocalOne,
-            _ => Consistency::Unknown,
-        };
+    fn from_bytes(bytes: &[u8]) -> error::Result<Consistency> {
+        try_from_bytes(bytes)
+            .map_err(Into::into)
+            .map(|b| match b {
+                     0x0000 => Consistency::Any,
+                     0x0001 => Consistency::One,
+                     0x0002 => Consistency::Two,
+                     0x0003 => Consistency::Three,
+                     0x0004 => Consistency::Quorum,
+                     0x0005 => Consistency::All,
+                     0x0006 => Consistency::LocalQuorum,
+                     0x0007 => Consistency::EachQuorum,
+                     0x0008 => Consistency::Serial,
+                     0x0009 => Consistency::LocalSerial,
+                     0x000A => Consistency::LocalOne,
+                     _ => Consistency::Unknown,
+                 })
     }
 }
 
 impl FromCursor for Consistency {
-    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> Consistency {
-        let consistency_num = CIntShort::from_cursor(&mut cursor) as i32;
-        return Consistency::from(consistency_num);
+    fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<Consistency> {
+        let consistency_num = CIntShort::from_cursor(&mut cursor)? as i32;
+        Ok(Consistency::from(consistency_num))
     }
 }
 
@@ -184,43 +187,51 @@ mod tests {
 
     #[test]
     fn test_consistency_from_bytes() {
-        assert_eq!(Consistency::from_bytes(&[0, 0]), Consistency::Any);
-        assert_eq!(Consistency::from_bytes(&[0, 1]), Consistency::One);
-        assert_eq!(Consistency::from_bytes(&[0, 2]), Consistency::Two);
-        assert_eq!(Consistency::from_bytes(&[0, 3]), Consistency::Three);
-        assert_eq!(Consistency::from_bytes(&[0, 4]), Consistency::Quorum);
-        assert_eq!(Consistency::from_bytes(&[0, 5]), Consistency::All);
-        assert_eq!(Consistency::from_bytes(&[0, 6]), Consistency::LocalQuorum);
-        assert_eq!(Consistency::from_bytes(&[0, 7]), Consistency::EachQuorum);
-        assert_eq!(Consistency::from_bytes(&[0, 8]), Consistency::Serial);
-        assert_eq!(Consistency::from_bytes(&[0, 9]), Consistency::LocalSerial);
-        assert_eq!(Consistency::from_bytes(&[0, 10]), Consistency::LocalOne);
-        assert_eq!(Consistency::from_bytes(&[0, 11]), Consistency::Unknown);
+        assert_eq!(Consistency::from_bytes(&[0, 0]).unwrap(), Consistency::Any);
+        assert_eq!(Consistency::from_bytes(&[0, 1]).unwrap(), Consistency::One);
+        assert_eq!(Consistency::from_bytes(&[0, 2]).unwrap(), Consistency::Two);
+        assert_eq!(Consistency::from_bytes(&[0, 3]).unwrap(),
+                   Consistency::Three);
+        assert_eq!(Consistency::from_bytes(&[0, 4]).unwrap(),
+                   Consistency::Quorum);
+        assert_eq!(Consistency::from_bytes(&[0, 5]).unwrap(), Consistency::All);
+        assert_eq!(Consistency::from_bytes(&[0, 6]).unwrap(),
+                   Consistency::LocalQuorum);
+        assert_eq!(Consistency::from_bytes(&[0, 7]).unwrap(),
+                   Consistency::EachQuorum);
+        assert_eq!(Consistency::from_bytes(&[0, 8]).unwrap(),
+                   Consistency::Serial);
+        assert_eq!(Consistency::from_bytes(&[0, 9]).unwrap(),
+                   Consistency::LocalSerial);
+        assert_eq!(Consistency::from_bytes(&[0, 10]).unwrap(),
+                   Consistency::LocalOne);
+        assert_eq!(Consistency::from_bytes(&[0, 11]).unwrap(),
+                   Consistency::Unknown);
     }
 
     #[test]
     fn test_consistency_from_cursor() {
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 0])),
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 0])).unwrap(),
                    Consistency::Any);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 1])),
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 1])).unwrap(),
                    Consistency::One);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 2])),
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 2])).unwrap(),
                    Consistency::Two);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 3])),
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 3])).unwrap(),
                    Consistency::Three);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 4])),
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 4])).unwrap(),
                    Consistency::Quorum);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 5])),
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 5])).unwrap(),
                    Consistency::All);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 6])),
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 6])).unwrap(),
                    Consistency::LocalQuorum);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 7])),
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 7])).unwrap(),
                    Consistency::EachQuorum);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 8])),
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 8])).unwrap(),
                    Consistency::Serial);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 9])),
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 9])).unwrap(),
                    Consistency::LocalSerial);
-        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 10])),
+        assert_eq!(Consistency::from_cursor(&mut Cursor::new(&[0, 10])).unwrap(),
                    Consistency::LocalOne);
     }
 

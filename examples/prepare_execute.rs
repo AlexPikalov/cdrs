@@ -24,9 +24,11 @@ fn main() {
     let with_tracing = false;
     let with_warnings = false;
 
-    let prepared = session.prepare(create_table_cql, with_tracing, with_warnings)
+    let prepared = session
+        .prepare(create_table_cql, with_tracing, with_warnings)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_prepared()
         .unwrap();
 
@@ -34,9 +36,11 @@ fn main() {
 
     let execution_params = QueryParamsBuilder::new(Consistency::One).finalize();
     let ref query_id = prepared.id;
-    let executed = session.execute(query_id, execution_params, false, false)
+    let executed = session
+        .execute(query_id, execution_params, false, false)
         .unwrap()
         .get_body()
+        .unwrap()
         .into_set_keyspace()
         .unwrap();
 

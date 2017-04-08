@@ -23,7 +23,7 @@ pub struct Query {
     pub timestamp: Option<i64>,
 }
 
-/// QueryBuilder is a helper sturcture that helps to construct `Query`. `Query` itself
+/// `QueryBuilder` is a helper sturcture that helps to construct `Query`. `Query` itself
 /// consists of CQL query string and list of parameters.
 /// Parameters are the same as ones described in [Cassandra v4 protocol]
 /// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L304)
@@ -43,14 +43,17 @@ impl QueryBuilder {
     /// Factory function that takes CQL as an argument and returns new `QueryBuilder`.
     /// Default consistency level is `One`
     pub fn new<T: Into<String>>(query: T) -> QueryBuilder {
-        return QueryBuilder { query: query.into(), ..Default::default() };
+        QueryBuilder {
+            query: query.into(),
+            ..Default::default()
+        }
     }
 
     /// Sets new query consistency
     pub fn consistency(mut self, consistency: Consistency) -> Self {
         self.consistency = consistency;
 
-        return self;
+        self
     }
 
     /// Sets new query values
@@ -79,12 +82,12 @@ impl QueryBuilder {
         self.serial_consistency = params.serial_consistency;
         self.timestamp = params.timestamp;
 
-        return self;
+        self
     }
 
     /// Finalizes query building process and returns query itself
     pub fn finalize(self) -> Query {
-        return Query {
+        Query {
             query: self.query,
             consistency: self.consistency,
             values: self.values,
@@ -93,7 +96,7 @@ impl QueryBuilder {
             paging_state: self.paging_state,
             serial_consistency: self.serial_consistency,
             timestamp: self.timestamp,
-        };
+        }
     }
 }
 
@@ -113,7 +116,7 @@ pub struct QueryParamsBuilder {
 
 impl QueryParamsBuilder {
     pub fn new(consistency: Consistency) -> QueryParamsBuilder {
-        return QueryParamsBuilder {
+        QueryParamsBuilder {
             consistency: consistency,
             values: None,
             with_names: false,
@@ -121,43 +124,43 @@ impl QueryParamsBuilder {
             paging_state: None,
             serial_consistency: None,
             timestamp: None,
-        };
+        }
     }
 
     pub fn values(mut self, v: Vec<Value>) -> Self {
         self.values = Some(v);
 
-        return self;
+        self
     }
 
     pub fn with_names(mut self, with_names: bool) -> Self {
         self.with_names = with_names;
 
-        return self;
+        self
     }
 
     pub fn page_size(mut self, page_size: i32) -> Self {
         self.page_size = Some(page_size);
 
-        return self;
+        self
     }
 
     pub fn paging_state(mut self, paging_state: CBytes) -> Self {
         self.paging_state = Some(paging_state);
 
-        return self;
+        self
     }
 
     pub fn serial_consistency(mut self, serial_consistency: Consistency) -> Self {
         self.serial_consistency = Some(serial_consistency);
 
-        return self;
+        self
     }
 
     pub fn timestamp(mut self, timestamp: i64) -> Self {
         self.timestamp = Some(timestamp);
 
-        return self;
+        self
     }
 
     pub fn finalize(self) -> QueryParams {
@@ -226,21 +229,23 @@ impl BatchQueryBuilder {
 
     /// Add a query (non-prepared one)
     pub fn add_query<T: Into<String>>(mut self, query: T, values: Vec<BatchValue>) -> Self {
-        self.queries.push(BatchQuery {
-            is_prepared: false,
-            subject: BatchQuerySubj::QueryString(CStringLong::new(query.into())),
-            values: values,
-        });
+        self.queries
+            .push(BatchQuery {
+                      is_prepared: false,
+                      subject: BatchQuerySubj::QueryString(CStringLong::new(query.into())),
+                      values: values,
+                  });
         self
     }
 
     /// Add a query (prepared one)
     pub fn add_query_prepared(mut self, query_id: CBytesShort, values: Vec<BatchValue>) -> Self {
-        self.queries.push(BatchQuery {
-            is_prepared: true,
-            subject: BatchQuerySubj::PreparedId(query_id),
-            values: values,
-        });
+        self.queries
+            .push(BatchQuery {
+                      is_prepared: true,
+                      subject: BatchQuerySubj::PreparedId(query_id),
+                      values: values,
+                  });
         self
     }
 
@@ -295,13 +300,13 @@ impl BatchQueryBuilder {
         }
 
         Ok(BodyReqBatch {
-            batch_type: self.batch_type,
-            queries: self.queries,
-            query_flags: flags,
-            consistency: self.consistency,
-            serial_consistency: self.serial_consistency,
-            timestamp: self.timestamp,
-        })
+               batch_type: self.batch_type,
+               queries: self.queries,
+               query_flags: flags,
+               consistency: self.consistency,
+               serial_consistency: self.serial_consistency,
+               timestamp: self.timestamp,
+           })
     }
 }
 
