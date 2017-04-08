@@ -24,7 +24,7 @@ mod tests {
 
     #[test]
     fn body_res_ready_new() {
-        let body :BodyResReady = Default::default();
+        let body: BodyResReady = Default::default();
         assert_eq!(body, BodyResReady {});
     }
 

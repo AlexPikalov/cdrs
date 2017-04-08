@@ -25,11 +25,9 @@ impl LoadBalancingStrategy {
     /// Returns next value for selected load balancing strategy
     pub fn next<'a, N>(&'a self, nodes: &'a Vec<N>, i: usize) -> Option<&N> {
         println!("node# {:?}", i);
-        match self {
-            &LoadBalancingStrategy::Random => {
-                nodes.iter().nth(self.rnd_idx((0, Some(nodes.len()))))
-            }
-            &LoadBalancingStrategy::RoundRobin => {
+        match *self {
+            LoadBalancingStrategy::Random => nodes.get(self.rnd_idx((0, Some(nodes.len())))),
+            LoadBalancingStrategy::RoundRobin => {
                 let mut cycle = nodes.iter().cycle().skip(i);
                 cycle.next()
             }
