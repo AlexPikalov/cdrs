@@ -112,7 +112,7 @@ r2d2::ManageConnection for ClusterConnectionManager<T, X> {
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
         let transport_res: CResult<X> = self.load_balancer.next()
-            .ok_or("Cannot get next node".into())
+            .ok_or_else(|| "Cannot get next node".into())
             .and_then(|x| x.try_clone().map_err(|e| e.into()));
         let transport = try!(transport_res);
         let compression = self.compression.clone();
