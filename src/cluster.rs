@@ -126,7 +126,7 @@ r2d2::ManageConnection for ClusterConnectionManager<T, X> {
     fn is_valid(&self, connection: &mut Self::Connection) -> Result<(), Self::Error> {
         let query = QueryBuilder::new("SELECT * FROM system.peers;").finalize();
 
-        connection.query(query, false, false).map(|_| (()))
+        connection.query(query, false, false).map(|_| ())
     }
 
     fn has_broken(&self, _connection: &mut Self::Connection) -> bool {
