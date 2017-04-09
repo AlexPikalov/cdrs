@@ -375,6 +375,7 @@ mod batch_query_builder {
                 assert!(n.consistency == Consistency::One);
                 assert!(n.serial_consistency == None);
                 assert!(n.timestamp == None);
+                assert!(n.queries.is_empty());
             }
             Err(_) => assert!(false,"Error should not happen"),
         }
