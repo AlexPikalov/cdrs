@@ -222,7 +222,7 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
     /// use cdrs::query::QueryBuilder;
     /// use cdrs::compression::Compression;
     /// use cdrs::consistency::Consistency;
-    /// 
+    ///
     ///   let select_query = QueryBuilder::new("select * from emp").finalize();
     /// ```
     pub fn query(&mut self,
