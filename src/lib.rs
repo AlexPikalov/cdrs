@@ -3,6 +3,9 @@
 extern crate snap;
 extern crate byteorder;
 #[macro_use]
+pub mod macros;
+
+#[macro_use]
 extern crate log;
 extern crate lz4_compress;
 extern crate uuid;

@@ -53,29 +53,6 @@ impl AsRust<Vec<Vec<u8>>> for List {
     }
 }
 
-macro_rules! list_as_rust {
-    ($($into_type:tt)*) => (
-        impl AsRust<Vec<$($into_type)*>> for List {
-            fn as_rust(&self) -> Result<Vec<$($into_type)*>> {
-                match self.metadata.value {
-                    Some(ColTypeOptionValue::CList(ref type_option)) |
-                    Some(ColTypeOptionValue::CSet(ref type_option)) => {
-                        let type_option_ref = type_option.as_ref();
-                        // XXX unwrap
-                        let convert = self
-                            .map(|bytes| as_rust!(type_option_ref, bytes, $($into_type)*).unwrap());
-
-                        Ok(convert)
-                    },
-                    _ => Err(Error::General(format!("Invalid conversion. \
-                            Cannot convert {:?} into List (valid types: List, Set).",
-                            self.metadata.value)))
-                }
-            }
-        }
-    );
-}
-
 list_as_rust!(String);
 list_as_rust!(bool);
 list_as_rust!(i64);

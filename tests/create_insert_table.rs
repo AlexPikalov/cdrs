@@ -96,8 +96,11 @@ fn insert_data_users() {
 
     println!("prepared:\n{:?}", prepared);
 
-    let v: Vec<Value> =
-        vec!["harry".into(), "pwd".into(), "male".into(), "09000".into(), "FL".into()];
+    let v: Vec<Value> = vec!["harry".into(),
+                             "pwd".into(),
+                             "male".into(),
+                             "09000".into(),
+                             "FL".into()];
     let execution_params = QueryParamsBuilder::new(Consistency::One)
         .values(v)
         .finalize();

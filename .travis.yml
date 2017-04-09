@@ -20,7 +20,7 @@ before_install:
 
 
 install:
-  - (cargo install rustfmt || true)
+  - (cargo install rustfmt  || true)
   - PATH=$PATH:/home/travis/.cargo/bin
 
 script:

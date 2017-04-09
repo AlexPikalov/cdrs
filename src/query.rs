@@ -1,3 +1,4 @@
+
 use types::*;
 use types::value::*;
 use error::{Result as CResult, Error as CError};
@@ -5,28 +6,7 @@ use consistency::Consistency;
 use frame::frame_query::{ParamsReqQuery, QueryFlags};
 use frame::frame_batch::{BatchType, BatchQuery, BodyReqBatch, BatchQuerySubj};
 
-/// instead of writing functions which resemble
-/// ```
-/// pub fn query<'a> (&'a mut self,query: String) -> &'a mut Self{
-///     self.query = Some(query);
-///            self
-/// }
-/// ```
-/// and repeating it for all the attributes; it is extracted out as a macro so that code
-/// is more concise see
-/// @https://doc.rust-lang.org/book/method-syntax.html
-///
-///
-///
-macro_rules! builder_opt_field {
-    ($field:ident, $field_type:ty) => {
-        pub fn $field(mut self,
-                          $field: $field_type) -> Self {
-            self.$field = Some($field);
-            self
-        }
-    };
-}
+
 
 /// Structure that represents CQL query and parameters which will be applied during
 /// its execution
@@ -384,6 +364,21 @@ mod batch_query_builder {
     #[test]
     fn new() {
         assert!(BatchQueryBuilder::new().finalize().is_ok());
+    }
+
+    #[test]
+    fn newwith_defaults() {
+        let newwith_defaults = BatchQueryBuilder::new().finalize();
+        match newwith_defaults {
+            Ok(n) => {
+                assert!(n.batch_type == BatchType::Logged);
+                assert!(n.consistency == Consistency::One);
+                assert!(n.serial_consistency == None);
+                assert!(n.timestamp == None);
+                assert!(n.queries.is_empty());
+            }
+            Err(_) => assert!(false,"Error should not happen"),
+        }
     }
 
     #[test]
