@@ -54,7 +54,7 @@ impl IntoBytes for BodyReqBatch {
 }
 
 /// Batch type
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone,PartialEq)]
 pub enum BatchType {
     /// The batch will be "logged". This is equivalent to a
     /// normal CQL3 batch statement.

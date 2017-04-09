@@ -367,6 +367,20 @@ mod batch_query_builder {
     }
 
     #[test]
+    fn newwith_defaults() {
+        let newwith_defaults = BatchQueryBuilder::new().finalize();
+        match newwith_defaults {
+            Ok(n) => {
+                assert!(n.batch_type == BatchType::Logged);
+                assert!(n.consistency == Consistency::One);
+                assert!(n.serial_consistency == None);
+                assert!(n.timestamp == None);
+            }
+            Err(_) => assert!(false,"Error should not happen"),
+        }
+    }
+
+    #[test]
     fn with_parameters() {
         let q = BatchQueryBuilder::new()
             .batch_type(BatchType::Logged)
