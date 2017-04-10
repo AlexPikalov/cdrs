@@ -362,12 +362,20 @@ impl ColSpec {
         (0..column_count)
             .map(|_| {
                 let mut ksname: Option<CString> = None;
-                let mut tablename: Option<CString> = None;
-                if !with_globale_table_spec {
-                    // XXX unwrap
-                    ksname = Some(CString::from_cursor(&mut cursor).unwrap());
-                    tablename = Some(CString::from_cursor(&mut cursor).unwrap());
-                }
+                // let mut tablename: Option<CString> = None;
+                // if !with_globale_table_spec {
+                //     // XXX unwrap
+                //     ksname = Some(CString::from_cursor(&mut cursor).unwrap());
+                //     tablename = Some(CString::from_cursor(&mut cursor).unwrap());
+                // }
+
+                let tablename = if !with_globale_table_spec {
+
+                    Some(CString::from_cursor(&mut cursor).unwrap())
+                } else {
+                    None
+                };
+
                 // XXX unwrap
                 let name = CString::from_cursor(&mut cursor).unwrap();
                 let col_type = ColTypeOption::from_cursor(&mut cursor).unwrap();
