@@ -38,15 +38,14 @@ impl FromBytes for ResultKind {
     fn from_bytes(bytes: &[u8]) -> error::Result<ResultKind> {
         try_from_bytes(bytes)
             .map_err(Into::into)
-            .map(|r| match r {
-                     0x0001 => ResultKind::Void,
-                     0x0002 => ResultKind::Rows,
-                     0x0003 => ResultKind::SetKeyspace,
-                     0x0004 => ResultKind::Prepared,
-                     0x0005 => ResultKind::SchemaChange,
-                     // TODO: return error
-                     _ => unreachable!(),
-                 })
+            .and_then(|r| match r {
+                          0x0001 => Ok(ResultKind::Void),
+                          0x0002 => Ok(ResultKind::Rows),
+                          0x0003 => Ok(ResultKind::SetKeyspace),
+                          0x0004 => Ok(ResultKind::Prepared),
+                          0x0005 => Ok(ResultKind::SchemaChange),
+                          _ => Err("Unexpected result kind".into()),
+                      })
     }
 }
 
@@ -330,13 +329,12 @@ impl FromBytes for RowsMetadataFlag {
     fn from_bytes(bytes: &[u8]) -> error::Result<RowsMetadataFlag> {
         try_from_bytes(bytes)
             .map_err(Into::into)
-            .map(|f| match f as i32 {
-                     GLOBAL_TABLE_SPACE => RowsMetadataFlag::GlobalTableSpace,
-                     HAS_MORE_PAGES => RowsMetadataFlag::HasMorePages,
-                     NO_METADATA => RowsMetadataFlag::NoMetadata,
-                     // TODO: return error
-                     _ => unreachable!(),
-                 })
+            .and_then(|f| match f as i32 {
+                          GLOBAL_TABLE_SPACE => Ok(RowsMetadataFlag::GlobalTableSpace),
+                          HAS_MORE_PAGES => Ok(RowsMetadataFlag::HasMorePages),
+                          NO_METADATA => Ok(RowsMetadataFlag::NoMetadata),
+                          _ => Err("Unexpected rows metadata flag".into()),
+                      })
     }
 }
 
@@ -422,35 +420,34 @@ impl FromBytes for ColType {
     fn from_bytes(bytes: &[u8]) -> error::Result<ColType> {
         try_from_bytes(bytes)
             .map_err(Into::into)
-            .map(|b| match b {
-                     0x0000 => ColType::Custom,
-                     0x0001 => ColType::Ascii,
-                     0x0002 => ColType::Bigint,
-                     0x0003 => ColType::Blob,
-                     0x0004 => ColType::Boolean,
-                     0x0005 => ColType::Counter,
-                     0x0006 => ColType::Decimal,
-                     0x0007 => ColType::Double,
-                     0x0008 => ColType::Float,
-                     0x0009 => ColType::Int,
-                     0x000B => ColType::Timestamp,
-                     0x000C => ColType::Uuid,
-                     0x000D => ColType::Varchar,
-                     0x000E => ColType::Varint,
-                     0x000F => ColType::Timeuuid,
-                     0x0010 => ColType::Inet,
-                     0x0011 => ColType::Date,
-                     0x0012 => ColType::Time,
-                     0x0013 => ColType::Smallint,
-                     0x0014 => ColType::Tinyint,
-                     0x0020 => ColType::List,
-                     0x0021 => ColType::Map,
-                     0x0022 => ColType::Set,
-                     0x0030 => ColType::Udt,
-                     0x0031 => ColType::Tuple,
-                     // TODO: should be error
-                     _ => unreachable!(),
-                 })
+            .and_then(|b| match b {
+                          0x0000 => Ok(ColType::Custom),
+                          0x0001 => Ok(ColType::Ascii),
+                          0x0002 => Ok(ColType::Bigint),
+                          0x0003 => Ok(ColType::Blob),
+                          0x0004 => Ok(ColType::Boolean),
+                          0x0005 => Ok(ColType::Counter),
+                          0x0006 => Ok(ColType::Decimal),
+                          0x0007 => Ok(ColType::Double),
+                          0x0008 => Ok(ColType::Float),
+                          0x0009 => Ok(ColType::Int),
+                          0x000B => Ok(ColType::Timestamp),
+                          0x000C => Ok(ColType::Uuid),
+                          0x000D => Ok(ColType::Varchar),
+                          0x000E => Ok(ColType::Varint),
+                          0x000F => Ok(ColType::Timeuuid),
+                          0x0010 => Ok(ColType::Inet),
+                          0x0011 => Ok(ColType::Date),
+                          0x0012 => Ok(ColType::Time),
+                          0x0013 => Ok(ColType::Smallint),
+                          0x0014 => Ok(ColType::Tinyint),
+                          0x0020 => Ok(ColType::List),
+                          0x0021 => Ok(ColType::Map),
+                          0x0022 => Ok(ColType::Set),
+                          0x0030 => Ok(ColType::Udt),
+                          0x0031 => Ok(ColType::Tuple),
+                          _ => Err("Unexpected column type".into()),
+                      })
     }
 }
 

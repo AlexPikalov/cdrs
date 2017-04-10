@@ -73,49 +73,48 @@ impl AdditionalErrorInfo {
     pub fn from_cursor_with_code(mut cursor: &mut io::Cursor<&[u8]>,
                                  error_code: CInt)
                                  -> error::Result<AdditionalErrorInfo> {
-        Ok(match error_code {
-               0x0000 => AdditionalErrorInfo::Server(SimpleError::from_cursor(&mut cursor)?),
-               0x000A => AdditionalErrorInfo::Protocol(SimpleError::from_cursor(&mut cursor)?),
-               0x0100 => {
-                   AdditionalErrorInfo::Authentication(SimpleError::from_cursor(&mut cursor)?)
+        match error_code {
+            0x0000 => Ok(AdditionalErrorInfo::Server(SimpleError::from_cursor(&mut cursor)?)),
+            0x000A => Ok(AdditionalErrorInfo::Protocol(SimpleError::from_cursor(&mut cursor)?)),
+            0x0100 => {
+                Ok(AdditionalErrorInfo::Authentication(SimpleError::from_cursor(&mut cursor)?))
+            }
+            0x1000 => {
+                Ok(AdditionalErrorInfo::Unavailable(UnavailableError::from_cursor(&mut cursor)?))
+            }
+            0x1001 => Ok(AdditionalErrorInfo::Overloaded(SimpleError::from_cursor(&mut cursor)?)),
+            0x1002 => {
+                Ok(AdditionalErrorInfo::IsBootstrapping(SimpleError::from_cursor(&mut cursor)?))
+            }
+            0x1003 => Ok(AdditionalErrorInfo::Truncate(SimpleError::from_cursor(&mut cursor)?)),
+            0x1100 => {
+                Ok(AdditionalErrorInfo::WriteTimeout(WriteTimeoutError::from_cursor(&mut cursor)?))
+            }
+            0x1200 => {
+                Ok(AdditionalErrorInfo::ReadTimeout(ReadTimeoutError::from_cursor(&mut cursor)?))
+            }
+            0x1300 => {
+                Ok(AdditionalErrorInfo::ReadFailure(ReadFailureError::from_cursor(&mut cursor)?))
+            }
+            0x1400 => {
+                   Ok(AdditionalErrorInfo::FunctionFailure(
+                       FunctionFailureError::from_cursor(&mut cursor)?))
                }
-               0x1000 => {
-                   AdditionalErrorInfo::Unavailable(UnavailableError::from_cursor(&mut cursor)?)
+            0x1500 => {
+                Ok(AdditionalErrorInfo::WriteFailure(WriteFailureError::from_cursor(&mut cursor)?))
+            }
+            0x2000 => Ok(AdditionalErrorInfo::Syntax(SimpleError::from_cursor(&mut cursor)?)),
+            0x2100 => Ok(AdditionalErrorInfo::Unauthorized(SimpleError::from_cursor(&mut cursor)?)),
+            0x2200 => Ok(AdditionalErrorInfo::Invalid(SimpleError::from_cursor(&mut cursor)?)),
+            0x2300 => Ok(AdditionalErrorInfo::Config(SimpleError::from_cursor(&mut cursor)?)),
+            0x2400 => {
+                   Ok(AdditionalErrorInfo::AlreadyExists(AlreadyExistsError::from_cursor(&mut cursor)?))
                }
-               0x1001 => AdditionalErrorInfo::Overloaded(SimpleError::from_cursor(&mut cursor)?),
-               0x1002 => {
-                   AdditionalErrorInfo::IsBootstrapping(SimpleError::from_cursor(&mut cursor)?)
-               }
-               0x1003 => AdditionalErrorInfo::Truncate(SimpleError::from_cursor(&mut cursor)?),
-               0x1100 => {
-                   AdditionalErrorInfo::WriteTimeout(WriteTimeoutError::from_cursor(&mut cursor)?)
-               }
-               0x1200 => {
-                   AdditionalErrorInfo::ReadTimeout(ReadTimeoutError::from_cursor(&mut cursor)?)
-               }
-               0x1300 => {
-                   AdditionalErrorInfo::ReadFailure(ReadFailureError::from_cursor(&mut cursor)?)
-               }
-               0x1400 => {
-                   AdditionalErrorInfo::FunctionFailure(
-                       FunctionFailureError::from_cursor(&mut cursor)?)
-               }
-               0x1500 => {
-                   AdditionalErrorInfo::WriteFailure(WriteFailureError::from_cursor(&mut cursor)?)
-               }
-               0x2000 => AdditionalErrorInfo::Syntax(SimpleError::from_cursor(&mut cursor)?),
-               0x2100 => AdditionalErrorInfo::Unauthorized(SimpleError::from_cursor(&mut cursor)?),
-               0x2200 => AdditionalErrorInfo::Invalid(SimpleError::from_cursor(&mut cursor)?),
-               0x2300 => AdditionalErrorInfo::Config(SimpleError::from_cursor(&mut cursor)?),
-               0x2400 => {
-                   AdditionalErrorInfo::AlreadyExists(AlreadyExistsError::from_cursor(&mut cursor)?)
-               }
-               0x2500 => {
-                   AdditionalErrorInfo::Unprepared(UnpreparedError::from_cursor(&mut cursor)?)
-               }
-               // TODO: return error-like value
-               _ => unreachable!(),
-           })
+            0x2500 => {
+                Ok(AdditionalErrorInfo::Unprepared(UnpreparedError::from_cursor(&mut cursor)?))
+            }
+            _ => Err("Unexpected additional error info".into()),
+        }
     }
 }
 
@@ -339,15 +338,16 @@ pub enum WriteType {
 
 impl FromCursor for WriteType {
     fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<WriteType> {
-        CString::from_cursor(&mut cursor).map(|wt| match wt.as_str() {
-                                                  "SIMPLE" => WriteType::Simple,
-                                                  "BATCH" => WriteType::Batch,
-                                                  "UNLOGGED_BATCH" => WriteType::UnloggedBatch,
-                                                  "COUNTER" => WriteType::Counter,
-                                                  "BATCH_LOG" => WriteType::BatchLog,
-                                                  // TODO: return error instead of panic
-                                                  _ => unreachable!(),
-                                              })
+        CString::from_cursor(&mut cursor).and_then(|wt| match wt.as_str() {
+                                                       "SIMPLE" => Ok(WriteType::Simple),
+                                                       "BATCH" => Ok(WriteType::Batch),
+                                                       "UNLOGGED_BATCH" => {
+                                                           Ok(WriteType::UnloggedBatch)
+                                                       }
+                                                       "COUNTER" => Ok(WriteType::Counter),
+                                                       "BATCH_LOG" => Ok(WriteType::BatchLog),
+                                                       _ => Err("Unexpected write type".into()),
+                                                   })
     }
 }
 
