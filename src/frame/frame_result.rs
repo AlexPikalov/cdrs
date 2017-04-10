@@ -135,26 +135,22 @@ impl FromCursor for ResResultBody {
 }
 
 /// Body of a response of type Void
-#[derive(Debug)]
+#[derive(Debug,Default)]
 pub struct BodyResResultVoid {}
 
-/// Empty result body.
-impl BodyResResultVoid {
-    pub fn new() -> BodyResResultVoid {
-        BodyResResultVoid {}
-    }
-}
 
 impl FromBytes for BodyResResultVoid {
     fn from_bytes(_bytes: &[u8]) -> error::Result<BodyResResultVoid> {
         // as it's empty by definition just create BodyResVoid
-        Ok(BodyResResultVoid::new())
+        let body: BodyResResultVoid = Default::default();
+        Ok(body)
     }
 }
 
 impl FromCursor for BodyResResultVoid {
     fn from_cursor(mut _cursor: &mut Cursor<&[u8]>) -> error::Result<BodyResResultVoid> {
-        Ok(BodyResResultVoid::new())
+        let body: BodyResResultVoid = Default::default();
+        Ok(body)
     }
 }
 

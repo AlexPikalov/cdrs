@@ -142,7 +142,7 @@ impl IntoBytes for ParamsReqQuery {
             // XXX unwrap
             let values = self.values.clone().unwrap();
             v.extend_from_slice(to_short(values.len() as i16).as_slice());
-            for val in values.iter() {
+            for val in &values {
                 v.extend_from_slice(val.into_cbytes().as_slice());
             }
         }
@@ -294,16 +294,16 @@ impl AsByte for QueryFlags {
 
 impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
-    pub fn new_req_query<'a>(query: String,
-                             consistency: Consistency,
-                             values: Option<Vec<Value>>,
-                             with_names: Option<bool>,
-                             page_size: Option<i32>,
-                             paging_state: Option<CBytes>,
-                             serial_consistency: Option<Consistency>,
-                             timestamp: Option<i64>,
-                             flags: Vec<Flag>)
-                             -> Frame {
+    pub fn new_req_query(query: String,
+                         consistency: Consistency,
+                         values: Option<Vec<Value>>,
+                         with_names: Option<bool>,
+                         page_size: Option<i32>,
+                         paging_state: Option<CBytes>,
+                         serial_consistency: Option<Consistency>,
+                         timestamp: Option<i64>,
+                         flags: Vec<Flag>)
+                         -> Frame {
         let version = Version::Request;
         // sync client
         let stream: u64 = 0;
