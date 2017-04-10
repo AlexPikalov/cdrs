@@ -108,7 +108,8 @@ impl AdditionalErrorInfo {
             0x2200 => Ok(AdditionalErrorInfo::Invalid(SimpleError::from_cursor(&mut cursor)?)),
             0x2300 => Ok(AdditionalErrorInfo::Config(SimpleError::from_cursor(&mut cursor)?)),
             0x2400 => {
-                   Ok(AdditionalErrorInfo::AlreadyExists(AlreadyExistsError::from_cursor(&mut cursor)?))
+                   Ok(AdditionalErrorInfo::AlreadyExists(
+                       AlreadyExistsError::from_cursor(&mut cursor)?))
                }
             0x2500 => {
                 Ok(AdditionalErrorInfo::Unprepared(UnpreparedError::from_cursor(&mut cursor)?))
