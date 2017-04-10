@@ -171,7 +171,7 @@ impl BodyResResultSetKeyspace {
 
 impl FromCursor for BodyResResultSetKeyspace {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<BodyResResultSetKeyspace> {
-        CString::from_cursor(&mut cursor).map(|ks| BodyResResultSetKeyspace::new(ks))
+        CString::from_cursor(&mut cursor).map(BodyResResultSetKeyspace::new)
     }
 }
 
