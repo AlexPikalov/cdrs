@@ -97,15 +97,14 @@ impl PartialEq<SimpleServerEvent> for ServerEvent {
 impl FromCursor for ServerEvent {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<ServerEvent> {
         let event_type = CString::from_cursor(&mut cursor)?;
-        Ok(match event_type.as_str() {
-               TOPOLOGY_CHANGE => {
-                   ServerEvent::TopologyChange(TopologyChange::from_cursor(&mut cursor)?)
-               }
-               STATUS_CHANGE => ServerEvent::StatusChange(StatusChange::from_cursor(&mut cursor)?),
-               SCHEMA_CHANGE => ServerEvent::SchemaChange(SchemaChange::from_cursor(&mut cursor)?),
-               // TODO: return error
-               _ => unreachable!(),
-           })
+        match event_type.as_str() {
+            TOPOLOGY_CHANGE => {
+                Ok(ServerEvent::TopologyChange(TopologyChange::from_cursor(&mut cursor)?))
+            }
+            STATUS_CHANGE => Ok(ServerEvent::StatusChange(StatusChange::from_cursor(&mut cursor)?)),
+            SCHEMA_CHANGE => Ok(ServerEvent::SchemaChange(SchemaChange::from_cursor(&mut cursor)?)),
+            _ => Err("Unexpected server event".into()),
+        }
     }
 }
 
@@ -136,12 +135,14 @@ pub enum TopologyChangeType {
 
 impl FromCursor for TopologyChangeType {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<TopologyChangeType> {
-        CString::from_cursor(&mut cursor).map(|tc| match tc.as_str() {
-                                                  NEW_NODE => TopologyChangeType::NewNode,
-                                                  REMOVED_NODE => TopologyChangeType::RemovedNode,
-                                                  // TODO: return error
-                                                  _ => unreachable!(),
-                                              })
+        CString::from_cursor(&mut cursor)
+            .and_then(|tc| match tc.as_str() {
+                NEW_NODE => Ok(TopologyChangeType::NewNode),
+                REMOVED_NODE => {
+                   Ok(TopologyChangeType::RemovedNode)
+                }
+                _ => Err("Unexpected topology change type received from Cluster".into()),
+                })
     }
 }
 
@@ -172,12 +173,14 @@ pub enum StatusChangeType {
 
 impl FromCursor for StatusChangeType {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<StatusChangeType> {
-        CString::from_cursor(&mut cursor).map(|sct| match sct.as_str() {
-                                                  UP => StatusChangeType::Up,
-                                                  DOWN => StatusChangeType::Down,
-                                                  // TODO: return error
-                                                  _ => unreachable!(),
-                                              })
+        CString::from_cursor(&mut cursor).and_then(|sct| match sct.as_str() {
+                                                       UP => Ok(StatusChangeType::Up),
+                                                       DOWN => Ok(StatusChangeType::Down),
+                                                       _ => {
+                                                           Err("Unexpected status change type"
+                                                                   .into())
+                                                       }
+                                                   })
     }
 }
 
@@ -204,6 +207,7 @@ impl FromCursor for SchemaChange {
 }
 
 /// Represents type of changes.
+// TODO: rename to SchemaChangeType
 #[derive(Debug, PartialEq)]
 pub enum ChangeType {
     Created,
@@ -213,17 +217,20 @@ pub enum ChangeType {
 
 impl FromCursor for ChangeType {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<ChangeType> {
-        CString::from_cursor(&mut cursor).map(|ct| match ct.as_str() {
-                                                  CREATED => ChangeType::Created,
-                                                  UPDATED => ChangeType::Updated,
-                                                  DROPPED => ChangeType::Dropped,
-                                                  // TODO: return error
-                                                  _ => unreachable!(),
-                                              })
+        CString::from_cursor(&mut cursor).and_then(|ct| match ct.as_str() {
+                                                       CREATED => Ok(ChangeType::Created),
+                                                       UPDATED => Ok(ChangeType::Updated),
+                                                       DROPPED => Ok(ChangeType::Dropped),
+                                                       _ => {
+                                                           Err("Unexpected schema change type"
+                                                                   .into())
+                                                       }
+                                                   })
     }
 }
 
 /// Refers to a target of changes were made.
+// TODO: rename to SchemaChangeTarget
 #[derive(Debug, PartialEq)]
 pub enum Target {
     Keyspace,
@@ -235,15 +242,17 @@ pub enum Target {
 
 impl FromCursor for Target {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<Target> {
-        CString::from_cursor(&mut cursor).map(|t| match t.as_str() {
-                                                  KEYSPACE => Target::Keyspace,
-                                                  TABLE => Target::Table,
-                                                  TYPE => Target::Type,
-                                                  FUNCTION => Target::Function,
-                                                  AGGREGATE => Target::Aggregate,
-                                                  // TODO: return error
-                                                  _ => unreachable!(),
-                                              })
+        CString::from_cursor(&mut cursor).and_then(|t| match t.as_str() {
+                                                       KEYSPACE => Ok(Target::Keyspace),
+                                                       TABLE => Ok(Target::Table),
+                                                       TYPE => Ok(Target::Type),
+                                                       FUNCTION => Ok(Target::Function),
+                                                       AGGREGATE => Ok(Target::Aggregate),
+                                                       _ => {
+                                                           Err("Unexpected schema change target"
+                                                                   .into())
+                                                       }
+                                                   })
     }
 }
 
