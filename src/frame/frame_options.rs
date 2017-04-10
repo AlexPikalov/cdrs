@@ -2,15 +2,8 @@ use super::super::IntoBytes;
 use frame::*;
 
 /// The structure which represents a body of a frame of type `options`.
-#[derive(Debug)]
+#[derive(Debug,Default)]
 pub struct BodyReqOptions;
-
-impl BodyReqOptions {
-    /// Creates new body of a frame of type `options`
-    pub fn new() -> BodyReqOptions {
-        BodyReqOptions {}
-    }
-}
 
 impl IntoBytes for BodyReqOptions {
     fn into_cbytes(&self) -> Vec<u8> {
@@ -28,7 +21,7 @@ impl Frame {
         // sync client
         let stream: u64 = 0;
         let opcode = Opcode::Options;
-        let body = BodyReqOptions::new();
+        let body: BodyReqOptions = Default::default();
 
         Frame {
             version: version,

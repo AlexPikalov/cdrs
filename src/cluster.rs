@@ -25,11 +25,9 @@ impl LoadBalancingStrategy {
     /// Returns next value for selected load balancing strategy
     pub fn next<'a, N>(&'a self, nodes: &'a Vec<N>, i: usize) -> Option<&N> {
         println!("node# {:?}", i);
-        match self {
-            &LoadBalancingStrategy::Random => {
-                nodes.iter().nth(self.rnd_idx((0, Some(nodes.len()))))
-            }
-            &LoadBalancingStrategy::RoundRobin => {
+        match *self {
+            LoadBalancingStrategy::Random => nodes.get(self.rnd_idx((0, Some(nodes.len())))),
+            LoadBalancingStrategy::RoundRobin => {
                 let mut cycle = nodes.iter().cycle().skip(i);
                 cycle.next()
             }
@@ -114,7 +112,7 @@ r2d2::ManageConnection for ClusterConnectionManager<T, X> {
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
         let transport_res: CResult<X> = self.load_balancer.next()
-            .ok_or("Cannot get next node".into())
+            .ok_or_else(|| "Cannot get next node".into())
             .and_then(|x| x.try_clone().map_err(|e| e.into()));
         let transport = try!(transport_res);
         let compression = self.compression.clone();
@@ -126,7 +124,7 @@ r2d2::ManageConnection for ClusterConnectionManager<T, X> {
     fn is_valid(&self, connection: &mut Self::Connection) -> Result<(), Self::Error> {
         let query = QueryBuilder::new("SELECT * FROM system.peers;").finalize();
 
-        connection.query(query, false, false).map(|_| (()))
+        connection.query(query, false, false).map(|_| ())
     }
 
     fn has_broken(&self, _connection: &mut Self::Connection) -> bool {

@@ -1,14 +1,9 @@
 use std::convert::From;
 use super::super::IntoBytes;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq,Default)]
 pub struct BodyResReady;
 
-impl BodyResReady {
-    pub fn new() -> BodyResReady {
-        BodyResReady {}
-    }
-}
 
 impl From<Vec<u8>> for BodyResReady {
     fn from(_vec: Vec<u8>) -> BodyResReady {
@@ -29,7 +24,8 @@ mod tests {
 
     #[test]
     fn body_res_ready_new() {
-        assert_eq!(BodyResReady::new(), BodyResReady {});
+        let body: BodyResReady = Default::default();
+        assert_eq!(body, BodyResReady {});
     }
 
     #[test]

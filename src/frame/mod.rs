@@ -351,7 +351,10 @@ mod tests {
 
     #[test]
     fn test_flag_many_to_cbytes() {
-        let all = vec![Flag::Compression, Flag::Tracing, Flag::CustomPayload, Flag::Warning];
+        let all = vec![Flag::Compression,
+                       Flag::Tracing,
+                       Flag::CustomPayload,
+                       Flag::Warning];
         assert_eq!(Flag::many_to_cbytes(&all), 1 | 2 | 4 | 8);
         let some = vec![Flag::Compression, Flag::Warning];
         assert_eq!(Flag::many_to_cbytes(&some), 1 | 8);
@@ -361,7 +364,10 @@ mod tests {
 
     #[test]
     fn test_flag_get_collection() {
-        let all = vec![Flag::Compression, Flag::Tracing, Flag::CustomPayload, Flag::Warning];
+        let all = vec![Flag::Compression,
+                       Flag::Tracing,
+                       Flag::CustomPayload,
+                       Flag::Warning];
         assert_eq!(Flag::get_collection(1 | 2 | 4 | 8), all);
         let some = vec![Flag::Compression, Flag::Warning];
         assert_eq!(Flag::get_collection(1 | 8), some);

@@ -252,8 +252,10 @@ fn insert_ints(session: &mut Session<NoneAuthenticator, TransportTcp>,
         smallint: 256,
         tinyint: 56,
     };
-    let values_i: Vec<Value> =
-        vec![ints.bigint.into(), ints.int.into(), ints.smallint.into(), ints.tinyint.into()];
+    let values_i: Vec<Value> = vec![ints.bigint.into(),
+                                    ints.int.into(),
+                                    ints.smallint.into(),
+                                    ints.tinyint.into()];
 
     let execute_params = QueryParamsBuilder::new(Consistency::One)
         .values(values_i)
@@ -307,8 +309,9 @@ fn insert_table_str(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
         my_text: "my_text",
         my_varchar: "my_varchar",
     };
-    let values_s: Vec<Value> =
-        vec![strs.my_ascii.into(), strs.my_text.into(), strs.my_varchar.into()];
+    let values_s: Vec<Value> = vec![strs.my_ascii.into(),
+                                    strs.my_text.into(),
+                                    strs.my_varchar.into()];
 
     let query = QueryBuilder::new(INSERT_STR).values(values_s).finalize();
     let inserted = session.query(query, false, false);
@@ -324,8 +327,9 @@ fn insert_table_string(session: &mut Session<NoneAuthenticator, TransportTcp>) -
         my_text: "my_text".to_string(),
         my_varchar: "my_varchar".to_string(),
     };
-    let values_s: Vec<Value> =
-        vec![strings.my_ascii.into(), strings.my_text.into(), strings.my_varchar.into()];
+    let values_s: Vec<Value> = vec![strings.my_ascii.into(),
+                                    strings.my_text.into(),
+                                    strings.my_varchar.into()];
 
     let query = QueryBuilder::new(INSERT_STR).values(values_s).finalize();
     let inserted = session.query(query, false, false);
@@ -374,8 +378,9 @@ fn insert_table_list(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
     };
 
 
-    let values: Vec<Value> =
-        vec![lists.string_list.into(), lists.number_list.into(), lists.complex_list.into()];
+    let values: Vec<Value> = vec![lists.string_list.into(),
+                                  lists.number_list.into(),
+                                  lists.complex_list.into()];
 
     let query = QueryBuilder::new(INSERT_LIST).values(values).finalize();
     let inserted = session.query(query, false, false);

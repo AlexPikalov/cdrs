@@ -43,10 +43,10 @@ pub enum SimpleServerEvent {
 
 impl SimpleServerEvent {
     pub fn as_string(&self) -> String {
-        match self {
-            &SimpleServerEvent::TopologyChange => String::from(TOPOLOGY_CHANGE),
-            &SimpleServerEvent::StatusChange => String::from(STATUS_CHANGE),
-            &SimpleServerEvent::SchemaChange => String::from(SCHEMA_CHANGE),
+        match *self {
+            SimpleServerEvent::TopologyChange => String::from(TOPOLOGY_CHANGE),
+            SimpleServerEvent::StatusChange => String::from(STATUS_CHANGE),
+            SimpleServerEvent::SchemaChange => String::from(SCHEMA_CHANGE),
         }
     }
 }
@@ -54,8 +54,8 @@ impl SimpleServerEvent {
 impl From<ServerEvent> for SimpleServerEvent {
     fn from(event: ServerEvent) -> SimpleServerEvent {
         match event {
-            ServerEvent::TopologyChange(_) => SimpleServerEvent::TopologyChange,
-            ServerEvent::StatusChange(_) => SimpleServerEvent::TopologyChange,
+            ServerEvent::TopologyChange(_) |
+            ServerEvent::StatusChange(_) |
             ServerEvent::SchemaChange(_) => SimpleServerEvent::TopologyChange,
         }
     }
@@ -63,10 +63,10 @@ impl From<ServerEvent> for SimpleServerEvent {
 
 impl<'a> From<&'a ServerEvent> for SimpleServerEvent {
     fn from(event: &'a ServerEvent) -> SimpleServerEvent {
-        match event {
-            &ServerEvent::TopologyChange(_) => SimpleServerEvent::TopologyChange,
-            &ServerEvent::StatusChange(_) => SimpleServerEvent::TopologyChange,
-            &ServerEvent::SchemaChange(_) => SimpleServerEvent::TopologyChange,
+        match *event {
+            ServerEvent::TopologyChange(_) |
+            ServerEvent::StatusChange(_) |
+            ServerEvent::SchemaChange(_) => SimpleServerEvent::TopologyChange,
         }
     }
 }
@@ -265,13 +265,12 @@ impl ChangeSchemeOptions {
     fn from_cursor_and_target(mut cursor: &mut Cursor<&[u8]>,
                               target: &Target)
                               -> error::Result<ChangeSchemeOptions> {
-        Ok(match target {
-               &Target::Keyspace => ChangeSchemeOptions::from_cursor_keyspace(&mut cursor)?,
-               &Target::Table | &Target::Type => {
+        Ok(match *target {
+               Target::Keyspace => ChangeSchemeOptions::from_cursor_keyspace(&mut cursor)?,
+               Target::Table | Target::Type => {
                    ChangeSchemeOptions::from_cursor_table_type(&mut cursor)?
                }
-               &Target::Function |
-               &Target::Aggregate => {
+               Target::Function | Target::Aggregate => {
                    ChangeSchemeOptions::from_cursor_function_aggregate(&mut cursor)?
                }
            })

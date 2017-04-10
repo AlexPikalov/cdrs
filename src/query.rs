@@ -1,3 +1,4 @@
+
 use types::*;
 use types::value::*;
 use error::{Result as CResult, Error as CError};
@@ -5,28 +6,7 @@ use consistency::Consistency;
 use frame::frame_query::{ParamsReqQuery, QueryFlags};
 use frame::frame_batch::{BatchType, BatchQuery, BodyReqBatch, BatchQuerySubj};
 
-/// instead of writing functions which resemble
-/// ```
-/// pub fn query<'a> (&'a mut self,query: String) -> &'a mut Self{
-///     self.query = Some(query);
-///            self
-/// }
-/// ```
-/// and repeating it for all the attributes; it is extracted out as a macro so that code
-/// is more concise see
-/// @https://doc.rust-lang.org/book/method-syntax.html
-///
-///
-///
-macro_rules! builder_opt_field {
-    ($field:ident, $field_type:ty) => {
-        pub fn $field(mut self,
-                          $field: $field_type) -> Self {
-            self.$field = Some($field);
-            self
-        }
-    };
-}
+
 
 /// Structure that represents CQL query and parameters which will be applied during
 /// its execution
@@ -43,7 +23,7 @@ pub struct Query {
     pub timestamp: Option<i64>,
 }
 
-/// QueryBuilder is a helper sturcture that helps to construct `Query`. `Query` itself
+/// `QueryBuilder` is a helper sturcture that helps to construct `Query`. `Query` itself
 /// consists of CQL query string and list of parameters.
 /// Parameters are the same as ones described in [Cassandra v4 protocol]
 /// (https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L304)
@@ -63,17 +43,17 @@ impl QueryBuilder {
     /// Factory function that takes CQL as an argument and returns new `QueryBuilder`.
     /// Default consistency level is `One`
     pub fn new<T: Into<String>>(query: T) -> QueryBuilder {
-        return QueryBuilder {
-                   query: query.into(),
-                   ..Default::default()
-               };
+        QueryBuilder {
+            query: query.into(),
+            ..Default::default()
+        }
     }
 
     /// Sets new query consistency
     pub fn consistency(mut self, consistency: Consistency) -> Self {
         self.consistency = consistency;
 
-        return self;
+        self
     }
 
     /// Sets new query values
@@ -102,21 +82,21 @@ impl QueryBuilder {
         self.serial_consistency = params.serial_consistency;
         self.timestamp = params.timestamp;
 
-        return self;
+        self
     }
 
     /// Finalizes query building process and returns query itself
     pub fn finalize(self) -> Query {
-        return Query {
-                   query: self.query,
-                   consistency: self.consistency,
-                   values: self.values,
-                   with_names: self.with_names,
-                   page_size: self.page_size,
-                   paging_state: self.paging_state,
-                   serial_consistency: self.serial_consistency,
-                   timestamp: self.timestamp,
-               };
+        Query {
+            query: self.query,
+            consistency: self.consistency,
+            values: self.values,
+            with_names: self.with_names,
+            page_size: self.page_size,
+            paging_state: self.paging_state,
+            serial_consistency: self.serial_consistency,
+            timestamp: self.timestamp,
+        }
     }
 }
 
@@ -136,51 +116,51 @@ pub struct QueryParamsBuilder {
 
 impl QueryParamsBuilder {
     pub fn new(consistency: Consistency) -> QueryParamsBuilder {
-        return QueryParamsBuilder {
-                   consistency: consistency,
-                   values: None,
-                   with_names: false,
-                   page_size: None,
-                   paging_state: None,
-                   serial_consistency: None,
-                   timestamp: None,
-               };
+        QueryParamsBuilder {
+            consistency: consistency,
+            values: None,
+            with_names: false,
+            page_size: None,
+            paging_state: None,
+            serial_consistency: None,
+            timestamp: None,
+        }
     }
 
     pub fn values(mut self, v: Vec<Value>) -> Self {
         self.values = Some(v);
 
-        return self;
+        self
     }
 
     pub fn with_names(mut self, with_names: bool) -> Self {
         self.with_names = with_names;
 
-        return self;
+        self
     }
 
     pub fn page_size(mut self, page_size: i32) -> Self {
         self.page_size = Some(page_size);
 
-        return self;
+        self
     }
 
     pub fn paging_state(mut self, paging_state: CBytes) -> Self {
         self.paging_state = Some(paging_state);
 
-        return self;
+        self
     }
 
     pub fn serial_consistency(mut self, serial_consistency: Consistency) -> Self {
         self.serial_consistency = Some(serial_consistency);
 
-        return self;
+        self
     }
 
     pub fn timestamp(mut self, timestamp: i64) -> Self {
         self.timestamp = Some(timestamp);
 
-        return self;
+        self
     }
 
     pub fn finalize(self) -> QueryParams {
@@ -384,6 +364,21 @@ mod batch_query_builder {
     #[test]
     fn new() {
         assert!(BatchQueryBuilder::new().finalize().is_ok());
+    }
+
+    #[test]
+    fn newwith_defaults() {
+        let newwith_defaults = BatchQueryBuilder::new().finalize();
+        match newwith_defaults {
+            Ok(n) => {
+                assert!(n.batch_type == BatchType::Logged);
+                assert!(n.consistency == Consistency::One);
+                assert!(n.serial_consistency == None);
+                assert!(n.timestamp == None);
+                assert!(n.queries.is_empty());
+            }
+            Err(_) => assert!(false,"Error should not happen"),
+        }
     }
 
     #[test]

@@ -45,7 +45,8 @@ impl IntoBytes for BodyReqBatch {
         }
 
         if let Some(ref timestamp) = self.timestamp {
-            bytes.extend_from_slice(to_bigint(timestamp.clone()).as_slice());
+            //bytes.extend_from_slice(to_bigint(timestamp.clone()).as_slice());
+            bytes.extend_from_slice(to_bigint(*timestamp).as_slice());
         }
 
         bytes
@@ -53,7 +54,7 @@ impl IntoBytes for BodyReqBatch {
 }
 
 /// Batch type
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone,PartialEq)]
 pub enum BatchType {
     /// The batch will be "logged". This is equivalent to a
     /// normal CQL3 batch statement.
@@ -78,10 +79,10 @@ impl FromSingleByte for BatchType {
 
 impl AsByte for BatchType {
     fn as_byte(&self) -> u8 {
-        match self {
-            &BatchType::Logged => 0,
-            &BatchType::Unlogged => 1,
-            &BatchType::Counter => 2,
+        match *self {
+            BatchType::Logged => 0,
+            BatchType::Unlogged => 1,
+            BatchType::Counter => 2,
         }
     }
 }

@@ -59,18 +59,18 @@ pub enum CompressionError {
 
 impl fmt::Display for CompressionError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &CompressionError::Snappy(ref err) => write!(f, "Snappy Error: {:?}", err),
-            &CompressionError::Lz4(ref err) => write!(f, "Lz4 Error: {:?}", err),
+        match *self {
+            CompressionError::Snappy(ref err) => write!(f, "Snappy Error: {:?}", err),
+            CompressionError::Lz4(ref err) => write!(f, "Lz4 Error: {:?}", err),
         }
     }
 }
 
 impl Error for CompressionError {
     fn description(&self) -> &str {
-        match self {
-            &CompressionError::Snappy(ref err) => err.description(),
-            &CompressionError::Lz4(ref err) => err.description(),
+        match *self {
+            CompressionError::Snappy(ref err) => err.description(),
+            CompressionError::Lz4(ref err) => err.description(),
         }
     }
 }
@@ -116,10 +116,10 @@ impl Compression {
     ///
     /// ```
     pub fn encode(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
-        match self {
-            &Compression::Lz4 => Compression::encode_lz4(bytes),
-            &Compression::Snappy => Compression::encode_snappy(bytes),
-            &Compression::None => Ok(bytes),
+        match *self {
+            Compression::Lz4 => Compression::encode_lz4(bytes),
+            Compression::Snappy => Compression::encode_snappy(bytes),
+            Compression::None => Ok(bytes),
         }
     }
 
@@ -138,19 +138,19 @@ impl Compression {
     ///     assert_eq!(lz4_compression.decode(input).unwrap(), bytes);
     /// ```
     pub fn decode(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
-        match self {
-            &Compression::Lz4 => Compression::decode_lz4(bytes),
-            &Compression::Snappy => Compression::decode_snappy(bytes),
-            &Compression::None => Ok(bytes),
+        match *self {
+            Compression::Lz4 => Compression::decode_lz4(bytes),
+            Compression::Snappy => Compression::decode_snappy(bytes),
+            Compression::None => Ok(bytes),
         }
     }
 
     /// It transforms compression method into a `&str`.
     pub fn as_str(&self) -> Option<&'static str> {
-        match self {
-            &Compression::Lz4 => Some(LZ4),
-            &Compression::Snappy => Some(SNAPPY),
-            &Compression::None => None,
+        match *self {
+            Compression::Lz4 => Some(LZ4),
+            Compression::Snappy => Some(SNAPPY),
+            Compression::None => None,
         }
     }
 
@@ -169,7 +169,7 @@ impl Compression {
     }
 
     fn encode_lz4(bytes: Vec<u8>) -> Result<Vec<u8>> {
-        return Ok(lz4::compress(bytes.as_slice()));
+        Ok(lz4::compress(bytes.as_slice()))
     }
 
     fn decode_lz4(bytes: Vec<u8>) -> Result<Vec<u8>> {
@@ -183,7 +183,7 @@ impl From<String> for Compression {
     /// It converts `String` into `Compression`. If string is neither `lz4` nor `snappy` then
     /// `Compression::None` will be returned
     fn from(compression_string: String) -> Compression {
-        return Compression::from(compression_string.as_str());
+        Compression::from(compression_string.as_str())
     }
 }
 
