@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use uuid::Uuid;
+use time::Timespec;
 use IntoBytes;
 use super::*;
 use std::convert::Into;
@@ -177,6 +178,13 @@ impl Into<Bytes> for f32 {
 impl Into<Bytes> for f64 {
     fn into(self) -> Bytes {
         Bytes(to_float_big(self))
+    }
+}
+
+impl Into<Bytes> for Timespec {
+    fn into(self) -> Bytes {
+        let ts: i64 = self.sec * 1_000 + self.nsec as i64 / 1_000_000;
+        Bytes(to_bigint(ts))
     }
 }
 
