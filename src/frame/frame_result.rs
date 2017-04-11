@@ -359,22 +359,13 @@ impl ColSpec {
                           -> Vec<ColSpec> {
         (0..column_count)
             .map(|_| {
-                //let mut ksname: Option<CString> = None;
-                // let mut tablename: Option<CString> = None;
-                // if !with_globale_table_spec {
-                //     // XXX unwrap
-                //     ksname = Some(CString::from_cursor(&mut cursor).unwrap());
-                //     tablename = Some(CString::from_cursor(&mut cursor).unwrap());
-                // }
                 let ksname: Option<CString> = if !with_globale_table_spec {
-
                     Some(CString::from_cursor(&mut cursor).unwrap())
                 } else {
                     None
                 };
 
                 let tablename = if !with_globale_table_spec {
-
                     Some(CString::from_cursor(&mut cursor).unwrap())
                 } else {
                     None
