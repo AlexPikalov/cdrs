@@ -13,6 +13,7 @@ extern crate uuid;
 extern crate openssl;
 extern crate r2d2;
 extern crate rand;
+extern crate time;
 
 use std::io::Cursor;
 

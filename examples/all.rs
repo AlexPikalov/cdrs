@@ -1,6 +1,7 @@
 
 extern crate cdrs;
 extern crate uuid;
+extern crate time;
 
 use uuid::Uuid;
 use std::convert::Into;
@@ -71,6 +72,11 @@ const CREATE_TABLE_BLOB: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.blob (
 const INSERT_BLOB: &'static str = "INSERT INTO my_ks.blob (my_key, my_blob) \
                                     VALUES (?, ?);";
 const SELECT_BLOB: &'static str = "SELECT * FROM my_ks.blob;";
+const CREATE_TABLE_TIMESTAMP: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.timestamp \
+                                              (my_key int PRIMARY KEY, my_timestamp timestamp);";
+const INSERT_TIMESTAMP: &'static str = "INSERT INTO my_ks.timestamp (my_key, my_timestamp) \
+                                    VALUES (?, ?);";
+const SELECT_TIMESTAMP: &'static str = "SELECT * FROM my_ks.timestamp;";
 
 // // select all
 fn main() {
@@ -203,6 +209,18 @@ fn main() {
 
     if select_table_blob(&mut session) {
         println!("30. blob table selected");
+    }
+
+    if create_table_timestamp(&mut session) {
+        println!("31. timestamp table created");
+    }
+
+    if insert_table_timestamp(&mut session) {
+        println!("32. timestamp table inserted");
+    }
+
+    if select_table_timestamp(&mut session) {
+        println!("33. timestamp table selected");
     }
 }
 
@@ -706,6 +724,47 @@ fn select_table_blob(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
 
     for row in all {
         let _: Vec<u8> = row.get_by_name("my_blob").expect("my_blob").unwrap();
+    }
+
+    true
+}
+
+fn create_table_timestamp(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let q = QueryBuilder::new(CREATE_TABLE_TIMESTAMP).finalize();
+    match session.query(q, false, false) {
+        Err(ref err) => panic!("create_table timestamp {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn insert_table_timestamp(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let timestamp = time::get_time();
+    let values: Vec<Value> = vec![(1 as i32).into(), timestamp.into()];
+
+    let query = QueryBuilder::new(INSERT_TIMESTAMP)
+        .values(values)
+        .finalize();
+    let inserted = session.query(query, false, false);
+    match inserted {
+        Err(ref err) => panic!("inserted timestamp {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn select_table_timestamp(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let select_query = QueryBuilder::new(SELECT_TIMESTAMP).finalize();
+    let all = session
+        .query(select_query, false, false)
+        .unwrap()
+        .get_body()
+        .unwrap()
+        .into_rows()
+        .unwrap();
+
+    for row in all {
+        let _: time::Timespec = row.get_by_name("my_timestamp")
+            .expect("my_timestamp")
+            .unwrap();
     }
 
     true
