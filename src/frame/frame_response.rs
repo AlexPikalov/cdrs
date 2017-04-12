@@ -75,8 +75,8 @@ impl ResponseBody {
     }
 
     pub fn as_cols(&self) -> Option<&BodyResResultRows> {
-        match self {
-            &ResponseBody::Result(ref res) => {
+        match *self {
+            ResponseBody::Result(ref res) => {
                 match res {
                     &ResResultBody::Rows(ref rows) => Some(rows),
                     _ => None,
@@ -114,8 +114,8 @@ impl ResponseBody {
     }
 
     pub fn get_authenticator<'a>(&'a self) -> Option<&'a str> {
-        match self {
-            &ResponseBody::Authenticate(ref auth) => Some(auth.data.as_str()),
+        match *self {
+            ResponseBody::Authenticate(ref auth) => Some(auth.data.as_str()),
             _ => None,
         }
     }

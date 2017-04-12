@@ -134,26 +134,22 @@ impl FromCursor for ResResultBody {
 }
 
 /// Body of a response of type Void
-#[derive(Debug)]
+#[derive(Debug,Default)]
 pub struct BodyResResultVoid {}
 
-/// Empty result body.
-impl BodyResResultVoid {
-    pub fn new() -> BodyResResultVoid {
-        BodyResResultVoid {}
-    }
-}
 
 impl FromBytes for BodyResResultVoid {
     fn from_bytes(_bytes: &[u8]) -> error::Result<BodyResResultVoid> {
         // as it's empty by definition just create BodyResVoid
-        Ok(BodyResResultVoid::new())
+        let body: BodyResResultVoid = Default::default();
+        Ok(body)
     }
 }
 
 impl FromCursor for BodyResResultVoid {
     fn from_cursor(mut _cursor: &mut Cursor<&[u8]>) -> error::Result<BodyResResultVoid> {
-        Ok(BodyResResultVoid::new())
+        let body: BodyResResultVoid = Default::default();
+        Ok(body)
     }
 }
 
@@ -174,7 +170,7 @@ impl BodyResResultSetKeyspace {
 
 impl FromCursor for BodyResResultSetKeyspace {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<BodyResResultSetKeyspace> {
-        CString::from_cursor(&mut cursor).map(|ks| BodyResResultSetKeyspace::new(ks))
+        CString::from_cursor(&mut cursor).map(BodyResResultSetKeyspace::new)
     }
 }
 
@@ -363,13 +359,18 @@ impl ColSpec {
                           -> Vec<ColSpec> {
         (0..column_count)
             .map(|_| {
-                let mut ksname: Option<CString> = None;
-                let mut tablename: Option<CString> = None;
-                if !with_globale_table_spec {
-                    // XXX unwrap
-                    ksname = Some(CString::from_cursor(&mut cursor).unwrap());
-                    tablename = Some(CString::from_cursor(&mut cursor).unwrap());
-                }
+                let ksname: Option<CString> = if !with_globale_table_spec {
+                    Some(CString::from_cursor(&mut cursor).unwrap())
+                } else {
+                    None
+                };
+
+                let tablename = if !with_globale_table_spec {
+                    Some(CString::from_cursor(&mut cursor).unwrap())
+                } else {
+                    None
+                };
+
                 // XXX unwrap
                 let name = CString::from_cursor(&mut cursor).unwrap();
                 let col_type = ColTypeOption::from_cursor(&mut cursor).unwrap();

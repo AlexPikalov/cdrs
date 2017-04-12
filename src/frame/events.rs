@@ -73,7 +73,7 @@ impl<'a> From<&'a ServerEvent> for SimpleServerEvent {
 
 impl PartialEq<ServerEvent> for SimpleServerEvent {
     fn eq(&self, full_event: &ServerEvent) -> bool {
-        self == &SimpleServerEvent::from(full_event)
+        *self == SimpleServerEvent::from(full_event)
     }
 }
 
@@ -90,7 +90,7 @@ pub enum ServerEvent {
 
 impl PartialEq<SimpleServerEvent> for ServerEvent {
     fn eq(&self, event: &SimpleServerEvent) -> bool {
-        &SimpleServerEvent::from(self) == event
+        SimpleServerEvent::from(self) == *event
     }
 }
 

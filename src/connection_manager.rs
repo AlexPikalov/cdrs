@@ -39,7 +39,7 @@ r2d2::ManageConnection for ConnectionManager<T, X> {
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
         let transport = try!(self.transport.try_clone());
-        let compression = self.compression.clone();
+        let compression = self.compression;
         let cdrs = CDRS::new(transport, self.authenticator.clone());
 
         cdrs.start(compression)
