@@ -529,8 +529,7 @@ impl FromCursor for CUdt {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<CUdt> {
         let ks = CString::from_cursor(&mut cursor)?;
         let udt_name = CString::from_cursor(&mut cursor)?;
-        let n = try_from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)
-                                   ?
+        let n = try_from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)?
                                    .as_slice())?;
         let descriptions: Vec<(CString, ColTypeOption)> = (0..n)
             .map(|_| {
