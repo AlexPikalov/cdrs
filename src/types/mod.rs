@@ -286,9 +286,9 @@ impl FromCursor for CString {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [string].
     /// It reads required number of bytes and returns a String
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CString> {
-        let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
+        let len_bytes = try!(cursor_next_value(&mut cursor, SHORT_LEN as u64));
         let len: u64 = try_from_bytes(len_bytes.as_slice())?;
-        let body_bytes = cursor_next_value(&mut cursor, len);
+        let body_bytes = try!(cursor_next_value(&mut cursor, len));
 
         String::from_utf8(body_bytes)
             .map_err(Into::into)
@@ -334,9 +334,9 @@ impl FromCursor for CStringLong {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [string].
     /// It reads required number of bytes and returns a String
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CStringLong> {
-        let len_bytes = cursor_next_value(&mut cursor, INT_LEN as u64);
+        let len_bytes = cursor_next_value(&mut cursor, INT_LEN as u64)?;
         let len: u64 = try_from_bytes(len_bytes.as_slice())?;
-        let body_bytes = cursor_next_value(&mut cursor, len);
+        let body_bytes = cursor_next_value(&mut cursor, len)?;
 
         String::from_utf8(body_bytes)
             .map_err(Into::into)
@@ -429,7 +429,7 @@ impl FromCursor for CBytes {
             return Ok(CBytes { bytes: vec![] });
         }
 
-        Ok(CBytes { bytes: cursor_next_value(&mut cursor, len as u64) })
+        cursor_next_value(&mut cursor, len as u64).map(CBytes::new)
     }
 }
 
@@ -465,8 +465,9 @@ impl FromCursor for CBytesShort {
     /// It reads required number of bytes and returns a CBytes
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CBytesShort> {
         let len: u64 = CIntShort::from_cursor(&mut cursor)? as u64;
-
-        Ok(CBytesShort { bytes: cursor_next_value(&mut cursor, len) })
+        cursor_next_value(&mut cursor, len)
+            .map(CBytesShort::new)
+            .map_err(Into::into)
     }
 }
 
@@ -487,7 +488,7 @@ pub type CInt = i32;
 
 impl FromCursor for CInt {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CInt> {
-        let bytes = cursor_next_value(&mut cursor, INT_LEN as u64);
+        let bytes = try!(cursor_next_value(&mut cursor, INT_LEN as u64));
         try_i32_from_bytes(bytes.as_slice()).map_err(Into::into)
     }
 }
@@ -497,7 +498,7 @@ pub type CIntShort = i16;
 
 impl FromCursor for CIntShort {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CIntShort> {
-        let bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
+        let bytes = try!(cursor_next_value(&mut cursor, SHORT_LEN as u64));
         try_i16_from_bytes(bytes.as_slice()).map_err(Into::into)
     }
 }
@@ -506,10 +507,10 @@ impl FromCursor for CIntShort {
 impl FromBytes for Vec<u8> {
     fn from_bytes(bytes: &[u8]) -> CDRSResult<Vec<u8>> {
         let mut cursor = Cursor::new(bytes);
-        let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64);
+        let len_bytes = cursor_next_value(&mut cursor, SHORT_LEN as u64)?;
         let len: u64 = try_from_bytes(len_bytes.as_slice())?;
 
-        Ok(cursor_next_value(&mut cursor, len))
+        cursor_next_value(&mut cursor, len).map_err(Into::into)
     }
 }
 
@@ -523,7 +524,7 @@ pub struct CInet {
 impl FromCursor for CInet {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CInet> {
         let n = CIntShort::from_cursor(&mut cursor)?;
-        let ip = decode_inet(cursor_next_value(&mut cursor, n as u64).as_slice())?;
+        let ip = decode_inet(cursor_next_value(&mut cursor, n as u64)?.as_slice())?;
         let port = CInt::from_cursor(&mut cursor)?;
         let socket_addr = SocketAddr::new(ip, port as u16);
 
@@ -531,19 +532,16 @@ impl FromCursor for CInet {
     }
 }
 
-pub fn cursor_next_value(mut cursor: &mut Cursor<&[u8]>, len: u64) -> Vec<u8> {
+pub fn cursor_next_value(mut cursor: &mut Cursor<&[u8]>, len: u64) -> CDRSResult<Vec<u8>> {
     let l = len as usize;
     let current_position = cursor.position();
     let mut buff: Vec<u8> = Vec::with_capacity(l);
     unsafe {
         buff.set_len(l);
     }
-    if let Err(err) = cursor.read(&mut buff) {
-        error!("Read from cursor error: {}", err);
-        panic!(err);
-    }
+    try!(cursor.read(&mut buff));
     cursor.set_position(current_position + len);
-    buff
+    Ok(buff)
 }
 
 
@@ -725,7 +723,7 @@ mod tests {
         let a = &[0, 1, 2, 3, 4];
         let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let l: u64 = 3;
-        let val = cursor_next_value(&mut cursor, l);
+        let val = cursor_next_value(&mut cursor, l).unwrap();
         assert_eq!(val, vec![0, 1, 2]);
     }
 

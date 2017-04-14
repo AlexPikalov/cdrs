@@ -51,7 +51,8 @@ impl FromBytes for ResultKind {
 
 impl FromCursor for ResultKind {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<ResultKind> {
-        ResultKind::from_bytes(cursor_next_value(&mut cursor, INT_LEN as u64).as_slice())
+        cursor_next_value(&mut cursor, INT_LEN as u64)
+            .and_then(|bytes| ResultKind::from_bytes(bytes.as_slice()))
     }
 }
 
@@ -454,7 +455,9 @@ impl FromBytes for ColType {
 
 impl FromCursor for ColType {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<ColType> {
-        ColType::from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64).as_slice())
+        cursor_next_value(&mut cursor, SHORT_LEN as u64)
+            .and_then(|bytes| ColType::from_bytes(bytes.as_slice()))
+            .map_err(Into::into)
     }
 }
 
@@ -527,7 +530,8 @@ impl FromCursor for CUdt {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<CUdt> {
         let ks = CString::from_cursor(&mut cursor)?;
         let udt_name = CString::from_cursor(&mut cursor)?;
-        let n = try_from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64).as_slice())?;
+        let n = try_from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)?
+                                   .as_slice())?;
         let descriptions: Vec<(CString, ColTypeOption)> = (0..n)
             .map(|_| {
                      // XXX unwrap
@@ -587,14 +591,23 @@ impl FromCursor for PreparedMetadata {
         let flags = CInt::from_cursor(&mut cursor)?;
         let columns_count = CInt::from_cursor(&mut cursor)?;
         let pk_count = CInt::from_cursor(&mut cursor)?;
-        let pk_indexes: Vec<i16> = (0..pk_count).fold(vec![], |mut acc, _| {
-            // XXX unwrap
-            let idx = try_from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)
-                                         .as_slice())
-                    .unwrap() as i16;
-            acc.push(idx);
-            acc
-        });
+        let pk_index_results: Vec<Option<i16>> = (0..pk_count)
+            .map(|_| {
+                     cursor_next_value(&mut cursor, SHORT_LEN as u64)
+                         .ok()
+                         .and_then(|b| try_i16_from_bytes(b.as_slice()).ok())
+                 })
+            .collect();
+
+        let pk_indexes: Vec<i16> = if pk_index_results.iter().any(Option::is_none) {
+            return Err("pk indexes error".into());
+        } else {
+            pk_index_results
+                .iter()
+                .cloned()
+                .map(|r| r.unwrap())
+                .collect()
+        };
         let mut global_table_space: Option<(CString, CString)> = None;
         let has_global_table_space = RowsMetadataFlag::has_global_table_space(flags);
         if has_global_table_space {
