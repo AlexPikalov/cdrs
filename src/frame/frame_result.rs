@@ -591,7 +591,6 @@ impl FromCursor for PreparedMetadata {
         let flags = CInt::from_cursor(&mut cursor)?;
         let columns_count = CInt::from_cursor(&mut cursor)?;
         let pk_count = CInt::from_cursor(&mut cursor)?;
-        // let pk_indexes = vec![];
         let pk_index_results: Vec<Option<i16>> = (0..pk_count)
             .map(|_| {
                      cursor_next_value(&mut cursor, SHORT_LEN as u64)
