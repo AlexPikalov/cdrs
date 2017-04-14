@@ -723,7 +723,7 @@ mod tests {
         let a = &[0, 1, 2, 3, 4];
         let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let l: u64 = 3;
-        let val = cursor_next_value(&mut cursor, l);
+        let val = cursor_next_value(&mut cursor, l).unwrap();
         assert_eq!(val, vec![0, 1, 2]);
     }
 
