@@ -123,8 +123,8 @@ pub fn decode_timestamp(bytes: &[u8]) -> Result<i64, io::Error> {
 // Decodes Cassandra `list` data (bytes) into Rust's `Result<Vec<CBytes>, io::Error>`
 pub fn decode_list(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
-    let l = CInt::from_cursor(&mut cursor)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let l =
+        CInt::from_cursor(&mut cursor).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     let list = (0..l)
     // XXX unwrap
         .map(|_| CBytes::from_cursor(&mut cursor).unwrap())
