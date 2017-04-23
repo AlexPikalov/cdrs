@@ -25,14 +25,14 @@ macro_rules! builder_opt_field {
 
 macro_rules! list_as_rust {
     ($($into_type:tt)*) => (
-        impl AsRust<Vec<$($into_type)*>> for List {
-            fn as_rust(&self) -> Result<Vec<$($into_type)*>> {
+        impl AsRustType<Vec<$($into_type)*>> for List {
+            fn as_rust_type(&self) -> Result<Vec<$($into_type)*>> {
                 match self.metadata.value {
                     Some(ColTypeOptionValue::CList(ref type_option)) |
                     Some(ColTypeOptionValue::CSet(ref type_option)) => {
                         let type_option_ref = type_option.as_ref();
                         let convert = self
-                            .map(|bytes| as_rust!(type_option_ref, bytes, $($into_type)*).unwrap());
+                            .map(|bytes| as_rust_type!(type_option_ref, bytes, $($into_type)*).unwrap());
 
                         Ok(convert)
                     },
@@ -49,9 +49,9 @@ macro_rules! list_as_rust {
 
 macro_rules! map_as_rust {
     ($(K $key_type:tt)*, $(V $val_type:tt)*) => (
-        impl AsRust<HashMap<$($key_type)*, $($val_type)*>> for Map {
+        impl AsRustType<HashMap<$($key_type)*, $($val_type)*>> for Map {
             /// Converts `Map` into `HashMap` for blob values.
-            fn as_rust(&self) -> Result<HashMap<$($key_type)*, $($val_type)*>> {
+            fn as_rust_type(&self) -> Result<HashMap<$($key_type)*, $($val_type)*>> {
                 match self.metadata.value {
                     Some(ColTypeOptionValue::CMap((ref key_type_option, ref val_type_option))) => {
                         let mut map = HashMap::with_capacity(self.data.len());
@@ -59,8 +59,8 @@ macro_rules! map_as_rust {
                         for &(ref key, ref val) in self.data.iter() {
                             let key_type_option = key_type_option.as_ref();
                             let val_type_option = val_type_option.as_ref();
-                            let key = as_rust!(key_type_option, key, $($key_type)*)?;
-                            let val = as_rust!(val_type_option, val, $($val_type)*)?;
+                            let key = as_rust_type!(key_type_option, key, $($key_type)*)?;
+                            let val = as_rust_type!(val_type_option, val, $($val_type)*)?;
                             map.insert(key, val);
                         }
 
@@ -87,7 +87,7 @@ macro_rules! into_rust_by_name {
                         }
 
                         let ref col_type = col_spec.col_type;
-                        as_rust!(col_type, cbytes, $($into_type)*)
+                        as_rust_type!(col_type, cbytes, $($into_type)*)
                     })
             }
         }
@@ -103,7 +103,7 @@ macro_rules! into_rust_by_name {
                         return Err(column_is_empty_err());
                     }
 
-                    let converted = as_rust!(col_type, bytes, $($into_type)*);
+                    let converted = as_rust_type!(col_type, bytes, $($into_type)*);
                     converted.map_err(|err| err.into())
                 })
             }
@@ -117,7 +117,7 @@ macro_rules! into_rust_by_name {
 /// Decodes any Cassandra data type into the corresponding Rust type,
 /// given the column type as `ColTypeOption` and the value as `CBytes`
 /// plus the matching Rust type.
-macro_rules! as_rust {
+macro_rules! as_rust_type {
     ($data_type_option:ident, $data_value:ident, Vec<u8>) => (
         match $data_type_option.id {
             ColType::Blob => {

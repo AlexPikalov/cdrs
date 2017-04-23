@@ -1,7 +1,7 @@
 use std::net::IpAddr;
 use uuid::Uuid;
 use frame::frame_result::{ColType, ColTypeOptionValue, ColTypeOption};
-use types::{CBytes, AsRust};
+use types::{CBytes, AsRustType, AsRust};
 use types::data_serialization_types::*;
 use types::map::Map;
 use types::udt::UDT;
@@ -31,9 +31,11 @@ impl List {
     }
 }
 
-impl AsRust<Vec<Vec<u8>>> for List {
+impl AsRust for List {}
+
+impl AsRustType<Vec<Vec<u8>>> for List {
     /// Converts cassandra list of blobs into Rust `Vec<Vec<u8>>`
-    fn as_rust(&self) -> Result<Vec<Vec<u8>>> {
+    fn as_rust_type(&self) -> Result<Vec<Vec<u8>>> {
         match self.metadata.value {
             Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
