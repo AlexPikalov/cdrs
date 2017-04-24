@@ -1,4 +1,4 @@
-// TODO: add update and delete operations
+
 extern crate cdrs;
 extern crate uuid;
 
@@ -11,7 +11,7 @@ use cdrs::query::{QueryBuilder, QueryParamsBuilder};
 use cdrs::authenticators::NoneAuthenticator;
 use cdrs::compression::Compression;
 use cdrs::transport::TransportTcp;
-use cdrs::types::{IntoRustByName, CBytesShort, AsRust};
+use cdrs::types::{IntoRustByName, CBytesShort, AsRust, ByName};
 use cdrs::types::value::{Value, Bytes};
 use cdrs::types::list::List;
 use cdrs::types::map::Map;
@@ -45,7 +45,7 @@ const INSERT_MAP: &'static str = "INSERT INTO my_ks.maps (my_string_map, my_numb
                                   ?, ?, ?);";
 const SELECT_MAP: &'static str = "SELECT * FROM my_ks.maps;";
 const CREATE_TABLE_UDT: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.udts (my_key int \
-                                        PRIMARY KEY, my_udt frozen<my_type>);";
+                                        PRIMARY KEY, my_udt my_type);";
 const INSERT_UDT: &'static str = "INSERT INTO my_ks.udts (my_key, my_udt) VALUES (?, ?);";
 const SELECT_UDT: &'static str = "SELECT * FROM my_ks.udts;";
 const INSERT_INT: &'static str = "INSERT INTO my_ks.test_num (my_bigint, my_int, my_smallint, \
@@ -410,22 +410,23 @@ fn select_table_list(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
         .unwrap();
 
     for row in all {
-        let cl = CassandraLists {
-            string_list: row.get_by_name("my_string_list")
-                .expect("string_list")
-                .unwrap(),
-            number_list: row.get_by_name("my_number_list")
-                .expect("number_list")
-                .unwrap(),
-            complex_list: row.get_by_name("my_complex_list")
-                .expect("complex_list")
-                .unwrap(),
-        };
-        let complex_list_c: Vec<List> = cl.complex_list.as_rust().expect("my_complex_list");
         let _ = Lists {
-            string_list: cl.string_list.as_rust().expect("string_list"),
-            number_list: cl.number_list.as_rust().expect("number_list"),
-            complex_list: complex_list_c
+            string_list: row.by_name::<List>("my_string_list") // intermediate type is required
+                .expect("string_list")
+                .unwrap()
+                .as_rust::<Vec<String>>() // final type is not required, it could be find
+                // authomatically
+                .expect("string_list"),
+            number_list: row.by_name::<List>("my_number_list")
+                .expect("number_list")
+                .unwrap()
+                .as_rust()
+                .expect("number_list"),
+            complex_list: row.by_name::<List>("my_complex_list")
+                .expect("complex_list")
+                .unwrap()
+                .as_rust::<Vec<List>>()
+                .expect("my_complex_list")
                 .iter()
                 .map(|it| it.as_rust().expect("number_list_c"))
                 .collect(),
@@ -482,35 +483,37 @@ fn select_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
         .unwrap();
 
     for row in all {
-        let cm = CassandraMaps {
-            string_map: row.get_by_name("my_string_map")
-                .expect("string_map")
-                .unwrap(),
-            number_map: row.get_by_name("my_number_map")
-                .expect("number_map")
-                .unwrap(),
-            complex_map: row.get_by_name("my_complex_map")
-                .expect("complex_map")
-                .unwrap(),
-            int_key_map: row.get_by_name("my_int_key_map")
-                .expect("int_key_map")
-                .unwrap(),
-            uuid_key_map: row.get_by_name("my_uuid_key_map")
-                .expect("uuid_key_map")
-                .unwrap(),
-        };
-        let complex_map_c: HashMap<String, Map> = cm.complex_map.as_rust().expect("my_complex_map");
         let _ = Maps {
-            string_map: cm.string_map.as_rust().expect("string_map"),
-            number_map: cm.number_map.as_rust().expect("number_map"),
-            complex_map: complex_map_c
+            string_map: row.by_name::<Map>("my_string_map")
+                .expect("string_map")
+                .unwrap()
+                .as_rust()
+                .expect("string_map"),
+            number_map: row.by_name::<Map>("my_number_map")
+                .expect("number_map")
+                .unwrap()
+                .as_rust()
+                .expect("number_map"),
+            complex_map: row.by_name::<Map>("my_complex_map")
+                .expect("complex_map")
+                .unwrap()
+                .as_rust::<HashMap<String, Map>>()
+                .expect("my_complex_map")
                 .iter()
                 .fold(HashMap::new(), |mut hm, (k, v)| {
                     hm.insert(k.clone(), v.as_rust().expect("complex_map_c"));
                     hm
                 }),
-            int_key_map: cm.int_key_map.as_rust().expect("int_key_map"),
-            uuid_key_map: cm.uuid_key_map.as_rust().expect("uuid_key_map"),
+            int_key_map: row.by_name::<Map>("my_int_key_map")
+                .expect("int_key_map")
+                .unwrap()
+                .as_rust()
+                .expect("int_key_map"),
+            uuid_key_map: row.by_name::<Map>("my_uuid_key_map")
+                .expect("uuid_key_map")
+                .unwrap()
+                .as_rust()
+                .expect("uuid_key_map"),
         };
     }
 
@@ -557,8 +560,14 @@ fn select_table_udt(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
         .unwrap();
 
     for row in all {
-        let udt_c: UDT = row.get_by_name("my_udt").expect("my_udt").unwrap();
-        let _ = Udt { number: udt_c.get_by_name("number").expect("number").unwrap() };
+        let _ = Udt {
+            number: row.by_name::<UDT>("my_udt")
+                .expect("my_udt")
+                .unwrap()
+                .by_name("number")
+                .expect("number")
+                .unwrap(),
+        };
     }
 
     true
@@ -747,27 +756,12 @@ struct Lists {
 }
 
 #[derive(Debug)]
-struct CassandraLists {
-    pub string_list: List,
-    pub number_list: List,
-    pub complex_list: List,
-}
-
-#[derive(Debug)]
 struct Maps {
     pub string_map: HashMap<String, String>,
     pub number_map: HashMap<String, i32>,
     pub complex_map: HashMap<String, HashMap<String, i32>>,
     pub int_key_map: HashMap<i32, String>,
     pub uuid_key_map: HashMap<Uuid, String>,
-}
-
-struct CassandraMaps {
-    pub string_map: Map,
-    pub number_map: Map,
-    pub complex_map: Map,
-    pub int_key_map: Map,
-    pub uuid_key_map: Map,
 }
 
 #[derive(Debug)]

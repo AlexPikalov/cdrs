@@ -555,7 +555,7 @@ fn select_table_udt(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
             number: row.by_name::<UDT>("my_udt")
                 .expect("my_udt")
                 .unwrap()
-                .get_by_name("number")
+                .by_name("number")
                 .expect("number")
                 .unwrap(),
         };
