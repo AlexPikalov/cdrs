@@ -32,7 +32,8 @@ macro_rules! list_as_rust {
                     Some(ColTypeOptionValue::CSet(ref type_option)) => {
                         let type_option_ref = type_option.as_ref();
                         let convert = self
-                            .map(|bytes| as_rust_type!(type_option_ref, bytes, $($into_type)*).unwrap());
+                            .map(|bytes| as_rust_type!(type_option_ref, bytes, $($into_type)*)
+                                .unwrap());
 
                         Ok(convert)
                     },
