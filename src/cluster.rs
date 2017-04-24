@@ -115,7 +115,7 @@ r2d2::ManageConnection for ClusterConnectionManager<T, X> {
             .ok_or_else(|| "Cannot get next node".into())
             .and_then(|x| x.try_clone().map_err(|e| e.into()));
         let transport = try!(transport_res);
-        let compression = self.compression.clone();
+        let compression = self.compression;
         let cdrs = CDRS::new(transport, self.authenticator.clone());
 
         cdrs.start(compression)

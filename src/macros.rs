@@ -312,4 +312,16 @@ macro_rules! as_rust_type {
                     $data_type_option.id)))
         }
     );
+    ($data_type_option:ident, $data_value:ident, Timespec) => (
+        match $data_type_option.id {
+            ColType::Timestamp => {
+                decode_timestamp($data_value.as_slice())
+                    .map(|ts| Timespec::new(ts / 1_000, (ts % 1_000 * 1_000_000) as i32))
+                    .map_err(Into::into)
+            }
+            _ => Err(Error::General(format!("Invalid conversion. \
+                    Cannot convert {:?} into Timespec (valid types: Timestamp).",
+                    $data_type_option.id)))
+        }
+    );
 }

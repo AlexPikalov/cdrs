@@ -1,5 +1,6 @@
 use std::net::IpAddr;
 use uuid::Uuid;
+use time::Timespec;
 
 use frame::frame_result::{RowsMetadata, ColType, ColSpec, BodyResResultRows, ColTypeOption,
                           ColTypeOptionValue};
@@ -67,3 +68,4 @@ into_rust_by_name!(Row, Uuid);
 into_rust_by_name!(Row, List);
 into_rust_by_name!(Row, Map);
 into_rust_by_name!(Row, UDT);
+into_rust_by_name!(Row, Timespec);
