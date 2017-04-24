@@ -4,7 +4,7 @@ use time::Timespec;
 
 use frame::frame_result::{RowsMetadata, ColType, ColSpec, BodyResResultRows, ColTypeOption,
                           ColTypeOptionValue};
-use types::{CBytes, IntoRustByName};
+use types::{CBytes, IntoRustByName, ByName};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
@@ -48,10 +48,12 @@ impl IntoRustByName<Vec<u8>> for Row {
         self.get_col_spec_by_name(name)
             .map(|(col_spec, cbytes)| {
                      let ref col_type = col_spec.col_type;
-                     as_rust!(col_type, cbytes, Vec<u8>)
+                     as_rust_type!(col_type, cbytes, Vec<u8>)
                  })
     }
 }
+
+impl ByName for Row {}
 
 into_rust_by_name!(Row, String);
 into_rust_by_name!(Row, bool);

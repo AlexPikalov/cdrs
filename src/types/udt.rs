@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 use frame::frame_result::{ColTypeOption, CUdt, ColType, ColTypeOptionValue};
-use types::{CBytes, IntoRustByName};
+use types::{CBytes, IntoRustByName, ByName};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
@@ -36,16 +36,20 @@ impl UDT {
 
 impl IntoRustByName<Vec<u8>> for UDT {
     fn get_by_name(&self, name: &str) -> Option<Result<Vec<u8>>> {
-        self.data.get(name).map(|v| {
-            let &(ref col_type, ref bytes) = v;
+        self.data
+            .get(name)
+            .map(|v| {
+                let &(ref col_type, ref bytes) = v;
 
-            match col_type.id {
-                ColType::Blob => decode_blob(bytes.as_plain()).map_err(|err| err.into()),
-                _ => Err(Error::General(format!("Cannot parse  {:?} into UDT ", col_type.id))),
-            }
-        })
+                match col_type.id {
+                    ColType::Blob => decode_blob(bytes.as_plain()).map_err(|err| err.into()),
+                    _ => Err(Error::General(format!("Cannot parse  {:?} into UDT ", col_type.id))),
+                }
+            })
     }
 }
+
+impl ByName for UDT {}
 
 into_rust_by_name!(UDT, String);
 into_rust_by_name!(UDT, bool);

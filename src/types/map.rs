@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::net::IpAddr;
 use uuid::Uuid;
 
-use types::{AsRust, CBytes};
+use types::{AsRustType, CBytes, AsRust};
 use frame::frame_result::{ColTypeOption, ColTypeOptionValue, ColType};
 use types::data_serialization_types::*;
 use types::list::List;
@@ -25,6 +25,7 @@ impl Map {
     }
 }
 
+impl AsRust for Map {}
 
 // Generate `AsRust` implementations for all kinds of map types.
 // The macro `map_as_rust!` takes the types as lists of token trees,

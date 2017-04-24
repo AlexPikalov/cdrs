@@ -23,13 +23,29 @@ pub mod value;
 
 /// Should be used to represent a single column as a Rust value.
 // TODO: change Option to Result, create a new type of error for that.
-pub trait AsRust<T> {
-    fn as_rust(&self) -> CDRSResult<T>;
+pub trait AsRustType<T> {
+    fn as_rust_type(&self) -> CDRSResult<T>;
+}
+
+pub trait AsRust {
+    fn as_rust<R>(&self) -> CDRSResult<R>
+        where Self: AsRustType<R>
+    {
+        self.as_rust_type()
+    }
 }
 
 /// Should be used to return a single column as Rust value by its name.
 pub trait IntoRustByName<R> {
     fn get_by_name(&self, name: &str) -> Option<CDRSResult<R>>;
+}
+
+pub trait ByName {
+    fn by_name<R>(&self, name: &str) -> Option<CDRSResult<R>>
+        where Self: IntoRustByName<R>
+    {
+        self.get_by_name(name)
+    }
 }
 
 /// Tries to converts u64 numerical value into array of n bytes.
