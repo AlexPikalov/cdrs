@@ -24,24 +24,25 @@ pub mod value;
 /// Should be used to represent a single column as a Rust value.
 // TODO: change Option to Result, create a new type of error for that.
 pub trait AsRustType<T> {
-    fn as_rust_type(&self) -> CDRSResult<T>;
+    fn as_rust_type(&self) -> CDRSResult<Option<T>>;
 }
 
 pub trait AsRust {
-    fn as_rust<R>(&self) -> CDRSResult<R>
+    fn as_rust<R>(&self) -> CDRSResult<Option<R>>
         where Self: AsRustType<R>
     {
         self.as_rust_type()
     }
 }
 
+// TODO: simplify Option<CDRSResult<Option<R>>> to CDRSResult<Option<R>>
 /// Should be used to return a single column as Rust value by its name.
 pub trait IntoRustByName<R> {
-    fn get_by_name(&self, name: &str) -> Option<CDRSResult<R>>;
+    fn get_by_name(&self, name: &str) -> CDRSResult<Option<R>>;
 }
 
 pub trait ByName {
-    fn by_name<R>(&self, name: &str) -> Option<CDRSResult<R>>
+    fn by_name<R>(&self, name: &str) -> CDRSResult<Option<R>>
         where Self: IntoRustByName<R>
     {
         self.get_by_name(name)
@@ -410,28 +411,32 @@ impl FromCursor for CStringList {
 //
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-/// The structure that represents Cassandra byte type
+/// The structure that represents Cassandra byte type.
 pub struct CBytes {
-    bytes: Vec<u8>,
+    bytes: Option<Vec<u8>>,
 }
 
 impl CBytes {
     pub fn new(bytes: Vec<u8>) -> CBytes {
-        CBytes { bytes: bytes }
+        CBytes { bytes: Some(bytes) }
     }
     /// Converts `CBytes` into a plain array of bytes
-    pub fn into_plain(self) -> Vec<u8> {
+    pub fn into_plain(self) -> Option<Vec<u8>> {
         self.bytes
     }
     // TODO: try to replace usage of `as_plain` by `as_slice`
-    pub fn as_plain(&self) -> Vec<u8> {
+    pub fn as_plain(&self) -> Option<Vec<u8>> {
         self.bytes.clone()
     }
-    pub fn as_slice(&self) -> &[u8] {
-        self.bytes.as_slice()
+    pub fn as_slice(&self) -> Option<&[u8]> {
+        match self.bytes {
+            Some(ref v) => Some(v.as_slice()),
+            None => None,
+        }
+        // self.bytes.map(|v| v.as_slice())
     }
     pub fn is_empty(&self) -> bool {
-        self.bytes.is_empty()
+        self.bytes.is_some()
     }
 }
 
@@ -442,7 +447,7 @@ impl FromCursor for CBytes {
         let len = CInt::from_cursor(&mut cursor)?;
         // null or not set value
         if len < 0 {
-            return Ok(CBytes { bytes: vec![] });
+            return Ok(CBytes { bytes: None });
         }
 
         cursor_next_value(&mut cursor, len as u64).map(CBytes::new)
@@ -452,26 +457,40 @@ impl FromCursor for CBytes {
 // Use extended Rust Vec<u8> as Cassandra [bytes]
 impl IntoBytes for CBytes {
     fn into_cbytes(&self) -> Vec<u8> {
-        let mut v: Vec<u8> = vec![];
-        let l = self.bytes.len() as i32;
-        v.extend_from_slice(to_int(l).as_slice());
-        v.extend_from_slice(self.bytes.as_slice());
-        v
+        match self.bytes {
+            Some(ref b) => {
+                let mut v: Vec<u8> = vec![];
+                let l = b.len() as i32;
+                v.extend_from_slice(to_int(l).as_slice());
+                v.extend_from_slice(b.as_slice());
+                v
+            }
+            None => vec![],
+        }
+        // self.bytes
+        //     .map(|b| {
+        //              let mut v: Vec<u8> = vec![];
+        //              let l = b.len() as i32;
+        //              v.extend_from_slice(to_int(l).as_slice());
+        //              v.extend_from_slice(b.as_slice());
+        //              v
+        //          })
+        //     .unwrap_or(vec![])
     }
 }
 
 /// Cassandra short bytes
 #[derive(Debug, Clone)]
 pub struct CBytesShort {
-    bytes: Vec<u8>,
+    bytes: Option<Vec<u8>>,
 }
 
 impl CBytesShort {
     pub fn new(bytes: Vec<u8>) -> CBytesShort {
-        CBytesShort { bytes: bytes }
+        CBytesShort { bytes: Some(bytes) }
     }
     /// Converts `CBytesShort` into plain vector of bytes;
-    pub fn into_plain(self) -> Vec<u8> {
+    pub fn into_plain(self) -> Option<Vec<u8>> {
         self.bytes
     }
 }
@@ -480,8 +499,13 @@ impl FromCursor for CBytesShort {
     /// from_cursor gets Cursor who's position is set such that it should be a start of a [bytes].
     /// It reads required number of bytes and returns a CBytes
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CBytesShort> {
-        let len: u64 = CIntShort::from_cursor(&mut cursor)? as u64;
-        cursor_next_value(&mut cursor, len)
+        let len = CIntShort::from_cursor(&mut cursor)?;
+
+        if len < 0 {
+            return Ok(CBytesShort { bytes: None });
+        }
+
+        cursor_next_value(&mut cursor, len as u64)
             .map(CBytesShort::new)
             .map_err(Into::into)
     }
@@ -490,11 +514,25 @@ impl FromCursor for CBytesShort {
 // Use extended Rust Vec<u8> as Cassandra [bytes]
 impl IntoBytes for CBytesShort {
     fn into_cbytes(&self) -> Vec<u8> {
-        let mut v: Vec<u8> = vec![];
-        let l = self.bytes.len() as i16;
-        v.extend_from_slice(to_short(l).as_slice());
-        v.extend_from_slice(self.bytes.as_slice());
-        v
+        match self.bytes {
+            Some(ref b) => {
+                let mut v: Vec<u8> = vec![];
+                let l = b.len() as i16;
+                v.extend_from_slice(to_short(l).as_slice());
+                v.extend_from_slice(b.as_slice());
+                v
+            }
+            None => vec![],
+        }
+        // self.bytes
+        //     .map(|b| {
+        //              let mut v: Vec<u8> = vec![];
+        //              let l = b.len() as i16;
+        //              v.extend_from_slice(to_short(l).as_slice());
+        //              v.extend_from_slice(b.as_slice());
+        //              v
+        //          })
+        //     .unwrap_or(vec![])
     }
 }
 

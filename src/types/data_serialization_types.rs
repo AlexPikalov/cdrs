@@ -30,9 +30,9 @@ pub fn decode_bigint(bytes: &[u8]) -> Result<i64, io::Error> {
 }
 
 // Decodes Cassandra `blob` data (bytes) into Rust's `Result<Vec<u8>, io::Error>`
-pub fn decode_blob(bytes: Vec<u8>) -> Result<Vec<u8>, io::Error> {
+pub fn decode_blob(bytes: &Vec<u8>) -> Result<Vec<u8>, io::Error> {
     // in fact we just pass it through.
-    Ok(bytes)
+    Ok(bytes.clone())
 }
 
 // Decodes Cassandra `boolean` data (bytes) into Rust's `Result<i32, io::Error>`
