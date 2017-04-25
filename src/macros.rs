@@ -91,10 +91,6 @@ macro_rules! into_rust_by_name {
                 self.get_col_spec_by_name(name)
                     .ok_or(column_is_empty_err())
                     .and_then(|(col_spec, cbytes)| {
-                        // if cbytes.is_empty() {
-                        //     return Err(column_is_empty_err());
-                        // }
-
                         let ref col_type = col_spec.col_type;
                         as_rust_type!(col_type, cbytes, $($into_type)*)
                     })
@@ -109,11 +105,6 @@ macro_rules! into_rust_by_name {
                 .ok_or(column_is_empty_err())
                 .and_then(|v| {
                     let &(ref col_type, ref bytes) = v;
-
-                    // if bytes.as_plain().is_empty() {
-                    //     return Err(column_is_empty_err());
-                    // }
-
                     let converted = as_rust_type!(col_type, bytes, $($into_type)*);
                     converted.map_err(|err| err.into())
                 })
@@ -143,8 +134,6 @@ macro_rules! as_rust_type {
         match $data_type_option.id {
             ColType::Blob => {
                 as_res_opt!($data_value, decode_blob)
-                // decode_blob($data_value.as_plain())
-                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into Vec<u8> (valid types: Blob).",
@@ -155,18 +144,12 @@ macro_rules! as_rust_type {
         match $data_type_option.id {
             ColType::Custom => {
                 as_res_opt!($data_value, decode_custom)
-                // decode_custom($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             ColType::Ascii => {
                 as_res_opt!($data_value, decode_ascii)
-                // decode_ascii($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             ColType::Varchar => {
                 as_res_opt!($data_value, decode_varchar)
-                // decode_varchar($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             // TODO: clarify when to use decode_text.
             // it's not mentioned in
@@ -181,8 +164,6 @@ macro_rules! as_rust_type {
         match $data_type_option.id {
             ColType::Boolean => {
                 as_res_opt!($data_value, decode_boolean)
-                // decode_boolean($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into bool (valid types: Boolean).",
@@ -193,23 +174,15 @@ macro_rules! as_rust_type {
         match $data_type_option.id {
             ColType::Bigint => {
                 as_res_opt!($data_value, decode_bigint)
-                // decode_bigint($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             ColType::Timestamp => {
                 as_res_opt!($data_value, decode_timestamp)
-                // decode_timestamp($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             ColType::Time => {
                 as_res_opt!($data_value, decode_time)
-                // decode_time($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             ColType::Varint => {
                 as_res_opt!($data_value, decode_varint)
-                // decode_varint($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into i64 (valid types: Bigint, Timestamp, Time, Variant).",
@@ -220,13 +193,9 @@ macro_rules! as_rust_type {
         match $data_type_option.id {
             ColType::Int => {
                 as_res_opt!($data_value, decode_int)
-                // decode_int($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             ColType::Date => {
                 as_res_opt!($data_value, decode_date)
-                // decode_date($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into i32 (valid types: Int, Date).",
@@ -237,8 +206,6 @@ macro_rules! as_rust_type {
         match $data_type_option.id {
             ColType::Smallint => {
                 as_res_opt!($data_value, decode_smallint)
-                // decode_smallint($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into i16 (valid types: Smallint).",
@@ -249,8 +216,6 @@ macro_rules! as_rust_type {
         match $data_type_option.id {
             ColType::Tinyint => {
                 as_res_opt!($data_value, decode_tinyint)
-                // decode_tinyint($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into i8 (valid types: Tinyint).",
@@ -261,8 +226,6 @@ macro_rules! as_rust_type {
         match $data_type_option.id {
             ColType::Double => {
                 as_res_opt!($data_value, decode_double)
-                // decode_double($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into f64 (valid types: Double).",
@@ -273,13 +236,9 @@ macro_rules! as_rust_type {
         match $data_type_option.id {
             ColType::Decimal => {
                 as_res_opt!($data_value, decode_decimal)
-                // decode_decimal($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             ColType::Float => {
                 as_res_opt!($data_value, decode_float)
-                // decode_float($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into f32 (valid types: Decimal, Float).",
@@ -290,8 +249,6 @@ macro_rules! as_rust_type {
         match $data_type_option.id {
             ColType::Inet => {
                 as_res_opt!($data_value, decode_inet)
-                // decode_inet($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into IpAddr (valid types: Inet).",
@@ -303,8 +260,6 @@ macro_rules! as_rust_type {
             ColType::Uuid |
             ColType::Timeuuid => {
                 as_res_opt!($data_value, decode_timeuuid)
-                // decode_timeuuid($data_value.as_slice())
-                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into Uuid (valid types: Uuid, Timeuuid).",
@@ -360,10 +315,6 @@ macro_rules! as_rust_type {
                     },
                     None => Ok(None)
                 }
-                // XXX: unwrap Option
-                // decode_udt($data_value.as_slice().unwrap(), list_type_option.descriptions.len())
-                //     .map(|data| Some(UDT::new(data, list_type_option)))
-                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into UDT (valid types: UDT).",
@@ -382,9 +333,6 @@ macro_rules! as_rust_type {
                     },
                     None => Ok(None)
                 }
-                // decode_timestamp($data_value.as_slice().unwrap())
-                //     .map(|ts| Some(Timespec::new(ts / 1_000, (ts % 1_000 * 1_000_000) as i32)))
-                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into Timespec (valid types: Timestamp).",
