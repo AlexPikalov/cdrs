@@ -10,7 +10,7 @@ use std::io::{Cursor, Read};
 use std::net::SocketAddr;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt, ByteOrder};
 use {FromBytes, IntoBytes, FromCursor};
-use error::Result as CDRSResult;
+use error::{Result as CDRSResult, Error as CDRSError, column_is_empty_err};
 use types::data_serialization_types::decode_inet;
 
 #[macro_use]
@@ -22,9 +22,13 @@ pub mod udt;
 pub mod value;
 
 /// Should be used to represent a single column as a Rust value.
-// TODO: change Option to Result, create a new type of error for that.
 pub trait AsRustType<T> {
     fn as_rust_type(&self) -> CDRSResult<Option<T>>;
+
+    fn as_r_type(&self) -> CDRSResult<T> {
+        self.as_rust_type()
+            .and_then(|op| op.ok_or(CDRSError::from("Value is null or non-set")))
+    }
 }
 
 pub trait AsRust {
@@ -33,12 +37,23 @@ pub trait AsRust {
     {
         self.as_rust_type()
     }
+
+    fn as_r_rust<T>(&self) -> CDRSResult<T>
+        where Self: AsRustType<T>
+    {
+        self.as_rust()
+            .and_then(|op| op.ok_or("Value is null or non-set".into()))
+    }
 }
 
-// TODO: simplify Option<CDRSResult<Option<R>>> to CDRSResult<Option<R>>
 /// Should be used to return a single column as Rust value by its name.
 pub trait IntoRustByName<R> {
     fn get_by_name(&self, name: &str) -> CDRSResult<Option<R>>;
+
+    fn get_r_by_name(&self, name: &str) -> CDRSResult<R> {
+        self.get_by_name(name)
+            .and_then(|op| op.ok_or(column_is_empty_err()))
+    }
 }
 
 pub trait ByName {
@@ -46,6 +61,13 @@ pub trait ByName {
         where Self: IntoRustByName<R>
     {
         self.get_by_name(name)
+    }
+
+    fn r_by_name<R>(&self, name: &str) -> CDRSResult<R>
+        where Self: IntoRustByName<R>
+    {
+        self.by_name(name)
+            .and_then(|op| op.ok_or(column_is_empty_err()))
     }
 }
 
