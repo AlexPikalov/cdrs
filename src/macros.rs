@@ -65,11 +65,10 @@ macro_rules! map_as_rust {
                         for &(ref key, ref val) in self.data.iter() {
                             let key_type_option = key_type_option.as_ref();
                             let val_type_option = val_type_option.as_ref();
-                            // key is supposed to be neither null nor non-set value
-                            let key = as_rust_type!(key_type_option, key, $($key_type)*)?.unwrap();
+                            let key = as_rust_type!(key_type_option, key, $($key_type)*)?;
                             let val = as_rust_type!(val_type_option, val, $($val_type)*)?;
-                            if val.is_some() {
-                                map.insert(key, val.unwrap());
+                            if val.is_some() && key.is_some() {
+                                map.insert(key.unwrap(), val.unwrap());
                             }
                         }
 
@@ -316,17 +315,14 @@ macro_rules! as_rust_type {
         match $data_type_option.id {
             ColType::List |
             ColType::Set => {
-
-                // TODO: try this
-                // match $data_value.as_slice() {
-                //     Some(ref bytes) => decode_list(bytes)
-                //         .map(|data| Some(List::new(data, $data_type_option.clone()))),
-                //     None => Ok(None)
-                // }
-
-                decode_list($data_value.as_slice().unwrap())
-                    .map(|data| Some(List::new(data, $data_type_option.clone())))
-                    .map_err(Into::into)
+                match $data_value.as_slice() {
+                    Some(ref bytes) => {
+                        decode_list(bytes)
+                            .map(|data| Some(List::new(data, $data_type_option.clone())))
+                            .map_err(Into::into)
+                    },
+                    None => Ok(None)
+                }
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into List (valid types: List, Set).",
@@ -336,10 +332,14 @@ macro_rules! as_rust_type {
     ($data_type_option:ident, $data_value:ident, Map) => (
         match $data_type_option.id {
             ColType::Map => {
-                // XXX unwrap Option
-                decode_map($data_value.as_slice().unwrap())
-                    .map(|data| Some(Map::new(data, $data_type_option.clone())))
-                    .map_err(Into::into)
+                match $data_value.as_slice() {
+                    Some(ref bytes) => {
+                        decode_map(bytes)
+                            .map(|data| Some(Map::new(data, $data_type_option.clone())))
+                            .map_err(Into::into)
+                    },
+                    None => Ok(None)
+                }
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into Map (valid types: Map).",
@@ -352,10 +352,18 @@ macro_rules! as_rust_type {
                 id: ColType::Udt,
                 value: Some(ColTypeOptionValue::UdtType(ref list_type_option))
             } => {
+                match $data_value.as_slice() {
+                    Some(ref bytes) => {
+                        decode_udt(bytes, list_type_option.descriptions.len())
+                            .map(|data| Some(UDT::new(data, list_type_option)))
+                            .map_err(Into::into)
+                    },
+                    None => Ok(None)
+                }
                 // XXX: unwrap Option
-                decode_udt($data_value.as_slice().unwrap(), list_type_option.descriptions.len())
-                    .map(|data| Some(UDT::new(data, list_type_option)))
-                    .map_err(Into::into)
+                // decode_udt($data_value.as_slice().unwrap(), list_type_option.descriptions.len())
+                //     .map(|data| Some(UDT::new(data, list_type_option)))
+                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into UDT (valid types: UDT).",
@@ -365,9 +373,18 @@ macro_rules! as_rust_type {
     ($data_type_option:ident, $data_value:ident, Timespec) => (
         match $data_type_option.id {
             ColType::Timestamp => {
-                decode_timestamp($data_value.as_slice().unwrap())
-                    .map(|ts| Some(Timespec::new(ts / 1_000, (ts % 1_000 * 1_000_000) as i32)))
-                    .map_err(Into::into)
+                match $data_value.as_slice() {
+                    Some(ref bytes) => {
+                        decode_timestamp(bytes)
+                            .map(|ts| Some(Timespec::new(ts / 1_000,
+                                (ts % 1_000 * 1_000_000) as i32)))
+                            .map_err(Into::into)
+                    },
+                    None => Ok(None)
+                }
+                // decode_timestamp($data_value.as_slice().unwrap())
+                //     .map(|ts| Some(Timespec::new(ts / 1_000, (ts % 1_000 * 1_000_000) as i32)))
+                //     .map_err(Into::into)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into Timespec (valid types: Timestamp).",

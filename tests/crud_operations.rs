@@ -435,19 +435,22 @@ fn select_table_list(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
                 .unwrap()
                 .as_rust::<Vec<String>>() // final type is not required, it could be find
                 // authomatically
-                .expect("string_list"),
+                .expect("string_list")
+                .unwrap(),
             number_list: row.by_name::<List>("my_number_list")
                 .expect("number_list")
                 .unwrap()
                 .as_rust()
-                .expect("number_list"),
+                .expect("number_list")
+                .unwrap(),
             complex_list: row.by_name::<List>("my_complex_list")
                 .expect("complex_list")
                 .unwrap()
                 .as_rust::<Vec<List>>()
                 .expect("my_complex_list")
+                .unwrap()
                 .iter()
-                .map(|it| it.as_rust().expect("number_list_c"))
+                .map(|it| it.as_rust().expect("number_list_c").unwrap())
                 .collect(),
         };
     }
@@ -507,32 +510,37 @@ fn select_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
                 .expect("string_map")
                 .unwrap()
                 .as_rust()
-                .expect("string_map"),
+                .expect("string_map")
+                .unwrap(),
             number_map: row.by_name::<Map>("my_number_map")
                 .expect("number_map")
                 .unwrap()
                 .as_rust()
-                .expect("number_map"),
+                .expect("number_map")
+                .unwrap(),
             complex_map: row.by_name::<Map>("my_complex_map")
                 .expect("complex_map")
                 .unwrap()
                 .as_rust::<HashMap<String, Map>>()
                 .expect("my_complex_map")
+                .unwrap()
                 .iter()
                 .fold(HashMap::new(), |mut hm, (k, v)| {
-                    hm.insert(k.clone(), v.as_rust().expect("complex_map_c"));
+                    hm.insert(k.clone(), v.as_rust().expect("complex_map_c").unwrap());
                     hm
                 }),
             int_key_map: row.by_name::<Map>("my_int_key_map")
                 .expect("int_key_map")
                 .unwrap()
                 .as_rust()
-                .expect("int_key_map"),
+                .expect("int_key_map")
+                .unwrap(),
             uuid_key_map: row.by_name::<Map>("my_uuid_key_map")
                 .expect("uuid_key_map")
                 .unwrap()
                 .as_rust()
-                .expect("uuid_key_map"),
+                .expect("uuid_key_map")
+                .unwrap(),
         };
     }
 

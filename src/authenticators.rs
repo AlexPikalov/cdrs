@@ -80,14 +80,14 @@ mod tests {
         expected_token.push(0);
         expected_token.extend_from_slice("bar".as_bytes());
 
-        assert_eq!(auth.get_auth_token().into_plain(), expected_token);
+        assert_eq!(auth.get_auth_token().into_plain().unwrap(), expected_token);
     }
 
     #[test]
     fn test_authenticator_none_get_cassandra_name() {
         let auth = NoneAuthenticator;
         assert_eq!(auth.get_cassandra_name(), None);
-        assert_eq!(auth.get_auth_token().into_plain(), vec![0]);
+        assert_eq!(auth.get_auth_token().into_plain().unwrap(), vec![0]);
     }
 
     fn authenticator_tester<A: Authenticator>(_authenticator: Box<A>) {}

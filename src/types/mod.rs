@@ -707,7 +707,7 @@ mod tests {
     #[test]
     fn test_cbytes_into_plain() {
         let cbytes = CBytes::new(vec![1, 2, 3]);
-        assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
+        assert_eq!(cbytes.into_plain().unwrap(), &[1, 2, 3]);
     }
 
     #[test]
@@ -715,14 +715,14 @@ mod tests {
         let a = &[0, 0, 0, 3, 1, 2, 3];
         let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let cbytes = CBytes::from_cursor(&mut cursor).unwrap();
-        assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
+        assert_eq!(cbytes.into_plain().unwrap(), vec![1, 2, 3]);
     }
 
     #[test]
     fn test_cbytes_into_cbytes() {
         let bytes_vec = vec![1, 2, 3];
         let cbytes = CBytes::new(bytes_vec);
-        assert_eq!(cbytes.into_cbytes(), &[0, 0, 0, 3, 1, 2, 3]);
+        assert_eq!(cbytes.into_cbytes(), vec![0, 0, 0, 3, 1, 2, 3]);
     }
 
     // CBytesShort
@@ -735,7 +735,7 @@ mod tests {
     #[test]
     fn test_cbytesshort_into_plain() {
         let cbytes = CBytesShort::new(vec![1, 2, 3]);
-        assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
+        assert_eq!(cbytes.into_plain().unwrap(), vec![1, 2, 3]);
     }
 
     #[test]
@@ -743,14 +743,14 @@ mod tests {
         let a = &[0, 3, 1, 2, 3];
         let mut cursor: Cursor<&[u8]> = Cursor::new(a);
         let cbytes = CBytesShort::from_cursor(&mut cursor).unwrap();
-        assert_eq!(cbytes.into_plain(), &[1, 2, 3]);
+        assert_eq!(cbytes.into_plain().unwrap(), vec![1, 2, 3]);
     }
 
     #[test]
     fn test_cbytesshort_into_cbytes() {
         let bytes_vec: Vec<u8> = vec![1, 2, 3];
         let cbytes = CBytesShort::new(bytes_vec);
-        assert_eq!(cbytes.into_cbytes(), &[0, 3, 1, 2, 3]);
+        assert_eq!(cbytes.into_cbytes(), vec![0, 3, 1, 2, 3]);
     }
 
     // CInt
