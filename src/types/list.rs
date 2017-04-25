@@ -35,18 +35,25 @@ impl AsRust for List {}
 
 impl AsRustType<Vec<Vec<u8>>> for List {
     /// Converts cassandra list of blobs into Rust `Vec<Vec<u8>>`
-    fn as_rust_type(&self) -> Result<Vec<Vec<u8>>> {
+    fn as_rust_type(&self) -> Result<Option<Vec<Vec<u8>>>> {
         match self.metadata.value {
             Some(ColTypeOptionValue::CList(ref type_option)) => {
                 match type_option.id {
                     // XXX unwrap
-                    ColType::Blob => Ok(self.map(|bytes| decode_blob(bytes.as_plain()).unwrap())),
+                    ColType::Blob => {
+                        Ok(self.map(|bytes| decode_blob(&bytes.as_plain().unwrap()).unwrap()))
+                            .map(Some)
+                    }
                     _ => unreachable!(),
                 }
             }
             Some(ColTypeOptionValue::CSet(ref type_option)) => {
                 match type_option.id {
-                    ColType::Blob => Ok(self.map(|bytes| decode_blob(bytes.as_plain()).unwrap())),
+                    ColType::Blob => {
+                        // XXX unwrap
+                        Ok(self.map(|bytes| decode_blob(&bytes.as_plain().unwrap()).unwrap()))
+                            .map(Some)
+                    }
                     _ => unreachable!(),
                 }
             }

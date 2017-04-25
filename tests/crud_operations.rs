@@ -307,16 +307,10 @@ fn select_all_ints(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bo
 
     for row in all {
         let _ = Ints {
-            bigint: row.get_by_name("my_bigint")
-                .expect("my_bigint")
-                .unwrap(),
-            int: row.get_by_name("my_int").expect("my_int").unwrap(),
-            smallint: row.get_by_name("my_smallint")
-                .expect("my_smallint")
-                .unwrap(),
-            tinyint: row.get_by_name("my_tinyint")
-                .expect("my_tinyint")
-                .unwrap(),
+            bigint: row.r_by_name("my_bigint").expect("my_bigint"),
+            int: row.r_by_name("my_int").expect("my_int"),
+            smallint: row.r_by_name("my_smallint").expect("my_smallint"),
+            tinyint: row.r_by_name("my_tinyint").expect("my_tinyint"),
         };
     }
 
@@ -379,11 +373,9 @@ fn select_table_str(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
 
     for row in all {
         let _ = Strings {
-            my_ascii: row.get_by_name("my_ascii").expect("my_ascii").unwrap(),
-            my_text: row.get_by_name("my_text").expect("my_text").unwrap(),
-            my_varchar: row.get_by_name("my_varchar")
-                .expect("my_ascii")
-                .unwrap(),
+            my_ascii: row.r_by_name("my_ascii").expect("my_ascii"),
+            my_text: row.r_by_name("my_text").expect("my_text"),
+            my_varchar: row.r_by_name("my_varchar").expect("my_ascii"),
         };
     }
 
@@ -430,24 +422,21 @@ fn select_table_list(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
 
     for row in all {
         let _ = Lists {
-            string_list: row.by_name::<List>("my_string_list") // intermediate type is required
+            string_list: row.r_by_name::<List>("my_string_list") // intermediate type is required
                 .expect("string_list")
-                .unwrap()
-                .as_rust::<Vec<String>>() // final type is not required, it could be find
+                .as_r_rust::<Vec<String>>() // final type is not required, it could be find
                 // authomatically
                 .expect("string_list"),
-            number_list: row.by_name::<List>("my_number_list")
+            number_list: row.r_by_name::<List>("my_number_list")
                 .expect("number_list")
-                .unwrap()
-                .as_rust()
+                .as_r_rust()
                 .expect("number_list"),
-            complex_list: row.by_name::<List>("my_complex_list")
+            complex_list: row.r_by_name::<List>("my_complex_list")
                 .expect("complex_list")
-                .unwrap()
-                .as_rust::<Vec<List>>()
+                .as_r_rust::<Vec<List>>()
                 .expect("my_complex_list")
                 .iter()
-                .map(|it| it.as_rust().expect("number_list_c"))
+                .map(|it| it.as_r_rust().expect("number_list_c"))
                 .collect(),
         };
     }
@@ -503,35 +492,30 @@ fn select_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
 
     for row in all {
         let _ = Maps {
-            string_map: row.by_name::<Map>("my_string_map")
+            string_map: row.r_by_name::<Map>("my_string_map")
                 .expect("string_map")
-                .unwrap()
-                .as_rust()
+                .as_r_rust()
                 .expect("string_map"),
-            number_map: row.by_name::<Map>("my_number_map")
+            number_map: row.r_by_name::<Map>("my_number_map")
                 .expect("number_map")
-                .unwrap()
-                .as_rust()
+                .as_r_rust()
                 .expect("number_map"),
-            complex_map: row.by_name::<Map>("my_complex_map")
+            complex_map: row.r_by_name::<Map>("my_complex_map")
                 .expect("complex_map")
-                .unwrap()
-                .as_rust::<HashMap<String, Map>>()
+                .as_r_rust::<HashMap<String, Map>>()
                 .expect("my_complex_map")
                 .iter()
                 .fold(HashMap::new(), |mut hm, (k, v)| {
-                    hm.insert(k.clone(), v.as_rust().expect("complex_map_c"));
+                    hm.insert(k.clone(), v.as_r_rust().expect("complex_map_c"));
                     hm
                 }),
-            int_key_map: row.by_name::<Map>("my_int_key_map")
+            int_key_map: row.r_by_name::<Map>("my_int_key_map")
                 .expect("int_key_map")
-                .unwrap()
-                .as_rust()
+                .as_r_rust()
                 .expect("int_key_map"),
-            uuid_key_map: row.by_name::<Map>("my_uuid_key_map")
+            uuid_key_map: row.r_by_name::<Map>("my_uuid_key_map")
                 .expect("uuid_key_map")
-                .unwrap()
-                .as_rust()
+                .as_r_rust()
                 .expect("uuid_key_map"),
         };
     }
@@ -580,12 +564,10 @@ fn select_table_udt(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
 
     for row in all {
         let _ = Udt {
-            number: row.by_name::<UDT>("my_udt")
+            number: row.r_by_name::<UDT>("my_udt")
                 .expect("my_udt")
-                .unwrap()
-                .by_name("number")
-                .expect("number")
-                .unwrap(),
+                .r_by_name("number")
+                .expect("number"),
         };
     }
 
@@ -623,9 +605,7 @@ fn select_table_bool(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
         .unwrap();
 
     for row in all {
-        let _: bool = row.get_by_name("my_boolean")
-            .expect("my_boolean")
-            .unwrap();
+        let _: bool = row.r_by_name("my_boolean").expect("my_boolean");
     }
 
     true
@@ -663,7 +643,7 @@ fn select_table_uuid(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
         .unwrap();
 
     for row in all {
-        let _: Uuid = row.get_by_name("my_uuid").expect("my_uuid").unwrap();
+        let _: Uuid = row.r_by_name("my_uuid").expect("my_uuid");
     }
 
     true
@@ -702,10 +682,8 @@ fn select_table_float(session: &mut Session<NoneAuthenticator, TransportTcp>) ->
         .unwrap();
 
     for row in all {
-        let _: f32 = row.get_by_name("my_float").expect("my_float").unwrap();
-        let _: f64 = row.get_by_name("my_double")
-            .expect("my_double")
-            .unwrap();
+        let _: f32 = row.r_by_name("my_float").expect("my_float");
+        let _: f64 = row.r_by_name("my_double").expect("my_double");
     }
 
     true
@@ -742,7 +720,7 @@ fn select_table_blob(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
         .unwrap();
 
     for row in all {
-        let _: Vec<u8> = row.get_by_name("my_blob").expect("my_blob").unwrap();
+        let _: Vec<u8> = row.r_by_name("my_blob").expect("my_blob");
     }
 
     true
@@ -784,9 +762,7 @@ fn select_table_timestamp(session: &mut Session<NoneAuthenticator, TransportTcp>
         .unwrap();
 
     for row in all {
-        let timestamp: time::Timespec = row.get_by_name("my_timestamp")
-            .expect("my_timestamp")
-            .unwrap();
+        let timestamp: time::Timespec = row.r_by_name("my_timestamp").expect("my_timestamp");
         assert_eq!(timestamp,
                    time::Timespec {
                        sec: 1491938018,

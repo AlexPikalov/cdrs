@@ -283,8 +283,8 @@ let rows = res_body.into_rows().unwrap();
 let messages: Vec<CResult<Message>> = rows
     .iter()
     .map(|row| Message {
-        author: row.get_by_name("author").unwrap(),
-        text: row.get_by_name("text").unwrap()
+        author: row.r_by_name("author").unwrap(),
+        text: row.r_by_name("text").unwrap()
     })
     .collect();
 
@@ -308,10 +308,10 @@ let rows = res_body.into_rows().unwrap();
 let messages: Vec<CAuthor> = rows
     .iter()
     .map(|row| {
-        let name: String = row.get_by_name("name").unwrap();
+        let name: String = row.r_by_name("name").unwrap();
         let messages: Vec<String> = row
             // unwrap Option<CResult<T>>, where T implements AsRust
-            .get_by_name("messages").unwrap().unwrap()
+            .r_by_name("messages").unwrap().unwrap()
             .as_rust().unwrap();
         return Author {
             author: name,

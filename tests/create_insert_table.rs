@@ -124,32 +124,32 @@ fn read_from_user_table() {
 
     match query_op {
         Ok(res) => {
-            let res_body = res.get_body().unwrap();
+            let res_body = res.get_body().expect("shold have body");
             if let Some(rows) = res_body.into_rows() {
                 let users: Vec<User> = rows.iter()
                     .map(|row| {
                         let mut user = User { ..Default::default() };
-                        if let Some(Ok(user_name)) = row.get_by_name("user_name") {
+                        if let Ok(Some(user_name)) = row.get_by_name("user_name") {
                             user.user_name = user_name;
                         }
 
-                        if let Some(Ok(password)) = row.get_by_name("password") {
+                        if let Ok(Some(password)) = row.get_by_name("password") {
                             user.password = password;
                         }
 
-                        if let Some(Ok(gender)) = row.get_by_name("gender") {
+                        if let Ok(Some(gender)) = row.get_by_name("gender") {
                             user.gender = gender;
                         }
 
-                        if let Some(Ok(session_token)) = row.get_by_name("session_token") {
+                        if let Ok(Some(session_token)) = row.get_by_name("session_token") {
                             user.session_token = session_token;
                         }
 
-                        if let Some(Ok(state)) = row.get_by_name("state") {
+                        if let Ok(Some(state)) = row.get_by_name("state") {
                             user.state = state;
                         }
 
-                        if let Some(Ok(m)) = row.get_by_name("some_map") {
+                        if let Ok(Some(m)) = row.get_by_name("some_map") {
                             user.some_map = Some(m);
                         }
 
