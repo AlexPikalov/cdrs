@@ -266,7 +266,8 @@ of messages of following format:
 
 struct Message {
     pub author: String,
-    pub text: String
+    pub text: String,
+    pub optional_field: Option<String>
 }
 
 ```
@@ -284,7 +285,8 @@ let messages: Vec<CResult<Message>> = rows
     .iter()
     .map(|row| Message {
         author: row.r_by_name("author").unwrap(),
-        text: row.r_by_name("text").unwrap()
+        text: row.r_by_name("text").unwrap(),
+        optional_field: row.get_by_name("optional_field")
     })
     .collect();
 
@@ -311,8 +313,8 @@ let messages: Vec<CAuthor> = rows
         let name: String = row.r_by_name("name").unwrap();
         let messages: Vec<String> = row
             // unwrap Option<CResult<T>>, where T implements AsRust
-            .r_by_name("messages").unwrap().unwrap()
-            .as_rust().unwrap();
+            .r_by_name("messages").unwrap()
+            .as_r_rust().unwrap();
         return Author {
             author: name,
             text: messages
