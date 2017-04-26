@@ -138,12 +138,11 @@ impl IntoBytes for ParamsReqQuery {
         v.extend_from_slice(self.consistency.into_cbytes().as_slice());
         v.push(self.flags_as_byte());
         if QueryFlags::has_value(self.flags_as_byte()) {
-            // XXX clone
-            // XXX unwrap
-            let values = self.values.clone().unwrap();
-            v.extend_from_slice(to_short(values.len() as i16).as_slice());
-            for val in &values {
-                v.extend_from_slice(val.into_cbytes().as_slice());
+            if let Some(ref values) = self.values {
+                v.extend_from_slice(to_short(values.len() as i16).as_slice());
+                for val in values {
+                    v.extend_from_slice(val.into_cbytes().as_slice());
+                }
             }
         }
         if QueryFlags::has_with_paging_state(self.flags_as_byte()) && self.paging_state.is_some() {

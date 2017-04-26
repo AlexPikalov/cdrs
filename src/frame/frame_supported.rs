@@ -13,19 +13,15 @@ pub struct BodyResSupported {
 impl FromCursor for BodyResSupported {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<BodyResSupported> {
         let l = try_from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)?
-                                   .as_slice())? as i16;
-        let acc: HashMap<String, Vec<String>> = HashMap::new();
-        let map = (0..l).fold(acc, |mut m, _| {
-            // XXX unwrap()
-            let name = CString::from_cursor(&mut cursor).unwrap().into_plain();
-            let val = CStringList::from_cursor(&mut cursor)
-                .unwrap()
-                .into_plain();
-            m.insert(name, val);
-            m
-        });
+                                   .as_slice())? as usize;
+        let mut data: HashMap<String, Vec<String>> = HashMap::with_capacity(l);
+        for _ in 0..l {
+            let name = CString::from_cursor(&mut cursor)?.into_plain();
+            let val = CStringList::from_cursor(&mut cursor)?.into_plain();
+            data.insert(name, val);
+        }
 
-        Ok(BodyResSupported { data: map })
+        Ok(BodyResSupported { data: data })
     }
 }
 

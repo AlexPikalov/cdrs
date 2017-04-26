@@ -532,14 +532,12 @@ impl FromCursor for CUdt {
         let udt_name = CString::from_cursor(&mut cursor)?;
         let n = try_from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)?
                                    .as_slice())?;
-        let descriptions: Vec<(CString, ColTypeOption)> = (0..n)
-            .map(|_| {
-                     // XXX unwrap
-                     let name = CString::from_cursor(&mut cursor).unwrap();
-                     let col_type = ColTypeOption::from_cursor(&mut cursor).unwrap();
-                     (name, col_type)
-                 })
-            .collect();
+        let mut descriptions = Vec::with_capacity(n as usize);
+        for _ in 0..n {
+            let name = CString::from_cursor(&mut cursor)?;
+            let col_type = ColTypeOption::from_cursor(&mut cursor)?;
+            descriptions.push((name, col_type));
+        }
 
         Ok(CUdt {
                ks: ks,
