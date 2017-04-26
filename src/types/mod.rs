@@ -420,11 +420,11 @@ impl FromCursor for CStringList {
         // TODO: try to use slice instead
         let mut len_bytes = [0; SHORT_LEN];
         try!(cursor.read(&mut len_bytes));
-        let len: u64 = try_from_bytes(len_bytes.to_vec().as_slice())?;
-        let list = (0..len)
-        // XXX unwrap
-            .map(|_| CString::from_cursor(&mut cursor).unwrap())
-            .collect();
+        let len = try_from_bytes(len_bytes.to_vec().as_slice())? as usize;
+        let mut list = Vec::with_capacity(len);
+        for _ in 0..len {
+            list.push(CString::from_cursor(&mut cursor)?);
+        }
 
         Ok(CStringList { list: list })
     }

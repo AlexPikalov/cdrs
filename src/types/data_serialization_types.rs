@@ -125,10 +125,12 @@ pub fn decode_list(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
     let l = CInt::from_cursor(&mut cursor)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-    let list = (0..l)
-    // XXX unwrap
-        .map(|_| CBytes::from_cursor(&mut cursor).unwrap())
-        .collect();
+    let mut list = Vec::with_capacity(l as usize);
+    for _ in 0..l {
+        let b = CBytes::from_cursor(&mut cursor)
+            .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
+        list.push(b);
+    }
     Ok(list)
 }
 
@@ -142,12 +144,15 @@ pub fn decode_map(bytes: &[u8]) -> Result<Vec<(CBytes, CBytes)>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
     let l = CInt::from_cursor(&mut cursor)
         .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
-    let list = (0..l)
-        // XXX: unwrap
-        .map(|_| (CBytes::from_cursor(&mut cursor).unwrap(),
-            CBytes::from_cursor(&mut cursor).unwrap()))
-        .collect();
-    Ok(list)
+    let mut map = Vec::with_capacity(l as usize);
+    for _ in 0..l {
+        let n = CBytes::from_cursor(&mut cursor)
+            .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
+        let v = CBytes::from_cursor(&mut cursor)
+            .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
+        map.push((n, v));
+    }
+    Ok(map)
 }
 
 // Decodes Cassandra `smallint` data (bytes) into Rust's `Result<i16, io::Error>`
@@ -184,11 +189,13 @@ pub fn decode_varint(bytes: &[u8]) -> Result<i64, io::Error> {
 // each `CBytes` is encoded type of field of user defined type
 pub fn decode_udt(bytes: &[u8], l: usize) -> Result<Vec<CBytes>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
-    let list = (0..l)
-    // XXX unwrap
-        .map(|_| CBytes::from_cursor(&mut cursor).unwrap())
-        .collect();
-    Ok(list)
+    let mut udt = Vec::with_capacity(l);
+    for _ in 0..l {
+        let v = CBytes::from_cursor(&mut cursor)
+            .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
+        udt.push(v);
+    }
+    Ok(udt)
 }
 
 
