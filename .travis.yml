@@ -8,7 +8,6 @@ matrix:
   allow_failures:
     - rust: nightly
 
-# Enable when https://blog.travis-ci.com/2017-04-17-precise-EOL is fixed
 before_install:
  - sudo update-java-alternatives -s java-8-oracle
  - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
@@ -41,8 +40,6 @@ addons:
       - libbfd-dev
       - oracle-java8-installer
 
-
-# Enable when https://blog.travis-ci.com/2017-04-17-precise-EOL is fixed
 after_success:
   wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&#
   tar xzf master.tar.gz &&
