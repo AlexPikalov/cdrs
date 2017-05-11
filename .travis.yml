@@ -9,14 +9,14 @@ matrix:
     - rust: nightly
 
 # Enable when https://blog.travis-ci.com/2017-04-17-precise-EOL is fixed
-#before_install:
-#  - sudo update-java-alternatives -s java-8-oracle
-#  - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
-#  - java -version
-#  - sudo rm -rf /var/lib/cassandra/*
-#  - if [ ! -d "apache-cassandra-3.9" ]; then wget http://www.us.apache.org/dist/cassandra/3.9/apache-cassandra-3.9-bin.tar.gz && tar -xvzf apache-cassandra-3.9-bin.tar.gz; fi
-#  - sudo sh ./apache-cassandra-3.9/bin/cassandra -R
-#  - sleep 20
+before_install:
+ - sudo update-java-alternatives -s java-8-oracle
+ - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+ - java -version
+ - sudo rm -rf /var/lib/cassandra/*
+ - if [ ! -d "apache-cassandra-3.9" ]; then wget http://www.us.apache.org/dist/cassandra/3.9/apache-cassandra-3.9-bin.tar.gz && tar -xvzf apache-cassandra-3.9-bin.tar.gz; fi
+ - sudo sh ./apache-cassandra-3.9/bin/cassandra -R
+ - sleep 20
 
 
 install:
@@ -43,19 +43,19 @@ addons:
 
 
 # Enable when https://blog.travis-ci.com/2017-04-17-precise-EOL is fixed
-#after_success:
-#   wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&#
-#   tar xzf master.tar.gz &&
-#   cd kcov-master &&
-#   mkdir build &&
-#   cd build &&
-#   cmake .. &&
-#   make &&
-#   sudo make install &&
-#   cd ../.. &&
-#   rm -rf kcov-master &&
-#   for file in target/debug/cdrs-*; do mkdir -p "target/cov/$(basename $file)"; kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done &&
-#   bash <(curl -s https://codecov.io/bash) &&
-#   rm -rf target/cov &&
-#   for file in target/debug/cdrs-*; do mkdir -p "target/coverall/$(basename $file)"; kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo,/usr/lib --verify "target/coverall/$(basename $file)" "$file"; done &&
-#   echo "Uploaded code coverage"
+after_success:
+  wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&#
+  tar xzf master.tar.gz &&
+  cd kcov-master &&
+  mkdir build &&
+  cd build &&
+  cmake .. &&
+  make &&
+  sudo make install &&
+  cd ../.. &&
+  rm -rf kcov-master &&
+  for file in target/debug/cdrs-*; do mkdir -p "target/cov/$(basename $file)"; kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done &&
+  bash <(curl -s https://codecov.io/bash) &&
+  rm -rf target/cov &&
+  for file in target/debug/cdrs-*; do mkdir -p "target/coverall/$(basename $file)"; kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo,/usr/lib --verify "target/coverall/$(basename $file)" "$file"; done &&
+  echo "Uploaded code coverage"

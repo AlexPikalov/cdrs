@@ -87,8 +87,8 @@ const SELECT_TIMESTAMP: &'static str = "SELECT * FROM my_ks.timestamp;";
 // ...
 
 // Enable when https://blog.travis-ci.com/2017-04-17-precise-EOL is fixed
-// #[cfg(not(windows))]
-// #[test]
+#[cfg(not(windows))]
+#[test]
 fn main_crud_operations() {
     let authenticator = NoneAuthenticator;
     let tcp_transport = TransportTcp::new(_ADDR).unwrap();
