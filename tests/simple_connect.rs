@@ -12,8 +12,8 @@ const _ADDR: &'static str = "127.0.0.1:9042";
 
 
 
-// #[cfg(not(windows))]
-// #[test]
+#[cfg(not(windows))]
+#[test]
 fn connect_to_cassandra() {
     const _ADDR: &'static str = "127.0.0.1:9042";
     let authenticator = NoneAuthenticator;
