@@ -109,11 +109,35 @@ pub enum Version {
     Response,
 }
 
+impl Version {
+    fn request_version() -> u8 {
+        if cfg!(feature = "v3") {
+            0x03
+        } else if cfg!(feature = "v4") || cfg!(feature = "v5") {
+            0x04
+        } else {
+            panic!("{}",
+                   "Protocol version is not supported. CDRS should be run with protocol feature set to v3, v4 or v5");
+        }
+    }
+
+    fn response_version() -> u8 {
+        if cfg!(feature = "v3") {
+            0x83
+        } else if cfg!(feature = "v4") || cfg!(feature = "v5") {
+            0x84
+        } else {
+            panic!("{}",
+                   "Protocol version is not supported. CDRS should be run with protocol feature set to v3, v4 or v5");
+        }
+    }
+}
+
 impl AsByte for Version {
     fn as_byte(&self) -> u8 {
         match self {
-            &Version::Request => 0x04,
-            &Version::Response => 0x84,
+            &Version::Request => Version::request_version(),
+            &Version::Response => Version::response_version(),
         }
     }
 }
@@ -128,13 +152,23 @@ impl From<Vec<u8>> for Version {
                    VERSION_LEN,
                    v);
         }
-        match v[0] {
-            0x04 => Version::Request,
-            0x84 => Version::Response,
-            _ => {
-                error!("Unexpected Cassandra version {:?}", v);
-                panic!("Unexpected Cassandra version {:?}", v);
-            }
+        let version = v[0];
+        let req = Version::request_version();
+        let res = Version::response_version();
+
+        if version == req {
+            Version::Request
+        } else if version == res {
+            Version::Response
+        } else {
+            error!("Unexpected Cassandra version {:?}, either {:?} or {:?} is expected",
+                   version,
+                   req,
+                   res);
+            panic!("Unexpected Cassandra version {:?}, either {:?} or {:?} is expected",
+                   version,
+                   req,
+                   res);
         }
     }
 }

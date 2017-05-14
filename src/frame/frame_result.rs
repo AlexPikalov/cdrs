@@ -583,6 +583,53 @@ pub struct PreparedMetadata {
     pub col_specs: Vec<ColSpec>,
 }
 
+impl PreparedMetadata {
+    pub fn from_cursor_v3(mut cursor: &mut Cursor<&[u8]>) -> error::Result<PreparedMetadata> {
+        let flags = CInt::from_cursor(&mut cursor)?;
+        let columns_count = CInt::from_cursor(&mut cursor)?;
+        let pk_count = if cfg!(feature = "v3") {
+            0
+        } else {
+            // v4 or v5
+            CInt::from_cursor(&mut cursor)?
+        };
+        let pk_index_results: Vec<Option<i16>> = (0..pk_count)
+            .map(|_| {
+                     cursor_next_value(&mut cursor, SHORT_LEN as u64)
+                         .ok()
+                         .and_then(|b| try_i16_from_bytes(b.as_slice()).ok())
+                 })
+            .collect();
+
+        let pk_indexes: Vec<i16> = if pk_index_results.iter().any(Option::is_none) {
+            return Err("pk indexes error".into());
+        } else {
+            pk_index_results
+                .iter()
+                .cloned()
+                .map(|r| r.unwrap())
+                .collect()
+        };
+        let mut global_table_space: Option<(CString, CString)> = None;
+        let has_global_table_space = RowsMetadataFlag::has_global_table_space(flags);
+        if has_global_table_space {
+            let keyspace = CString::from_cursor(&mut cursor)?;
+            let tablename = CString::from_cursor(&mut cursor)?;
+            global_table_space = Some((keyspace, tablename))
+        }
+        let col_specs = ColSpec::parse_colspecs(&mut cursor, columns_count, has_global_table_space);
+
+        Ok(PreparedMetadata {
+               flags: flags,
+               columns_count: columns_count,
+               pk_count: pk_count,
+               pk_indexes: pk_indexes,
+               global_table_spec: global_table_space,
+               col_specs: col_specs,
+           })
+    }
+}
+
 impl FromCursor for PreparedMetadata {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<PreparedMetadata> {
         let flags = CInt::from_cursor(&mut cursor)?;
