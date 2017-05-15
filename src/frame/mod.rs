@@ -117,7 +117,8 @@ impl Version {
             0x04
         } else {
             panic!("{}",
-                   "Protocol version is not supported. CDRS should be run with protocol feature set to v3, v4 or v5");
+                   "Protocol version is not supported. CDRS should be run with protocol feature \
+                   set to v3, v4 or v5");
         }
     }
 
@@ -128,7 +129,8 @@ impl Version {
             0x84
         } else {
             panic!("{}",
-                   "Protocol version is not supported. CDRS should be run with protocol feature set to v3, v4 or v5");
+                   "Protocol version is not supported. CDRS should be run with protocol feature \
+                   set to v3, v4 or v5");
         }
     }
 }
