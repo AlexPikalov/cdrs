@@ -42,7 +42,7 @@ impl Value {
         let bytes = v.into().0;
         let l = bytes.len() as i32;
         Value {
-            body: bytes.to_vec(),
+            body: bytes,
             value_type: ValueType::Normal(l),
         }
     }
@@ -66,7 +66,7 @@ impl Value {
 
 impl IntoBytes for Value {
     fn into_cbytes(&self) -> Vec<u8> {
-        let mut v: Vec<u8> = vec![];
+        let mut v = Vec::with_capacity(INT_LEN + self.body.len());
         v.extend_from_slice(self.value_type.into_cbytes().as_slice());
         v.extend_from_slice(self.body.as_slice());
         v
