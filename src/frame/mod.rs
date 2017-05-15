@@ -336,6 +336,7 @@ mod tests {
     use AsByte;
 
     #[test]
+    #[cfg(not(feature = "v3"))]
     fn test_frame_version_as_byte() {
         let request_version = Version::Request;
         assert_eq!(request_version.as_byte(), 0x04);
@@ -344,10 +345,29 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "v3")]
+    fn test_frame_version_as_byte_v3() {
+        let request_version = Version::Request;
+        assert_eq!(request_version.as_byte(), 0x03);
+        let response_version = Version::Response;
+        assert_eq!(response_version.as_byte(), 0x83);
+    }
+
+    #[test]
+    #[cfg(not(feature = "v3"))]
     fn test_frame_version_from() {
         let request: Vec<u8> = vec![0x04];
         assert_eq!(Version::from(request), Version::Request);
         let response: Vec<u8> = vec![0x84];
+        assert_eq!(Version::from(response), Version::Response);
+    }
+
+    #[test]
+    #[cfg(feature = "v3")]
+    fn test_frame_version_from_v3() {
+        let request: Vec<u8> = vec![0x03];
+        assert_eq!(Version::from(request), Version::Request);
+        let response: Vec<u8> = vec![0x83];
         assert_eq!(Version::from(response), Version::Response);
     }
 
