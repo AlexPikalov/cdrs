@@ -587,7 +587,12 @@ impl FromCursor for PreparedMetadata {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<PreparedMetadata> {
         let flags = CInt::from_cursor(&mut cursor)?;
         let columns_count = CInt::from_cursor(&mut cursor)?;
-        let pk_count = CInt::from_cursor(&mut cursor)?;
+        let pk_count = if cfg!(feature = "v3") {
+            0
+        } else {
+            // v4 or v5
+            CInt::from_cursor(&mut cursor)?
+        };
         let pk_index_results: Vec<Option<i16>> = (0..pk_count)
             .map(|_| {
                      cursor_next_value(&mut cursor, SHORT_LEN as u64)

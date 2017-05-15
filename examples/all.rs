@@ -23,6 +23,8 @@ const _ADDR: &'static str = "127.0.0.1:9042";
 const CREATE_KEY_SPACE: &'static str = "CREATE KEYSPACE IF NOT EXISTS my_ks WITH REPLICATION = { \
                                         'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
 const CREATE_UDT: &'static str = "CREATE TYPE IF NOT EXISTS my_ks.my_type (number int);";
+const CREATE_TABLE_INT_V3: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.test_num (my_bigint \
+                                        bigint PRIMARY KEY, my_int int);";
 const CREATE_TABLE_INT: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.test_num (my_bigint \
                                         bigint PRIMARY KEY, my_int int, my_smallint smallint, \
                                         my_tinyint tinyint);";
@@ -31,9 +33,14 @@ const CREATE_TABLE_STR: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.test_st
 const INSERT_STR: &'static str = "INSERT INTO my_ks.test_str (my_ascii, my_text, my_varchar) \
                                   VALUES (?, ?, ?);";
 const SELECT_STR: &'static str = "SELECT * FROM my_ks.test_str;";
+const CREATE_TABLE_LIST_V3: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.lists (my_string_list \
+                                         list<text>, my_number_list \
+                                         list<int>, i int PRIMARY KEY);";
 const CREATE_TABLE_LIST: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.lists (my_string_list \
                                          frozen<list<text>> PRIMARY KEY, my_number_list \
                                          list<int>, my_complex_list list<frozen<list<smallint>>>);";
+const INSERT_LIST_V3: &'static str = "INSERT INTO my_ks.lists (my_string_list, \
+                                     my_number_list, i) VALUES (?, ?, ?);";
 const INSERT_LIST: &'static str = "INSERT INTO my_ks.lists (my_string_list, \
                                    my_number_list, my_complex_list) VALUES (?, ?, ?);";
 const SELECT_LIST: &'static str = "SELECT * FROM my_ks.lists;";
@@ -41,14 +48,25 @@ const CREATE_TABLE_MAP: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.maps \
     (my_string_map frozen<map<text, text>> PRIMARY KEY, \
      my_number_map map<text, int>, my_complex_map map<text, frozen<map<text, int>>>, \
      my_int_key_map map<int, text>, my_uuid_key_map map<uuid, text>);";
+const CREATE_TABLE_MAP_V3: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.maps \
+         (i int PRIMARY KEY, \
+          my_string_map map<text, text>, \
+          my_number_map map<text, int>, \
+          my_int_key_map map<int, text>, my_uuid_key_map map<uuid, text>);";
 const INSERT_MAP: &'static str = "INSERT INTO my_ks.maps (my_string_map, my_number_map, \
                                   my_complex_map, my_int_key_map, my_uuid_key_map) VALUES (?, ?, \
                                   ?, ?, ?);";
+const INSERT_MAP_V3: &'static str = "INSERT INTO my_ks.maps (i, my_string_map, my_number_map, \
+                                     my_int_key_map, my_uuid_key_map) VALUES (?, ?, \
+                                     ?, ?, ?);";
 const SELECT_MAP: &'static str = "SELECT * FROM my_ks.maps;";
 const CREATE_TABLE_UDT: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.udts (my_key int \
                                         PRIMARY KEY, my_udt my_type);";
+const CREATE_TABLE_UDT_V3: &'static str = "CREATE TABLE IF NOT EXISTS my_ks.udts (my_key int \
+                                           PRIMARY KEY, my_udt frozen<my_type>);";
 const INSERT_UDT: &'static str = "INSERT INTO my_ks.udts (my_key, my_udt) VALUES (?, ?);";
 const SELECT_UDT: &'static str = "SELECT * FROM my_ks.udts;";
+const INSERT_INT_V3: &'static str = "INSERT INTO my_ks.test_num (my_bigint, my_int) VALUES (?, ?)";
 const INSERT_INT: &'static str = "INSERT INTO my_ks.test_num (my_bigint, my_int, my_smallint, \
                                   my_tinyint) VALUES (?, ?, ?, ?)";
 const SELECT_INT: &'static str = "SELECT * FROM my_ks.test_num";
@@ -78,7 +96,6 @@ const INSERT_TIMESTAMP: &'static str = "INSERT INTO my_ks.timestamp (my_key, my_
                                     VALUES (?, ?);";
 const SELECT_TIMESTAMP: &'static str = "SELECT * FROM my_ks.timestamp;";
 
-// // select all
 fn main() {
     let authenticator = NoneAuthenticator;
     let tcp_transport = TransportTcp::new(_ADDR).unwrap();
@@ -93,18 +110,34 @@ fn main() {
         println!("1. user type created");
     }
 
-    if create_table(&mut session) {
-        println!("2. table created");
-    }
+    if !cfg!(feature = "v3") {
+        if create_table_int(&mut session) {
+            println!("2. table int created");
+        }
 
-    let ref prepared_id = prepare_query(&mut session, INSERT_INT);
+        let ref prepared_id = prepare_query(&mut session, INSERT_INT);
 
-    if insert_ints(&mut session, &prepared_id) {
-        println!("3. integers inserted");
-    }
+        if insert_ints(&mut session, &prepared_id) {
+            println!("3. integers inserted");
+        }
 
-    if select_all_ints(&mut session) {
-        println!("4. integers selected");
+        if select_all_ints(&mut session) {
+            println!("4. integers selected");
+        }
+    } else {
+        if create_table_int_v3(&mut session) {
+            println!("2. table int created (v3)");
+        }
+
+        let ref prepared_id = prepare_query(&mut session, INSERT_INT_V3);
+
+        if insert_ints_v3(&mut session, &prepared_id) {
+            println!("3. integers inserted (v3)");
+        }
+
+        if select_all_ints_v3(&mut session) {
+            println!("4. integers selected (v3)");
+        }
     }
 
     if create_table_str(&mut session) {
@@ -112,11 +145,7 @@ fn main() {
     }
 
     if insert_table_str(&mut session) {
-        println!("6. str table created");
-    }
-
-    if insert_table_str(&mut session) {
-        println!("7. str table inserted");
+        println!("6. str table inserted");
     }
 
     if insert_table_string(&mut session) {
@@ -127,32 +156,66 @@ fn main() {
         println!("9. strings selected");
     }
 
-    if create_table_list(&mut session) {
-        println!("10. list table created");
+    if cfg!(feature = "v3") {
+        if create_table_list_v3(&mut session) {
+            println!("10. list table created (v3)");
+        }
+
+        if insert_table_list_v3(&mut session) {
+            println!("11. list inserted (v3)");
+        }
+
+        if select_table_list_v3(&mut session) {
+            println!("12. list selected (v3)");
+        }
+    } else {
+        if create_table_list(&mut session) {
+            println!("10. list table created");
+        }
+
+        if insert_table_list(&mut session) {
+            println!("11. list inserted");
+        }
+
+        if select_table_list(&mut session) {
+            println!("12. list selected");
+        }
     }
 
-    if insert_table_list(&mut session) {
-        println!("11. list inserted");
+    if cfg!(feature = "v3") {
+        if create_table_map_v3(&mut session) {
+            println!("13. map table created (v3)");
+        }
+
+        if insert_table_map_v3(&mut session) {
+            println!("14. map table inserted (v3)");
+        }
+
+        if select_table_map_v3(&mut session) {
+            println!("15. map table created (v3)");
+        }
+    } else {
+        if create_table_map(&mut session) {
+            println!("13. map table created");
+        }
+
+        if insert_table_map(&mut session) {
+            println!("14. map table inserted");
+        }
+
+        if select_table_map(&mut session) {
+            println!("15. map table created");
+        }
     }
 
-    if select_table_list(&mut session) {
-        println!("12. list selected");
-    }
-
-    if create_table_map(&mut session) {
-        println!("13. map table created");
-    }
-
-    if insert_table_map(&mut session) {
-        println!("14. map table inserted");
-    }
-
-    if select_table_map(&mut session) {
-        println!("15. map table created");
-    }
-
-    if create_table_udt(&mut session) {
-        println!("16. udt table select");
+    if cfg!(feature = "v3") {
+        if create_table_udt_v3(&mut session) {
+            println!("16. udt table created (v3)");
+        }
+    } else {
+        if create_table_udt(&mut session) {
+            println!("16. udt table created");
+        }
     }
 
     if insert_table_udt(&mut session) {
@@ -240,10 +303,18 @@ fn create_type(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
     }
 }
 
-fn create_table(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+fn create_table_int(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
     let q = QueryBuilder::new(CREATE_TABLE_INT).finalize();
     match session.query(q, false, false) {
-        Err(ref err) => panic!("create_table {:?}", err),
+        Err(ref err) => panic!("create_table_int {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn create_table_int_v3(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let q = QueryBuilder::new(CREATE_TABLE_INT_V3).finalize();
+    match session.query(q, false, false) {
+        Err(ref err) => panic!("create_table_int_v3 {:?}", err),
         Ok(_) => true,
     }
 }
@@ -285,6 +356,25 @@ fn insert_ints(session: &mut Session<NoneAuthenticator, TransportTcp>,
     }
 }
 
+fn insert_ints_v3(session: &mut Session<NoneAuthenticator, TransportTcp>,
+                  prepared_id: &CBytesShort)
+                  -> bool {
+    let ints = IntsV3 {
+        bigint: 123,
+        int: 234,
+    };
+    let values_i: Vec<Value> = vec![ints.bigint.into(), ints.int.into()];
+
+    let execute_params = QueryParamsBuilder::new(Consistency::One)
+        .values(values_i)
+        .finalize();
+    let executed = session.execute(prepared_id, execute_params, false, false);
+    match executed {
+        Err(ref err) => panic!("executed int v3 {:?}", err),
+        Ok(_) => true,
+    }
+}
+
 fn select_all_ints(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
     let select_query = QueryBuilder::new(SELECT_INT).finalize();
     let all = session
@@ -301,6 +391,26 @@ fn select_all_ints(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bo
             int: row.r_by_name("my_int").expect("my_int"),
             smallint: row.r_by_name("my_smallint").expect("my_smallint"),
             tinyint: row.r_by_name("my_tinyint").expect("my_tinyint"),
+        };
+    }
+
+    true
+}
+
+fn select_all_ints_v3(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let select_query = QueryBuilder::new(SELECT_INT).finalize();
+    let all = session
+        .query(select_query, false, false)
+        .unwrap()
+        .get_body()
+        .unwrap()
+        .into_rows()
+        .unwrap();
+
+    for row in all {
+        let _ = IntsV3 {
+            bigint: row.r_by_name("my_bigint").expect("my_bigint"),
+            int: row.r_by_name("my_int").expect("my_int"),
         };
     }
 
@@ -372,6 +482,14 @@ fn select_table_str(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
     true
 }
 
+fn create_table_list_v3(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let q = QueryBuilder::new(CREATE_TABLE_LIST_V3).finalize();
+    match session.query(q, false, false) {
+        Err(ref err) => panic!("create_table list {:?}", err),
+        Ok(_) => true,
+    }
+}
+
 fn create_table_list(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
     let q = QueryBuilder::new(CREATE_TABLE_LIST).finalize();
     match session.query(q, false, false) {
@@ -396,6 +514,25 @@ fn insert_table_list(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
     let inserted = session.query(query, false, false);
     match inserted {
         Err(ref err) => panic!("inserted lists {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn insert_table_list_v3(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let lists = ListsV3 {
+        string_list: vec!["hello".to_string(), "world".to_string()],
+        number_list: vec![1, 2, 3],
+    };
+
+
+    let values: Vec<Value> = vec![lists.string_list.into(),
+                                  lists.number_list.into(),
+                                  (1 as i32).into()];
+
+    let query = QueryBuilder::new(INSERT_LIST_V3).values(values).finalize();
+    let inserted = session.query(query, false, false);
+    match inserted {
+        Err(ref err) => panic!("inserted lists (v3) {:?}", err),
         Ok(_) => true,
     }
 }
@@ -434,6 +571,33 @@ fn select_table_list(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
     true
 }
 
+fn select_table_list_v3(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let select_query = QueryBuilder::new(SELECT_LIST).finalize();
+    let all = session
+        .query(select_query, false, false)
+        .unwrap()
+        .get_body()
+        .unwrap()
+        .into_rows()
+        .unwrap();
+
+    for row in all {
+        let _ = ListsV3 {
+            string_list: row.r_by_name::<List>("my_string_list") // intermediate type is required
+                .expect("string_list")
+                .as_r_rust::<Vec<String>>() // final type is not required, it could be find
+                // authomatically
+                .expect("string_list"),
+            number_list: row.r_by_name::<List>("my_number_list")
+                .expect("number_list")
+                .as_r_rust()
+                .expect("number_list"),
+        };
+    }
+
+    true
+}
+
 fn insert_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
     let mut string_map: HashMap<String, String> = HashMap::new();
     string_map.insert("a".to_string(), "A".to_string());
@@ -465,6 +629,42 @@ fn insert_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
     let inserted = session.query(query, false, false);
     match inserted {
         Err(ref err) => panic!("inserted maps {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn insert_table_map_v3(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let mut string_map: HashMap<String, String> = HashMap::new();
+    string_map.insert("a".to_string(), "A".to_string());
+
+    let mut number_map: HashMap<String, i32> = HashMap::new();
+    number_map.insert("one".to_string(), 1);
+
+    let mut int_key_map: HashMap<i32, String> = HashMap::new();
+    int_key_map.insert(1, "one".to_string());
+
+    let uuid: Uuid = Uuid::parse_str("6f586cab-cd6e-4b05-89a8-c7f27215adc8").unwrap();
+    let mut uuid_key_map: HashMap<Uuid, String> = HashMap::new();
+    uuid_key_map.insert(uuid, "random uuid".to_string());
+
+    let maps = MapsV3 {
+        string_map: string_map,
+        number_map: number_map,
+        int_key_map: int_key_map,
+        uuid_key_map: uuid_key_map,
+    };
+
+
+    let values: Vec<Value> = vec![(1 as i32).into(),
+                                  maps.string_map.into(),
+                                  maps.number_map.into(),
+                                  maps.int_key_map.into(),
+                                  maps.uuid_key_map.into()];
+
+    let query = QueryBuilder::new(INSERT_MAP_V3).values(values).finalize();
+    let inserted = session.query(query, false, false);
+    match inserted {
+        Err(ref err) => panic!("inserted maps (v3) {:?}", err),
         Ok(_) => true,
     }
 }
@@ -513,6 +713,41 @@ fn select_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
     true
 }
 
+fn select_table_map_v3(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+
+    let select_query = QueryBuilder::new(SELECT_MAP).finalize();
+    let all = session
+        .query(select_query, false, false)
+        .unwrap()
+        .get_body()
+        .unwrap()
+        .into_rows()
+        .unwrap();
+
+    for row in all {
+        let _ = MapsV3 {
+            string_map: row.r_by_name::<Map>("my_string_map")
+                .expect("string_map")
+                .as_r_rust()
+                .expect("string_map"),
+            number_map: row.r_by_name::<Map>("my_number_map")
+                .expect("number_map")
+                .as_r_rust()
+                .expect("number_map"),
+            int_key_map: row.r_by_name::<Map>("my_int_key_map")
+                .expect("int_key_map")
+                .as_r_rust()
+                .expect("int_key_map"),
+            uuid_key_map: row.r_by_name::<Map>("my_uuid_key_map")
+                .expect("uuid_key_map")
+                .as_r_rust()
+                .expect("uuid_key_map"),
+        };
+    }
+
+    true
+}
+
 fn create_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
     let q = QueryBuilder::new(CREATE_TABLE_MAP).finalize();
     match session.query(q, false, false) {
@@ -521,10 +756,26 @@ fn create_table_map(session: &mut Session<NoneAuthenticator, TransportTcp>) -> b
     }
 }
 
+fn create_table_map_v3(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let q = QueryBuilder::new(CREATE_TABLE_MAP_V3).finalize();
+    match session.query(q, false, false) {
+        Err(ref err) => panic!("create_table map (v3) {:?}", err),
+        Ok(_) => true,
+    }
+}
+
 fn create_table_udt(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
     let q = QueryBuilder::new(CREATE_TABLE_UDT).finalize();
     match session.query(q, false, false) {
         Err(ref err) => panic!("create_table udt {:?}", err),
+        Ok(_) => true,
+    }
+}
+
+fn create_table_udt_v3(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
+    let q = QueryBuilder::new(CREATE_TABLE_UDT_V3).finalize();
+    match session.query(q, false, false) {
+        Err(ref err) => panic!("create_table udt (v3) {:?}", err),
         Ok(_) => true,
     }
 }
@@ -762,6 +1013,11 @@ struct Ints {
     pub tinyint: i8,
 }
 
+struct IntsV3 {
+    pub bigint: i64,
+    pub int: i32,
+}
+
 struct Strs<'a> {
     pub my_ascii: &'a str,
     pub my_text: &'a str,
@@ -782,10 +1038,24 @@ struct Lists {
 }
 
 #[derive(Debug)]
+struct ListsV3 {
+    pub string_list: Vec<String>,
+    pub number_list: Vec<i32>,
+}
+
+#[derive(Debug)]
 struct Maps {
     pub string_map: HashMap<String, String>,
     pub number_map: HashMap<String, i32>,
     pub complex_map: HashMap<String, HashMap<String, i32>>,
+    pub int_key_map: HashMap<i32, String>,
+    pub uuid_key_map: HashMap<Uuid, String>,
+}
+
+#[derive(Debug)]
+struct MapsV3 {
+    pub string_map: HashMap<String, String>,
+    pub number_map: HashMap<String, i32>,
     pub int_key_map: HashMap<i32, String>,
     pub uuid_key_map: HashMap<Uuid, String>,
 }
