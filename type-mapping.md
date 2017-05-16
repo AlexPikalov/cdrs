@@ -1,27 +1,27 @@
-###Type relations between Rust (in CDRS approach) and Apache Cassandra
+### Type relations between Rust (in CDRS approach) and Apache Cassandra
 
 #### primitive types (`T`)
 
-| Cassandra | Rust |
+| Cassandra | Rust | Feature
 |-----------|--------------|
-| tinyint | i8 |
-| smallint | i16 |
-| int | i32 |
-| bigint | i64 |
-| ascii | String |
-| text | String |
-| varchar | String |
-| boolean | bool |
-| time | i64 |
-| timestamp | i64 |
-| float | f32 |
-| double | f64 |
-| uuid | [Uuid](https://doc.rust-lang.org/uuid/uuid/struct.Uuid.html) |
+| tinyint | i8 | v4, v5 |
+| smallint | i16 | v4, v5 |
+| int | i32 | all |
+| bigint | i64 | all |
+| ascii | String | all |
+| text | String | all |
+| varchar | String | all |
+| boolean | bool | all |
+| time | i64 | all |
+| timestamp | i64 | all |
+| float | f32 | all |
+| double | f64 | all |
+| uuid | [Uuid](https://doc.rust-lang.org/uuid/uuid/struct.Uuid.html) | all |
 
 #### complex types
 | Cassandra | Rust + CDRS |
 |-----------|-------------|
-| list | [List](https://docs.rs/cdrs/1.0.0-beta.2/cdrs/types/list/struct.List.html) -> Vec<T> [example](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L297) |
-| set | [List](https://docs.rs/cdrs/1.0.0-beta.2/cdrs/types/list/struct.List.html) -> Vec<T> [example](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L297)|
-| map | [Map](https://docs.rs/cdrs/1.0.0-beta.2/cdrs/types/map/struct.Map.html) -> HashMap<String, T> [example](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L350) |
-| udt | Rust struct + custom [implementation into value](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L467) |
+| list | List -> Vec<T> [example](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L159) |
+| set | List -> Vec<T> [example](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L159)|
+| map | Map -> HashMap<String, T> [example](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L185) |
+| udt | Rust struct + custom [implementation into value](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L211) |
