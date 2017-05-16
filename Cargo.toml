@@ -12,8 +12,11 @@ keywords = ["cassandra", "driver", "client", "cassandradb", "DB"]
 license = "MIT/Apache-2.0"
 
 [features]
-default = []
+default = ["v4"]
 ssl = ["openssl"]
+v3 = []
+v4 = []
+v5 = []
 
 [dependencies]
 byteorder = "0.5.3"
