@@ -10,7 +10,7 @@ use compression::Compression;
 use r2d2;
 use transport::CDRSTransport;
 use rand;
-use std::sync::atomic::{AtomicIsize, Ordering};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 /// Load balancing strategy
 #[derive(PartialEq)]
@@ -57,7 +57,7 @@ impl LoadBalancingStrategy {
 pub struct LoadBalancer<T> {
     strategy: LoadBalancingStrategy,
     nodes: Vec<T>,
-    i: AtomicIsize,
+    i: AtomicUsize,
 }
 
 impl<T> LoadBalancer<T> {
@@ -66,7 +66,7 @@ impl<T> LoadBalancer<T> {
         LoadBalancer {
             nodes: nodes,
             strategy: strategy,
-            i: AtomicIsize::new(0),
+            i: AtomicUsize::new(0),
         }
     }
 
@@ -76,6 +76,12 @@ impl<T> LoadBalancer<T> {
             .next(&self.nodes, self.i.load(Ordering::Relaxed) as usize);
         if self.strategy == LoadBalancingStrategy::RoundRobin {
             self.i.fetch_add(1, Ordering::Relaxed);
+            // prevent overflow
+            let i = self.i.load(Ordering::Relaxed);
+            match i.checked_rem(self.nodes.len() as usize) {
+                Some(rem) => self.i.store(rem, Ordering::Relaxed),
+                None => return None,
+            }
         }
         next
     }
