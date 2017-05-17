@@ -16,7 +16,8 @@ default = ["v4"]
 ssl = ["openssl"]
 v3 = []
 v4 = []
-v5 = []
+# enable v5 feature when it's actually implemented
+# v5 = []
 
 [dependencies]
 byteorder = "0.5.3"
