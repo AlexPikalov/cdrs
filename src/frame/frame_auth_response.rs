@@ -28,7 +28,7 @@ impl Frame {
     pub fn new_req_auth_response(bytes: Vec<u8>) -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
-        let stream = rand::random::<u64>();
+        let stream = rand::random::<u16>();
         let opcode = Opcode::AuthResponse;
         let body = BodyReqAuthResponse::new(CBytes::new(bytes));
 

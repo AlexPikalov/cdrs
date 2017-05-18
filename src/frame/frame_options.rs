@@ -19,7 +19,7 @@ impl Frame {
     pub fn new_req_options() -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
-        let stream = rand::random::<u64>();
+        let stream = rand::random::<u16>();
         let opcode = Opcode::Options;
         let body: BodyReqOptions = Default::default();
 

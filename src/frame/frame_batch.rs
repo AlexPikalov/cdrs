@@ -154,7 +154,7 @@ impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
     pub fn new_req_batch(query: BodyReqBatch, flags: Vec<Flag>) -> Frame {
         let version = Version::Request;
-        let stream = rand::random::<u64>();
+        let stream = rand::random::<u16>();
         let opcode = Opcode::Batch;
 
         Frame {

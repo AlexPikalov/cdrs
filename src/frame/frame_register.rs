@@ -28,7 +28,7 @@ impl Frame {
     pub fn new_req_register(events: Vec<SimpleServerEvent>) -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
-        let stream = rand::random::<u64>();
+        let stream = rand::random::<u16>();
         let opcode = Opcode::Register;
         let register_body = BodyReqRegister { events: events };
 

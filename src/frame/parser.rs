@@ -4,7 +4,7 @@ use FromCursor;
 use compression::Compression;
 use frame::frame_response::ResponseBody;
 use super::*;
-use types::{from_bytes, UUID_LEN, CStringList};
+use types::{from_bytes, from_u16_bytes, UUID_LEN, CStringList};
 use types::data_serialization_types::decode_timeuuid;
 use error;
 
@@ -25,7 +25,7 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
 
     let version = Version::from(version_bytes.to_vec());
     let flags = Flag::get_collection(flag_bytes[0]);
-    let stream = from_bytes(stream_bytes.to_vec().as_slice());
+    let stream = from_u16_bytes(stream_bytes.to_vec().as_slice());
     let opcode = Opcode::from(opcode_bytes[0]);
     let length = from_bytes(length_bytes.to_vec().as_slice()) as usize;
 

@@ -39,7 +39,7 @@ impl Frame {
                            flags: Vec<Flag>)
                            -> Frame {
         let version = Version::Request;
-        let stream = rand::random::<u64>();
+        let stream = rand::random::<u16>();
         let opcode = Opcode::Execute;
         debug!("prepared statement id{:?} getting executed  with parameters  {:?}",
                id,

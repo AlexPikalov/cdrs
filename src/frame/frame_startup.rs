@@ -57,7 +57,7 @@ impl Frame {
     pub fn new_req_startup(compression: Option<&str>) -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
-        let stream = rand::random::<u64>();
+        let stream = rand::random::<u16>();
         let opcode = Opcode::Startup;
         let body = BodyReqStartup::new(compression);
 
