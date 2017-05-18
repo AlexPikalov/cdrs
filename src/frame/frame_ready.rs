@@ -1,5 +1,5 @@
 use std::convert::From;
-use super::super::IntoBytes;
+use IntoBytes;
 
 #[derive(Debug, PartialEq,Default)]
 pub struct BodyResReady;

@@ -1,3 +1,4 @@
+use rand;
 use {AsByte, FromSingleByte, IntoBytes};
 use frame::*;
 use frame::frame_query::QueryFlags;
@@ -153,8 +154,7 @@ impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
     pub fn new_req_batch(query: BodyReqBatch, flags: Vec<Flag>) -> Frame {
         let version = Version::Request;
-        // sync client
-        let stream: u64 = 0;
+        let stream = rand::random::<u64>();
         let opcode = Opcode::Batch;
 
         Frame {

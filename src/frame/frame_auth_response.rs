@@ -1,3 +1,5 @@
+use rand;
+
 use types::CBytes;
 use IntoBytes;
 use frame::*;
@@ -26,8 +28,7 @@ impl Frame {
     pub fn new_req_auth_response(bytes: Vec<u8>) -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
-        // sync client
-        let stream: u64 = 0;
+        let stream = rand::random::<u64>();
         let opcode = Opcode::AuthResponse;
         let body = BodyReqAuthResponse::new(CBytes::new(bytes));
 

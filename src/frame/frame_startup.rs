@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use rand;
 use frame::*;
 use types::to_short;
 use IntoBytes;
@@ -56,8 +57,7 @@ impl Frame {
     pub fn new_req_startup(compression: Option<&str>) -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
-        // sync client
-        let stream: u64 = 0;
+        let stream = rand::random::<u64>();
         let opcode = Opcode::Startup;
         let body = BodyReqStartup::new(compression);
 

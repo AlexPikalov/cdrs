@@ -1,3 +1,4 @@
+use rand;
 use IntoBytes;
 use frame::*;
 use frame::events::SimpleServerEvent;
@@ -27,8 +28,7 @@ impl Frame {
     pub fn new_req_register(events: Vec<SimpleServerEvent>) -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
-        // sync client
-        let stream: u64 = 0;
+        let stream = rand::random::<u64>();
         let opcode = Opcode::Register;
         let register_body = BodyReqRegister { events: events };
 
