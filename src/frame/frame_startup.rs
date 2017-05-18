@@ -101,7 +101,6 @@ mod test {
         let frame = Frame::new_req_startup(compression);
         assert_eq!(frame.version, Version::Request);
         assert_eq!(frame.flags, vec![Flag::Ignore]);
-        assert_eq!(frame.stream, 0);
         assert_eq!(frame.opcode, Opcode::Startup);
         assert_eq!(frame.tracing_id, None);
         assert_eq!(frame.warnings, vec![] as Vec<String>);

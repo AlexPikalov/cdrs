@@ -67,7 +67,6 @@ mod tests {
 
         assert_eq!(frame.version, Version::Request);
         assert_eq!(frame.flags, vec![Flag::Ignore]);
-        assert_eq!(frame.stream, 0);
         assert_eq!(frame.opcode, Opcode::AuthResponse);
         assert_eq!(frame.body, &[0, 0, 0, 3, 1, 2, 3]);
         assert_eq!(frame.tracing_id, None);
