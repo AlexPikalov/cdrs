@@ -1,6 +1,7 @@
 #![warn(missing_docs)]
 //! Contains Query Frame related functionality.
-use super::*;
+use rand;
+use frame::*;
 use consistency::Consistency;
 use {AsByte, IntoBytes};
 use types::*;
@@ -302,8 +303,7 @@ impl Frame {
                          flags: Vec<Flag>)
                          -> Frame {
         let version = Version::Request;
-        // sync client
-        let stream: u64 = 0;
+        let stream = rand::random::<u16>();
         let opcode = Opcode::Query;
         let body = BodyReqQuery::new(query,
                                      consistency,

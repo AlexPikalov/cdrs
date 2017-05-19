@@ -1,3 +1,4 @@
+use rand;
 use types::*;
 use frame::*;
 use IntoBytes;
@@ -25,8 +26,7 @@ impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
     pub fn new_req_prepare(query: String, flags: Vec<Flag>) -> Frame {
         let version = Version::Request;
-        // sync client
-        let stream: u64 = 0;
+        let stream = rand::random::<u16>();
         let opcode = Opcode::Prepare;
         let body = BodyReqPrepare::new(query);
 

@@ -1,3 +1,5 @@
+use rand;
+
 use types::CBytes;
 use IntoBytes;
 use frame::*;
@@ -26,8 +28,7 @@ impl Frame {
     pub fn new_req_auth_response(bytes: Vec<u8>) -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
-        // sync client
-        let stream: u64 = 0;
+        let stream = rand::random::<u16>();
         let opcode = Opcode::AuthResponse;
         let body = BodyReqAuthResponse::new(CBytes::new(bytes));
 
@@ -66,7 +67,6 @@ mod tests {
 
         assert_eq!(frame.version, Version::Request);
         assert_eq!(frame.flags, vec![Flag::Ignore]);
-        assert_eq!(frame.stream, 0);
         assert_eq!(frame.opcode, Opcode::AuthResponse);
         assert_eq!(frame.body, &[0, 0, 0, 3, 1, 2, 3]);
         assert_eq!(frame.tracing_id, None);

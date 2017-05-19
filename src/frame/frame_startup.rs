@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use rand;
 use frame::*;
 use types::to_short;
 use IntoBytes;
@@ -56,8 +57,7 @@ impl Frame {
     pub fn new_req_startup(compression: Option<&str>) -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
-        // sync client
-        let stream: u64 = 0;
+        let stream = rand::random::<u16>();
         let opcode = Opcode::Startup;
         let body = BodyReqStartup::new(compression);
 
@@ -101,7 +101,6 @@ mod test {
         let frame = Frame::new_req_startup(compression);
         assert_eq!(frame.version, Version::Request);
         assert_eq!(frame.flags, vec![Flag::Ignore]);
-        assert_eq!(frame.stream, 0);
         assert_eq!(frame.opcode, Opcode::Startup);
         assert_eq!(frame.tracing_id, None);
         assert_eq!(frame.warnings, vec![] as Vec<String>);

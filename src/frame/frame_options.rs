@@ -1,4 +1,5 @@
-use super::super::IntoBytes;
+use rand;
+use IntoBytes;
 use frame::*;
 
 /// The structure which represents a body of a frame of type `options`.
@@ -18,8 +19,7 @@ impl Frame {
     pub fn new_req_options() -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
-        // sync client
-        let stream: u64 = 0;
+        let stream = rand::random::<u16>();
         let opcode = Opcode::Options;
         let body: BodyReqOptions = Default::default();
 

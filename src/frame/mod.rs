@@ -43,7 +43,7 @@ pub struct Frame {
     pub version: Version,
     pub flags: Vec<Flag>,
     pub opcode: Opcode,
-    pub stream: u64, // we're going to use 0 here until async client is implemented
+    pub stream: u16,
     pub body: Vec<u8>,
     pub tracing_id: Option<Uuid>,
     pub warnings: Vec<String>,
@@ -73,7 +73,7 @@ impl Frame {
 
         v.push(version_bytes);
         v.push(flag_bytes);
-        v.extend_from_slice(to_n_bytes(self.stream, STREAM_LEN).as_slice());
+        v.extend_from_slice(to_n_bytes(self.stream as u64, STREAM_LEN).as_slice());
         v.push(opcode_bytes);
         v.extend_from_slice(to_n_bytes(body_len as u64, LENGTH_LEN).as_slice());
         v.extend_from_slice(encoded_body.as_slice());
@@ -93,7 +93,7 @@ impl<'a> IntoBytes for Frame {
 
         v.push(version_bytes);
         v.push(flag_bytes);
-        v.extend_from_slice(to_n_bytes(self.stream, STREAM_LEN).as_slice());
+        v.extend_from_slice(to_n_bytes(self.stream as u64, STREAM_LEN).as_slice());
         v.push(opcode_bytes);
         v.extend_from_slice(to_n_bytes(body_len as u64, LENGTH_LEN).as_slice());
         v.extend_from_slice(self.body.as_slice());
