@@ -6,6 +6,7 @@ use super::*;
 use std::convert::Into;
 use std::hash::Hash;
 use std::cmp::Eq;
+use std::net::IpAddr;
 
 use std::fmt::Debug;
 
@@ -166,6 +167,15 @@ impl Into<Bytes> for bool {
 impl Into<Bytes> for Uuid {
     fn into(self) -> Bytes {
         Bytes(self.as_bytes().to_vec())
+    }
+}
+
+impl Into<Bytes> for IpAddr {
+    fn into(self) -> Bytes {
+        match self {
+            IpAddr::V4(ip) => Bytes(ip.octets().to_vec()),
+            IpAddr::V6(ip) => Bytes(ip.octets().to_vec()),
+        }
     }
 }
 
