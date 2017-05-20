@@ -248,7 +248,9 @@ fn map_without_blob() {
             3 => 3,
         },
     };
-    let values: Vec<Value> = vec![0i32.into(), my_text_map.clone().into(), my_nested_map.clone().into()];
+    let values: Vec<Value> = vec![0i32.into(),
+                                  my_text_map.clone().into(),
+                                  my_nested_map.clone().into()];
 
     let cql = "INSERT INTO cdrs_test.test_maps_without_blob \
                (my_key, my_text_map, my_nested_map) VALUES (?, ?, ?)";

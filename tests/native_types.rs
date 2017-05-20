@@ -63,9 +63,7 @@ fn integer() {
     let my_bigint: i64 = 10_000_000_000_000_000;
     let my_int: i32 = 100_000_000;
     let my_boolean: bool = true;
-    let values: Vec<Value> = vec![my_bigint.into(),
-                                  my_int.into(),
-                                  my_boolean.into()];
+    let values: Vec<Value> = vec![my_bigint.into(), my_int.into(), my_boolean.into()];
 
     let cql = "INSERT INTO cdrs_test.test_integer \
                (my_bigint, my_int, my_boolean) VALUES (?, ?, ?)";

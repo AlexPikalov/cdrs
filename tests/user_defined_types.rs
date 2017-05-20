@@ -70,7 +70,8 @@ fn simple_udt() {
 #[test]
 fn nested_udt() {
     let create_type1_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.nested_inner_udt (my_text text)";
-    let create_type2_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.nested_outer_udt (my_inner_udt frozen<nested_inner_udt>)";
+    let create_type2_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.nested_outer_udt \
+                            (my_inner_udt frozen<nested_inner_udt>)";
     let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_nested_udt \
                             (my_key int PRIMARY KEY, my_outer_udt nested_outer_udt)";
     let mut session = setup_multiple(&[create_type1_cql, create_type2_cql, create_table_cql])
