@@ -57,6 +57,46 @@ fn string() {
 #[test]
 fn integer() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_integer \
+               (my_bigint bigint PRIMARY KEY, my_int int, my_boolean boolean)";
+    let mut session = setup(cql).expect("setup");
+
+    let my_bigint: i64 = 10_000_000_000_000_000;
+    let my_int: i32 = 100_000_000;
+    let my_boolean: bool = true;
+    let values: Vec<Value> = vec![my_bigint.into(),
+                                  my_int.into(),
+                                  my_boolean.into()];
+
+    let cql = "INSERT INTO cdrs_test.test_integer \
+               (my_bigint, my_int, my_boolean) VALUES (?, ?, ?)";
+    let query = QueryBuilder::new(cql).values(values).finalize();
+    session.query(query, false, false).expect("insert");
+
+    let cql = "SELECT * FROM cdrs_test.test_integer";
+    let query = QueryBuilder::new(cql).finalize();
+    let rows = session
+        .query(query, false, false)
+        .expect("query")
+        .get_body()
+        .expect("get body")
+        .into_rows()
+        .expect("into rows");
+    assert_eq!(rows.len(), 1);
+    for row in rows {
+        let my_bigint_row: i64 = row.get_r_by_name("my_bigint").expect("my_bigint");
+        let my_int_row: i32 = row.get_r_by_name("my_int").expect("my_int");
+        let my_boolean_row: bool = row.get_r_by_name("my_boolean").expect("my_boolean");
+        assert_eq!(my_bigint_row, my_bigint);
+        assert_eq!(my_int_row, my_int);
+        assert_eq!(my_boolean_row, my_boolean);
+    }
+}
+
+// TODO counter, varint
+#[test]
+#[cfg(feature = "v4")]
+fn integer_v4() {
+    let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_integer_v4 \
                (my_bigint bigint PRIMARY KEY, my_int int, my_smallint smallint, \
                my_tinyint tinyint, my_boolean boolean)";
     let mut session = setup(cql).expect("setup");
@@ -72,12 +112,12 @@ fn integer() {
                                   my_tinyint.into(),
                                   my_boolean.into()];
 
-    let cql = "INSERT INTO cdrs_test.test_integer \
+    let cql = "INSERT INTO cdrs_test.test_integer_v4 \
                (my_bigint, my_int, my_smallint, my_tinyint, my_boolean) VALUES (?, ?, ?, ?, ?)";
     let query = QueryBuilder::new(cql).values(values).finalize();
     session.query(query, false, false).expect("insert");
 
-    let cql = "SELECT * FROM cdrs_test.test_integer";
+    let cql = "SELECT * FROM cdrs_test.test_integer_v4";
     let query = QueryBuilder::new(cql).finalize();
     let rows = session
         .query(query, false, false)
