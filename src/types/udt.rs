@@ -1,12 +1,14 @@
 use std::net::IpAddr;
 use std::collections::HashMap;
 use uuid::Uuid;
+use time::Timespec;
 
 use frame::frame_result::{ColTypeOption, CUdt, ColType, ColTypeOptionValue};
 use types::{CBytes, IntoRustByName, ByName};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
+use types::tuple::Tuple;
 use error::{Result, Error, column_is_empty_err};
 
 #[derive(Debug)]
@@ -70,3 +72,5 @@ into_rust_by_name!(UDT, Uuid);
 into_rust_by_name!(UDT, List);
 into_rust_by_name!(UDT, Map);
 into_rust_by_name!(UDT, UDT);
+into_rust_by_name!(UDT, Tuple);
+into_rust_by_name!(UDT, Timespec);

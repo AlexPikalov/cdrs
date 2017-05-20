@@ -198,6 +198,18 @@ pub fn decode_udt(bytes: &[u8], l: usize) -> Result<Vec<CBytes>, io::Error> {
     Ok(udt)
 }
 
+// Decodes Cassandra `Tuple` data (bytes) into Rust's `Result<Vec<CBytes>, io::Error>`
+// each `CBytes` is encoded type of field of user defined type
+pub fn decode_tuple(bytes: &[u8], l: usize) -> Result<Vec<CBytes>, io::Error> {
+    let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
+    let mut udt = Vec::with_capacity(l);
+    for _ in 0..l {
+        let v = CBytes::from_cursor(&mut cursor)
+            .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
+        udt.push(v);
+    }
+    Ok(udt)
+}
 
 #[cfg(test)]
 mod tests {

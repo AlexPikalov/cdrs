@@ -7,6 +7,7 @@ use frame::frame_result::{ColTypeOption, ColTypeOptionValue, ColType};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::udt::UDT;
+use types::tuple::Tuple;
 use error::{Error, Result};
 
 #[derive(Debug)]
@@ -48,6 +49,7 @@ map_as_rust!(K Vec K < K u8 K >, V Uuid);
 map_as_rust!(K Vec K < K u8 K >, V List);
 map_as_rust!(K Vec K < K u8 K >, V Map);
 map_as_rust!(K Vec K < K u8 K >, V UDT);
+map_as_rust!(K Vec K < K u8 K >, V Tuple);
 
 map_as_rust!(K String, V Vec V < V u8 V >);
 map_as_rust!(K String, V String);
@@ -63,6 +65,7 @@ map_as_rust!(K String, V Uuid);
 map_as_rust!(K String, V List);
 map_as_rust!(K String, V Map);
 map_as_rust!(K String, V UDT);
+map_as_rust!(K String, V Tuple);
 
 map_as_rust!(K bool, V Vec V < V u8 V >);
 map_as_rust!(K bool, V String);
@@ -78,6 +81,7 @@ map_as_rust!(K bool, V Uuid);
 map_as_rust!(K bool, V List);
 map_as_rust!(K bool, V Map);
 map_as_rust!(K bool, V UDT);
+map_as_rust!(K bool, V Tuple);
 
 map_as_rust!(K i64, V Vec V < V u8 V >);
 map_as_rust!(K i64, V String);
@@ -93,6 +97,7 @@ map_as_rust!(K i64, V Uuid);
 map_as_rust!(K i64, V List);
 map_as_rust!(K i64, V Map);
 map_as_rust!(K i64, V UDT);
+map_as_rust!(K i64, V Tuple);
 
 map_as_rust!(K i32, V Vec V < V u8 V >);
 map_as_rust!(K i32, V String);
@@ -108,6 +113,7 @@ map_as_rust!(K i32, V Uuid);
 map_as_rust!(K i32, V List);
 map_as_rust!(K i32, V Map);
 map_as_rust!(K i32, V UDT);
+map_as_rust!(K i32, V Tuple);
 
 map_as_rust!(K i16, V Vec V < V u8 V >);
 map_as_rust!(K i16, V String);
@@ -123,6 +129,7 @@ map_as_rust!(K i16, V Uuid);
 map_as_rust!(K i16, V List);
 map_as_rust!(K i16, V Map);
 map_as_rust!(K i16, V UDT);
+map_as_rust!(K i16, V Tuple);
 
 map_as_rust!(K i8, V Vec V < V u8 V >);
 map_as_rust!(K i8, V String);
@@ -138,6 +145,7 @@ map_as_rust!(K i8, V Uuid);
 map_as_rust!(K i8, V List);
 map_as_rust!(K i8, V Map);
 map_as_rust!(K i8, V UDT);
+map_as_rust!(K i8, V Tuple);
 
 map_as_rust!(K IpAddr, V Vec V < V u8 V >);
 map_as_rust!(K IpAddr, V String);
@@ -153,6 +161,7 @@ map_as_rust!(K IpAddr, V Uuid);
 map_as_rust!(K IpAddr, V List);
 map_as_rust!(K IpAddr, V Map);
 map_as_rust!(K IpAddr, V UDT);
+map_as_rust!(K IpAddr, V Tuple);
 
 map_as_rust!(K Uuid, V Vec V < V u8 V >);
 map_as_rust!(K Uuid, V String);
@@ -168,3 +177,4 @@ map_as_rust!(K Uuid, V Uuid);
 map_as_rust!(K Uuid, V List);
 map_as_rust!(K Uuid, V Map);
 map_as_rust!(K Uuid, V UDT);
+map_as_rust!(K Uuid, V Tuple);

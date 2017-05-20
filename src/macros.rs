@@ -113,6 +113,23 @@ macro_rules! into_rust_by_name {
     );
 }
 
+macro_rules! into_rust_by_index {
+    (Tuple, $($into_type:tt)*) => (
+        impl IntoRustByIndex<$($into_type)*> for Tuple {
+            fn get_by_index(&self, index: usize) -> Result<Option<$($into_type)*>> {
+                self.data
+                    .get(index)
+                    .ok_or(column_is_empty_err())
+                    .and_then(|v| {
+                        let &(ref col_type, ref bytes) = v;
+                        let converted = as_rust_type!(col_type, bytes, $($into_type)*);
+                        converted.map_err(|err| err.into())
+                    })
+            }
+        }
+    );
+}
+
 macro_rules! as_res_opt {
     ($data_value:ident, $deserialize:expr) => (
         match $data_value.as_plain() {
@@ -318,6 +335,26 @@ macro_rules! as_rust_type {
             }
             _ => Err(Error::General(format!("Invalid conversion. \
                     Cannot convert {:?} into UDT (valid types: UDT).",
+                    $data_type_option.id)))
+        }
+    );
+    ($data_type_option:ident, $data_value:ident, Tuple) => (
+        match *$data_type_option {
+            ColTypeOption {
+                id: ColType::Tuple,
+                value: Some(ColTypeOptionValue::TupleType(ref list_type_option))
+            } => {
+                match $data_value.as_slice() {
+                    Some(ref bytes) => {
+                        decode_tuple(bytes, list_type_option.types.len())
+                            .map(|data| Some(Tuple::new(data, list_type_option)))
+                            .map_err(Into::into)
+                    },
+                    None => Ok(None)
+                }
+            }
+            _ => Err(Error::General(format!("Invalid conversion. \
+                    Cannot convert {:?} into Tuple (valid types: tuple).",
                     $data_type_option.id)))
         }
     );
