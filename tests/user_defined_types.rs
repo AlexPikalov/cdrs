@@ -29,9 +29,7 @@ fn simple_udt() {
     impl MyUdt {
         pub fn try_from(udt: UDT) -> Result<MyUdt> {
             let my_text: String = udt.get_r_by_name("my_text")?;
-            Ok(MyUdt {
-                my_text: my_text,
-            })
+            Ok(MyUdt { my_text: my_text })
         }
     }
 
@@ -75,7 +73,8 @@ fn nested_udt() {
     let create_type2_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.nested_outer_udt (my_inner_udt frozen<nested_inner_udt>)";
     let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_nested_udt \
                             (my_key int PRIMARY KEY, my_outer_udt nested_outer_udt)";
-    let mut session = setup_multiple(&[create_type1_cql, create_type2_cql, create_table_cql]).expect("setup");
+    let mut session = setup_multiple(&[create_type1_cql, create_type2_cql, create_table_cql])
+        .expect("setup");
 
     #[derive(Debug, Clone, PartialEq)]
     struct MyInnerUdt {
@@ -85,9 +84,7 @@ fn nested_udt() {
     impl MyInnerUdt {
         pub fn try_from(udt: UDT) -> Result<MyInnerUdt> {
             let my_text: String = udt.get_r_by_name("my_text")?;
-            Ok(MyInnerUdt {
-                my_text: my_text,
-            })
+            Ok(MyInnerUdt { my_text: my_text })
         }
     }
 
@@ -109,9 +106,7 @@ fn nested_udt() {
         pub fn try_from(udt: UDT) -> Result<MyOuterUdt> {
             let my_inner_udt: UDT = udt.get_r_by_name("my_inner_udt")?;
             let my_inner_udt = MyInnerUdt::try_from(my_inner_udt).expect("from udt");
-            Ok(MyOuterUdt {
-                my_inner_udt: my_inner_udt,
-            })
+            Ok(MyOuterUdt { my_inner_udt: my_inner_udt })
         }
     }
 

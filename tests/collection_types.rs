@@ -28,12 +28,11 @@ fn list() {
                my_nested_list list<frozen<list<smallint>>>)";
     let mut session = setup(cql).expect("setup");
 
-    let my_text_list = vec!["text1".to_string(), "text2".to_string(), "text3".to_string()];
-    let my_nested_list: Vec<Vec<i16>> = vec![
-        vec![1, 2, 3],
-        vec![999, 888, 777, 666, 555],
-        vec![-1, -2],
-    ];
+    let my_text_list = vec!["text1".to_string(),
+                            "text2".to_string(),
+                            "text3".to_string()];
+    let my_nested_list: Vec<Vec<i16>> =
+        vec![vec![1, 2, 3], vec![999, 888, 777, 666, 555], vec![-1, -2]];
     let values: Vec<Value> = vec![my_text_list.clone().into(), my_nested_list.clone().into()];
 
     let cql = "INSERT INTO cdrs_test.test_lists \
@@ -53,12 +52,18 @@ fn list() {
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_list_row: List = row.get_r_by_name("my_text_list").expect("my_text_list");
-        let my_text_list_row: Vec<String> = my_text_list_row.as_r_rust().expect("my_text_list as rust");
-        let my_nested_list_outer_row: List = row.get_r_by_name("my_nested_list").expect("my_nested_list");
-        let my_nested_list_outer_row: Vec<List> = my_nested_list_outer_row.as_r_rust().expect("my_nested_list (outer) as rust");
+        let my_text_list_row: Vec<String> =
+            my_text_list_row.as_r_rust().expect("my_text_list as rust");
+        let my_nested_list_outer_row: List =
+            row.get_r_by_name("my_nested_list").expect("my_nested_list");
+        let my_nested_list_outer_row: Vec<List> = my_nested_list_outer_row
+            .as_r_rust()
+            .expect("my_nested_list (outer) as rust");
         let mut my_nested_list_row = Vec::with_capacity(my_nested_list_outer_row.len());
         for my_nested_list_inner_row in my_nested_list_outer_row {
-            let my_nested_list_inner_row: Vec<i16> = my_nested_list_inner_row.as_r_rust().expect("my_nested_list (inner) as rust");
+            let my_nested_list_inner_row: Vec<i16> = my_nested_list_inner_row
+                .as_r_rust()
+                .expect("my_nested_list (inner) as rust");
             my_nested_list_row.push(my_nested_list_inner_row);
         }
         assert_eq!(my_text_list_row, my_text_list);
@@ -73,12 +78,11 @@ fn set() {
                my_nested_set set<frozen<set<smallint>>>)";
     let mut session = setup(cql).expect("setup");
 
-    let my_text_set = vec!["text1".to_string(), "text2".to_string(), "text3".to_string()];
-    let my_nested_set: Vec<Vec<i16>> = vec![
-        vec![-2, -1],
-        vec![1, 2, 3],
-        vec![555, 666, 777, 888, 999],
-    ];
+    let my_text_set = vec!["text1".to_string(),
+                           "text2".to_string(),
+                           "text3".to_string()];
+    let my_nested_set: Vec<Vec<i16>> =
+        vec![vec![-2, -1], vec![1, 2, 3], vec![555, 666, 777, 888, 999]];
     let values: Vec<Value> = vec![my_text_set.clone().into(), my_nested_set.clone().into()];
 
     let cql = "INSERT INTO cdrs_test.test_sets \
@@ -98,12 +102,18 @@ fn set() {
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_set_row: List = row.get_r_by_name("my_text_set").expect("my_text_set");
-        let my_text_set_row: Vec<String> = my_text_set_row.as_r_rust().expect("my_text_set as rust");
-        let my_nested_set_outer_row: List = row.get_r_by_name("my_nested_set").expect("my_nested_set");
-        let my_nested_set_outer_row: Vec<List> = my_nested_set_outer_row.as_r_rust().expect("my_nested_set (outer) as rust");
+        let my_text_set_row: Vec<String> =
+            my_text_set_row.as_r_rust().expect("my_text_set as rust");
+        let my_nested_set_outer_row: List =
+            row.get_r_by_name("my_nested_set").expect("my_nested_set");
+        let my_nested_set_outer_row: Vec<List> = my_nested_set_outer_row
+            .as_r_rust()
+            .expect("my_nested_set (outer) as rust");
         let mut my_nested_set_row = Vec::with_capacity(my_nested_set_outer_row.len());
         for my_nested_set_inner_row in my_nested_set_outer_row {
-            let my_nested_set_inner_row: Vec<i16> = my_nested_set_inner_row.as_r_rust().expect("my_nested_set (inner) as rust");
+            let my_nested_set_inner_row: Vec<i16> = my_nested_set_inner_row
+                .as_r_rust()
+                .expect("my_nested_set (inner) as rust");
             my_nested_set_row.push(my_nested_set_inner_row);
         }
         assert_eq!(my_text_set_row, my_text_set);
@@ -156,12 +166,20 @@ fn map_without_blob() {
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_map_row: Map = row.get_r_by_name("my_text_map").expect("my_text_map");
-        let my_text_map_row: HashMap<String, String> = my_text_map_row.as_r_rust().expect("my_text_map as rust");
-        let my_nested_map_outer_row: Map = row.get_r_by_name("my_nested_map").expect("my_nested_map");
-        let my_nested_map_outer_row: HashMap<Uuid, Map> = my_nested_map_outer_row.as_r_rust().expect("my_nested_map (outer) as rust");
+        let my_text_map_row: HashMap<String, String> =
+            my_text_map_row.as_r_rust().expect("my_text_map as rust");
+        let my_nested_map_outer_row: Map =
+            row.get_r_by_name("my_nested_map").expect("my_nested_map");
+        let my_nested_map_outer_row: HashMap<Uuid, Map> =
+            my_nested_map_outer_row
+                .as_r_rust()
+                .expect("my_nested_map (outer) as rust");
         let mut my_nested_map_row = HashMap::with_capacity(my_nested_map_outer_row.len());
         for (index, my_nested_map_inner_row) in my_nested_map_outer_row {
-            let my_nested_map_inner_row: HashMap<i64, i8> = my_nested_map_inner_row.as_r_rust().expect("my_nested_map (inner) as rust");
+            let my_nested_map_inner_row: HashMap<i64, i8> =
+                my_nested_map_inner_row
+                    .as_r_rust()
+                    .expect("my_nested_map (inner) as rust");
             my_nested_map_row.insert(index, my_nested_map_inner_row);
         }
         assert_eq!(my_text_map_row, my_text_map);
@@ -215,12 +233,20 @@ fn map() {
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_map_row: Map = row.get_r_by_name("my_text_map").expect("my_text_map");
-        let my_text_map_row: HashMap<String, String> = my_text_map_row.as_r_rust().expect("my_text_map as rust");
-        let my_nested_map_outer_row: Map = row.get_r_by_name("my_nested_map").expect("my_nested_map");
-        let my_nested_map_outer_row: HashMap<Uuid, Map> = my_nested_map_outer_row.as_r_rust().expect("my_nested_map (outer) as rust");
+        let my_text_map_row: HashMap<String, String> =
+            my_text_map_row.as_r_rust().expect("my_text_map as rust");
+        let my_nested_map_outer_row: Map =
+            row.get_r_by_name("my_nested_map").expect("my_nested_map");
+        let my_nested_map_outer_row: HashMap<Uuid, Map> =
+            my_nested_map_outer_row
+                .as_r_rust()
+                .expect("my_nested_map (outer) as rust");
         let mut my_nested_map_row = HashMap::with_capacity(my_nested_map_outer_row.len());
         for (index, my_nested_map_inner_row) in my_nested_map_outer_row {
-            let my_nested_map_inner_row: HashMap<i64, Vec<u8>> = my_nested_map_inner_row.as_r_rust().expect("my_nested_map (inner) as rust");
+            let my_nested_map_inner_row: HashMap<i64, Vec<u8>> =
+                my_nested_map_inner_row
+                    .as_r_rust()
+                    .expect("my_nested_map (inner) as rust");
             my_nested_map_row.insert(index, my_nested_map_inner_row);
         }
         assert_eq!(my_text_map_row, my_text_map);
