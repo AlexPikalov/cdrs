@@ -9,6 +9,7 @@ use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
 use types::udt::UDT;
+use types::tuple::Tuple;
 use error::{Error, Result, column_is_empty_err};
 
 #[derive(Debug)]
@@ -69,4 +70,5 @@ into_rust_by_name!(Row, Uuid);
 into_rust_by_name!(Row, List);
 into_rust_by_name!(Row, Map);
 into_rust_by_name!(Row, UDT);
+into_rust_by_name!(Row, Tuple);
 into_rust_by_name!(Row, Timespec);

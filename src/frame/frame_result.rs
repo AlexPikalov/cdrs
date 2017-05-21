@@ -488,6 +488,9 @@ impl FromCursor for ColTypeOption {
                 Some(ColTypeOptionValue::CList(Box::new(col_type)))
             }
             ColType::Udt => Some(ColTypeOptionValue::UdtType(CUdt::from_cursor(&mut cursor)?)),
+            ColType::Tuple => {
+                Some(ColTypeOptionValue::TupleType(CTuple::from_cursor(&mut cursor)?))
+            }
             ColType::Map => {
                 let name_type = ColTypeOption::from_cursor(&mut cursor)?;
                 let value_type = ColTypeOption::from_cursor(&mut cursor)?;
@@ -511,6 +514,7 @@ pub enum ColTypeOptionValue {
     CSet(Box<ColTypeOption>),
     CList(Box<ColTypeOption>),
     UdtType(CUdt),
+    TupleType(CTuple),
     CMap((Box<ColTypeOption>, Box<ColTypeOption>)),
 }
 
@@ -543,6 +547,27 @@ impl FromCursor for CUdt {
                udt_name: udt_name,
                descriptions: descriptions,
            })
+    }
+}
+
+/// User defined type.
+/// [Read more...](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L608)
+#[derive(Debug, Clone)]
+pub struct CTuple {
+    /// List of types.
+    pub types: Vec<ColTypeOption>,
+}
+
+impl FromCursor for CTuple {
+    fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<CTuple> {
+        let n = try_from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)?.as_slice())?;
+        let mut types = Vec::with_capacity(n as usize);
+        for _ in 0..n {
+            let col_type = ColTypeOption::from_cursor(&mut cursor)?;
+            types.push(col_type);
+        }
+
+        Ok(CTuple { types: types })
     }
 }
 

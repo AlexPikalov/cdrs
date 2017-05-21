@@ -20,6 +20,7 @@ pub mod map;
 pub mod rows;
 pub mod udt;
 pub mod value;
+pub mod tuple;
 
 /// Should be used to represent a single column as a Rust value.
 pub trait AsRustType<T> {
@@ -67,6 +68,31 @@ pub trait ByName {
         where Self: IntoRustByName<R>
     {
         self.by_name(name)
+            .and_then(|op| op.ok_or(column_is_empty_err()))
+    }
+}
+
+/// Should be used to return a single column as Rust value by its name.
+pub trait IntoRustByIndex<R> {
+    fn get_by_index(&self, index: usize) -> CDRSResult<Option<R>>;
+
+    fn get_r_by_index(&self, index: usize) -> CDRSResult<R> {
+        self.get_by_index(index)
+            .and_then(|op| op.ok_or(column_is_empty_err()))
+    }
+}
+
+pub trait ByIndex {
+    fn by_index<R>(&self, index: usize) -> CDRSResult<Option<R>>
+        where Self: IntoRustByIndex<R>
+    {
+        self.get_by_index(index)
+    }
+
+    fn r_by_index<R>(&self, index: usize) -> CDRSResult<R>
+        where Self: IntoRustByIndex<R>
+    {
+        self.by_index(index)
             .and_then(|op| op.ok_or(column_is_empty_err()))
     }
 }

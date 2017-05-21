@@ -5,6 +5,7 @@ use types::{CBytes, AsRustType, AsRust};
 use types::data_serialization_types::*;
 use types::map::Map;
 use types::udt::UDT;
+use types::tuple::Tuple;
 use error::{Result, Error};
 
 // TODO: consider using pointers to ColTypeOption and Vec<CBytes> instead of owning them.
@@ -75,3 +76,4 @@ list_as_rust!(Uuid);
 list_as_rust!(List);
 list_as_rust!(Map);
 list_as_rust!(UDT);
+list_as_rust!(Tuple);
