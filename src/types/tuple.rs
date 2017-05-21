@@ -10,9 +10,35 @@ use types::map::Map;
 use types::udt::UDT;
 use error::{Result, Error, column_is_empty_err};
 
+use std::hash::{Hash, Hasher};
+
 #[derive(Debug)]
 pub struct Tuple {
     data: Vec<(ColTypeOption, CBytes)>,
+}
+
+impl PartialEq for Tuple {
+    fn eq(&self, other: &Tuple) -> bool {
+        if self.data.len() != other.data.len() {
+            return false
+        }
+        for (s, o) in self.data.iter().zip(other.data.iter()) {
+            if s.1 != o.1 {
+                return false
+            }
+        }
+        true
+    }
+}
+
+impl Eq for Tuple {}
+
+impl Hash for Tuple {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        for data in &self.data {
+            data.1.hash(state);
+        }
+    }
 }
 
 impl Tuple {
