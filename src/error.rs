@@ -30,6 +30,8 @@ pub enum Error {
     Server(CDRSError),
 }
 
+unsafe impl Send for Error {}
+
 pub fn column_is_empty_err() -> Error {
     Error::General("Column or UDT property is empty".to_string())
 }
