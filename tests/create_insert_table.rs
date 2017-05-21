@@ -35,8 +35,8 @@ struct User {
     pub some_map: Option<Map>,
 }
 
-#[cfg(not(windows))]
 #[test]
+#[cfg(not(feature = "appveyor"))]
 fn write_and_read_from_cassandra() {
     run_test(|| read_write())
 }

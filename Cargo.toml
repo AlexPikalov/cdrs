@@ -18,6 +18,7 @@ v3 = []
 v4 = []
 # enable v5 feature when it's actually implemented
 # v5 = []
+appveyor = []
 
 [dependencies]
 byteorder = "0.5.3"

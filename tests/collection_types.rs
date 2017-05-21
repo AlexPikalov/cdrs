@@ -20,6 +20,7 @@ use std::str::FromStr;
 use std::collections::HashMap;
 
 #[test]
+#[cfg(not(feature = "appveyor"))]
 fn list() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_lists \
                (my_text_list frozen<list<text>> PRIMARY KEY, \
@@ -72,6 +73,7 @@ fn list() {
 
 #[test]
 #[cfg(feature = "v4")]
+#[cfg(not(feature = "appveyor"))]
 fn list_v4() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_lists_v4 \
                (my_text_list frozen<list<text>> PRIMARY KEY, \
@@ -123,6 +125,7 @@ fn list_v4() {
 }
 
 #[test]
+#[cfg(not(feature = "appveyor"))]
 fn set() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_sets \
                (my_text_set frozen<set<text>> PRIMARY KEY, \
@@ -175,6 +178,7 @@ fn set() {
 
 #[test]
 #[cfg(feature = "v4")]
+#[cfg(not(feature = "appveyor"))]
 fn set_v4() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_sets_v4 \
                (my_text_set frozen<set<text>> PRIMARY KEY, \
@@ -226,6 +230,7 @@ fn set_v4() {
 }
 
 #[test]
+#[cfg(not(feature = "appveyor"))]
 fn map_without_blob() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_maps_without_blob \
                (my_key int PRIMARY KEY, \
@@ -297,6 +302,7 @@ fn map_without_blob() {
 
 #[test]
 #[cfg(feature = "v4")]
+#[cfg(not(feature = "appveyor"))]
 fn map_without_blob_v4() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_maps_without_blob_v4 \
                (my_text_map frozen<map<text, text>> PRIMARY KEY, \
@@ -365,6 +371,7 @@ fn map_without_blob_v4() {
 
 #[test]
 #[ignore]
+#[cfg(not(feature = "appveyor"))]
 fn map() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_maps \
                (my_text_map frozen<map<text, text>> PRIMARY KEY, \

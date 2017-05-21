@@ -16,6 +16,7 @@ use std::str::FromStr;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 #[test]
+#[cfg(not(feature = "appveyor"))]
 fn string() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_string \
                (my_ascii ascii PRIMARY KEY, my_text text, my_varchar varchar)";
@@ -56,6 +57,7 @@ fn string() {
 
 // TODO counter, varint
 #[test]
+#[cfg(not(feature = "appveyor"))]
 fn integer() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_integer \
                (my_bigint bigint PRIMARY KEY, my_int int, my_boolean boolean)";
@@ -95,6 +97,7 @@ fn integer() {
 // TODO counter, varint
 #[test]
 #[cfg(feature = "v4")]
+#[cfg(not(feature = "appveyor"))]
 fn integer_v4() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_integer_v4 \
                (my_bigint bigint PRIMARY KEY, my_int int, my_smallint smallint, \
@@ -144,6 +147,7 @@ fn integer_v4() {
 
 // TODO decimal
 #[test]
+#[cfg(not(feature = "appveyor"))]
 fn float() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_float \
                (my_float float PRIMARY KEY, my_double double)";
@@ -177,6 +181,7 @@ fn float() {
 }
 
 #[test]
+#[cfg(not(feature = "appveyor"))]
 fn blob() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_blob \
                (my_blob blob PRIMARY KEY)";
@@ -208,6 +213,7 @@ fn blob() {
 
 // TODO timeuuid
 #[test]
+#[cfg(not(feature = "appveyor"))]
 fn uuid() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_uuid \
                (my_uuid uuid PRIMARY KEY)";
@@ -239,6 +245,7 @@ fn uuid() {
 
 // TODO date, time, duration
 #[test]
+#[cfg(not(feature = "appveyor"))]
 fn time() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_time \
                (my_timestamp timestamp PRIMARY KEY)";
@@ -272,6 +279,7 @@ fn time() {
 }
 
 #[test]
+#[cfg(not(feature = "appveyor"))]
 fn inet() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_inet \
                (my_inet_v4 inet PRIMARY KEY, my_inet_v6 inet)";

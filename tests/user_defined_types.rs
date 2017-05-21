@@ -15,6 +15,7 @@ use cdrs::error::Result;
 use cdrs::IntoBytes;
 
 #[test]
+#[cfg(not(feature = "appveyor"))]
 fn simple_udt() {
     let create_type_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.simple_udt (my_text text)";
     let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_simple_udt \
@@ -69,6 +70,7 @@ fn simple_udt() {
 }
 
 #[test]
+#[cfg(not(feature = "appveyor"))]
 fn nested_udt() {
     let create_type1_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.nested_inner_udt (my_text text)";
     let create_type2_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.nested_outer_udt \
