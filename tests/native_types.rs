@@ -42,6 +42,7 @@ fn string() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_ascii_row: String = row.get_r_by_name("my_ascii").expect("my_ascii");
@@ -79,6 +80,7 @@ fn integer() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_bigint_row: i64 = row.get_r_by_name("my_bigint").expect("my_bigint");
@@ -124,6 +126,7 @@ fn integer_v4() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_bigint_row: i64 = row.get_r_by_name("my_bigint").expect("my_bigint");
@@ -163,6 +166,7 @@ fn float() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_float_row: f32 = row.get_r_by_name("my_float").expect("my_float");
@@ -194,6 +198,7 @@ fn blob() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_blob_row: Vec<u8> = row.get_r_by_name("my_blob").expect("my_blob");
@@ -224,6 +229,7 @@ fn uuid() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_uuid_row: Uuid = row.get_r_by_name("my_uuid").expect("my_uuid");
@@ -254,6 +260,7 @@ fn time() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_timestamp_row: time::Timespec =
@@ -287,6 +294,7 @@ fn inet() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_inet_v4_row: IpAddr = row.get_r_by_name("my_inet_v4").expect("my_inet_v4");

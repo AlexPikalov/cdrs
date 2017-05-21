@@ -47,6 +47,7 @@ fn list() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_list_row: List = row.get_r_by_name("my_text_list").expect("my_text_list");
@@ -98,6 +99,7 @@ fn list_v4() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_list_row: List = row.get_r_by_name("my_text_list").expect("my_text_list");
@@ -148,6 +150,7 @@ fn set() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_set_row: List = row.get_r_by_name("my_text_set").expect("my_text_set");
@@ -199,6 +202,7 @@ fn set_v4() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_set_row: List = row.get_r_by_name("my_text_set").expect("my_text_set");
@@ -266,6 +270,7 @@ fn map_without_blob() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_map_row: Map = row.get_r_by_name("my_text_map").expect("my_text_map");
@@ -333,6 +338,7 @@ fn map_without_blob_v4() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_map_row: Map = row.get_r_by_name("my_text_map").expect("my_text_map");
@@ -400,6 +406,7 @@ fn map() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_map_row: Map = row.get_r_by_name("my_text_map").expect("my_text_map");

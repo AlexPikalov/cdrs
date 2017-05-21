@@ -59,6 +59,7 @@ fn simple_udt() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_udt_row: UDT = row.get_r_by_name("my_udt").expect("my_udt");
@@ -138,6 +139,7 @@ fn nested_udt() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_outer_udt_row: UDT = row.get_r_by_name("my_outer_udt").expect("my_outer_udt");

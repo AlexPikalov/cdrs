@@ -32,6 +32,9 @@ pub fn setup_multiple(create_cqls: &[&'static str]) -> Result<CSession> {
             .captures(create_cql)
             .map(|cap| cap.get(1).unwrap().as_str());
 
+        // Re-using tables is a lot faster than creating/dropping them for every test.
+        // But if table definitions change while editing tests
+        // the old tables need to be dropped. For example by uncommenting the following lines.
         // if let Some(table_name) = table_name {
         //     let cql = format!("DROP TABLE IF EXISTS {}", table_name);
         //     let query = QueryBuilder::new(cql).finalize();
