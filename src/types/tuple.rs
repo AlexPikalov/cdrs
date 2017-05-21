@@ -20,11 +20,11 @@ pub struct Tuple {
 impl PartialEq for Tuple {
     fn eq(&self, other: &Tuple) -> bool {
         if self.data.len() != other.data.len() {
-            return false
+            return false;
         }
         for (s, o) in self.data.iter().zip(other.data.iter()) {
             if s.1 != o.1 {
-                return false
+                return false;
             }
         }
         true

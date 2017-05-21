@@ -488,7 +488,9 @@ impl FromCursor for ColTypeOption {
                 Some(ColTypeOptionValue::CList(Box::new(col_type)))
             }
             ColType::Udt => Some(ColTypeOptionValue::UdtType(CUdt::from_cursor(&mut cursor)?)),
-            ColType::Tuple => Some(ColTypeOptionValue::TupleType(CTuple::from_cursor(&mut cursor)?)),
+            ColType::Tuple => {
+                Some(ColTypeOptionValue::TupleType(CTuple::from_cursor(&mut cursor)?))
+            }
             ColType::Map => {
                 let name_type = ColTypeOption::from_cursor(&mut cursor)?;
                 let value_type = ColTypeOption::from_cursor(&mut cursor)?;
@@ -565,9 +567,7 @@ impl FromCursor for CTuple {
             types.push(col_type);
         }
 
-        Ok(CTuple {
-            types: types,
-        })
+        Ok(CTuple { types: types })
     }
 }
 

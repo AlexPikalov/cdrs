@@ -36,9 +36,9 @@ fn simple_tuple() {
             let my_text: String = tuple.get_r_by_index(0)?;
             let my_int: i32 = tuple.get_r_by_index(1)?;
             Ok(MyTuple {
-                my_text: my_text,
-                my_int: my_int,
-            })
+                   my_text: my_text,
+                   my_int: my_int,
+               })
         }
     }
 
@@ -53,7 +53,10 @@ fn simple_tuple() {
         }
     }
 
-    let my_tuple = MyTuple { my_text: "my_text".to_string(), my_int: 0 };
+    let my_tuple = MyTuple {
+        my_text: "my_text".to_string(),
+        my_int: 0,
+    };
     let values: Vec<Value> = vec![my_tuple.clone().into()];
 
     let cql = "INSERT INTO cdrs_test.simple_tuple \
@@ -70,6 +73,7 @@ fn simple_tuple() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_tuple_row: Tuple = row.get_r_by_name("my_tuple").expect("my_tuple");
@@ -82,7 +86,8 @@ fn simple_tuple() {
 #[cfg(not(feature = "appveyor"))]
 fn nested_tuples() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_nested_tuples \
-               (my_key int PRIMARY KEY, my_outer_tuple tuple<uuid, blob, tuple<text, int, timestamp>>)";
+               (my_key int PRIMARY KEY, \
+               my_outer_tuple tuple<uuid, blob, tuple<text, int, timestamp>>)";
     let mut session = setup(cql).expect("setup");
 
     #[derive(Debug, Clone, PartialEq)]
@@ -98,10 +103,10 @@ fn nested_tuples() {
             let my_int: i32 = tuple.get_r_by_index(1)?;
             let my_timestamp: Timespec = tuple.get_r_by_index(2)?;
             Ok(MyInnerTuple {
-                my_text: my_text,
-                my_int: my_int,
-                my_timestamp: my_timestamp,
-            })
+                   my_text: my_text,
+                   my_int: my_int,
+                   my_timestamp: my_timestamp,
+               })
         }
     }
 
@@ -132,10 +137,10 @@ fn nested_tuples() {
             let my_inner_tuple: Tuple = tuple.get_r_by_index(2)?;
             let my_inner_tuple = MyInnerTuple::try_from(my_inner_tuple).expect("from tuple");
             Ok(MyOuterTuple {
-                my_uuid: my_uuid,
-                my_blob: my_blob,
-                my_inner_tuple: my_inner_tuple,
-            })
+                   my_uuid: my_uuid,
+                   my_blob: my_blob,
+                   my_inner_tuple: my_inner_tuple,
+               })
         }
     }
 
@@ -154,8 +159,19 @@ fn nested_tuples() {
 
     let my_uuid = Uuid::from_str("bb16106a-10bc-4a07-baa3-126ffe208c43").unwrap();
     let my_blob: Vec<u8> = vec![0, 1, 2, 4, 8, 16, 32, 64, 128, 255];
-    let my_inner_tuple = MyInnerTuple { my_text: "my_text".to_string(), my_int: 1_000, my_timestamp: Timespec { sec: 1, nsec: 999_000_000 } };
-    let my_outer_tuple = MyOuterTuple { my_uuid: my_uuid, my_blob: my_blob, my_inner_tuple: my_inner_tuple };
+    let my_inner_tuple = MyInnerTuple {
+        my_text: "my_text".to_string(),
+        my_int: 1_000,
+        my_timestamp: Timespec {
+            sec: 1,
+            nsec: 999_000_000,
+        },
+    };
+    let my_outer_tuple = MyOuterTuple {
+        my_uuid: my_uuid,
+        my_blob: my_blob,
+        my_inner_tuple: my_inner_tuple,
+    };
     let values: Vec<Value> = vec![0i32.into(), my_outer_tuple.clone().into()];
 
     let cql = "INSERT INTO cdrs_test.test_nested_tuples \
@@ -172,9 +188,11 @@ fn nested_tuples() {
         .expect("get body")
         .into_rows()
         .expect("into rows");
+
     assert_eq!(rows.len(), 1);
     for row in rows {
-        let my_outer_tuple_row: Tuple = row.get_r_by_name("my_outer_tuple").expect("my_outer_tuple");
+        let my_outer_tuple_row: Tuple =
+            row.get_r_by_name("my_outer_tuple").expect("my_outer_tuple");
         let my_outer_tuple_row = MyOuterTuple::try_from(my_outer_tuple_row).expect("from tuple");
         assert_eq!(my_outer_tuple_row, my_outer_tuple);
     }
