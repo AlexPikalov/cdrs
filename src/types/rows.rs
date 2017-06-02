@@ -4,7 +4,7 @@ use time::Timespec;
 
 use frame::frame_result::{RowsMetadata, ColType, ColSpec, BodyResResultRows, ColTypeOption,
                           ColTypeOptionValue};
-use types::{CBytes, IntoRustByName, ByName};
+use types::{CBytes, IntoRustByName, ByName, IntoRustByIndex, ByIndex};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
@@ -42,6 +42,12 @@ impl Row {
                      (col_spec, data)
                  })
     }
+
+    fn get_col_spec_by_index(&self, index: usize) -> Option<(&ColSpec, &CBytes)> {
+        let specs = self.metadata.col_specs.iter();
+        let values = self.row_content.iter();
+        specs.zip(values).nth(index)
+    }
 }
 
 impl IntoRustByName<Vec<u8>> for Row {
@@ -72,3 +78,21 @@ into_rust_by_name!(Row, Map);
 into_rust_by_name!(Row, UDT);
 into_rust_by_name!(Row, Tuple);
 into_rust_by_name!(Row, Timespec);
+
+impl ByIndex for Row {}
+
+into_rust_by_index!(Row, String);
+into_rust_by_index!(Row, bool);
+into_rust_by_index!(Row, i64);
+into_rust_by_index!(Row, i32);
+into_rust_by_index!(Row, i16);
+into_rust_by_index!(Row, i8);
+into_rust_by_index!(Row, f64);
+into_rust_by_index!(Row, f32);
+into_rust_by_index!(Row, IpAddr);
+into_rust_by_index!(Row, Uuid);
+into_rust_by_index!(Row, List);
+into_rust_by_index!(Row, Map);
+into_rust_by_index!(Row, UDT);
+into_rust_by_index!(Row, Tuple);
+into_rust_by_index!(Row, Timespec);
