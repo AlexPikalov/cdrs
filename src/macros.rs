@@ -128,6 +128,19 @@ macro_rules! into_rust_by_index {
             }
         }
     );
+
+    (Row, $($into_type:tt)*) => (
+        impl IntoRustByIndex<$($into_type)*> for Row {
+            fn get_by_index(&self, index: usize) -> Result<Option<$($into_type)*>> {
+                self.get_col_spec_by_index(index)
+                    .ok_or(column_is_empty_err())
+                    .and_then(|(col_spec, cbytes)| {
+                        let ref col_type = col_spec.col_type;
+                        as_rust_type!(col_type, cbytes, $($into_type)*)
+                    })
+            }
+        }
+    );
 }
 
 macro_rules! as_res_opt {
