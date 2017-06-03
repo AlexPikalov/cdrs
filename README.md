@@ -292,6 +292,19 @@ let messages: Vec<CResult<Message>> = rows
 
 ```
 
+or by column position:
+
+```rust
+let messages: Vec<CResult<Message>> = rows
+    .iter()
+    .map(|row| Message {
+        author: row.r_by_index(0).unwrap(),
+        text: row.r_by_index(1).unwrap(),
+        optional_field: row.get_by_index(2)
+    })
+    .collect();
+```
+
 There is no difference between Cassandra's List and Sets in terms of Rust.
 They could be represented as `Vec<T>`. To convert a frame into a structure
 that contains a collection of elements do as follows:
