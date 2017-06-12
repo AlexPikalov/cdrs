@@ -23,7 +23,7 @@ appveyor = []
 [dependencies]
 byteorder = "0.5.3"
 log = "0.3.6"
-uuid = "0.4.0"
+uuid = "0.5.0"
 snap = "0.1.2"
 lz4-compress = "=0.1.0"
 r2d2 = "0.7.1"
