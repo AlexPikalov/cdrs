@@ -55,7 +55,42 @@ fn string() {
     }
 }
 
-// TODO counter, varint
+#[test]
+#[cfg(not(feature = "appveyor"))]
+fn counter() {
+    let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_counter \
+               (my_bigint bigint PRIMARY KEY, my_counter counter)";
+    let mut session = setup(cql).expect("setup");
+
+    let my_bigint: i64 = 10_000_000_000_000_000;
+    let my_counter: i64 = 100_000_000;
+    let values: Vec<Value> = vec![my_counter.into(), my_bigint.into()];
+
+    let cql = "UPDATE cdrs_test.test_counter SET my_counter = my_counter + ? \
+               WHERE my_bigint = ?";
+    let query = QueryBuilder::new(cql).values(values).finalize();
+    session.query(query, false, false).expect("insert");
+
+    let cql = "SELECT * FROM cdrs_test.test_counter";
+    let query = QueryBuilder::new(cql).finalize();
+    let rows = session
+        .query(query, false, false)
+        .expect("query")
+        .get_body()
+        .expect("get body")
+        .into_rows()
+        .expect("into rows");
+
+    assert_eq!(rows.len(), 1);
+    for row in rows {
+        let my_bigint_row: i64 = row.get_r_by_name("my_bigint").expect("my_bigint");
+        let my_counter_row: i64 = row.get_r_by_name("my_counter").expect("my_counter");
+        assert_eq!(my_bigint_row, my_bigint);
+        assert_eq!(my_counter_row, my_counter);
+    }
+}
+
+// TODO varint
 #[test]
 #[cfg(not(feature = "appveyor"))]
 fn integer() {
