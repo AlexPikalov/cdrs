@@ -54,8 +54,8 @@ fn list() {
         let my_text_list_row: List = row.get_r_by_name("my_text_list").expect("my_text_list");
         let my_text_list_row: Vec<String> =
             my_text_list_row.as_r_rust().expect("my_text_list as rust");
-        let my_nested_list_outer_row: List =
-            row.get_r_by_name("my_nested_list").expect("my_nested_list");
+        let my_nested_list_outer_row: List = row.get_r_by_name("my_nested_list")
+            .expect("my_nested_list");
         let my_nested_list_outer_row: Vec<List> = my_nested_list_outer_row
             .as_r_rust()
             .expect("my_nested_list (outer) as rust");
@@ -107,8 +107,8 @@ fn list_v4() {
         let my_text_list_row: List = row.get_r_by_name("my_text_list").expect("my_text_list");
         let my_text_list_row: Vec<String> =
             my_text_list_row.as_r_rust().expect("my_text_list as rust");
-        let my_nested_list_outer_row: List =
-            row.get_r_by_name("my_nested_list").expect("my_nested_list");
+        let my_nested_list_outer_row: List = row.get_r_by_name("my_nested_list")
+            .expect("my_nested_list");
         let my_nested_list_outer_row: Vec<List> = my_nested_list_outer_row
             .as_r_rust()
             .expect("my_nested_list (outer) as rust");
@@ -159,8 +159,8 @@ fn set() {
         let my_text_set_row: List = row.get_r_by_name("my_text_set").expect("my_text_set");
         let my_text_set_row: Vec<String> =
             my_text_set_row.as_r_rust().expect("my_text_set as rust");
-        let my_nested_set_outer_row: List =
-            row.get_r_by_name("my_nested_set").expect("my_nested_set");
+        let my_nested_set_outer_row: List = row.get_r_by_name("my_nested_set")
+            .expect("my_nested_set");
         let my_nested_set_outer_row: Vec<List> = my_nested_set_outer_row
             .as_r_rust()
             .expect("my_nested_set (outer) as rust");
@@ -212,8 +212,8 @@ fn set_v4() {
         let my_text_set_row: List = row.get_r_by_name("my_text_set").expect("my_text_set");
         let my_text_set_row: Vec<String> =
             my_text_set_row.as_r_rust().expect("my_text_set as rust");
-        let my_nested_set_outer_row: List =
-            row.get_r_by_name("my_nested_set").expect("my_nested_set");
+        let my_nested_set_outer_row: List = row.get_r_by_name("my_nested_set")
+            .expect("my_nested_set");
         let my_nested_set_outer_row: Vec<List> = my_nested_set_outer_row
             .as_r_rust()
             .expect("my_nested_set (outer) as rust");
@@ -238,12 +238,14 @@ fn map_without_blob() {
                my_nested_map map<uuid, frozen<map<bigint, int>>>)";
     let mut session = setup(cql).expect("setup");
 
-    let my_text_map = hashmap!{
+    let my_text_map =
+        hashmap!{
         "key1".to_string() => "value1".to_string(),
         "key2".to_string() => "value2".to_string(),
         "key3".to_string() => "value3".to_string(),
     };
-    let my_nested_map: HashMap<Uuid, HashMap<i64, i32>> = hashmap!{
+    let my_nested_map: HashMap<Uuid, HashMap<i64, i32>> =
+        hashmap!{
         Uuid::from_str("bb16106a-10bc-4a07-baa3-126ffe208c43").unwrap() => hashmap!{
             1 => 1,
             2 => 2,
@@ -281,8 +283,8 @@ fn map_without_blob() {
         let my_text_map_row: Map = row.get_r_by_name("my_text_map").expect("my_text_map");
         let my_text_map_row: HashMap<String, String> =
             my_text_map_row.as_r_rust().expect("my_text_map as rust");
-        let my_nested_map_outer_row: Map =
-            row.get_r_by_name("my_nested_map").expect("my_nested_map");
+        let my_nested_map_outer_row: Map = row.get_r_by_name("my_nested_map")
+            .expect("my_nested_map");
         let my_nested_map_outer_row: HashMap<Uuid, Map> =
             my_nested_map_outer_row
                 .as_r_rust()
@@ -309,12 +311,14 @@ fn map_without_blob_v4() {
                my_nested_map map<uuid, frozen<map<bigint, tinyint>>>)";
     let mut session = setup(cql).expect("setup");
 
-    let my_text_map = hashmap!{
+    let my_text_map =
+        hashmap!{
         "key1".to_string() => "value1".to_string(),
         "key2".to_string() => "value2".to_string(),
         "key3".to_string() => "value3".to_string(),
     };
-    let my_nested_map: HashMap<Uuid, HashMap<i64, i8>> = hashmap!{
+    let my_nested_map: HashMap<Uuid, HashMap<i64, i8>> =
+        hashmap!{
         Uuid::from_str("bb16106a-10bc-4a07-baa3-126ffe208c43").unwrap() => hashmap!{
             1 => 1,
             2 => 2,
@@ -350,8 +354,8 @@ fn map_without_blob_v4() {
         let my_text_map_row: Map = row.get_r_by_name("my_text_map").expect("my_text_map");
         let my_text_map_row: HashMap<String, String> =
             my_text_map_row.as_r_rust().expect("my_text_map as rust");
-        let my_nested_map_outer_row: Map =
-            row.get_r_by_name("my_nested_map").expect("my_nested_map");
+        let my_nested_map_outer_row: Map = row.get_r_by_name("my_nested_map")
+            .expect("my_nested_map");
         let my_nested_map_outer_row: HashMap<Uuid, Map> =
             my_nested_map_outer_row
                 .as_r_rust()
@@ -378,12 +382,14 @@ fn map() {
                my_nested_map map<uuid, frozen<map<bigint, blob>>>)";
     let mut session = setup(cql).expect("setup");
 
-    let my_text_map = hashmap!{
+    let my_text_map =
+        hashmap!{
         "key1".to_string() => "value1".to_string(),
         "key2".to_string() => "value2".to_string(),
         "key3".to_string() => "value3".to_string(),
     };
-    let my_nested_map: HashMap<Uuid, HashMap<i64, Vec<u8>>> = hashmap!{
+    let my_nested_map: HashMap<Uuid, HashMap<i64, Vec<u8>>> =
+        hashmap!{
         Uuid::from_str("bb16106a-10bc-4a07-baa3-126ffe208c43").unwrap() => hashmap!{
             1 => vec![52, 121, 209, 200, 81, 118, 181, 17],
             2 => vec![226, 90, 51, 10, 26, 87, 141, 61],
@@ -419,8 +425,8 @@ fn map() {
         let my_text_map_row: Map = row.get_r_by_name("my_text_map").expect("my_text_map");
         let my_text_map_row: HashMap<String, String> =
             my_text_map_row.as_r_rust().expect("my_text_map as rust");
-        let my_nested_map_outer_row: Map =
-            row.get_r_by_name("my_nested_map").expect("my_nested_map");
+        let my_nested_map_outer_row: Map = row.get_r_by_name("my_nested_map")
+            .expect("my_nested_map");
         let my_nested_map_outer_row: HashMap<Uuid, Map> =
             my_nested_map_outer_row
                 .as_r_rust()

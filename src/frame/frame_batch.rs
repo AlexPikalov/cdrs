@@ -27,12 +27,10 @@ impl IntoBytes for BodyReqBatch {
 
         bytes.extend_from_slice(to_short(self.queries.len() as i16).as_slice());
 
-        bytes = self.queries
-            .iter()
-            .fold(bytes, |mut _bytes, q| {
-                _bytes.extend_from_slice(q.into_cbytes().as_slice());
-                _bytes
-            });
+        bytes = self.queries.iter().fold(bytes, |mut _bytes, q| {
+            _bytes.extend_from_slice(q.into_cbytes().as_slice());
+            _bytes
+        });
 
         bytes.extend_from_slice(self.consistency.into_cbytes().as_slice());
 
@@ -55,7 +53,7 @@ impl IntoBytes for BodyReqBatch {
 }
 
 /// Batch type
-#[derive(Debug, Clone,PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BatchType {
     /// The batch will be "logged". This is equivalent to a
     /// normal CQL3 batch statement.
@@ -134,17 +132,15 @@ impl IntoBytes for BatchQuery {
 
         bytes.extend_from_slice(to_short(self.values.len() as i16).as_slice());
 
-        bytes = self.values
-            .iter()
-            .fold(bytes, |mut _bytes, v| {
-                if let Some(ref name) = v.0 {
-                    _bytes.extend_from_slice(name.into_cbytes().as_slice());
-                }
+        bytes = self.values.iter().fold(bytes, |mut _bytes, v| {
+            if let Some(ref name) = v.0 {
+                _bytes.extend_from_slice(name.into_cbytes().as_slice());
+            }
 
-                _bytes.extend_from_slice(v.1.into_cbytes().as_slice());
+            _bytes.extend_from_slice(v.1.into_cbytes().as_slice());
 
-                _bytes
-            });
+            _bytes
+        });
 
         bytes
     }

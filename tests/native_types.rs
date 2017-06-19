@@ -305,8 +305,8 @@ fn time() {
 
     assert_eq!(rows.len(), 1);
     for row in rows {
-        let my_timestamp_row: time::Timespec =
-            row.get_r_by_name("my_timestamp").expect("my_timestamp");
+        let my_timestamp_row: time::Timespec = row.get_r_by_name("my_timestamp")
+            .expect("my_timestamp");
         assert_eq!(my_timestamp_row.sec, my_timestamp.sec);
         assert_eq!(my_timestamp_row.nsec / 1_000_000,
                    my_timestamp.nsec / 1_000_000); // C* `timestamp` has millisecond precision

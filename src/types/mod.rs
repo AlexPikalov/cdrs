@@ -430,12 +430,10 @@ impl IntoBytes for CStringList {
         let l = to_short(self.list.len() as i16);
         bytes.extend_from_slice(l.as_slice());
 
-        bytes = self.list
-            .iter()
-            .fold(bytes, |mut _bytes, cstring| {
-                _bytes.extend_from_slice(cstring.into_cbytes().as_slice());
-                _bytes
-            });
+        bytes = self.list.iter().fold(bytes, |mut _bytes, cstring| {
+            _bytes.extend_from_slice(cstring.into_cbytes().as_slice());
+            _bytes
+        });
 
         bytes
     }

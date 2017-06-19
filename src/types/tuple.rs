@@ -46,13 +46,11 @@ impl Tuple {
         let meta_iter = metadata.types.iter();
 
         let acc = Vec::with_capacity(metadata.types.len());
-        let d = meta_iter
-            .zip(data.iter())
-            .fold(acc, |mut a, v| {
-                let (val_type, val_b) = v;
-                a.push((val_type.clone(), val_b.clone()));
-                a
-            });
+        let d = meta_iter.zip(data.iter()).fold(acc, |mut a, v| {
+            let (val_type, val_b) = v;
+            a.push((val_type.clone(), val_b.clone()));
+            a
+        });
 
         Tuple { data: d }
     }

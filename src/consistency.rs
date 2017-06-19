@@ -119,22 +119,20 @@ impl From<i32> for Consistency {
 
 impl FromBytes for Consistency {
     fn from_bytes(bytes: &[u8]) -> error::Result<Consistency> {
-        try_from_bytes(bytes)
-            .map_err(Into::into)
-            .map(|b| match b {
-                     0x0000 => Consistency::Any,
-                     0x0001 => Consistency::One,
-                     0x0002 => Consistency::Two,
-                     0x0003 => Consistency::Three,
-                     0x0004 => Consistency::Quorum,
-                     0x0005 => Consistency::All,
-                     0x0006 => Consistency::LocalQuorum,
-                     0x0007 => Consistency::EachQuorum,
-                     0x0008 => Consistency::Serial,
-                     0x0009 => Consistency::LocalSerial,
-                     0x000A => Consistency::LocalOne,
-                     _ => Consistency::Unknown,
-                 })
+        try_from_bytes(bytes).map_err(Into::into).map(|b| match b {
+                                                          0x0000 => Consistency::Any,
+                                                          0x0001 => Consistency::One,
+                                                          0x0002 => Consistency::Two,
+                                                          0x0003 => Consistency::Three,
+                                                          0x0004 => Consistency::Quorum,
+                                                          0x0005 => Consistency::All,
+                                                          0x0006 => Consistency::LocalQuorum,
+                                                          0x0007 => Consistency::EachQuorum,
+                                                          0x0008 => Consistency::Serial,
+                                                          0x0009 => Consistency::LocalSerial,
+                                                          0x000A => Consistency::LocalOne,
+                                                          _ => Consistency::Unknown,
+                                                      })
     }
 }
 
