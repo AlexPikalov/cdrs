@@ -31,7 +31,7 @@ use cdrs::transport::TransportTcp;
 ///
 ///
 /// ```
-#[derive(Debug,Default)]
+#[derive(Debug, Default)]
 struct Employee {
     pub id: i64,
     pub emp_name: String,

@@ -32,9 +32,9 @@ impl<T: Authenticator + Send + Sync + 'static, X: CDRSTransport + Send + Sync + 
     }
 }
 
-impl<T: Authenticator + Send + Sync + 'static, X: CDRSTransport + Send + Sync + 'static>
-r2d2::ManageConnection for ConnectionManager<T, X> {
-    type Connection = Session<T,X>;
+impl<T: Authenticator + Send + Sync + 'static,
+     X: CDRSTransport + Send + Sync + 'static> r2d2::ManageConnection for ConnectionManager<T, X> {
+    type Connection = Session<T, X>;
     type Error = CError;
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
