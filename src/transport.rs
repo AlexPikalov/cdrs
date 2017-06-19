@@ -109,8 +109,6 @@ impl CDRSTransport for TransportTcp {
     }
 }
 
-/// **********************************
-#[doc = /** TLS**/]
 /// ***********************************
 #[cfg(feature = "ssl")]
 pub struct TransportTls {
