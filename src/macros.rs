@@ -218,7 +218,8 @@ macro_rules! as_rust_type {
                 as_res_opt!($data_value, decode_bigint)
             }
             _ => Err(Error::General(format!("Invalid conversion. \
-                    Cannot convert {:?} into i64 (valid types: Bigint, Timestamp, Time, Variant, Counter).",
+                    Cannot convert {:?} into i64 (valid types: Bigint, Timestamp, Time, Variant,\
+                    Counter).",
                     $data_type_option.id)))
         }
     );
