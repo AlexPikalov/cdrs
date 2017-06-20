@@ -3,7 +3,7 @@
 #### primitive types (`T`)
 
 | Cassandra | Rust | Feature
-|-----------|--------------|
+|-----------|-------|-------|
 | tinyint | i8 | v4, v5 |
 | smallint | i16 | v4, v5 |
 | int | i32 | all |
@@ -17,6 +17,7 @@
 | float | f32 | all |
 | double | f64 | all |
 | uuid | [Uuid](https://doc.rust-lang.org/uuid/uuid/struct.Uuid.html) | all |
+| counter | u64 | all |
 
 #### complex types
 | Cassandra | Rust + CDRS |
