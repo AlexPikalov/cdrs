@@ -135,7 +135,7 @@ impl FromCursor for ResResultBody {
 }
 
 /// Body of a response of type Void
-#[derive(Debug,Default)]
+#[derive(Debug, Default)]
 pub struct BodyResResultVoid {}
 
 

@@ -3,7 +3,7 @@ use IntoBytes;
 use frame::*;
 
 /// The structure which represents a body of a frame of type `options`.
-#[derive(Debug,Default)]
+#[derive(Debug, Default)]
 pub struct BodyReqOptions;
 
 impl IntoBytes for BodyReqOptions {

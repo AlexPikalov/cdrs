@@ -109,8 +109,6 @@ impl CDRSTransport for TransportTcp {
     }
 }
 
-/// **********************************
-/** TLS**/
 /// ***********************************
 #[cfg(feature = "ssl")]
 pub struct TransportTls {
@@ -122,14 +120,12 @@ impl TransportTls {
     pub fn new(addr: &str, connector: &SslConnector) -> io::Result<TransportTls> {
         let a: Vec<&str> = addr.split(':').collect();
         let res = net::TcpStream::connect(addr).map(|socket| {
-            connector
-                .connect(a[0], socket)
-                .map(|sslsocket| {
-                         TransportTls {
-                             ssl: sslsocket,
-                             connector: connector.clone(),
-                         }
-                     })
+            connector.connect(a[0], socket).map(|sslsocket| {
+                                                    TransportTls {
+                                                        ssl: sslsocket,
+                                                        connector: connector.clone(),
+                                                    }
+                                                })
         });
 
         res.and_then(|res| {

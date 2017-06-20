@@ -22,15 +22,13 @@ impl UDT {
 
         let acc: HashMap<String, (ColTypeOption, CBytes)> =
             HashMap::with_capacity(metadata.descriptions.len());
-        let d = meta_iter
-            .zip(data.iter())
-            .fold(acc, |mut a, v| {
-                let (m, val_b) = v;
-                let &(ref name_b, ref val_type) = m;
-                let name = name_b.as_plain();
-                a.insert(name, (val_type.clone(), val_b.clone()));
-                a
-            });
+        let d = meta_iter.zip(data.iter()).fold(acc, |mut a, v| {
+            let (m, val_b) = v;
+            let &(ref name_b, ref val_type) = m;
+            let name = name_b.as_plain();
+            a.insert(name, (val_type.clone(), val_b.clone()));
+            a
+        });
 
         UDT { data: d }
     }

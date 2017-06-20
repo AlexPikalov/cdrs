@@ -229,23 +229,21 @@ impl BatchQueryBuilder {
 
     /// Add a query (non-prepared one)
     pub fn add_query<T: Into<String>>(mut self, query: T, values: Vec<BatchValue>) -> Self {
-        self.queries
-            .push(BatchQuery {
-                      is_prepared: false,
-                      subject: BatchQuerySubj::QueryString(CStringLong::new(query.into())),
-                      values: values,
-                  });
+        self.queries.push(BatchQuery {
+                              is_prepared: false,
+                              subject: BatchQuerySubj::QueryString(CStringLong::new(query.into())),
+                              values: values,
+                          });
         self
     }
 
     /// Add a query (prepared one)
     pub fn add_query_prepared(mut self, query_id: CBytesShort, values: Vec<BatchValue>) -> Self {
-        self.queries
-            .push(BatchQuery {
-                      is_prepared: true,
-                      subject: BatchQuerySubj::PreparedId(query_id),
-                      values: values,
-                  });
+        self.queries.push(BatchQuery {
+                              is_prepared: true,
+                              subject: BatchQuerySubj::PreparedId(query_id),
+                              values: values,
+                          });
         self
     }
 

@@ -20,7 +20,7 @@ use events::{Listener, EventStream, new_listener};
 /// CDRS driver structure that provides a basic functionality to work with DB including
 /// establishing new connection, getting supported options, preparing and executing CQL
 /// queries, using compression and other.
-#[derive(Eq,PartialEq,Ord,PartialOrd)]
+#[derive(Eq, PartialEq, Ord, PartialOrd)]
 pub struct CDRS<T: Authenticator, X: CDRSTransport> {
     compressor: Compression,
     authenticator: T,
@@ -80,10 +80,10 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
 
         if start_response.opcode == Opcode::Authenticate {
             let body = start_response.get_body()?;
-            let authenticator =
-                body.get_authenticator()
-                    .expect("Cassandra Server did communicate that it needed password
-                authentication but the  auth schema was missing in the body response");
+            let authenticator = body.get_authenticator().expect(
+                "Cassandra Server did communicate that it needed password
+                authentication but the  auth schema was missing in the body response",
+            );
 
             // This creates a new scope; avoiding a clone
             // and we check whether
@@ -97,12 +97,15 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
                 .ok_or(error::Error::General("No authenticator was provided".to_string()))
                 .map(|auth| {
                     if authenticator != auth {
-                        let io_err =
-                            io::Error::new(io::ErrorKind::NotFound,
-                                           format!("Unsupported type of authenticator. {:?} got,
+                        let io_err = io::Error::new(
+                            io::ErrorKind::NotFound,
+                            format!(
+                                "Unsupported type of authenticator. {:?} got,
                              but {} is supported.",
-                                                   authenticator,
-                                                   authenticator));
+                                authenticator,
+                                authenticator
+                            ),
+                        );
                         return Err(error::Error::Io(io_err));
                     }
                     Ok(())
@@ -249,7 +252,7 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
                                                query.serial_consistency,
                                                query.timestamp,
                                                flags)
-                .into_cbytes();
+            .into_cbytes();
 
         try!(self.cdrs.transport.write(query_frame.as_slice()));
         parse_frame(&mut self.cdrs.transport, &self.compressor)

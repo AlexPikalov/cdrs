@@ -191,8 +191,8 @@ fn nested_tuples() {
 
     assert_eq!(rows.len(), 1);
     for row in rows {
-        let my_outer_tuple_row: Tuple =
-            row.get_r_by_name("my_outer_tuple").expect("my_outer_tuple");
+        let my_outer_tuple_row: Tuple = row.get_r_by_name("my_outer_tuple")
+            .expect("my_outer_tuple");
         let my_outer_tuple_row = MyOuterTuple::try_from(my_outer_tuple_row).expect("from tuple");
         assert_eq!(my_outer_tuple_row, my_outer_tuple);
     }

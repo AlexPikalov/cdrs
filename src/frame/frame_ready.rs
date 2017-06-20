@@ -1,7 +1,7 @@
 use std::convert::From;
 use IntoBytes;
 
-#[derive(Debug, PartialEq,Default)]
+#[derive(Debug, PartialEq, Default)]
 pub struct BodyResReady;
 
 

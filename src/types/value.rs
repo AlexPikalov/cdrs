@@ -202,12 +202,11 @@ impl<T: Into<Bytes> + Clone + Debug> From<Vec<T>> for Bytes {
     fn from(vec: Vec<T>) -> Bytes {
         let mut bytes: Vec<u8> = vec![];
         bytes.extend_from_slice(to_int(vec.len() as i32).as_slice());
-        bytes = vec.iter()
-            .fold(bytes, |mut acc, v| {
-                let b: Bytes = v.clone().into();
-                acc.extend_from_slice(Value::new_normal(b).into_cbytes().as_slice());
-                acc
-            });
+        bytes = vec.iter().fold(bytes, |mut acc, v| {
+            let b: Bytes = v.clone().into();
+            acc.extend_from_slice(Value::new_normal(b).into_cbytes().as_slice());
+            acc
+        });
         Bytes(bytes)
     }
 }
@@ -219,14 +218,13 @@ impl<K, V> From<HashMap<K, V>> for Bytes
     fn from(map: HashMap<K, V>) -> Bytes {
         let mut bytes: Vec<u8> = vec![];
         bytes.extend_from_slice(to_int(map.len() as i32).as_slice());
-        bytes = map.iter()
-            .fold(bytes, |mut acc, (k, v)| {
-                let key_bytes: Bytes = k.clone().into();
-                let val_bytes: Bytes = v.clone().into();
-                acc.extend_from_slice(Value::new_normal(key_bytes).into_cbytes().as_slice());
-                acc.extend_from_slice(Value::new_normal(val_bytes).into_cbytes().as_slice());
-                acc
-            });
+        bytes = map.iter().fold(bytes, |mut acc, (k, v)| {
+            let key_bytes: Bytes = k.clone().into();
+            let val_bytes: Bytes = v.clone().into();
+            acc.extend_from_slice(Value::new_normal(key_bytes).into_cbytes().as_slice());
+            acc.extend_from_slice(Value::new_normal(val_bytes).into_cbytes().as_slice());
+            acc
+        });
         Bytes(bytes)
     }
 }
