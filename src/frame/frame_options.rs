@@ -35,3 +35,16 @@ impl Frame {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_frame_options() {
+        let frame = Frame::new_req_options();
+        assert_eq!(frame.version, Version::Request);
+        assert_eq!(frame.opcode, Opcode::Options);
+        assert_eq!(frame.body, vec![]);
+    }
+}
