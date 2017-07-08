@@ -9,7 +9,6 @@ use types::data_serialization_types::decode_timeuuid;
 use error;
 
 pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Result<Frame> {
-    // TODO: try to use slices instead
     let mut version_bytes = [0; VERSION_LEN];
     let mut flag_bytes = [0; FLAG_LEN];
     let mut opcode_bytes = [0; OPCODE_LEN];
@@ -17,11 +16,15 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
     let mut length_bytes = [0; LENGTH_LEN];
 
     // NOTE: order of reads matters
-    try!(cursor.read(&mut version_bytes));
-    try!(cursor.read(&mut flag_bytes));
-    try!(cursor.read(&mut stream_bytes));
-    try!(cursor.read(&mut opcode_bytes));
-    try!(cursor.read(&mut length_bytes));
+    let v = try!(cursor.read(&mut version_bytes));
+    let f = try!(cursor.read(&mut flag_bytes));
+    let s = try!(cursor.read(&mut stream_bytes));
+    let o = try!(cursor.read(&mut opcode_bytes));
+    let l = try!(cursor.read(&mut length_bytes));
+
+    if v == 0 || f == 0 || s == 0 || o == 0 || l == 0 {
+        return Err(error::Error::from("Empty frame received"));
+    }
 
     let version = Version::from(version_bytes.to_vec());
     let flags = Flag::get_collection(flag_bytes[0]);
@@ -33,6 +36,7 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
     unsafe {
         body_bytes.set_len(length);
     }
+
     try!(cursor.read_exact(&mut body_bytes));
 
     let full_body = if flags.iter().any(|flag| flag == &Flag::Compression) {
@@ -49,7 +53,6 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
         unsafe {
             tracing_bytes.set_len(UUID_LEN);
         }
-        // TODO: try to use slice instead
         try!(body_cursor.read_exact(&mut tracing_bytes));
 
         decode_timeuuid(tracing_bytes.as_slice()).ok()
@@ -77,10 +80,10 @@ pub fn parse_frame(mut cursor: &mut Read, compressor: &Compression) -> error::Re
         warnings: warnings,
     };
 
-    conver_frame_into_result(frame)
+    convert_frame_into_result(frame)
 }
 
-fn conver_frame_into_result(frame: Frame) -> error::Result<Frame> {
+fn convert_frame_into_result(frame: Frame) -> error::Result<Frame> {
     match frame.opcode {
         Opcode::Error => {
             frame.get_body().and_then(|err| match err {

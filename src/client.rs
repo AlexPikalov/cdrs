@@ -52,12 +52,10 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
         try!(self.transport.write(options_frame.as_slice()));
 
         parse_frame(&mut self.transport, &self.compressor)
-        .map(|frame| {
-                match frame.get_body() {
-                Ok(ResponseBody::Supported(ref supported_body)) => supported_body.data.clone(),
-                _ => unreachable!(),
-            }
-        })
+            .map(|frame| match frame.get_body() {
+                     Ok(ResponseBody::Supported(ref supported_body)) => supported_body.data.clone(),
+                     _ => unreachable!(),
+                 })
     }
 
     /// The method establishes connection to the server which address was provided on previous
