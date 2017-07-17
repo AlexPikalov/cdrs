@@ -23,15 +23,15 @@ appveyor = []
 [dependencies]
 byteorder = "0.5.3"
 log = "0.3.6"
-uuid = "0.5.0"
-snap = "0.1.2"
 lz4-compress = "=0.1.0"
-r2d2 = "0.7.1"
 openssl = { version = "0.9.6", optional = true }
+r2d2 = "0.7.1"
 rand = "0.3"
+snap = "0.2"
 time = "0.1.36"
+uuid = "0.5.0"
 
 [dev-dependencies]
 env_logger = "0.3"
-regex = "0.2.1"
 maplit = "0.1.4"
+regex = "0.2.1"
