@@ -38,7 +38,7 @@ impl LoadBalancingStrategy {
         let min = bounds.0;
         let max = bounds.1.unwrap_or(u8::max_value() as usize);
         let rnd = rand::random::<usize>();
-        min + rnd * (max - min) / (u8::max_value() as usize)
+        rnd % (max - min) + min
     }
 }
 
