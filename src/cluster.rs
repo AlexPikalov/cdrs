@@ -152,4 +152,15 @@ mod tests {
             assert_eq!(&nodes_c[i % 3], load_balancer.next().unwrap());
         }
     }
+    
+    #[test]
+    fn lb_random() {
+        let nodes = vec!["a", "b", "c", "d", "e", "f", "g"];
+        let nodes_c = nodes.clone();
+        let load_balancer = LoadBalancer::new(nodes, LoadBalancingStrategy::Random);
+        for _ in 0..100 {
+            let s = load_balancer.next();
+            assert!(s.is_some());
+        }
+    }
 }
