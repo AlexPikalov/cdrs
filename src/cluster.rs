@@ -152,7 +152,7 @@ mod tests {
             assert_eq!(&nodes_c[i % 3], load_balancer.next().unwrap());
         }
     }
-    
+
     #[test]
     fn lb_random() {
         let nodes = vec!["a", "b", "c", "d", "e", "f", "g"];
