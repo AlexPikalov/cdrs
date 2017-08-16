@@ -54,7 +54,7 @@ fn string_body_parse(b: &mut Bencher) {
 }
 
 #[bench]
-fn string_type_inference(b: &mut Bencher) {
+fn string_convert(b: &mut Bencher) {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_string \
                (my_ascii ascii PRIMARY KEY, my_text text, my_varchar varchar)";
     let mut session = setup(cql).expect("setup");
@@ -115,7 +115,7 @@ fn counter_body_parse(b: &mut Bencher) {
 }
 
 #[bench]
-fn counter_type_inference(b: &mut Bencher) {
+fn counter_convert(b: &mut Bencher) {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_counter \
                (my_bigint bigint PRIMARY KEY, my_counter counter)";
     let mut session = setup(cql).expect("setup");
@@ -175,7 +175,7 @@ fn integer_body_parse(b: &mut Bencher) {
 }
 
 #[bench]
-fn integer_type_inference(b: &mut Bencher) {
+fn integer_convert(b: &mut Bencher) {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_integer \
                (my_bigint bigint PRIMARY KEY, my_int int, my_boolean boolean)";
     let mut session = setup(cql).expect("setup");
@@ -235,7 +235,7 @@ fn float_body_parse(b: &mut Bencher) {
 }
 
 #[bench]
-fn float_type_inference(b: &mut Bencher) {
+fn float_convert(b: &mut Bencher) {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_float \
                (my_float float PRIMARY KEY, my_double double)";
     let mut session = setup(cql).expect("setup");
@@ -291,7 +291,7 @@ fn blob_body_parse(b: &mut Bencher) {
 }
 
 #[bench]
-fn blob_type_inference(b: &mut Bencher) {
+fn blob_convert(b: &mut Bencher) {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_blob \
                (my_blob blob PRIMARY KEY)";
     let mut session = setup(cql).expect("setup");
@@ -343,7 +343,7 @@ fn uuid_body_parse(b: &mut Bencher) {
 }
 
 #[bench]
-fn uuid_type_inference(b: &mut Bencher) {
+fn uuid_convert(b: &mut Bencher) {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_uuid \
                (my_uuid uuid PRIMARY KEY)";
     let mut session = setup(cql).expect("setup");
@@ -395,7 +395,7 @@ fn time_body_parse(b: &mut Bencher) {
 }
 
 #[bench]
-fn time_type_inference(b: &mut Bencher) {
+fn time_convert(b: &mut Bencher) {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_time \
                (my_timestamp timestamp PRIMARY KEY)";
     let mut session = setup(cql).expect("setup");
@@ -448,7 +448,7 @@ fn inet_body_parse(b: &mut Bencher) {
 }
 
 #[bench]
-fn inet_type_inference(b: &mut Bencher) {
+fn inet_convert(b: &mut Bencher) {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_inet \
                (my_inet_v4 inet PRIMARY KEY, my_inet_v6 inet)";
     let mut session = setup(cql).expect("setup");

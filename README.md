@@ -31,6 +31,7 @@ into Rust structures.
   * [PREPARE and EXECUTE query](#prepare-and-execute-a-query)
 * [Listen to server events](#listen-to-server-events)
 * [Cassandra clusters and load balancing](#cassandra-clusters-and-load-balancing)
+* [Performance](#perfomance)
 * [Supported features](#supported-features)
 
 
@@ -411,7 +412,23 @@ let manager = ClusterConnectionManager::new(load_balancer, authenticator, Compre
 ```
 After that you'll be able to communicate with cluster via r2d2 connection pool.
 
+### Performance
+
+Folder `./benches` contains benchmark tests. This is an attempt to measure the
+driver performance and to compare it with already existing solutions. Also
+periodically running benchmark tests might help to identify slow parts of CDRS
+and prevent performance degradation caused by changes.
+
+To get current result you need either to have nightly Rust installed on your
+machine or install [rustup](https://www.rustup.rs/).
+
+In case you have nightly Rust, just run `cargo bench`. If you have rustup --
+`rustup run nightly cargo bench`.
+
+To find last results refer to [benchmarks.md](./benchmarks.md)
+
 ### Supported features
+
 - [x] lz4 decompression
 - [x] snappy decompression
 - [x] password authorization
