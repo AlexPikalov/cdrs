@@ -2,8 +2,8 @@
 
 These benchmarks contain two type of measurements:
 
-- performance during parsing a frame that contains one row of values of
-certain types
+- performance during parsing a frame that contains one row of values of a
+certain type
 - performance during type conversion when you try to convert a row into
 rust types/structures
 

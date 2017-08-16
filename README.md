@@ -31,7 +31,7 @@ into Rust structures.
   * [PREPARE and EXECUTE query](#prepare-and-execute-a-query)
 * [Listen to server events](#listen-to-server-events)
 * [Cassandra clusters and load balancing](#cassandra-clusters-and-load-balancing)
-* [Performance](#perfomance)
+* [Performance](#performance)
 * [Supported features](#supported-features)
 
 
