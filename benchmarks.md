@@ -27,3 +27,16 @@ test time_convert       ... bench:         163 ns/iter (+/- 39)
 test uuid_body_parse    ... bench:       1,464 ns/iter (+/- 227)
 test uuid_convert       ... bench:         168 ns/iter (+/- 32)
 ```
+
+#### Collection types (List, Set, Map)
+
+```
+test list_body_parse             ... bench:       2,694 ns/iter (+/- 444)
+test list_convert                ... bench:       4,953 ns/iter (+/- 720)
+test list_v4_body_parse          ... bench:       2,578 ns/iter (+/- 933)
+test list_v4_convert             ... bench:       4,929 ns/iter (+/- 658)
+test map_body_parse              ... bench:       3,174 ns/iter (+/- 1,222)
+test map_convert                 ... bench:       8,087 ns/iter (+/- 1,540)
+test map_without_blob_body_parse ... bench:       3,787 ns/iter (+/- 772)
+test map_without_blob_convert    ... bench:       7,867 ns/iter (+/- 1,022)
+```
