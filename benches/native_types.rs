@@ -1,6 +1,5 @@
 #![feature(test)]
 extern crate test;
-extern crate rand;
 
 extern crate cdrs;
 extern crate uuid;
@@ -8,7 +7,6 @@ extern crate time;
 extern crate regex;
 
 use test::Bencher;
-use rand::Rng;
 
 mod common;
 
@@ -22,8 +20,8 @@ use cdrs::types::value::{Value, Bytes};
 use std::str::FromStr;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-// Measure how much time it takes to parse a row with
 #[bench]
+#[cfg(not(feature = "appveyor"))]
 fn string_body_parse(b: &mut Bencher) {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_string \
                (my_ascii ascii PRIMARY KEY, my_text text, my_varchar varchar)";
