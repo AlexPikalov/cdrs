@@ -38,7 +38,7 @@ impl LoadBalancingStrategy {
         let min = bounds.0;
         let max = bounds.1.unwrap_or(u8::max_value() as usize);
         let rnd = rand::random::<usize>();
-        min + rnd * (max - min) / (u8::max_value() as usize)
+        rnd % (max - min) + min
     }
 }
 
@@ -150,6 +150,17 @@ mod tests {
         let load_balancer = LoadBalancer::new(nodes, LoadBalancingStrategy::RoundRobin);
         for i in 0..10 {
             assert_eq!(&nodes_c[i % 3], load_balancer.next().unwrap());
+        }
+    }
+
+    #[test]
+    fn lb_random() {
+        let nodes = vec!["a", "b", "c", "d", "e", "f", "g"];
+        let nodes_c = nodes.clone();
+        let load_balancer = LoadBalancer::new(nodes, LoadBalancingStrategy::Random);
+        for _ in 0..100 {
+            let s = load_balancer.next();
+            assert!(s.is_some());
         }
     }
 }
