@@ -34,6 +34,7 @@ use std::time::Duration;
 #[cfg(feature = "ssl")]
 use openssl::ssl::{SslStream, SslConnector};
 
+// TODO [v 2.x.x]: CDRSTransport: ... + BufReader + ButWriter + ...
 ///General CDRS transport trait. Both [`TranportTcp`][transportTcp]
 ///and [`TransportTls`][transportTls] has their own implementations of this trait. Generaly
 ///speaking it extends/includes `io::Read` and `io::Write` traits and should be thread safe.
