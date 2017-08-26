@@ -108,7 +108,11 @@ pub fn decode_inet(bytes: &[u8]) -> Result<net::IpAddr, io::Error> {
             let h = from_u16_bytes(&bytes[14..16]);
             Ok(net::IpAddr::V6(net::Ipv6Addr::new(a, b, c, d, e, f, g, h)))
         }
-        _ => Err(io::Error::new(io::ErrorKind::Other, "Unparseable  Ip address")),
+        _ => {
+            // let message = format!("Unparseable  Ip address {:?}", bytes);
+            Err(io::Error::new(io::ErrorKind::Other,
+                               format!("Unparseable  Ip address {:?}", bytes)))
+        }
     }
 }
 
