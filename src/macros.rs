@@ -21,19 +21,17 @@ macro_rules! builder_opt_field {
     };
 }
 
-
-
 macro_rules! list_as_rust {
-    ($($into_type:tt)*) => (
-        impl AsRustType<Vec<$($into_type)*>> for List {
-            fn as_rust_type(&self) -> Result<Option<Vec<$($into_type)*>>> {
+    ($($into_type:tt)+) => (
+        impl AsRustType<Vec<$($into_type)+>> for List {
+            fn as_rust_type(&self) -> Result<Option<Vec<$($into_type)+>>> {
                 match self.metadata.value {
                     Some(ColTypeOptionValue::CList(ref type_option)) |
                     Some(ColTypeOptionValue::CSet(ref type_option)) => {
                         let type_option_ref = type_option.as_ref();
                         let convert = self
                             .map(|bytes| {
-                                as_rust_type!(type_option_ref, bytes, $($into_type)*)
+                                as_rust_type!(type_option_ref, bytes, $($into_type)+)
                                     .unwrap()
                                     // item in a list supposed to be a non-null value.
                                     // TODO: check if it's true
@@ -51,13 +49,11 @@ macro_rules! list_as_rust {
     );
 }
 
-
-
 macro_rules! map_as_rust {
-    ($(K $key_type:tt)*, $(V $val_type:tt)*) => (
-        impl AsRustType<HashMap<$($key_type)*, $($val_type)*>> for Map {
+    ({ $($key_type:tt)+ }, { $($val_type:tt)+ }) => (
+        impl AsRustType<HashMap<$($key_type)+, $($val_type)+>> for Map {
             /// Converts `Map` into `HashMap` for blob values.
-            fn as_rust_type(&self) -> Result<Option<HashMap<$($key_type)*, $($val_type)*>>> {
+            fn as_rust_type(&self) -> Result<Option<HashMap<$($key_type)+, $($val_type)+>>> {
                 match self.metadata.value {
                     Some(ColTypeOptionValue::CMap((ref key_type_option, ref val_type_option))) => {
                         let mut map = HashMap::with_capacity(self.data.len());
@@ -65,8 +61,8 @@ macro_rules! map_as_rust {
                         for &(ref key, ref val) in self.data.iter() {
                             let key_type_option = key_type_option.as_ref();
                             let val_type_option = val_type_option.as_ref();
-                            let key = as_rust_type!(key_type_option, key, $($key_type)*)?;
-                            let val = as_rust_type!(val_type_option, val, $($val_type)*)?;
+                            let key = as_rust_type!(key_type_option, key, $($key_type)+)?;
+                            let val = as_rust_type!(val_type_option, val, $($val_type)+)?;
                             if val.is_some() && key.is_some() {
                                 map.insert(key.unwrap(), val.unwrap());
                             }
@@ -81,31 +77,27 @@ macro_rules! map_as_rust {
     );
 }
 
-
-
-
 macro_rules! into_rust_by_name {
-    (Row, $($into_type:tt)*) => (
-        impl IntoRustByName<$($into_type)*> for Row {
-            fn get_by_name(&self, name: &str) -> Result<Option<$($into_type)*>> {
+    (Row, $($into_type:tt)+) => (
+        impl IntoRustByName<$($into_type)+> for Row {
+            fn get_by_name(&self, name: &str) -> Result<Option<$($into_type)+>> {
                 self.get_col_spec_by_name(name)
                     .ok_or(column_is_empty_err())
                     .and_then(|(col_spec, cbytes)| {
                         let ref col_type = col_spec.col_type;
-                        as_rust_type!(col_type, cbytes, $($into_type)*)
+                        as_rust_type!(col_type, cbytes, $($into_type)+)
                     })
             }
         }
     );
-
-    (UDT, $($into_type:tt)*) => (
-        impl IntoRustByName<$($into_type)*> for UDT {
-            fn get_by_name(&self, name: &str) -> Result<Option<$($into_type)*>> {
+    (UDT, $($into_type:tt)+) => (
+        impl IntoRustByName<$($into_type)+> for UDT {
+            fn get_by_name(&self, name: &str) -> Result<Option<$($into_type)+>> {
                 self.data.get(name)
                 .ok_or(column_is_empty_err())
                 .and_then(|v| {
                     let &(ref col_type, ref bytes) = v;
-                    let converted = as_rust_type!(col_type, bytes, $($into_type)*);
+                    let converted = as_rust_type!(col_type, bytes, $($into_type)+);
                     converted.map_err(|err| err.into())
                 })
             }
@@ -114,29 +106,28 @@ macro_rules! into_rust_by_name {
 }
 
 macro_rules! into_rust_by_index {
-    (Tuple, $($into_type:tt)*) => (
-        impl IntoRustByIndex<$($into_type)*> for Tuple {
-            fn get_by_index(&self, index: usize) -> Result<Option<$($into_type)*>> {
+    (Tuple, $($into_type:tt)+) => (
+        impl IntoRustByIndex<$($into_type)+> for Tuple {
+            fn get_by_index(&self, index: usize) -> Result<Option<$($into_type)+>> {
                 self.data
                     .get(index)
                     .ok_or(column_is_empty_err())
                     .and_then(|v| {
                         let &(ref col_type, ref bytes) = v;
-                        let converted = as_rust_type!(col_type, bytes, $($into_type)*);
+                        let converted = as_rust_type!(col_type, bytes, $($into_type)+);
                         converted.map_err(|err| err.into())
                     })
             }
         }
     );
-
-    (Row, $($into_type:tt)*) => (
-        impl IntoRustByIndex<$($into_type)*> for Row {
-            fn get_by_index(&self, index: usize) -> Result<Option<$($into_type)*>> {
+    (Row, $($into_type:tt)+) => (
+        impl IntoRustByIndex<$($into_type)+> for Row {
+            fn get_by_index(&self, index: usize) -> Result<Option<$($into_type)+>> {
                 self.get_col_spec_by_index(index)
                     .ok_or(column_is_empty_err())
                     .and_then(|(col_spec, cbytes)| {
                         let ref col_type = col_spec.col_type;
-                        as_rust_type!(col_type, cbytes, $($into_type)*)
+                        as_rust_type!(col_type, cbytes, $($into_type)+)
                     })
             }
         }
