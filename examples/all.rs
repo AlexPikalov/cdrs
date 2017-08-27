@@ -213,7 +213,7 @@ fn main() {
             println!("16. udt table created (v3)");
         }
     } else {
-        if create_table_udt(&mut session) {
+        if create_table_udt_v3(&mut session) {
             println!("16. udt table created");
         }
     }

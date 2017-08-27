@@ -7,7 +7,7 @@ use std::thread;
 use cdrs::client::CDRS;
 use cdrs::authenticators::PasswordAuthenticator;
 use cdrs::compression::Compression;
-use cdrs::frame::events::{SimpleServerEvent, ServerEvent, TopologyChangeType};
+use cdrs::frame::events::{SimpleServerEvent, ServerEvent, ChangeType, Target};
 use cdrs::transport::TransportTcp;
 
 // default credentials
@@ -27,16 +27,16 @@ fn main() {
 
     thread::spawn(move || listener.start(&Compression::None).unwrap());
 
-    let topology_changes = stream
+    let new_tables = stream
         // inspects all events in a stream
         .inspect(|event| println!("inspect event {:?}", event))
-        // filter by event's type: topology changes
-        .filter(|event| event == &SimpleServerEvent::TopologyChange)
+        // filter by event's type: schema changes
+        .filter(|event| event == &SimpleServerEvent::SchemaChange)
         // filter by event's specific information: new node was added
         .filter(|event| {
             match event {
-                &ServerEvent::TopologyChange(ref event) => {
-                    event.change_type == TopologyChangeType::NewNode
+                &ServerEvent::SchemaChange(ref event) => {
+                    event.change_type == ChangeType::Created && event.target == Target::Table
                 },
                 _ => false
             }
@@ -44,7 +44,7 @@ fn main() {
 
     println!("Start listen for server events");
 
-    for change in topology_changes {
+    for change in new_tables {
         println!("server event {:?}", change);
     }
 }

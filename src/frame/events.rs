@@ -54,9 +54,9 @@ impl SimpleServerEvent {
 impl From<ServerEvent> for SimpleServerEvent {
     fn from(event: ServerEvent) -> SimpleServerEvent {
         match event {
-            ServerEvent::TopologyChange(_) |
-            ServerEvent::StatusChange(_) |
-            ServerEvent::SchemaChange(_) => SimpleServerEvent::TopologyChange,
+            ServerEvent::TopologyChange(_) => SimpleServerEvent::TopologyChange,
+            ServerEvent::StatusChange(_) => SimpleServerEvent::StatusChange,
+            ServerEvent::SchemaChange(_) => SimpleServerEvent::SchemaChange,
         }
     }
 }
@@ -64,9 +64,9 @@ impl From<ServerEvent> for SimpleServerEvent {
 impl<'a> From<&'a ServerEvent> for SimpleServerEvent {
     fn from(event: &'a ServerEvent) -> SimpleServerEvent {
         match *event {
-            ServerEvent::TopologyChange(_) |
-            ServerEvent::StatusChange(_) |
-            ServerEvent::SchemaChange(_) => SimpleServerEvent::TopologyChange,
+            ServerEvent::TopologyChange(_) => SimpleServerEvent::TopologyChange,
+            ServerEvent::StatusChange(_) => SimpleServerEvent::StatusChange,
+            ServerEvent::SchemaChange(_) => SimpleServerEvent::SchemaChange,
         }
     }
 }
