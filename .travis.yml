@@ -37,7 +37,7 @@ addons:
       - gcc
       - binutils-dev
       - zlib1g-dev
-      - libbfd-dev
+      # - libbfd-dev
       - oracle-java8-installer
 
 after_success:
