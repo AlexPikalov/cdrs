@@ -89,7 +89,7 @@ impl<T: Into<Bytes>> From<Option<T>> for Value {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Bytes(Vec<u8>);
 
 impl Bytes {
