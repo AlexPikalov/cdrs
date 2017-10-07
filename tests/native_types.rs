@@ -12,6 +12,7 @@ use cdrs::query::QueryBuilder;
 use cdrs::types::map::Map;
 use cdrs::types::value::{Value, Bytes};
 use cdrs::types::{AsRust, ByName, IntoRustByName};
+use cdrs::types::blob::Blob;
 
 use std::str::FromStr;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
@@ -224,11 +225,11 @@ fn blob() {
                (my_blob blob PRIMARY KEY, my_mapblob map<text, blob>)";
     let mut session = setup(cql).expect("setup");
 
-    let my_blob: Vec<u8> = vec![0, 1, 2, 4, 8, 16, 32, 64, 128, 255];
-    let my_map: HashMap<String, Vec<u8>> = [("a".to_owned(), b"aaaaa".to_vec()),
-                                            ("b".to_owned(), b"bbbbb".to_vec()),
-                                            ("c".to_owned(), b"ccccc".to_vec()),
-                                            ("d".to_owned(), b"ddddd".to_vec())]
+    let my_blob: Blob = vec![0, 1, 2, 4, 8, 16, 32, 64, 128, 255].into();
+    let my_map: HashMap<String, Blob> = [("a".to_owned(), b"aaaaa".to_vec().into()),
+                                         ("b".to_owned(), b"bbbbb".to_vec().into()),
+                                         ("c".to_owned(), b"ccccc".to_vec().into()),
+                                         ("d".to_owned(), b"ddddd".to_vec().into())]
         .into_iter()
         .map(|x| x.clone())
         .collect();
@@ -236,10 +237,10 @@ fn blob() {
     let val_map: HashMap<String, Bytes> = my_map
         .clone()
         .into_iter()
-        .map(|(k, v)| (k, Bytes::new(v)))
+        .map(|(k, v)| (k, Bytes::new(v.into_vec())))
         .collect();
 
-    let values: Vec<Value> = vec![Bytes::new(my_blob.clone()).into(), val_map.into()];
+    let values: Vec<Value> = vec![my_blob.clone().into(), val_map.into()];
 
     let cql = "INSERT INTO cdrs_test.test_blob (my_blob, my_mapblob) VALUES (?,?)";
     let query = QueryBuilder::new(cql).values(values).finalize();
@@ -257,9 +258,9 @@ fn blob() {
 
     assert_eq!(rows.len(), 1);
     for row in rows {
-        let my_blob_row: Vec<u8> = row.get_r_by_name("my_blob").expect("my_blob");
+        let my_blob_row: Blob = row.get_r_by_name("my_blob").expect("my_blob");
         assert_eq!(my_blob_row, my_blob);
-        let my_map_row: HashMap<String, Vec<u8>> = row.r_by_name::<Map>("my_mapblob")
+        let my_map_row: HashMap<String, Blob> = row.r_by_name::<Map>("my_mapblob")
             .expect("my_mapblob by name")
             .as_r_rust()
             .expect("my_mapblob as r rust");

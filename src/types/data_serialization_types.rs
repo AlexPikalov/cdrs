@@ -4,6 +4,7 @@ use std::net;
 use std::string::FromUtf8Error;
 use uuid;
 use super::*;
+use super::blob::Blob;
 use FromCursor;
 
 
@@ -30,9 +31,9 @@ pub fn decode_bigint(bytes: &[u8]) -> Result<i64, io::Error> {
 }
 
 // Decodes Cassandra `blob` data (bytes) into Rust's `Result<Vec<u8>, io::Error>`
-pub fn decode_blob(bytes: &Vec<u8>) -> Result<Vec<u8>, io::Error> {
+pub fn decode_blob(bytes: &Vec<u8>) -> Result<Blob, io::Error> {
     // in fact we just pass it through.
-    Ok(bytes.clone())
+    Ok(bytes.clone().into())
 }
 
 // Decodes Cassandra `boolean` data (bytes) into Rust's `Result<i32, io::Error>`
@@ -244,7 +245,8 @@ mod tests {
 
     #[test]
     fn decode_blob_test() {
-        assert_eq!(decode_blob(&vec![0, 0, 0, 3]).unwrap(), vec![0, 0, 0, 3]);
+        assert_eq!(decode_blob(&vec![0, 0, 0, 3]).unwrap().into_vec(),
+                   vec![0, 0, 0, 3]);
     }
 
     #[test]
@@ -362,10 +364,13 @@ mod tests {
     fn as_rust_blob_test() {
         let d_type = DataType { id: ColType::Blob };
         let data = CBytes::new(vec![1, 2, 3]);
-        assert_eq!(as_rust_type!(d_type, data, Vec<u8>).unwrap().unwrap(),
+        assert_eq!(as_rust_type!(d_type, data, Blob)
+                       .unwrap()
+                       .unwrap()
+                       .into_vec(),
                    vec![1, 2, 3]);
         let wrong_type = DataType { id: ColType::Map };
-        assert!(as_rust_type!(wrong_type, data, Vec<u8>).is_err());
+        assert!(as_rust_type!(wrong_type, data, Blob).is_err());
     }
 
     #[test]
@@ -374,9 +379,12 @@ mod tests {
         let type_ascii = DataType { id: ColType::Ascii };
         let type_varchar = DataType { id: ColType::Varchar };
         let data = CBytes::new(b"abc".to_vec());
-        assert_eq!(as_rust_type!(type_custom, data, String).unwrap().unwrap(), "abc");
-        assert_eq!(as_rust_type!(type_ascii, data, String).unwrap().unwrap(), "abc");
-        assert_eq!(as_rust_type!(type_varchar, data, String).unwrap().unwrap(), "abc");
+        assert_eq!(as_rust_type!(type_custom, data, String).unwrap().unwrap(),
+                   "abc");
+        assert_eq!(as_rust_type!(type_ascii, data, String).unwrap().unwrap(),
+                   "abc");
+        assert_eq!(as_rust_type!(type_varchar, data, String).unwrap().unwrap(),
+                   "abc");
         let wrong_type = DataType { id: ColType::Map };
         assert!(as_rust_type!(wrong_type, data, String).is_err());
     }
@@ -386,8 +394,14 @@ mod tests {
         let type_boolean = DataType { id: ColType::Boolean };
         let data_true = CBytes::new(vec![1]);
         let data_false = CBytes::new(vec![0]);
-        assert_eq!(as_rust_type!(type_boolean, data_true, bool).unwrap().unwrap(), true);
-        assert_eq!(as_rust_type!(type_boolean, data_false, bool).unwrap().unwrap(), false);
+        assert_eq!(as_rust_type!(type_boolean, data_true, bool)
+                       .unwrap()
+                       .unwrap(),
+                   true);
+        assert_eq!(as_rust_type!(type_boolean, data_false, bool)
+                       .unwrap()
+                       .unwrap(),
+                   false);
         let wrong_type = DataType { id: ColType::Map };
         assert!(as_rust_type!(wrong_type, data_false, bool).is_err());
     }
@@ -400,7 +414,8 @@ mod tests {
         let type_varint = DataType { id: ColType::Varint };
         let data = CBytes::new(vec![0, 0, 0, 0, 0, 0, 0, 100]);
         assert_eq!(as_rust_type!(type_bigint, data, i64).unwrap().unwrap(), 100);
-        assert_eq!(as_rust_type!(type_timestamp, data, i64).unwrap().unwrap(), 100);
+        assert_eq!(as_rust_type!(type_timestamp, data, i64).unwrap().unwrap(),
+                   100);
         assert_eq!(as_rust_type!(type_time, data, i64).unwrap().unwrap(), 100);
         assert_eq!(as_rust_type!(type_varint, data, i64).unwrap().unwrap(), 100);
         let wrong_type = DataType { id: ColType::Map };
@@ -411,7 +426,7 @@ mod tests {
     fn as_rust_i32_test() {
         let type_int = DataType { id: ColType::Int };
         let type_date = DataType { id: ColType::Date };
-        let data = CBytes::new(vec![ 0, 0, 0, 100]);
+        let data = CBytes::new(vec![0, 0, 0, 100]);
         assert_eq!(as_rust_type!(type_int, data, i32).unwrap().unwrap(), 100);
         assert_eq!(as_rust_type!(type_date, data, i32).unwrap().unwrap(), 100);
         let wrong_type = DataType { id: ColType::Map };
@@ -422,7 +437,8 @@ mod tests {
     fn as_rust_i16_test() {
         let type_smallint = DataType { id: ColType::Smallint };
         let data = CBytes::new(vec![0, 100]);
-        assert_eq!(as_rust_type!(type_smallint, data, i16).unwrap().unwrap(), 100);
+        assert_eq!(as_rust_type!(type_smallint, data, i16).unwrap().unwrap(),
+                   100);
         let wrong_type = DataType { id: ColType::Map };
         assert!(as_rust_type!(wrong_type, data, i16).is_err());
     }

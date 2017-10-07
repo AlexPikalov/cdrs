@@ -1,19 +1,21 @@
 /// Cassandra types
 
+use std::io;
+use std::io::{Cursor, Read};
+use std::net::SocketAddr;
+
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt, ByteOrder};
+use error::{Result as CDRSResult, Error as CDRSError, column_is_empty_err};
+use types::data_serialization_types::decode_inet;
+use {FromBytes, IntoBytes, FromCursor};
+
 pub const LONG_STR_LEN: usize = 4;
 pub const SHORT_LEN: usize = 2;
 pub const INT_LEN: usize = 4;
 pub const UUID_LEN: usize = 16;
 
-use std::io;
-use std::io::{Cursor, Read};
-use std::net::SocketAddr;
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt, ByteOrder};
-use {FromBytes, IntoBytes, FromCursor};
-use error::{Result as CDRSResult, Error as CDRSError, column_is_empty_err};
-use types::data_serialization_types::decode_inet;
-
 #[macro_use]
+pub mod blob;
 pub mod data_serialization_types;
 pub mod list;
 pub mod map;
@@ -513,15 +515,6 @@ impl IntoBytes for CBytes {
             }
             None => vec![],
         }
-        // self.bytes
-        //     .map(|b| {
-        //              let mut v: Vec<u8> = vec![];
-        //              let l = b.len() as i32;
-        //              v.extend_from_slice(to_int(l).as_slice());
-        //              v.extend_from_slice(b.as_slice());
-        //              v
-        //          })
-        //     .unwrap_or(vec![])
     }
 }
 
@@ -570,15 +563,6 @@ impl IntoBytes for CBytesShort {
             }
             None => vec![],
         }
-        // self.bytes
-        //     .map(|b| {
-        //              let mut v: Vec<u8> = vec![];
-        //              let l = b.len() as i16;
-        //              v.extend_from_slice(to_short(l).as_slice());
-        //              v.extend_from_slice(b.as_slice());
-        //              v
-        //          })
-        //     .unwrap_or(vec![])
     }
 }
 

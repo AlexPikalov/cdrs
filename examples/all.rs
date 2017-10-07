@@ -17,6 +17,7 @@ use cdrs::types::value::{Value, Bytes};
 use cdrs::types::list::List;
 use cdrs::types::map::Map;
 use cdrs::types::udt::UDT;
+use cdrs::types::blob::Blob;
 use std::collections::HashMap;
 
 const _ADDR: &'static str = "127.0.0.1:9042";
@@ -939,8 +940,8 @@ fn create_table_blob(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
 }
 
 fn insert_table_blob(session: &mut Session<NoneAuthenticator, TransportTcp>) -> bool {
-    let blob: Vec<u8> = vec![0, 1, 2, 4, 8, 16, 32, 64, 128, 255];
-    let values: Vec<Value> = vec![(1 as i32).into(), Bytes::new(blob).into()];
+    let blob: Blob = vec![0, 1, 2, 4, 8, 16, 32, 64, 128, 255].into();
+    let values: Vec<Value> = vec![(1 as i32).into(), blob.into()];
 
     let query = QueryBuilder::new(INSERT_BLOB).values(values).finalize();
     let inserted = session.query(query, false, false);
@@ -961,7 +962,7 @@ fn select_table_blob(session: &mut Session<NoneAuthenticator, TransportTcp>) -> 
         .unwrap();
 
     for row in all {
-        let _: Vec<u8> = row.r_by_name("my_blob").expect("my_blob");
+        let _: Blob = row.r_by_name("my_blob").expect("my_blob");
     }
 
     true

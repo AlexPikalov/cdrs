@@ -1,14 +1,16 @@
 use std::collections::HashMap;
-use uuid::Uuid;
-use time::Timespec;
-use IntoBytes;
-use super::*;
 use std::convert::Into;
 use std::hash::Hash;
 use std::cmp::Eq;
 use std::net::IpAddr;
-
 use std::fmt::Debug;
+
+use uuid::Uuid;
+use time::Timespec;
+use IntoBytes;
+
+use super::*;
+use super::blob::Blob;
 
 /// Types of Cassandra value: normal value (bits), null value and not-set value
 #[derive(Debug, Clone)]
@@ -195,6 +197,12 @@ impl Into<Bytes> for Timespec {
     fn into(self) -> Bytes {
         let ts: i64 = self.sec * 1_000 + self.nsec as i64 / 1_000_000;
         Bytes(to_bigint(ts))
+    }
+}
+
+impl Into<Bytes> for Blob {
+    fn into(self) -> Bytes {
+        Bytes(self.into_vec())
     }
 }
 
