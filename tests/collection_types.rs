@@ -15,6 +15,7 @@ use cdrs::types::{IntoRustByName, AsRust};
 use cdrs::types::value::Value;
 use cdrs::types::list::List;
 use cdrs::types::map::Map;
+use cdrs::types::blob::Blob;
 
 use std::str::FromStr;
 use std::collections::HashMap;
@@ -374,7 +375,6 @@ fn map_without_blob_v4() {
 }
 
 #[test]
-#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn map() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_maps \
@@ -388,19 +388,19 @@ fn map() {
         "key2".to_string() => "value2".to_string(),
         "key3".to_string() => "value3".to_string(),
     };
-    let my_nested_map: HashMap<Uuid, HashMap<i64, Vec<u8>>> =
+    let my_nested_map: HashMap<Uuid, HashMap<i64, Blob>> =
         hashmap!{
         Uuid::from_str("bb16106a-10bc-4a07-baa3-126ffe208c43").unwrap() => hashmap!{
-            1 => vec![52, 121, 209, 200, 81, 118, 181, 17],
-            2 => vec![226, 90, 51, 10, 26, 87, 141, 61],
+            1 => vec![52, 121, 209, 200, 81, 118, 181, 17].into(),
+            2 => vec![226, 90, 51, 10, 26, 87, 141, 61].into(),
         },
         Uuid::from_str("687d7677-dbf0-4d25-8cf3-e5d9185bba0b").unwrap() => hashmap!{
-            1 => vec![224, 155, 148, 6, 217, 96, 120, 38],
+            1 => vec![224, 155, 148, 6, 217, 96, 120, 38].into(),
         },
         Uuid::from_str("c4dc6e8b-758a-4af4-ab00-ec356fb688d9").unwrap() => hashmap!{
-            1 => vec![164, 238, 196, 10, 149, 169, 145, 239],
-            2 => vec![250, 87, 119, 134, 105, 236, 240, 64],
-            3 => vec![72, 81, 26, 173, 107, 96, 38, 91],
+            1 => vec![164, 238, 196, 10, 149, 169, 145, 239].into(),
+            2 => vec![250, 87, 119, 134, 105, 236, 240, 64].into(),
+            3 => vec![72, 81, 26, 173, 107, 96, 38, 91].into(),
         },
     };
     let values: Vec<Value> = vec![my_text_map.clone().into(), my_nested_map.clone().into()];
@@ -433,7 +433,7 @@ fn map() {
                 .expect("my_nested_map (outer) as rust");
         let mut my_nested_map_row = HashMap::with_capacity(my_nested_map_outer_row.len());
         for (index, my_nested_map_inner_row) in my_nested_map_outer_row {
-            let my_nested_map_inner_row: HashMap<i64, Vec<u8>> =
+            let my_nested_map_inner_row: HashMap<i64, Blob> =
                 my_nested_map_inner_row
                     .as_r_rust()
                     .expect("my_nested_map (inner) as rust");

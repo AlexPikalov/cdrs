@@ -22,7 +22,8 @@
 #### complex types
 | Cassandra | Rust + CDRS |
 |-----------|-------------|
-| list | List -> Vec<T> [example](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L159) |
-| set | List -> Vec<T> [example](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L159)|
-| map | Map -> HashMap<String, T> [example](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L185) |
+| blob | `Blob -> Vec<>` |
+| list | `List -> Vec<T>` [example](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L159) |
+| set | `List -> Vec<T>` [example](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L159)|
+| map | `Map -> HashMap<String, T>` [example](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L185) |
 | udt | Rust struct + custom [implementation into value](https://github.com/AlexPikalov/cdrs/blob/master/examples/all.rs#L211) |

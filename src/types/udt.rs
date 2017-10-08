@@ -9,6 +9,7 @@ use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
 use types::tuple::Tuple;
+use types::blob::Blob;
 use error::{Result, Error, column_is_empty_err};
 
 #[derive(Debug)]
@@ -34,29 +35,9 @@ impl UDT {
     }
 }
 
-impl IntoRustByName<Vec<u8>> for UDT {
-    fn get_by_name(&self, name: &str) -> Result<Option<Vec<u8>>> {
-        self.data
-            .get(name)
-            .ok_or(column_is_empty_err())
-            .and_then(|v| {
-                let &(ref col_type, ref bytes) = v;
-
-                match col_type.id {
-                    // XXX: unwrap Option
-                    ColType::Blob => {
-                        decode_blob(&bytes.as_plain().unwrap())
-                            .map(Some)
-                            .map_err(Into::into)
-                    }
-                    _ => Err(Error::General(format!("Cannot parse  {:?} into UDT ", col_type.id))),
-                }
-            })
-    }
-}
-
 impl ByName for UDT {}
 
+into_rust_by_name!(UDT, Blob);
 into_rust_by_name!(UDT, String);
 into_rust_by_name!(UDT, bool);
 into_rust_by_name!(UDT, i64);

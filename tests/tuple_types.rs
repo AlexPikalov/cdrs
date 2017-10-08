@@ -13,6 +13,7 @@ use cdrs::query::QueryBuilder;
 use cdrs::types::{IntoRustByName, IntoRustByIndex};
 use cdrs::types::value::{Value, Bytes};
 use cdrs::types::tuple::Tuple;
+use cdrs::types::blob::Blob;
 use cdrs::error::Result;
 use cdrs::IntoBytes;
 
@@ -133,12 +134,12 @@ fn nested_tuples() {
     impl MyOuterTuple {
         pub fn try_from(tuple: Tuple) -> Result<MyOuterTuple> {
             let my_uuid: Uuid = tuple.get_r_by_index(0)?;
-            let my_blob: Vec<u8> = tuple.get_r_by_index(1)?;
+            let my_blob: Blob = tuple.get_r_by_index(1)?;
             let my_inner_tuple: Tuple = tuple.get_r_by_index(2)?;
             let my_inner_tuple = MyInnerTuple::try_from(my_inner_tuple).expect("from tuple");
             Ok(MyOuterTuple {
                    my_uuid: my_uuid,
-                   my_blob: my_blob,
+                   my_blob: my_blob.into_vec(),
                    my_inner_tuple: my_inner_tuple,
                })
         }

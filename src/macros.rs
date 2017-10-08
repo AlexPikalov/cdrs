@@ -151,7 +151,7 @@ macro_rules! as_res_opt {
 /// given the column type as `ColTypeOption` and the value as `CBytes`
 /// plus the matching Rust type.
 macro_rules! as_rust_type {
-    ($data_type_option:ident, $data_value:ident, Vec<u8>) => (
+    ($data_type_option:ident, $data_value:ident, Blob) => (
         match $data_type_option.id {
             ColType::Blob => {
                 as_res_opt!($data_value, decode_blob)

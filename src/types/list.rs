@@ -6,6 +6,7 @@ use types::data_serialization_types::*;
 use types::map::Map;
 use types::udt::UDT;
 use types::tuple::Tuple;
+use types::blob::Blob;
 use error::{Result, Error};
 
 // TODO: consider using pointers to ColTypeOption and Vec<CBytes> instead of owning them.
@@ -34,35 +35,7 @@ impl List {
 
 impl AsRust for List {}
 
-impl AsRustType<Vec<Vec<u8>>> for List {
-    /// Converts cassandra list of blobs into Rust `Vec<Vec<u8>>`
-    fn as_rust_type(&self) -> Result<Option<Vec<Vec<u8>>>> {
-        match self.metadata.value {
-            Some(ColTypeOptionValue::CList(ref type_option)) => {
-                match type_option.id {
-                    // XXX unwrap
-                    ColType::Blob => {
-                        Ok(self.map(|bytes| decode_blob(&bytes.as_plain().unwrap()).unwrap()))
-                            .map(Some)
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            Some(ColTypeOptionValue::CSet(ref type_option)) => {
-                match type_option.id {
-                    ColType::Blob => {
-                        // XXX unwrap
-                        Ok(self.map(|bytes| decode_blob(&bytes.as_plain().unwrap()).unwrap()))
-                            .map(Some)
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-}
-
+list_as_rust!(Blob);
 list_as_rust!(String);
 list_as_rust!(bool);
 list_as_rust!(i64);

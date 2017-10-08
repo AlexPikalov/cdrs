@@ -10,6 +10,7 @@ use types::list::List;
 use types::map::Map;
 use types::udt::UDT;
 use types::tuple::Tuple;
+use types::blob::Blob;
 use error::{Error, Result, column_is_empty_err};
 
 #[derive(Debug)]
@@ -50,19 +51,9 @@ impl Row {
     }
 }
 
-impl IntoRustByName<Vec<u8>> for Row {
-    fn get_by_name(&self, name: &str) -> Result<Option<Vec<u8>>> {
-        self.get_col_spec_by_name(name)
-            .ok_or(column_is_empty_err())
-            .and_then(|(col_spec, cbytes)| {
-                          let ref col_type = col_spec.col_type;
-                          as_rust_type!(col_type, cbytes, Vec<u8>)
-                      })
-    }
-}
-
 impl ByName for Row {}
 
+into_rust_by_name!(Row, Blob);
 into_rust_by_name!(Row, String);
 into_rust_by_name!(Row, bool);
 into_rust_by_name!(Row, i64);
@@ -81,6 +72,7 @@ into_rust_by_name!(Row, Timespec);
 
 impl ByIndex for Row {}
 
+into_rust_by_index!(Row, Blob);
 into_rust_by_index!(Row, String);
 into_rust_by_index!(Row, bool);
 into_rust_by_index!(Row, i64);

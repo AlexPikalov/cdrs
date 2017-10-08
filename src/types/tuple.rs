@@ -8,6 +8,7 @@ use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
 use types::udt::UDT;
+use types::blob::Blob;
 use error::{Result, Error, column_is_empty_err};
 
 use std::hash::{Hash, Hasher};
@@ -56,29 +57,9 @@ impl Tuple {
     }
 }
 
-impl IntoRustByIndex<Vec<u8>> for Tuple {
-    fn get_by_index(&self, index: usize) -> Result<Option<Vec<u8>>> {
-        self.data
-            .get(index)
-            .ok_or(column_is_empty_err())
-            .and_then(|v| {
-                let &(ref col_type, ref bytes) = v;
-
-                match col_type.id {
-                    // XXX: unwrap Option
-                    ColType::Blob => {
-                        decode_blob(&bytes.as_plain().unwrap())
-                            .map(Some)
-                            .map_err(Into::into)
-                    }
-                    _ => Err(Error::General(format!("Cannot parse {:?} into Tuple ", col_type.id))),
-                }
-            })
-    }
-}
-
 impl ByIndex for Tuple {}
 
+into_rust_by_index!(Tuple, Blob);
 into_rust_by_index!(Tuple, String);
 into_rust_by_index!(Tuple, bool);
 into_rust_by_index!(Tuple, i64);
