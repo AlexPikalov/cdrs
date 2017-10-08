@@ -375,7 +375,6 @@ fn map_without_blob_v4() {
 }
 
 #[test]
-//////#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn map() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_maps \
