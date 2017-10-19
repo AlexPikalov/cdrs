@@ -60,6 +60,7 @@ pub trait CDRSTransport: Sized + Read + Write + Send + Sync {
 /// Default Tcp transport.
 pub struct TransportTcp {
     tcp: TcpStream,
+    addr: String,
 }
 
 impl TransportTcp {
@@ -73,7 +74,12 @@ impl TransportTcp {
     /// let tcp_transport = TransportTcp::new(addr).unwrap();
     /// ```
     pub fn new(addr: &str) -> io::Result<TransportTcp> {
-        TcpStream::connect(addr).map(|socket| TransportTcp { tcp: socket })
+        TcpStream::connect(addr).map(|socket| {
+                                         TransportTcp {
+                                             tcp: socket,
+                                             addr: addr.to_string(),
+                                         }
+                                     })
     }
 }
 
@@ -95,8 +101,12 @@ impl Write for TransportTcp {
 
 impl CDRSTransport for TransportTcp {
     fn try_clone(&self) -> io::Result<TransportTcp> {
-        let addr = try!(self.tcp.peer_addr());
-        TcpStream::connect(addr).map(|socket| TransportTcp { tcp: socket })
+        TcpStream::connect(self.addr.as_str()).map(|socket| {
+                                                       TransportTcp {
+                                                           tcp: socket,
+                                                           addr: self.addr.clone(),
+                                                       }
+                                                   })
     }
 
     fn close(&mut self, close: net::Shutdown) -> io::Result<()> {
@@ -115,6 +125,7 @@ impl CDRSTransport for TransportTcp {
 pub struct TransportTls {
     ssl: SslStream<TcpStream>,
     connector: SslConnector,
+    addr: String,
 }
 #[cfg(feature = "ssl")]
 impl TransportTls {
@@ -125,6 +136,7 @@ impl TransportTls {
                                                     TransportTls {
                                                         ssl: sslsocket,
                                                         connector: connector.clone(),
+                                                        addr: addr.to_string(),
                                                     }
                                                 })
         });
@@ -160,18 +172,22 @@ impl CDRSTransport for TransportTls {
     /// of a peer from `TransportTls` and creates a new encrypted
     /// connection with a new TCP stream under hood.
     fn try_clone(&self) -> io::Result<TransportTls> {
-        let addr = try!(self.ssl.get_ref().peer_addr());
-        let ip_string = format!("{}", addr.ip());
+        let ip = match self.addr.split(":").nth(0) {
+            Some(_ip) => _ip,
+            None => {
+                return Err(io::Error::new(io::ErrorKind::Other,
+                                          "Wrong addess string - IP is missed"))
+            }
+        };
 
-        let res = net::TcpStream::connect(addr).map(|socket| {
-            self.connector
-                .connect(ip_string.as_str(), socket)
-                .map(|sslsocket| {
-                         TransportTls {
-                             ssl: sslsocket,
-                             connector: self.connector.clone(),
-                         }
-                     })
+        let res = net::TcpStream::connect(self.addr.as_str()).map(|socket| {
+            self.connector.connect(ip, socket).map(|sslsocket| {
+                                                       TransportTls {
+                                                           ssl: sslsocket,
+                                                           connector: self.connector.clone(),
+                                                           addr: self.addr.clone(),
+                                                       }
+                                                   })
         });
 
         res.and_then(|res| {
