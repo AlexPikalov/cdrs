@@ -210,8 +210,8 @@ match session.query(create_query, with_tracing, with_warnings) {
 #### Create Query:
 
 Creating new table could be performed via `session.query`. In case of success
-method return Schema Change frame that contains Change Type, Target and options
-that contain namespace and a name of created table.
+method returns Schema Change frame that contains Change Type, Target and options
+that contain namespace and a name of newly created table.
 
 ```rust
 use std::default::Default;
@@ -232,6 +232,52 @@ let with_warnings = false;
 
 let table_created = session.query(create_query, with_tracing, with_warnings).is_ok();
 
+```
+
+#### Insert/Update Query (Structures serialization)
+
+In order to perform insertion/updating of a Rust structure you'd need
+to perform its serialization first. CDRS provides `Into<Value>` implementation
+(and since CDRS version 1.2.0 derivable `IntoCDRSValue`) trait.
+
+After that it's possible to create a query with values:
+
+```rust
+let ints = IntsV3 {
+      bigint: 123,
+      int: 234,
+  };
+let values: Vec<Value> = vec![ints.bigint.into(), ints.int.into()];
+
+let insert_query = QueryBuilder::new(INSERT_QUERY_STRING)
+    .values(values)
+    .finalize();
+```
+
+Conversion of nested structures could be performed if we'd consider inner
+structures as Cassandra User Defined Type:
+
+```rust
+#[derive(IntoCDRSValues)]
+struct SomeUdt {
+  value: i32
+}
+
+struct RowObj {
+  id: i64,
+  udt: SomeUdt
+}
+
+let obj = {
+  id: 1,
+  udt: SomeUdt { value: 128 }
+};
+
+let values: Vec<Value> = vec![obj.id.into_cdrs_value(), obj.udt.into_cdrs_value()];
+
+let insert_query = QueryBuilder::new(INSERT_QUERY_STRING)
+    .values(values)
+    .finalize();
 ```
 
 #### Select Query:

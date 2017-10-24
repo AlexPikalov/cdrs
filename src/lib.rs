@@ -64,14 +64,15 @@ pub trait FromCursor {
     fn from_cursor(&mut Cursor<&[u8]>) -> error::Result<Self> where Self: Sized;
 }
 
-/// The trait that allows transformation of `Self` to `cdrs::types::value::Bytes`.
-pub trait IntoCDRSBytes {
-    /// It converts `Self` to `cdrs::types::value::Bytes`.
-    fn into_cdrs_bytes(self) -> types::value::Bytes;
+/// The trait that allows transformation of `Self` to `types::value::Value`.
+pub trait IntoCDRSValue {
+    /// It converts `Self` to `types::value::Value`.
+    fn into_cdrs_value(self) -> types::value::Value;
 }
 
-impl<T: Into<types::value::Bytes>> IntoCDRSBytes for T {
-    fn into_cdrs_bytes(self) -> types::value::Bytes {
-        self.into()
+impl<T: Into<types::value::Bytes>> IntoCDRSValue for T {
+    fn into_cdrs_value(self) -> types::value::Value {
+        let bytes: types::value::Bytes = self.into();
+        bytes.into()
     }
 }
