@@ -63,3 +63,16 @@ pub trait FromCursor {
     /// It should return an implementor from an `io::Cursor` over an array of bytes.
     fn from_cursor(&mut Cursor<&[u8]>) -> error::Result<Self> where Self: Sized;
 }
+
+/// The trait that allows transformation of `Self` to `types::value::Value`.
+pub trait IntoCDRSValue {
+    /// It converts `Self` to `types::value::Value`.
+    fn into_cdrs_value(self) -> types::value::Value;
+}
+
+impl<T: Into<types::value::Bytes>> IntoCDRSValue for T {
+    fn into_cdrs_value(self) -> types::value::Value {
+        let bytes: types::value::Bytes = self.into();
+        bytes.into()
+    }
+}
