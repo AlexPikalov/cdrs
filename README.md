@@ -26,6 +26,7 @@ into Rust structures.
 * [Query execution](#query-execution)
   * [USE query](https://github.com/AlexPikalov/cdrs#use-query)
   * [CREATE query](#create-query)
+  * [Insert/Update Query (Structures serialization)](#insertupdate-query-structures-serialization)
   * [SELECT query](#select-query)
   * [SELECT query (mapping results)](#select-query-mapping-results)
   * [PREPARE and EXECUTE query](#prepare-and-execute-a-query)
