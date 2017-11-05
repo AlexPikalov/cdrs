@@ -2,20 +2,21 @@
 use std::net;
 use std::io;
 use std::collections::HashMap;
-use query::{Query, QueryParams, QueryBatch};
-use frame::{Frame, Opcode, Flag};
+use query::{Query, QueryBatch, QueryParams};
+use frame::{Flag, Frame, Opcode};
 use frame::frame_response::ResponseBody;
 use IntoBytes;
 use frame::parser::parse_frame;
 use types::*;
 use frame::events::SimpleServerEvent;
+use time::precise_time_ns;
 
 use compression::Compression;
 use authenticators::Authenticator;
 use error;
 use transport::CDRSTransport;
 
-use events::{Listener, EventStream, new_listener};
+use events::{new_listener, EventStream, Listener};
 
 /// CDRS driver structure that provides a basic functionality to work with DB including
 /// establishing new connection, getting supported options, preparing and executing CQL
@@ -51,11 +52,10 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
 
         try!(self.transport.write(options_frame.as_slice()));
 
-        parse_frame(&mut self.transport, &self.compressor)
-            .map(|frame| match frame.get_body() {
-                     Ok(ResponseBody::Supported(ref supported_body)) => supported_body.data.clone(),
-                     _ => unreachable!(),
-                 })
+        parse_frame(&mut self.transport, &self.compressor).map(|frame| match frame.get_body() {
+            Ok(ResponseBody::Supported(ref supported_body)) => supported_body.data.clone(),
+            _ => unreachable!(),
+        })
     }
 
     /// The method establishes connection to the server which address was provided on previous
@@ -121,8 +121,6 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
             try!(parse_frame(&mut self.transport, &compressor));
 
             return Ok(Session::start(self));
-
-
         }
 
         unimplemented!();
@@ -173,6 +171,11 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
         }
     }
 
+    /// The method returns `true` if underlying connection is still alive, and `false` otherwise.
+    pub fn is_connected(&self) -> bool {
+        self.cdrs.transport.is_alive()
+    }
+
     /// The method makes a request to DB Server to prepare provided query.
     pub fn prepare(&mut self,
                    query: String,
@@ -203,7 +206,6 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
                    with_tracing: bool,
                    with_warnings: bool)
                    -> error::Result<Frame> {
-
         let mut flags = vec![];
         if with_tracing {
             flags.push(Flag::Tracing);
@@ -251,7 +253,6 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
                                                query.timestamp,
                                                flags)
             .into_cbytes();
-
         try!(self.cdrs.transport.write(query_frame.as_slice()));
         parse_frame(&mut self.cdrs.transport, &self.compressor)
     }

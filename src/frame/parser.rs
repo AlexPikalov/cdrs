@@ -1,17 +1,15 @@
-use std::io::{Read, BufReader, Cursor};
+use std::io::{BufReader, Cursor, Read};
+use time::precise_time_ns;
 
 use FromCursor;
 use compression::Compression;
 use frame::frame_response::ResponseBody;
 use super::*;
-use types::{from_bytes, from_u16_bytes, UUID_LEN, CStringList};
+use types::{from_bytes, CStringList, from_u16_bytes, UUID_LEN};
 use types::data_serialization_types::decode_timeuuid;
 use error;
 
-pub fn parse_frame(r: &mut Read, compressor: &Compression) -> error::Result<Frame> {
-    // TODO [v 2.x.x]: when transport implements BufReader, use it directly
-    let mut cursor = BufReader::new(r);
-
+pub fn parse_frame(cursor: &mut Read, compressor: &Compression) -> error::Result<Frame> {
     let mut version_bytes = [0; VERSION_LEN];
     let mut flag_bytes = [0; FLAG_LEN];
     let mut opcode_bytes = [0; OPCODE_LEN];
@@ -31,9 +29,9 @@ pub fn parse_frame(r: &mut Read, compressor: &Compression) -> error::Result<Fram
 
     let version = Version::from(version_bytes.to_vec());
     let flags = Flag::get_collection(flag_bytes[0]);
-    let stream = from_u16_bytes(stream_bytes.to_vec().as_slice());
+    let stream = from_u16_bytes(&stream_bytes);
     let opcode = Opcode::from(opcode_bytes[0]);
-    let length = from_bytes(length_bytes.to_vec().as_slice()) as usize;
+    let length = from_bytes(&length_bytes) as usize;
 
     let mut body_bytes = Vec::with_capacity(length);
     unsafe {

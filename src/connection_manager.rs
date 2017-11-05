@@ -2,7 +2,7 @@
 //! functionality of connection pools. To get more details about creating r2d2 pools
 //! please refer to original documentation.
 use query::QueryBuilder;
-use client::{CDRS, Session};
+use client::{Session, CDRS};
 use error::Error as CError;
 use authenticators::Authenticator;
 use compression::Compression;
@@ -46,9 +46,11 @@ impl<T: Authenticator + Send + Sync + 'static,
     }
 
     fn is_valid(&self, connection: &mut Self::Connection) -> Result<(), Self::Error> {
-        let query = QueryBuilder::new("SELECT * FROM system.peers;").finalize();
-
-        connection.query(query, false, false).map(|_| ())
+        if connection.is_connected() {
+            Ok(())
+        } else {
+            Err("Connection to DB was dropped".into())
+        }
     }
 
     fn has_broken(&self, _connection: &mut Self::Connection) -> bool {
