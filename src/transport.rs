@@ -32,7 +32,7 @@ use std::net;
 use std::net::TcpStream;
 use std::time::Duration;
 #[cfg(feature = "ssl")]
-use openssl::ssl::{SslStream, SslConnector};
+use openssl::ssl::{SslConnector, SslStream};
 
 // TODO [v 2.x.x]: CDRSTransport: ... + BufReader + ButWriter + ...
 ///General CDRS transport trait. Both [`TranportTcp`][transportTcp]
@@ -55,6 +55,9 @@ pub trait CDRSTransport: Sized + Read + Write + Send + Sync {
     /// If the value specified is None, then read() calls will block indefinitely.
     /// It is an error to pass the zero Duration to this method.
     fn set_timeout(&mut self, dur: Option<Duration>) -> io::Result<()>;
+
+    /// Method that checks that transport is alive
+    fn is_alive(&self) -> bool;
 }
 
 /// Default Tcp transport.
@@ -118,6 +121,10 @@ impl CDRSTransport for TransportTcp {
             .set_read_timeout(dur)
             .and_then(|_| self.tcp.set_write_timeout(dur))
     }
+
+    fn is_alive(&self) -> bool {
+        self.tcp.peer_addr().is_ok()
+    }
 }
 
 /// ***********************************
@@ -144,7 +151,6 @@ impl TransportTls {
         res.and_then(|res| {
                          res.map(|n: TransportTls| n)
                              .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
-
                      })
     }
 }
@@ -208,5 +214,9 @@ impl CDRSTransport for TransportTls {
         stream
             .set_read_timeout(dur)
             .and_then(|_| stream.set_write_timeout(dur))
+    }
+
+    fn is_alive(&self) -> bool {
+        self.ssl.get_ref().peer_addr().is_ok();
     }
 }
