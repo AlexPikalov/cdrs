@@ -1,5 +1,4 @@
-use std::io::{BufReader, Cursor, Read};
-use time::precise_time_ns;
+use std::io::{Cursor, Read};
 
 use FromCursor;
 use compression::Compression;

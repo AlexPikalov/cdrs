@@ -4,10 +4,10 @@ use std::io;
 use std::io::{Cursor, Read};
 use std::net::SocketAddr;
 
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt, ByteOrder};
-use error::{Result as CDRSResult, Error as CDRSError, column_is_empty_err};
+use byteorder::{BigEndian, ByteOrder, ReadBytesExt, WriteBytesExt};
+use error::{column_is_empty_err, Error as CDRSError, Result as CDRSResult};
 use types::data_serialization_types::decode_inet;
-use {FromBytes, IntoBytes, FromCursor};
+use {FromBytes, FromCursor, IntoBytes};
 
 pub const LONG_STR_LEN: usize = 4;
 pub const SHORT_LEN: usize = 2;
@@ -616,7 +616,7 @@ impl FromCursor for CInet {
     }
 }
 
-pub fn cursor_next_value(mut cursor: &mut Cursor<&[u8]>, len: u64) -> CDRSResult<Vec<u8>> {
+pub fn cursor_next_value(cursor: &mut Cursor<&[u8]>, len: u64) -> CDRSResult<Vec<u8>> {
     let l = len as usize;
     let current_position = cursor.position();
     let mut buff: Vec<u8> = Vec::with_capacity(l);
@@ -633,7 +633,7 @@ pub fn cursor_next_value(mut cursor: &mut Cursor<&[u8]>, len: u64) -> CDRSResult
 mod tests {
     use std::io::Cursor;
     use super::*;
-    use {IntoBytes, FromCursor};
+    use {FromCursor, IntoBytes};
     use std::mem::transmute;
 
     // CString

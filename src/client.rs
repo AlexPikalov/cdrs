@@ -9,7 +9,6 @@ use IntoBytes;
 use frame::parser::parse_frame;
 use types::*;
 use frame::events::SimpleServerEvent;
-use time::precise_time_ns;
 
 use compression::Compression;
 use authenticators::Authenticator;
