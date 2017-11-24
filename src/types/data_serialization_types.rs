@@ -2,10 +2,11 @@ use std::ops::Mul;
 use std::io;
 use std::net;
 use std::string::FromUtf8Error;
+
 use uuid;
 use super::*;
 use super::blob::Blob;
-use FromCursor;
+use frame::FromCursor;
 
 
 // https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L813
@@ -128,8 +129,8 @@ pub fn decode_timestamp(bytes: &[u8]) -> Result<i64, io::Error> {
 // Decodes Cassandra `list` data (bytes) into Rust's `Result<Vec<CBytes>, io::Error>`
 pub fn decode_list(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
-    let l = CInt::from_cursor(&mut cursor)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let l =
+        CInt::from_cursor(&mut cursor).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     let mut list = Vec::with_capacity(l as usize);
     for _ in 0..l {
         let b = CBytes::from_cursor(&mut cursor)
@@ -375,9 +376,13 @@ mod tests {
 
     #[test]
     fn as_rust_string_test() {
-        let type_custom = DataType { id: ColType::Custom };
+        let type_custom = DataType {
+            id: ColType::Custom,
+        };
         let type_ascii = DataType { id: ColType::Ascii };
-        let type_varchar = DataType { id: ColType::Varchar };
+        let type_varchar = DataType {
+            id: ColType::Varchar,
+        };
         let data = CBytes::new(b"abc".to_vec());
         assert_eq!(as_rust_type!(type_custom, data, String).unwrap().unwrap(),
                    "abc");
@@ -391,7 +396,9 @@ mod tests {
 
     #[test]
     fn as_rust_bool_test() {
-        let type_boolean = DataType { id: ColType::Boolean };
+        let type_boolean = DataType {
+            id: ColType::Boolean,
+        };
         let data_true = CBytes::new(vec![1]);
         let data_false = CBytes::new(vec![0]);
         assert_eq!(as_rust_type!(type_boolean, data_true, bool)
@@ -408,10 +415,16 @@ mod tests {
 
     #[test]
     fn as_rust_i64_test() {
-        let type_bigint = DataType { id: ColType::Bigint };
-        let type_timestamp = DataType { id: ColType::Timestamp };
+        let type_bigint = DataType {
+            id: ColType::Bigint,
+        };
+        let type_timestamp = DataType {
+            id: ColType::Timestamp,
+        };
         let type_time = DataType { id: ColType::Time };
-        let type_varint = DataType { id: ColType::Varint };
+        let type_varint = DataType {
+            id: ColType::Varint,
+        };
         let data = CBytes::new(vec![0, 0, 0, 0, 0, 0, 0, 100]);
         assert_eq!(as_rust_type!(type_bigint, data, i64).unwrap().unwrap(), 100);
         assert_eq!(as_rust_type!(type_timestamp, data, i64).unwrap().unwrap(),
@@ -435,7 +448,9 @@ mod tests {
 
     #[test]
     fn as_rust_i16_test() {
-        let type_smallint = DataType { id: ColType::Smallint };
+        let type_smallint = DataType {
+            id: ColType::Smallint,
+        };
         let data = CBytes::new(vec![0, 100]);
         assert_eq!(as_rust_type!(type_smallint, data, i16).unwrap().unwrap(),
                    100);
@@ -445,7 +460,9 @@ mod tests {
 
     #[test]
     fn as_rust_i8_test() {
-        let type_tinyint = DataType { id: ColType::Tinyint };
+        let type_tinyint = DataType {
+            id: ColType::Tinyint,
+        };
         let data = CBytes::new(vec![100]);
         assert_eq!(as_rust_type!(type_tinyint, data, i8).unwrap().unwrap(), 100);
         let wrong_type = DataType { id: ColType::Map };
@@ -454,7 +471,9 @@ mod tests {
 
     #[test]
     fn as_rust_f64_test() {
-        let type_double = DataType { id: ColType::Double };
+        let type_double = DataType {
+            id: ColType::Double,
+        };
         let data = CBytes::new(to_float_big(0.1 as f64));
         assert_eq!(as_rust_type!(type_double, data, f64).unwrap().unwrap(), 0.1);
         let wrong_type = DataType { id: ColType::Map };

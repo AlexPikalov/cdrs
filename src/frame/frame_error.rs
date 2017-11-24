@@ -8,7 +8,7 @@ use std::result;
 use error;
 use consistency::Consistency;
 use types::*;
-use FromCursor;
+use frame::traits::FromCursor;
 use frame::Frame;
 
 /// CDRS specific `Result` which contains a [`Frame`] in case of `Ok` and `CDRSError` if `Err`.

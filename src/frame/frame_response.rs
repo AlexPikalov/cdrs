@@ -1,10 +1,10 @@
 use std::io::Cursor;
 
-use FromCursor;
+use frame::FromCursor;
 use error;
 use frame::Opcode;
-use frame::frame_result::{BodyResResultVoid, BodyResResultPrepared, BodyResResultRows,
-                          BodyResResultSetKeyspace, ResResultBody};
+use frame::frame_result::{BodyResResultPrepared, BodyResResultRows, BodyResResultSetKeyspace,
+                          BodyResResultVoid, ResResultBody};
 use frame::frame_event::BodyResEvent;
 use frame::frame_error::CDRSError;
 use frame::frame_supported::*;

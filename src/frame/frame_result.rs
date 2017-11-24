@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use {IntoBytes, FromBytes, FromCursor};
+use frame::{FromBytes, FromCursor, IntoBytes};
 use error;
 use types::*;
 use types::rows::Row;
@@ -95,7 +95,6 @@ impl ResResultBody {
                ResultKind::SchemaChange => {
                    ResResultBody::SchemaChange(SchemaChange::from_cursor(&mut cursor)?)
                }
-
            })
     }
 

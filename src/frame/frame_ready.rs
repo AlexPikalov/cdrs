@@ -1,5 +1,6 @@
 use std::convert::From;
-use IntoBytes;
+
+use frame::IntoBytes;
 
 #[derive(Debug, PartialEq, Default)]
 pub struct BodyResReady;

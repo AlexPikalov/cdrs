@@ -7,7 +7,7 @@ use std::net::SocketAddr;
 use byteorder::{BigEndian, ByteOrder, ReadBytesExt, WriteBytesExt};
 use error::{column_is_empty_err, Error as CDRSError, Result as CDRSResult};
 use types::data_serialization_types::decode_inet;
-use {FromBytes, FromCursor, IntoBytes};
+use frame::traits::{FromBytes, FromCursor, IntoBytes};
 
 pub const LONG_STR_LEN: usize = 4;
 pub const SHORT_LEN: usize = 2;

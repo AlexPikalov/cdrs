@@ -1,6 +1,6 @@
 //! `frame` module contains general Frame functionality.
 use types::to_n_bytes;
-use {AsByte, IntoBytes};
+pub use frame::traits::*;
 use frame::frame_response::ResponseBody;
 use compression::Compression;
 use uuid::Uuid;
@@ -29,6 +29,7 @@ pub mod frame_result;
 pub mod frame_startup;
 pub mod frame_supported;
 pub mod parser;
+pub mod traits;
 
 use error;
 

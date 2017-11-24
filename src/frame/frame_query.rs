@@ -3,7 +3,6 @@
 use rand;
 use frame::*;
 use consistency::Consistency;
-use {AsByte, IntoBytes};
 use types::*;
 use types::value::*;
 

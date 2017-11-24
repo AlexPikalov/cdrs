@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use rand;
 use frame::*;
 use types::to_short;
-use IntoBytes;
 
 const CQL_VERSION: &'static str = "CQL_VERSION";
 const CQL_VERSION_VAL: &'static str = "3.0.0";
@@ -77,7 +76,7 @@ impl Frame {
 #[cfg(test)]
 mod test {
     use super::*;
-    use frame::{Frame, Version, Flag, Opcode};
+    use frame::{Flag, Frame, Opcode, Version};
 
     #[test]
     fn new_body_req_startup_some_compression() {

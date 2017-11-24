@@ -7,7 +7,7 @@ use std::fmt::Debug;
 
 use uuid::Uuid;
 use time::Timespec;
-use IntoBytes;
+use frame::IntoBytes;
 
 use super::*;
 use super::blob::Blob;
@@ -162,7 +162,11 @@ impl Into<Bytes> for u64 {
 
 impl Into<Bytes> for bool {
     fn into(self) -> Bytes {
-        if self { Bytes(vec![1]) } else { Bytes(vec![0]) }
+        if self {
+            Bytes(vec![1])
+        } else {
+            Bytes(vec![0])
+        }
     }
 }
 

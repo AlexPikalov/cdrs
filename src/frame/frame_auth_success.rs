@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use FromCursor;
+use frame::FromCursor;
 use error;
 
 /// `BodyReqAuthSuccess` is a frame that represents a successfull authentication response.

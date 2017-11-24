@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use FromCursor;
+use frame::FromCursor;
 use error;
 use types::CBytes;
 

@@ -1,6 +1,6 @@
 use std::io::{Cursor, Read};
 
-use FromCursor;
+use frame::FromCursor;
 use compression::Compression;
 use frame::frame_response::ResponseBody;
 use super::*;
@@ -22,8 +22,8 @@ pub fn parse_frame(cursor: &mut Read, compressor: &Compression) -> error::Result
     let o = try!(cursor.read(&mut opcode_bytes));
     let l = try!(cursor.read(&mut length_bytes));
 
-    if v != Version::BYTE_LENGTH || f != Flag::BYTE_LENGTH || s != STREAM_LEN || o != Opcode::BYTE_LENGTH
-       || l != LENGTH_LEN {
+    if v != Version::BYTE_LENGTH || f != Flag::BYTE_LENGTH || s != STREAM_LEN
+       || o != Opcode::BYTE_LENGTH || l != LENGTH_LEN {
         return Err(error::Error::from("Empty or corrupted frame received"));
     }
 

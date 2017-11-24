@@ -2,10 +2,10 @@
 use std::net;
 use std::io;
 use std::collections::HashMap;
+
 use query::{Query, QueryBatch, QueryParams};
-use frame::{Flag, Frame, Opcode};
+use frame::{Flag, Frame, IntoBytes, Opcode};
 use frame::frame_response::ResponseBody;
-use IntoBytes;
 use frame::parser::parse_frame;
 use types::*;
 use frame::events::SimpleServerEvent;

@@ -1,7 +1,6 @@
 use rand;
 
 use types::CBytes;
-use IntoBytes;
 use frame::*;
 
 #[derive(Debug)]

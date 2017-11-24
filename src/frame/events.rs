@@ -1,9 +1,9 @@
 use std::io::Cursor;
 use std::cmp::PartialEq;
 
-use FromCursor;
+use frame::traits::FromCursor;
 use error;
-use types::{CString, CStringList, CInet};
+use types::{CInet, CString, CStringList};
 
 // Event types
 const TOPOLOGY_CHANGE: &'static str = "TOPOLOGY_CHANGE";
@@ -135,14 +135,11 @@ pub enum TopologyChangeType {
 
 impl FromCursor for TopologyChangeType {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<TopologyChangeType> {
-        CString::from_cursor(&mut cursor)
-            .and_then(|tc| match tc.as_str() {
-                NEW_NODE => Ok(TopologyChangeType::NewNode),
-                REMOVED_NODE => {
-                   Ok(TopologyChangeType::RemovedNode)
-                }
-                _ => Err("Unexpected topology change type received from Cluster".into()),
-                })
+        CString::from_cursor(&mut cursor).and_then(|tc| match tc.as_str() {
+            NEW_NODE => Ok(TopologyChangeType::NewNode),
+            REMOVED_NODE => Ok(TopologyChangeType::RemovedNode),
+            _ => Err("Unexpected topology change type received from Cluster".into()),
+        })
     }
 }
 

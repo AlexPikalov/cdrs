@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::io::Cursor;
 
-use FromCursor;
+use frame::FromCursor;
 use error;
-use types::{SHORT_LEN, cursor_next_value, try_from_bytes, CString, CStringList};
+use types::{cursor_next_value, try_from_bytes, CString, CStringList, SHORT_LEN};
 
 #[derive(Debug)]
 pub struct BodyResSupported {
@@ -12,8 +12,8 @@ pub struct BodyResSupported {
 
 impl FromCursor for BodyResSupported {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<BodyResSupported> {
-        let l = try_from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)?.as_slice())? as
-                usize;
+        let l =
+            try_from_bytes(cursor_next_value(&mut cursor, SHORT_LEN as u64)?.as_slice())? as usize;
         let mut data: HashMap<String, Vec<String>> = HashMap::with_capacity(l);
         for _ in 0..l {
             let name = CString::from_cursor(&mut cursor)?.into_plain();

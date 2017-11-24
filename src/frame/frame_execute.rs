@@ -1,7 +1,6 @@
 use rand;
 use types::*;
 use frame::*;
-use IntoBytes;
 use frame::frame_query::ParamsReqQuery;
 
 /// The structure that represents a body of a frame of type `execute`.
