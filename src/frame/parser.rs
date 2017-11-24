@@ -9,9 +9,9 @@ use types::data_serialization_types::decode_timeuuid;
 use error;
 
 pub fn parse_frame(cursor: &mut Read, compressor: &Compression) -> error::Result<Frame> {
-    let mut version_bytes = [0; VERSION_LEN];
-    let mut flag_bytes = [0; FLAG_LEN];
-    let mut opcode_bytes = [0; OPCODE_LEN];
+    let mut version_bytes = [0; Version::BYTE_LENGTH];
+    let mut flag_bytes = [0; Flag::BYTE_LENGTH];
+    let mut opcode_bytes = [0; Opcode::BYTE_LENGTH];
     let mut stream_bytes = [0; STREAM_LEN];
     let mut length_bytes = [0; LENGTH_LEN];
 
@@ -22,8 +22,9 @@ pub fn parse_frame(cursor: &mut Read, compressor: &Compression) -> error::Result
     let o = try!(cursor.read(&mut opcode_bytes));
     let l = try!(cursor.read(&mut length_bytes));
 
-    if v == 0 || f == 0 || s == 0 || o == 0 || l == 0 {
-        return Err(error::Error::from("Empty frame received"));
+    if v != Version::BYTE_LENGTH || f != Flag::BYTE_LENGTH || s != STREAM_LEN || o != Opcode::BYTE_LENGTH
+       || l != LENGTH_LEN {
+        return Err(error::Error::from("Empty or corrupted frame received"));
     }
 
     let version = Version::from(version_bytes.to_vec());

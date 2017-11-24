@@ -55,7 +55,7 @@ pub trait IntoRustByName<R> {
 
     fn get_r_by_name(&self, name: &str) -> CDRSResult<R> {
         self.get_by_name(name)
-            .and_then(|op| op.ok_or(column_is_empty_err()))
+            .and_then(|op| op.ok_or(column_is_empty_err(name)))
     }
 }
 
@@ -70,7 +70,7 @@ pub trait ByName {
         where Self: IntoRustByName<R>
     {
         self.by_name(name)
-            .and_then(|op| op.ok_or(column_is_empty_err()))
+            .and_then(|op| op.ok_or(column_is_empty_err(name)))
     }
 }
 
@@ -80,7 +80,7 @@ pub trait IntoRustByIndex<R> {
 
     fn get_r_by_index(&self, index: usize) -> CDRSResult<R> {
         self.get_by_index(index)
-            .and_then(|op| op.ok_or(column_is_empty_err()))
+            .and_then(|op| op.ok_or(column_is_empty_err(index)))
     }
 }
 
@@ -95,7 +95,7 @@ pub trait ByIndex {
         where Self: IntoRustByIndex<R>
     {
         self.by_index(index)
-            .and_then(|op| op.ok_or(column_is_empty_err()))
+            .and_then(|op| op.ok_or(column_is_empty_err(index)))
     }
 }
 

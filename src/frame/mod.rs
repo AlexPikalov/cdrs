@@ -5,12 +5,6 @@ use frame::frame_response::ResponseBody;
 use compression::Compression;
 use uuid::Uuid;
 
-/// Number of version bytes in accordance to protocol.
-pub const VERSION_LEN: usize = 1;
-/// Number of flag bytes in accordance to protocol.
-pub const FLAG_LEN: usize = 1;
-/// Number of opcode bytes in accordance to protocol.
-pub const OPCODE_LEN: usize = 1;
 /// Number of stream bytes in accordance to protocol.
 pub const STREAM_LEN: usize = 2;
 /// Number of body length bytes in accordance to protocol.
@@ -110,6 +104,11 @@ pub enum Version {
 }
 
 impl Version {
+    /// Number of bytes that represent Cassandra frame's version.
+    pub const BYTE_LENGTH: usize = 1;
+
+    /// It returns an actual Cassandra request frame version that CDRS can work with.
+    /// This version is based on selected feature - on of `v3`, `v4` or `v5`.
     fn request_version() -> u8 {
         if cfg!(feature = "v3") {
             0x03
@@ -118,10 +117,12 @@ impl Version {
         } else {
             panic!("{}",
                    "Protocol version is not supported. CDRS should be run with protocol feature \
-                   set to v3, v4 or v5");
+                    set to v3, v4 or v5");
         }
     }
 
+    /// It returns an actual Cassandra response frame version that CDRS can work with.
+    /// This version is based on selected feature - on of `v3`, `v4` or `v5`.
     fn response_version() -> u8 {
         if cfg!(feature = "v3") {
             0x83
@@ -130,7 +131,7 @@ impl Version {
         } else {
             panic!("{}",
                    "Protocol version is not supported. CDRS should be run with protocol feature \
-                   set to v3, v4 or v5");
+                    set to v3, v4 or v5");
         }
     }
 }
@@ -146,12 +147,12 @@ impl AsByte for Version {
 
 impl From<Vec<u8>> for Version {
     fn from(v: Vec<u8>) -> Version {
-        if v.len() != VERSION_LEN {
+        if v.len() != Self::BYTE_LENGTH {
             error!("Unexpected Cassandra verion. Should has {} byte(-s), got {:?}",
-                   VERSION_LEN,
+                   Self::BYTE_LENGTH,
                    v);
             panic!("Unexpected Cassandra verion. Should has {} byte(-s), got {:?}",
-                   VERSION_LEN,
+                   Self::BYTE_LENGTH,
                    v);
         }
         let version = v[0];
@@ -187,6 +188,10 @@ pub enum Flag {
 }
 
 impl Flag {
+    /// Number of flag bytes in accordance to protocol.
+    const BYTE_LENGTH: usize = 1;
+
+    /// It returns selected flags collection.
     pub fn get_collection(flags: u8) -> Vec<Flag> {
         let mut found_flags: Vec<Flag> = vec![];
 
@@ -280,6 +285,11 @@ pub enum Opcode {
     AuthChallenge,
     AuthResponse,
     AuthSuccess,
+}
+
+impl Opcode {
+    // Number of opcode bytes in accordance to protocol.
+    pub const BYTE_LENGTH: usize = 1;
 }
 
 impl AsByte for Opcode {
