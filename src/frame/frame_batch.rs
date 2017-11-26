@@ -1,6 +1,6 @@
 use rand;
 use frame::*;
-use frame::frame_query::QueryFlags;
+use query::QueryFlags;
 use types::*;
 use types::value::Value;
 use consistency::Consistency;

@@ -16,15 +16,15 @@ extern crate time;
 extern crate uuid;
 
 pub mod frame;
+pub mod query;
 pub mod types;
 
 pub mod authenticators;
-pub mod client;
-pub mod cluster;
+// pub mod client;
+// pub mod cluster;
 pub mod compression;
-pub mod connection_manager;
+// pub mod connection_manager;
 pub mod consistency;
 pub mod error;
 pub mod events;
-pub mod query;
 pub mod transport;
