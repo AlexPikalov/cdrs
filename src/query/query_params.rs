@@ -1,9 +1,9 @@
 use consistency::Consistency;
-use types::value::Value;
 use types::{to_bigint, to_short, CBytes};
 use frame::AsByte;
 use frame::IntoBytes;
 use query::query_flags::QueryFlags;
+use query::query_values::QueryValues;
 
 /// Parameters of Query for query operation.
 #[derive(Debug, Default)]
@@ -15,7 +15,7 @@ pub struct QueryParams {
   /// Were values provided with names
   pub with_names: Option<bool>,
   /// Array of values.
-  pub values: Option<Vec<Value>>,
+  pub values: Option<QueryValues>,
   /// Page size.
   pub page_size: Option<i32>,
   /// Array of bytes which represents paging state.
@@ -28,7 +28,7 @@ pub struct QueryParams {
 
 impl QueryParams {
   /// Sets values of Query request params.
-  pub fn set_values(&mut self, values: Vec<Value>) {
+  pub fn set_values(&mut self, values: QueryValues) {
     self.flags.push(QueryFlags::Value);
     self.values = Some(values);
   }
@@ -76,9 +76,7 @@ impl IntoBytes for QueryParams {
     if QueryFlags::has_value(self.flags_as_byte()) {
       if let Some(ref values) = self.values {
         v.extend_from_slice(to_short(values.len() as i16).as_slice());
-        for val in values {
-          v.extend_from_slice(val.into_cbytes().as_slice());
-        }
+        v.extend_from_slice(values.into_cbytes().as_slice());
       }
     }
     if QueryFlags::has_with_paging_state(self.flags_as_byte()) && self.paging_state.is_some() {

@@ -16,8 +16,9 @@ impl Random {
 
 impl<'a, N> LoadBalancingStrategy<'a, N> for Random {
   /// Returns next random node from a cluster
-  fn next(&'a mut self, cluster: &'a Vec<N>) -> Option<&N> {
-    cluster.get(Self::rnd_idx((0, cluster.len())))
+  fn next(&mut self, cluster: &'a mut Vec<N>) -> Option<&'a mut N> {
+    let len = cluster.len();
+    cluster.get_mut(Self::rnd_idx((0, len)))
   }
 }
 

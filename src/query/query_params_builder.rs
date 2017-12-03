@@ -1,13 +1,12 @@
 use consistency::Consistency;
-use types::value::Value;
 use types::CBytes;
-use super::{QueryFlags, QueryParams};
+use super::{QueryFlags, QueryParams, QueryValues};
 
 #[derive(Debug, Default)]
 pub struct QueryParamsBuilder {
   consistency: Consistency,
   flags: Option<Vec<QueryFlags>>,
-  values: Option<Vec<Value>>,
+  values: Option<QueryValues>,
   with_names: Option<bool>,
   page_size: Option<i32>,
   paging_state: Option<CBytes>,
@@ -33,7 +32,13 @@ impl QueryParamsBuilder {
   builder_opt_field!(flags, Vec<QueryFlags>);
 
   /// Sets new values.
-  builder_opt_field!(values, Vec<Value>);
+  /// Sets new query consistency
+  pub fn values(mut self, values: QueryValues) -> Self {
+    self.with_names = Some(values.with_names());
+    self.values = Some(values);
+
+    self
+  }
 
   /// Sets new with_names parameter value.
   builder_opt_field!(with_names, bool);

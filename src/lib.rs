@@ -15,6 +15,7 @@ extern crate rand;
 extern crate time;
 extern crate uuid;
 
+pub mod cluster;
 pub mod frame;
 pub mod load_balancing;
 pub mod query;

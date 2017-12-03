@@ -12,9 +12,9 @@ impl RoundRobin {
 
 impl<'a, N> LoadBalancingStrategy<'a, N> for RoundRobin {
   /// Returns next node from a cluster
-  fn next(&'a mut self, cluster: &'a Vec<N>) -> Option<&N> {
+  fn next(&'a mut self, cluster: &'a mut Vec<N>) -> Option<&'a mut N> {
     self.prev_idx = (self.prev_idx + 1) % cluster.len();
-    cluster.get(self.prev_idx)
+    cluster.get_mut(self.prev_idx)
   }
 }
 

@@ -4,8 +4,7 @@ use rand;
 use frame::*;
 use consistency::Consistency;
 use types::*;
-use types::value::*;
-use query::{QueryFlags, QueryParams};
+use query::{Query, QueryFlags, QueryParams, QueryValues};
 
 /// Structure which represents body of Query request
 #[derive(Debug)]
@@ -20,7 +19,7 @@ impl BodyReqQuery {
     // Fabric function that produces Query request body.
     fn new(query: String,
            consistency: Consistency,
-           values: Option<Vec<Value>>,
+           values: Option<QueryValues>,
            with_names: Option<bool>,
            page_size: Option<i32>,
            paging_state: Option<CBytes>,
@@ -76,7 +75,7 @@ impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
     pub fn new_req_query(query: String,
                          consistency: Consistency,
-                         values: Option<Vec<Value>>,
+                         values: Option<QueryValues>,
                          with_names: Option<bool>,
                          page_size: Option<i32>,
                          paging_state: Option<CBytes>,
@@ -106,5 +105,18 @@ impl Frame {
             tracing_id: None,
             warnings: vec![],
         }
+    }
+
+    /// **Note:** This function should be used internally for building query request frames.
+    pub fn new_query(query: Query, flags: Vec<Flag>) -> Frame {
+        Frame::new_req_query(query.query,
+                             query.params.consistency,
+                             query.params.values,
+                             query.params.with_names,
+                             query.params.page_size,
+                             query.params.paging_state,
+                             query.params.serial_consistency,
+                             query.params.timestamp,
+                             flags)
     }
 }
