@@ -9,7 +9,7 @@ use std::io::Write;
 use compression::Compression;
 use frame::{Flag, Frame, IntoBytes};
 use frame::parser::parse_frame;
-use query::{Query, QueryParams, QueryParamsBuilder, QueryValues};
+use query::{Query, QueryExecutor, QueryParams, QueryValues};
 
 
 pub struct Session<LB> {
@@ -32,60 +32,24 @@ impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> Session<LB> {
          compression: Compression::None,
        })
   }
+}
 
-  /// Executes a query with default parameters:
-  /// * TDB
-  pub fn query<Q: ToString>(&'a mut self, query: Q) -> error::Result<Frame> {
-    self.query_tw(query, false, false)
+impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> GetTransport<'a, TransportTcp>
+  for Session<LB> {
+  fn get_transport(&'a mut self) -> &'a mut TransportTcp {
+    self.load_balancing.next(&mut self.nodes).expect("")
   }
+}
 
-  /// Executes a query with ability to trace it and see warnings, and default parameters:
-  /// * TBD
-  pub fn query_tw<Q: ToString>(&'a mut self,
-                               query: Q,
-                               with_tracing: bool,
-                               with_warnings: bool)
-                               -> error::Result<Frame> {
-    let query_params = QueryParamsBuilder::new().finalize();
-    self.query_with_params_tw(query, query_params, with_tracing, with_warnings)
-  }
-
-  /// Executes a query with bounded values (either with or without names).
-  pub fn query_with_values<Q: ToString>(&'a mut self,
-                                        query: Q,
-                                        values: QueryValues)
-                                        -> error::Result<Frame> {
-    self.query_with_values_tw(query, values, false, false)
-  }
-
-  /// Executes a query with bounded values (either with or without names)
-  /// and ability to see warnings, trace a request and default parameters.
-  pub fn query_with_values_tw<Q: ToString>(&'a mut self,
-                                           query: Q,
-                                           values: QueryValues,
-                                           with_tracing: bool,
-                                           with_warnings: bool)
-                                           -> error::Result<Frame> {
-    let query_params_builder = QueryParamsBuilder::new();
-    let query_params = query_params_builder.values(values).finalize();
-    self.query_with_params_tw(query, query_params, with_tracing, with_warnings)
-  }
-
-  /// Executes a query with query params.
-  pub fn query_with_params<Q: ToString>(&'a mut self,
-                                        query: Q,
-                                        query_params: QueryParams)
-                                        -> error::Result<Frame> {
-    self.query_with_params_tw(query, query_params, false, false)
-  }
-
+impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> QueryExecutor<'a, TransportTcp>
+  for Session<LB> {
   /// Executes a query with query params and ability to trace a request and see warnings.
-  pub fn query_with_params_tw<Q: ToString>(&'a mut self,
-                                           query: Q,
-                                           query_params: QueryParams,
-                                           with_tracing: bool,
-                                           with_warnings: bool)
-                                           -> error::Result<Frame> {
+  fn query_with_params_tw<Q: ToString>(&'a mut self,
+                                       query: Q,
+                                       query_params: QueryParams,
+                                       with_tracing: bool,
+                                       with_warnings: bool)
+                                       -> error::Result<Frame> {
     let query = Query {
       query: query.to_string(),
       params: query_params,
@@ -106,12 +70,5 @@ impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> Session<LB> {
     let transport = self.get_transport();
     try!(transport.write(query_frame.as_slice()));
     parse_frame(transport, compression)
-  }
-}
-
-impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> GetTransport<'a, TransportTcp>
-  for Session<LB> {
-  fn get_transport(&'a mut self) -> &'a mut TransportTcp {
-    self.load_balancing.next(&mut self.nodes).expect("")
   }
 }
