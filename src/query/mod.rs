@@ -1,3 +1,4 @@
+mod prepare_executor;
 mod query_executor;
 mod query_flags;
 mod query;
@@ -5,6 +6,7 @@ mod query_params_builder;
 mod query_values;
 mod query_params;
 
+pub use query::prepare_executor::PrepareExecutor;
 pub use query::query_executor::QueryExecutor;
 pub use query::query_flags::QueryFlags;
 pub use query::query::Query;

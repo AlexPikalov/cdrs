@@ -9,7 +9,7 @@ use std::io::Write;
 use compression::Compression;
 use frame::{Flag, Frame, IntoBytes};
 use frame::parser::parse_frame;
-use query::{Query, QueryExecutor, QueryParams, QueryValues};
+use query::{PrepareExecutor, Query, QueryExecutor, QueryParams};
 
 
 pub struct Session<LB> {
@@ -41,8 +41,7 @@ impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> GetTransport<'a, T
   }
 }
 
-impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> QueryExecutor<'a, TransportTcp>
-  for Session<LB> {
+impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> QueryExecutor<'a> for Session<LB> {
   /// Executes a query with query params and ability to trace a request and see warnings.
   fn query_with_params_tw<Q: ToString>(&'a mut self,
                                        query: Q,
@@ -69,6 +68,29 @@ impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> QueryExecutor<'a, 
     let ref compression = self.compression.clone();
     let transport = self.get_transport();
     try!(transport.write(query_frame.as_slice()));
+    parse_frame(transport, compression)
+  }
+}
+
+impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> PrepareExecutor<'a> for Session<LB> {
+  fn prepare_tw<Q: ToString>(&'a mut self,
+                             query: Q,
+                             with_tracing: bool,
+                             with_warnings: bool)
+                             -> error::Result<Frame> {
+    let mut flags = vec![];
+    if with_tracing {
+      flags.push(Flag::Tracing);
+    }
+    if with_warnings {
+      flags.push(Flag::Warning);
+    }
+
+    let options_frame = Frame::new_req_prepare(query.to_string(), flags).into_cbytes();
+    let ref compression = self.compression.clone();
+    let transport = self.get_transport();
+
+    try!(transport.write(options_frame.as_slice()));
     parse_frame(transport, compression)
   }
 }

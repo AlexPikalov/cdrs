@@ -1,10 +1,8 @@
 use error;
-use cluster::GetTransport;
 use frame::Frame;
 use query::{QueryParams, QueryParamsBuilder, QueryValues};
-use transport::CDRSTransport;
 
-pub trait QueryExecutor<'a, T: CDRSTransport + 'a>: GetTransport<'a, T> {
+pub trait QueryExecutor<'a> {
   fn query_with_params_tw<Q: ToString>(&'a mut self,
                                        query: Q,
                                        query_params: QueryParams,
@@ -50,7 +48,7 @@ pub trait QueryExecutor<'a, T: CDRSTransport + 'a>: GetTransport<'a, T> {
     self.query_with_params_tw(query, query_params, with_tracing, with_warnings)
   }
 
-  /// Executes a query with query params.
+  /// Executes a query with query params without warnings and tracing.
   fn query_with_params<Q: ToString>(&'a mut self,
                                     query: Q,
                                     query_params: QueryParams)
