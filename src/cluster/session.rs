@@ -9,7 +9,7 @@ use std::io::Write;
 use compression::Compression;
 use frame::{Flag, Frame, IntoBytes};
 use frame::parser::parse_frame;
-use query::{PrepareExecutor, Query, QueryExecutor, QueryParams};
+use query::{ExecExecutor, PrepareExecutor, PreparedQuery, Query, QueryExecutor, QueryParams};
 
 
 pub struct Session<LB> {
@@ -91,6 +91,30 @@ impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> PrepareExecutor<'a
     let transport = self.get_transport();
 
     try!(transport.write(options_frame.as_slice()));
+    parse_frame(transport, compression)
+  }
+}
+
+impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> ExecExecutor<'a> for Session<LB> {
+  fn exec_with_params_tw(&'a mut self,
+                         prepared: &PreparedQuery,
+                         query_parameters: QueryParams,
+                         with_tracing: bool,
+                         with_warnings: bool)
+                         -> error::Result<Frame> {
+    let mut flags = vec![];
+    if with_tracing {
+      flags.push(Flag::Tracing);
+    }
+    if with_warnings {
+      flags.push(Flag::Warning);
+    }
+
+    let options_frame = Frame::new_req_execute(prepared, query_parameters, flags).into_cbytes();
+    let ref compression = self.compression.clone();
+    let transport = self.get_transport();
+
+    (transport.write(options_frame.as_slice()))?;
     parse_frame(transport, compression)
   }
 }
