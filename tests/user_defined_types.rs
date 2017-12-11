@@ -2,17 +2,23 @@ extern crate cdrs;
 extern crate uuid;
 extern crate time;
 extern crate regex;
+#[macro_use]
+extern crate maplit;
 
 mod common;
 
 use common::*;
 
 use cdrs::query::QueryBuilder;
-use cdrs::types::IntoRustByName;
+use cdrs::types::{IntoRustByName, AsRust};
 use cdrs::types::value::{Value, Bytes};
 use cdrs::types::udt::UDT;
+use cdrs::types::map::Map;
 use cdrs::error::Result;
 use cdrs::IntoBytes;
+use time::Timespec;
+
+use std::collections::HashMap;
 
 #[test]
 #[cfg(not(feature = "appveyor"))]
@@ -147,5 +153,82 @@ fn nested_udt() {
         let my_outer_udt_row: UDT = row.get_r_by_name("my_outer_udt").expect("my_outer_udt");
         let my_outer_udt_row = MyOuterUdt::try_from(my_outer_udt_row).expect("from udt");
         assert_eq!(my_outer_udt_row, my_outer_udt);
+    }
+}
+
+#[test]
+#[cfg(not(feature = "appveyor"))]
+fn alter_udt_add() {
+    let drop_table_cql = "DROP TABLE IF EXISTS cdrs_test.test_alter_udt_add";
+    let drop_type_cql = "DROP TYPE IF EXISTS cdrs_test.alter_udt_add_udt";
+    let create_type_cql = "CREATE TYPE cdrs_test.alter_udt_add_udt (my_text text)";
+    let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_alter_udt_add \
+                            (my_key int PRIMARY KEY, my_map frozen<map<text, alter_udt_add_udt>>)";
+    let mut session = setup_multiple(&[drop_table_cql, drop_type_cql, create_type_cql, create_table_cql]).expect("setup");
+
+    #[derive(Debug, Clone, PartialEq)]
+    struct MyUdtA {
+        pub my_text: String,
+    }
+
+    impl Into<Bytes> for MyUdtA {
+        fn into(self) -> Bytes {
+            let mut bytes = Vec::new();
+            let val_bytes: Bytes = self.my_text.into();
+            bytes.extend_from_slice(Value::new_normal(val_bytes).into_cbytes().as_slice());
+            Bytes::new(bytes)
+        }
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    struct MyUdtB {
+        pub my_text: String,
+        pub my_timestamp: Option<Timespec>,
+    }
+
+    impl MyUdtB {
+        pub fn try_from(udt: UDT) -> Result<MyUdtB> {
+            let my_text: String = udt.get_r_by_name("my_text")?;
+            let my_timestamp: Option<Timespec> = udt.get_by_name("my_timestamp")?;
+            Ok(MyUdtB { my_text: my_text, my_timestamp: my_timestamp })
+        }
+    }
+
+    let my_udt_a = MyUdtA { my_text: "my_text".to_string() };
+    let my_map_a = hashmap! { "1" => my_udt_a.clone() };
+    let values: Vec<Value> = vec![0i32.into(), my_map_a.clone().into()];
+
+    let cql = "INSERT INTO cdrs_test.test_alter_udt_add \
+               (my_key, my_map) VALUES (?, ?)";
+    let query = QueryBuilder::new(cql).values(values).finalize();
+    session.query(query, false, false).expect("insert");
+
+    let cql = "ALTER TYPE cdrs_test.alter_udt_add_udt ADD my_timestamp timestamp";
+    let query = QueryBuilder::new(cql).finalize();
+    session.query(query, false, false).expect("alter type");
+
+    let my_udt_b = MyUdtB { my_text: my_udt_a.my_text, my_timestamp: None };
+
+    let cql = "SELECT * FROM cdrs_test.test_alter_udt_add";
+    let query = QueryBuilder::new(cql).finalize();
+    let rows = session
+        .query(query, false, false)
+        .expect("query")
+        .get_body()
+        .expect("get body")
+        .into_rows()
+        .expect("into rows");
+
+    assert_eq!(rows.len(), 1);
+    for row in rows {
+        let my_map_row: Map = row.get_r_by_name("my_map").expect("my_map");
+        let my_map_row: HashMap<String, UDT> =
+            my_map_row.as_r_rust().expect("my_map as rust");
+
+        for (key, my_udt_row) in my_map_row {
+            let my_udt_row = MyUdtB::try_from(my_udt_row).expect("from udt");
+            assert_eq!(key, "1");
+            assert_eq!(my_udt_row, my_udt_b);
+        }
     }
 }
