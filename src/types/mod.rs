@@ -468,10 +468,17 @@ impl CBytes {
     pub fn new(bytes: Vec<u8>) -> CBytes {
         CBytes { bytes: Some(bytes) }
     }
+
+    /// Creates Cassandra bytes that represent empty or null value
+    pub fn new_empty() -> CBytes {
+        CBytes { bytes: None }
+    }
+
     /// Converts `CBytes` into a plain array of bytes
     pub fn into_plain(self) -> Option<Vec<u8>> {
         self.bytes
     }
+
     // TODO: try to replace usage of `as_plain` by `as_slice`
     pub fn as_plain(&self) -> Option<Vec<u8>> {
         self.bytes.clone()
@@ -623,7 +630,7 @@ pub fn cursor_next_value(cursor: &mut Cursor<&[u8]>, len: u64) -> CDRSResult<Vec
     unsafe {
         buff.set_len(l);
     }
-    try!(cursor.read(&mut buff));
+    try!(cursor.read_exact(&mut buff));
     cursor.set_position(current_position + len);
     Ok(buff)
 }
