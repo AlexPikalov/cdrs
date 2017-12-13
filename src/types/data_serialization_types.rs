@@ -2,7 +2,6 @@ use std::ops::Mul;
 use std::io;
 use std::net;
 use std::string::FromUtf8Error;
-use std::error::Error;
 use uuid;
 use super::*;
 use super::blob::Blob;
@@ -200,12 +199,11 @@ pub fn decode_udt(bytes: &[u8], l: usize) -> Result<Vec<CBytes>, io::Error> {
     for _ in 0..l {
         let v = CBytes::from_cursor(&mut cursor)
             .or_else(|err| match err {
-                         error::Error::Io(ref io_err) => {
+                         error::Error::Io(io_err) => {
                              if io_err.kind() == io::ErrorKind::UnexpectedEof {
                                  Ok(CBytes::new_empty())
                              } else {
-                                 Err(error::Error::Io(io::Error::new(io::ErrorKind::InvalidData,
-                                                                     io_err.description())))
+                                 Err(io_err.into())
                              }
                          }
                          _ => Err(err),
