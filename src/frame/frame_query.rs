@@ -18,16 +18,15 @@ pub struct BodyReqQuery {
 
 impl BodyReqQuery {
     // Fabric function that produces Query request body.
-    fn new(
-        query: String,
-        consistency: Consistency,
-        values: Option<Vec<Value>>,
-        with_names: Option<bool>,
-        page_size: Option<i32>,
-        paging_state: Option<CBytes>,
-        serial_consistency: Option<Consistency>,
-        timestamp: Option<i64>,
-    ) -> BodyReqQuery {
+    fn new(query: String,
+           consistency: Consistency,
+           values: Option<Vec<Value>>,
+           with_names: Option<bool>,
+           page_size: Option<i32>,
+           paging_state: Option<CBytes>,
+           serial_consistency: Option<Consistency>,
+           timestamp: Option<i64>)
+           -> BodyReqQuery {
         // query flags
         let mut flags: Vec<QueryFlags> = vec![];
         if values.is_some() {
@@ -46,18 +45,14 @@ impl BodyReqQuery {
             flags.push(QueryFlags::WithDefaultTimestamp);
         }
 
-        BodyReqQuery {
-            query: CStringLong::new(query),
-            query_params: ParamsReqQuery {
-                consistency: consistency,
-                flags: flags,
-                values: values,
-                page_size: page_size,
-                paging_state: paging_state,
-                serial_consistency: serial_consistency,
-                timestamp: timestamp,
-            },
-        }
+        BodyReqQuery { query: CStringLong::new(query),
+                       query_params: ParamsReqQuery { consistency: consistency,
+                                                      flags: flags,
+                                                      values: values,
+                                                      page_size: page_size,
+                                                      paging_state: paging_state,
+                                                      serial_consistency: serial_consistency,
+                                                      timestamp: timestamp, }, }
     }
 }
 
@@ -155,18 +150,16 @@ impl IntoBytes for ParamsReqQuery {
                                     .as_slice());
         }
         if QueryFlags::has_with_serial_consistency(self.flags_as_byte())
-            && self.serial_consistency.is_some()
+           && self.serial_consistency.is_some()
         {
             // XXX clone
-            v.extend_from_slice(
-                self.serial_consistency
+            v.extend_from_slice(self.serial_consistency
                                     .clone()
                                     // unwrap is safe as we've checked that
                                     // self.serial_consistency.is_some()
                                     .unwrap()
                                     .into_cbytes()
-                                    .as_slice(),
-            );
+                                    .as_slice());
         }
         if QueryFlags::has_with_default_timestamp(self.flags_as_byte()) && self.timestamp.is_some()
         {
@@ -295,40 +288,35 @@ impl AsByte for QueryFlags {
 
 impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
-    pub fn new_req_query(
-        query: String,
-        consistency: Consistency,
-        values: Option<Vec<Value>>,
-        with_names: Option<bool>,
-        page_size: Option<i32>,
-        paging_state: Option<CBytes>,
-        serial_consistency: Option<Consistency>,
-        timestamp: Option<i64>,
-        flags: Vec<Flag>,
-    ) -> Frame {
+    pub fn new_req_query(query: String,
+                         consistency: Consistency,
+                         values: Option<Vec<Value>>,
+                         with_names: Option<bool>,
+                         page_size: Option<i32>,
+                         paging_state: Option<CBytes>,
+                         serial_consistency: Option<Consistency>,
+                         timestamp: Option<i64>,
+                         flags: Vec<Flag>)
+                         -> Frame {
         let version = Version::Request;
         let stream = rand::random::<u16>();
         let opcode = Opcode::Query;
-        let body = BodyReqQuery::new(
-            query,
-            consistency,
-            values,
-            with_names,
-            page_size,
-            paging_state,
-            serial_consistency,
-            timestamp,
-        );
+        let body = BodyReqQuery::new(query,
+                                     consistency,
+                                     values,
+                                     with_names,
+                                     page_size,
+                                     paging_state,
+                                     serial_consistency,
+                                     timestamp);
 
-        Frame {
-            version: version,
-            flags: flags,
-            stream: stream,
-            opcode: opcode,
-            body: body.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame { version: version,
+                flags: flags,
+                stream: stream,
+                opcode: opcode,
+                body: body.into_cbytes(),
+                // for request frames it's always None
+                tracing_id: None,
+                warnings: vec![], }
     }
 }

@@ -36,11 +36,9 @@ impl FromCursor for CDRSError {
         let message = CString::from_cursor(&mut cursor)?;
         let additional_info = AdditionalErrorInfo::from_cursor_with_code(&mut cursor, error_code)?;
 
-        Ok(CDRSError {
-            error_code: error_code,
-            message: message,
-            additional_info: additional_info,
-        })
+        Ok(CDRSError { error_code: error_code,
+                       message: message,
+                       additional_info: additional_info, })
     }
 }
 
@@ -70,10 +68,9 @@ pub enum AdditionalErrorInfo {
 }
 
 impl AdditionalErrorInfo {
-    pub fn from_cursor_with_code(
-        mut cursor: &mut io::Cursor<&[u8]>,
-        error_code: CInt,
-    ) -> error::Result<AdditionalErrorInfo> {
+    pub fn from_cursor_with_code(mut cursor: &mut io::Cursor<&[u8]>,
+                                 error_code: CInt)
+                                 -> error::Result<AdditionalErrorInfo> {
         match error_code {
             0x0000 => Ok(AdditionalErrorInfo::Server(SimpleError::from_cursor(
                 &mut cursor,
@@ -163,11 +160,9 @@ impl FromCursor for UnavailableError {
         let required = CInt::from_cursor(&mut cursor)?;
         let alive = CInt::from_cursor(&mut cursor)?;
 
-        Ok(UnavailableError {
-            cl: cl,
-            required: required,
-            alive: alive,
-        })
+        Ok(UnavailableError { cl: cl,
+                              required: required,
+                              alive: alive, })
     }
 }
 
@@ -191,12 +186,10 @@ impl FromCursor for WriteTimeoutError {
         let blockfor = CInt::from_cursor(&mut cursor)?;
         let write_type = WriteType::from_cursor(&mut cursor)?;
 
-        Ok(WriteTimeoutError {
-            cl: cl,
-            received: received,
-            blockfor: blockfor,
-            write_type: write_type,
-        })
+        Ok(WriteTimeoutError { cl: cl,
+                               received: received,
+                               blockfor: blockfor,
+                               write_type: write_type, })
     }
 }
 
@@ -226,12 +219,10 @@ impl FromCursor for ReadTimeoutError {
         let blockfor = CInt::from_cursor(&mut cursor)?;
         let data_present = try_from_bytes(cursor_next_value(&mut cursor, 1)?.as_slice())? as u8;
 
-        Ok(ReadTimeoutError {
-            cl: cl,
-            received: received,
-            blockfor: blockfor,
-            data_present: data_present,
-        })
+        Ok(ReadTimeoutError { cl: cl,
+                              received: received,
+                              blockfor: blockfor,
+                              data_present: data_present, })
     }
 }
 
@@ -264,13 +255,11 @@ impl FromCursor for ReadFailureError {
         let num_failures = CInt::from_cursor(&mut cursor)?;
         let data_present = try_from_bytes(cursor_next_value(&mut cursor, 1)?.as_slice())? as u8;
 
-        Ok(ReadFailureError {
-            cl: cl,
-            received: received,
-            blockfor: blockfor,
-            num_failures: num_failures,
-            data_present: data_present,
-        })
+        Ok(ReadFailureError { cl: cl,
+                              received: received,
+                              blockfor: blockfor,
+                              num_failures: num_failures,
+                              data_present: data_present, })
     }
 }
 
@@ -291,11 +280,9 @@ impl FromCursor for FunctionFailureError {
         let function = CString::from_cursor(&mut cursor)?;
         let arg_types = CStringList::from_cursor(&mut cursor)?;
 
-        Ok(FunctionFailureError {
-            keyspace: keyspace,
-            function: function,
-            arg_types: arg_types,
-        })
+        Ok(FunctionFailureError { keyspace: keyspace,
+                                  function: function,
+                                  arg_types: arg_types, })
     }
 }
 
@@ -323,13 +310,11 @@ impl FromCursor for WriteFailureError {
         let num_failures = CInt::from_cursor(&mut cursor)?;
         let write_type = WriteType::from_cursor(&mut cursor)?;
 
-        Ok(WriteFailureError {
-            cl: cl,
-            received: received,
-            blockfor: blockfor,
-            num_failures: num_failures,
-            write_type: write_type,
-        })
+        Ok(WriteFailureError { cl: cl,
+                               received: received,
+                               blockfor: blockfor,
+                               num_failures: num_failures,
+                               write_type: write_type, })
     }
 }
 
@@ -355,13 +340,15 @@ pub enum WriteType {
 impl FromCursor for WriteType {
     fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<WriteType> {
         CString::from_cursor(&mut cursor).and_then(|wt| match wt.as_str() {
-            "SIMPLE" => Ok(WriteType::Simple),
-            "BATCH" => Ok(WriteType::Batch),
-            "UNLOGGED_BATCH" => Ok(WriteType::UnloggedBatch),
-            "COUNTER" => Ok(WriteType::Counter),
-            "BATCH_LOG" => Ok(WriteType::BatchLog),
-            _ => Err("Unexpected write type".into()),
-        })
+                                                       "SIMPLE" => Ok(WriteType::Simple),
+                                                       "BATCH" => Ok(WriteType::Batch),
+                                                       "UNLOGGED_BATCH" => {
+                                                           Ok(WriteType::UnloggedBatch)
+                                                       }
+                                                       "COUNTER" => Ok(WriteType::Counter),
+                                                       "BATCH_LOG" => Ok(WriteType::BatchLog),
+                                                       _ => Err("Unexpected write type".into()),
+                                                   })
     }
 }
 
@@ -381,10 +368,8 @@ impl FromCursor for AlreadyExistsError {
         let ks = CString::from_cursor(&mut cursor)?;
         let table = CString::from_cursor(&mut cursor)?;
 
-        Ok(AlreadyExistsError {
-            ks: ks,
-            table: table,
-        })
+        Ok(AlreadyExistsError { ks: ks,
+                                table: table, })
     }
 }
 

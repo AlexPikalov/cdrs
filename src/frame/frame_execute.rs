@@ -16,10 +16,8 @@ pub struct BodyReqExecute<'a> {
 impl<'a> BodyReqExecute<'a> {
     /// The method which creates new instance of `BodyReqExecute`
     pub fn new(id: &CBytesShort, query_parameters: ParamsReqQuery) -> BodyReqExecute {
-        BodyReqExecute {
-            id: id,
-            query_parameters: query_parameters,
-        }
+        BodyReqExecute { id: id,
+                         query_parameters: query_parameters, }
     }
 }
 
@@ -34,29 +32,24 @@ impl<'a> IntoBytes for BodyReqExecute<'a> {
 
 impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
-    pub fn new_req_execute(
-        id: &CBytesShort,
-        query_parameters: ParamsReqQuery,
-        flags: Vec<Flag>,
-    ) -> Frame {
+    pub fn new_req_execute(id: &CBytesShort,
+                           query_parameters: ParamsReqQuery,
+                           flags: Vec<Flag>)
+                           -> Frame {
         let version = Version::Request;
         let stream = rand::random::<u16>();
         let opcode = Opcode::Execute;
-        debug!(
-            "prepared statement id{:?} getting executed  with parameters  {:?}",
-            id, query_parameters
-        );
+        debug!("prepared statement id{:?} getting executed  with parameters  {:?}",
+               id, query_parameters);
         let body = BodyReqExecute::new(id, query_parameters);
 
-        Frame {
-            version: version,
-            flags: flags,
-            stream: stream,
-            opcode: opcode,
-            body: body.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame { version: version,
+                flags: flags,
+                stream: stream,
+                opcode: opcode,
+                body: body.into_cbytes(),
+                // for request frames it's always None
+                tracing_id: None,
+                warnings: vec![], }
     }
 }

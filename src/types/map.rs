@@ -21,10 +21,8 @@ pub struct Map {
 impl Map {
     /// Creates new `Map` using the provided data and key and value types.
     pub fn new(data: Vec<(CBytes, CBytes)>, meta: ColTypeOption) -> Map {
-        Map {
-            metadata: meta,
-            data: data,
-        }
+        Map { metadata: meta,
+              data: data, }
     }
 }
 

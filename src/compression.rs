@@ -155,16 +155,14 @@ impl Compression {
 
     fn encode_snappy(bytes: Vec<u8>) -> Result<Vec<u8>> {
         let mut encoder = snap::Encoder::new();
-        encoder
-            .compress_vec(bytes.as_slice())
-            .map_err(CompressionError::Snappy)
+        encoder.compress_vec(bytes.as_slice())
+               .map_err(CompressionError::Snappy)
     }
 
     fn decode_snappy(bytes: Vec<u8>) -> Result<Vec<u8>> {
         let mut decoder = snap::Decoder::new();
-        decoder
-            .decompress_vec(bytes.as_slice())
-            .map_err(CompressionError::Snappy)
+        decoder.decompress_vec(bytes.as_slice())
+               .map_err(CompressionError::Snappy)
     }
 
     fn encode_lz4(bytes: Vec<u8>) -> Result<Vec<u8>> {
@@ -225,9 +223,8 @@ mod tests {
     fn test_compression_encode_snappy() {
         let snappy_compression = Compression::Snappy;
         let bytes = String::from("Hello World").into_bytes().to_vec();
-        snappy_compression
-            .encode(bytes.clone())
-            .expect("Should work without exceptions");
+        snappy_compression.encode(bytes.clone())
+                          .expect("Should work without exceptions");
     }
 
     #[test]
@@ -242,9 +239,8 @@ mod tests {
     fn test_compression_encode_lz4() {
         let snappy_compression = Compression::Lz4;
         let bytes = String::from("Hello World").into_bytes().to_vec();
-        snappy_compression
-            .encode(bytes.clone())
-            .expect("Should work without exceptions");
+        snappy_compression.encode(bytes.clone())
+                          .expect("Should work without exceptions");
     }
 
     #[test]
@@ -262,9 +258,8 @@ mod tests {
     fn test_compression_encode_none() {
         let none_compression = Compression::None;
         let bytes = String::from("Hello World").into_bytes().to_vec();
-        none_compression
-            .encode(bytes.clone())
-            .expect("Should work without exceptions");
+        none_compression.encode(bytes.clone())
+                        .expect("Should work without exceptions");
     }
 
     #[test]
@@ -288,9 +283,8 @@ mod tests {
     fn test_compression_encode_snappy_with_non_utf8() {
         let snappy_compression = Compression::Snappy;
         let v = vec![0xff, 0xff];
-        let encoded = snappy_compression
-            .encode(v.clone())
-            .expect("Should work without exceptions");
+        let encoded = snappy_compression.encode(v.clone())
+                                        .expect("Should work without exceptions");
         assert_eq!(snappy_compression.decode(encoded).unwrap(), v);
     }
 

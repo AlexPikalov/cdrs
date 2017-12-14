@@ -41,8 +41,7 @@ pub trait IntoBytes {
 pub trait FromBytes {
     /// It gets and array of bytes and should return an implementor struct.
     fn from_bytes(&[u8]) -> error::Result<Self>
-    where
-        Self: Sized;
+        where Self: Sized;
 }
 
 /// `AsBytes` should be used to convert a value into a single byte.
@@ -63,8 +62,7 @@ pub trait FromSingleByte {
 pub trait FromCursor {
     /// It should return an implementor from an `io::Cursor` over an array of bytes.
     fn from_cursor(&mut Cursor<&[u8]>) -> error::Result<Self>
-    where
-        Self: Sized;
+        where Self: Sized;
 }
 
 /// The trait that allows transformation of `Self` to `types::value::Value`.

@@ -62,17 +62,14 @@ pub struct LoadBalancer<T> {
 impl<T> LoadBalancer<T> {
     /// Factory function which creates new `LoadBalancer` with provided strategy.
     pub fn new(nodes: Vec<T>, strategy: LoadBalancingStrategy) -> LoadBalancer<T> {
-        LoadBalancer {
-            nodes: nodes,
-            strategy: strategy,
-            i: AtomicUsize::new(0),
-        }
+        LoadBalancer { nodes: nodes,
+                       strategy: strategy,
+                       i: AtomicUsize::new(0), }
     }
 
     /// Returns next node basing on provided strategy.
     pub fn next(&self) -> Option<&T> {
-        let next = self.strategy
-            .next(&self.nodes, self.i.load(Ordering::Relaxed) as usize);
+        let next = self.strategy.next(&self.nodes, self.i.load(Ordering::Relaxed) as usize);
         if self.strategy == LoadBalancingStrategy::RoundRobin {
             self.i.fetch_add(1, Ordering::Relaxed);
             // prevent overflow
@@ -94,36 +91,30 @@ pub struct ClusterConnectionManager<T, X> {
 }
 
 impl<T, X> ClusterConnectionManager<T, X>
-where
-    T: Authenticator + Send + Sync + 'static,
+    where T: Authenticator + Send + Sync + 'static
 {
     /// Creates a new instance of `ConnectionManager`.
     /// It requires transport, authenticator and compression as inputs.
-    pub fn new(
-        load_balancer: LoadBalancer<X>,
-        authenticator: T,
-        compression: Compression,
-    ) -> ClusterConnectionManager<T, X> {
-        ClusterConnectionManager {
-            load_balancer: load_balancer,
-            authenticator: authenticator,
-            compression: compression,
-        }
+    pub fn new(load_balancer: LoadBalancer<X>,
+               authenticator: T,
+               compression: Compression)
+               -> ClusterConnectionManager<T, X> {
+        ClusterConnectionManager { load_balancer: load_balancer,
+                                   authenticator: authenticator,
+                                   compression: compression, }
     }
 }
 
-impl<
-    T: Authenticator + Send + Sync + 'static,
-    X: CDRSTransport + Send + Sync + 'static,
-> r2d2::ManageConnection for ClusterConnectionManager<T, X> {
+impl<T: Authenticator + Send + Sync + 'static,
+     X: CDRSTransport + Send + Sync + 'static> r2d2::ManageConnection
+    for ClusterConnectionManager<T, X> {
     type Connection = Session<T, X>;
     type Error = CError;
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
-        let transport_res: CResult<X> = self.load_balancer
-            .next()
-            .ok_or_else(|| "Cannot get next node".into())
-            .and_then(|x| x.try_clone().map_err(|e| e.into()));
+        let transport_res: CResult<X> = self.load_balancer.next()
+                                            .ok_or_else(|| "Cannot get next node".into())
+                                            .and_then(|x| x.try_clone().map_err(|e| e.into()));
         let transport = try!(transport_res);
         let compression = self.compression;
         let cdrs = CDRS::new(transport, self.authenticator.clone());

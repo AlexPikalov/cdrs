@@ -70,25 +70,27 @@ pub fn parse_frame(cursor: &mut Read, compressor: &Compression) -> error::Result
 
     try!(body_cursor.read_to_end(&mut body));
 
-    let frame = Frame {
-        version: version,
-        flags: flags,
-        opcode: opcode,
-        stream: stream,
-        body: body,
-        tracing_id: tracing_id,
-        warnings: warnings,
-    };
+    let frame = Frame { version: version,
+                        flags: flags,
+                        opcode: opcode,
+                        stream: stream,
+                        body: body,
+                        tracing_id: tracing_id,
+                        warnings: warnings, };
 
     convert_frame_into_result(frame)
 }
 
 fn convert_frame_into_result(frame: Frame) -> error::Result<Frame> {
     match frame.opcode {
-        Opcode::Error => frame.get_body().and_then(|err| match err {
-            ResponseBody::Error(err) => Err(error::Error::Server(err)),
-            _ => unreachable!(),
-        }),
+        Opcode::Error => {
+            frame.get_body().and_then(|err| match err {
+                                          ResponseBody::Error(err) => {
+                                              Err(error::Error::Server(err))
+                                          }
+                                          _ => unreachable!(),
+                                      })
+        }
         _ => Ok(frame),
     }
 }

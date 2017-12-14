@@ -20,15 +20,12 @@ pub struct List {
 
 impl List {
     pub fn new(data: Vec<CBytes>, metadata: ColTypeOption) -> List {
-        List {
-            metadata: metadata,
-            data: data,
-        }
+        List { metadata: metadata,
+               data: data, }
     }
 
     fn map<T, F>(&self, f: F) -> Vec<T>
-    where
-        F: FnMut(&CBytes) -> T,
+        where F: FnMut(&CBytes) -> T
     {
         self.data.iter().map(f).collect()
     }

@@ -40,31 +40,24 @@ pub struct Value {
 impl Value {
     /// The factory method which creates a normal type value basing on provided bytes.
     pub fn new_normal<B>(v: B) -> Value
-    where
-        B: Into<Bytes>,
+        where B: Into<Bytes>
     {
         let bytes = v.into().0;
         let l = bytes.len() as i32;
-        Value {
-            body: bytes,
-            value_type: ValueType::Normal(l),
-        }
+        Value { body: bytes,
+                value_type: ValueType::Normal(l), }
     }
 
     /// The factory method which creates null Cassandra value.
     pub fn new_null() -> Value {
-        Value {
-            body: vec![],
-            value_type: ValueType::Null,
-        }
+        Value { body: vec![],
+                value_type: ValueType::Null, }
     }
 
     /// The factory method which creates non-set Cassandra value.
     pub fn new_not_set() -> Value {
-        Value {
-            body: vec![],
-            value_type: ValueType::NotSet,
-        }
+        Value { body: vec![],
+                value_type: ValueType::NotSet, }
     }
 }
 
@@ -225,9 +218,8 @@ impl<T: Into<Bytes> + Clone + Debug> From<Vec<T>> for Bytes {
 }
 
 impl<K, V> From<HashMap<K, V>> for Bytes
-where
-    K: Into<Bytes> + Clone + Debug + Hash + Eq,
-    V: Into<Bytes> + Clone + Debug,
+    where K: Into<Bytes> + Clone + Debug + Hash + Eq,
+          V: Into<Bytes> + Clone + Debug
 {
     fn from(map: HashMap<K, V>) -> Bytes {
         let mut bytes: Vec<u8> = vec![];

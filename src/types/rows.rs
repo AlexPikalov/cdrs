@@ -21,25 +21,21 @@ pub struct Row {
 
 impl Row {
     pub fn from_frame_body(body: BodyResResultRows) -> Vec<Row> {
-        body.rows_content
-            .iter()
-            .map(|row| Row {
-                metadata: body.metadata.clone(),
-                row_content: row.clone(),
-            })
+        body.rows_content.iter()
+            .map(|row| Row { metadata: body.metadata.clone(),
+                             row_content: row.clone(), })
             .collect()
     }
 
     fn get_col_spec_by_name(&self, name: &str) -> Option<(&ColSpec, &CBytes)> {
-        self.metadata
-            .col_specs
+        self.metadata.col_specs
             .iter()
             .position(|spec| spec.name.as_str() == name)
             .map(|i| {
-                let ref col_spec = self.metadata.col_specs[i];
-                let ref data = self.row_content[i];
-                (col_spec, data)
-            })
+                     let ref col_spec = self.metadata.col_specs[i];
+                     let ref data = self.row_content[i];
+                     (col_spec, data)
+                 })
     }
 
     fn get_col_spec_by_index(&self, index: usize) -> Option<(&ColSpec, &CBytes)> {

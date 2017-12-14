@@ -97,15 +97,11 @@ impl FromCursor for ServerEvent {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<ServerEvent> {
         let event_type = CString::from_cursor(&mut cursor)?;
         match event_type.as_str() {
-            TOPOLOGY_CHANGE => Ok(ServerEvent::TopologyChange(TopologyChange::from_cursor(
-                &mut cursor,
-            )?)),
-            STATUS_CHANGE => Ok(ServerEvent::StatusChange(StatusChange::from_cursor(
-                &mut cursor,
-            )?)),
-            SCHEMA_CHANGE => Ok(ServerEvent::SchemaChange(SchemaChange::from_cursor(
-                &mut cursor,
-            )?)),
+            TOPOLOGY_CHANGE => {
+                Ok(ServerEvent::TopologyChange(TopologyChange::from_cursor(&mut cursor)?))
+            }
+            STATUS_CHANGE => Ok(ServerEvent::StatusChange(StatusChange::from_cursor(&mut cursor)?)),
+            SCHEMA_CHANGE => Ok(ServerEvent::SchemaChange(SchemaChange::from_cursor(&mut cursor)?)),
             _ => Err("Unexpected server event".into()),
         }
     }
@@ -123,10 +119,8 @@ impl FromCursor for TopologyChange {
         let change_type = TopologyChangeType::from_cursor(&mut cursor)?;
         let addr = CInet::from_cursor(&mut cursor)?;
 
-        Ok(TopologyChange {
-            change_type: change_type,
-            addr: addr,
-        })
+        Ok(TopologyChange { change_type: change_type,
+                            addr: addr, })
     }
 }
 
@@ -158,10 +152,8 @@ impl FromCursor for StatusChange {
         let change_type = StatusChangeType::from_cursor(&mut cursor)?;
         let addr = CInet::from_cursor(&mut cursor)?;
 
-        Ok(StatusChange {
-            change_type: change_type,
-            addr: addr,
-        })
+        Ok(StatusChange { change_type: change_type,
+                          addr: addr, })
     }
 }
 
@@ -195,11 +187,9 @@ impl FromCursor for SchemaChange {
         let target = Target::from_cursor(&mut cursor)?;
         let options = ChangeSchemeOptions::from_cursor_and_target(&mut cursor, &target)?;
 
-        Ok(SchemaChange {
-            change_type: change_type,
-            target: target,
-            options: options,
-        })
+        Ok(SchemaChange { change_type: change_type,
+                          target: target,
+                          options: options, })
     }
 }
 
@@ -262,10 +252,9 @@ pub enum ChangeSchemeOptions {
 }
 
 impl ChangeSchemeOptions {
-    fn from_cursor_and_target(
-        mut cursor: &mut Cursor<&[u8]>,
-        target: &Target,
-    ) -> error::Result<ChangeSchemeOptions> {
+    fn from_cursor_and_target(mut cursor: &mut Cursor<&[u8]>,
+                              target: &Target)
+                              -> error::Result<ChangeSchemeOptions> {
         Ok(match *target {
             Target::Keyspace => ChangeSchemeOptions::from_cursor_keyspace(&mut cursor)?,
             Target::Table | Target::Type => {
@@ -278,30 +267,24 @@ impl ChangeSchemeOptions {
     }
 
     fn from_cursor_keyspace(mut cursor: &mut Cursor<&[u8]>) -> error::Result<ChangeSchemeOptions> {
-        Ok(ChangeSchemeOptions::Keyspace(
-            CString::from_cursor(&mut cursor)?.into_plain(),
-        ))
+        Ok(ChangeSchemeOptions::Keyspace(CString::from_cursor(&mut cursor)?.into_plain()))
     }
 
-    fn from_cursor_table_type(
-        mut cursor: &mut Cursor<&[u8]>,
-    ) -> error::Result<ChangeSchemeOptions> {
+    fn from_cursor_table_type(mut cursor: &mut Cursor<&[u8]>)
+                              -> error::Result<ChangeSchemeOptions> {
         let keyspace = CString::from_cursor(&mut cursor)?.into_plain();
         let name = CString::from_cursor(&mut cursor)?.into_plain();
         Ok(ChangeSchemeOptions::TableType((keyspace, name)))
     }
 
-    fn from_cursor_function_aggregate(
-        mut cursor: &mut Cursor<&[u8]>,
-    ) -> error::Result<ChangeSchemeOptions> {
+    fn from_cursor_function_aggregate(mut cursor: &mut Cursor<&[u8]>)
+                                      -> error::Result<ChangeSchemeOptions> {
         let keyspace = CString::from_cursor(&mut cursor)?.into_plain();
         let name = CString::from_cursor(&mut cursor)?.into_plain();
         let types = CStringList::from_cursor(&mut cursor)?.into_plain();
-        Ok(ChangeSchemeOptions::FunctionAggregate((
-            keyspace,
-            name,
-            types,
-        )))
+        Ok(ChangeSchemeOptions::FunctionAggregate((keyspace,
+                                                  name,
+                                                  types)))
     }
 }
 
@@ -311,18 +294,12 @@ mod simple_server_event_test {
 
     #[test]
     fn as_string() {
-        assert_eq!(
-            SimpleServerEvent::TopologyChange.as_string(),
-            "TOPOLOGY_CHANGE".to_string()
-        );
-        assert_eq!(
-            SimpleServerEvent::StatusChange.as_string(),
-            "STATUS_CHANGE".to_string()
-        );
-        assert_eq!(
-            SimpleServerEvent::SchemaChange.as_string(),
-            "SCHEMA_CHANGE".to_string()
-        );
+        assert_eq!(SimpleServerEvent::TopologyChange.as_string(),
+                   "TOPOLOGY_CHANGE".to_string());
+        assert_eq!(SimpleServerEvent::StatusChange.as_string(),
+                   "STATUS_CHANGE".to_string());
+        assert_eq!(SimpleServerEvent::SchemaChange.as_string(),
+                   "SCHEMA_CHANGE".to_string());
     }
 }
 
@@ -336,17 +313,13 @@ mod topology_change_type_test {
     fn from_cursor() {
         let a = &[0, 8, 78, 69, 87, 95, 78, 79, 68, 69];
         let mut new_node: Cursor<&[u8]> = Cursor::new(a);
-        assert_eq!(
-            TopologyChangeType::from_cursor(&mut new_node).unwrap(),
-            TopologyChangeType::NewNode
-        );
+        assert_eq!(TopologyChangeType::from_cursor(&mut new_node).unwrap(),
+                   TopologyChangeType::NewNode);
 
         let b = &[0, 12, 82, 69, 77, 79, 86, 69, 68, 95, 78, 79, 68, 69];
         let mut removed_node: Cursor<&[u8]> = Cursor::new(b);
-        assert_eq!(
-            TopologyChangeType::from_cursor(&mut removed_node).unwrap(),
-            TopologyChangeType::RemovedNode
-        );
+        assert_eq!(TopologyChangeType::from_cursor(&mut removed_node).unwrap(),
+                   TopologyChangeType::RemovedNode);
     }
 
     #[test]
@@ -368,17 +341,13 @@ mod status_change_type_test {
     fn from_cursor() {
         let a = &[0, 2, 85, 80];
         let mut up: Cursor<&[u8]> = Cursor::new(a);
-        assert_eq!(
-            StatusChangeType::from_cursor(&mut up).unwrap(),
-            StatusChangeType::Up
-        );
+        assert_eq!(StatusChangeType::from_cursor(&mut up).unwrap(),
+                   StatusChangeType::Up);
 
         let b = &[0, 4, 68, 79, 87, 78];
         let mut down: Cursor<&[u8]> = Cursor::new(b);
-        assert_eq!(
-            StatusChangeType::from_cursor(&mut down).unwrap(),
-            StatusChangeType::Down
-        );
+        assert_eq!(StatusChangeType::from_cursor(&mut down).unwrap(),
+                   StatusChangeType::Down);
     }
 
     #[test]
@@ -400,24 +369,18 @@ mod schema_change_type_test {
     fn from_cursor() {
         let a = &[0, 7, 67, 82, 69, 65, 84, 69, 68];
         let mut created: Cursor<&[u8]> = Cursor::new(a);
-        assert_eq!(
-            ChangeType::from_cursor(&mut created).unwrap(),
-            ChangeType::Created
-        );
+        assert_eq!(ChangeType::from_cursor(&mut created).unwrap(),
+                   ChangeType::Created);
 
         let b = &[0, 7, 85, 80, 68, 65, 84, 69, 68];
         let mut updated: Cursor<&[u8]> = Cursor::new(b);
-        assert_eq!(
-            ChangeType::from_cursor(&mut updated).unwrap(),
-            ChangeType::Updated
-        );
+        assert_eq!(ChangeType::from_cursor(&mut updated).unwrap(),
+                   ChangeType::Updated);
 
         let c = &[0, 7, 68, 82, 79, 80, 80, 69, 68];
         let mut dropped: Cursor<&[u8]> = Cursor::new(c);
-        assert_eq!(
-            ChangeType::from_cursor(&mut dropped).unwrap(),
-            ChangeType::Dropped
-        );
+        assert_eq!(ChangeType::from_cursor(&mut dropped).unwrap(),
+                   ChangeType::Dropped);
     }
 
     #[test]
@@ -439,10 +402,8 @@ mod schema_change_target_test {
     fn from_cursor() {
         let a = &[0, 8, 75, 69, 89, 83, 80, 65, 67, 69];
         let mut keyspace: Cursor<&[u8]> = Cursor::new(a);
-        assert_eq!(
-            Target::from_cursor(&mut keyspace).unwrap(),
-            Target::Keyspace
-        );
+        assert_eq!(Target::from_cursor(&mut keyspace).unwrap(),
+                   Target::Keyspace);
 
         let b = &[0, 5, 84, 65, 66, 76, 69];
         let mut table: Cursor<&[u8]> = Cursor::new(b);
@@ -454,17 +415,13 @@ mod schema_change_target_test {
 
         let d = &[0, 8, 70, 85, 78, 67, 84, 73, 79, 78];
         let mut function: Cursor<&[u8]> = Cursor::new(d);
-        assert_eq!(
-            Target::from_cursor(&mut function).unwrap(),
-            Target::Function
-        );
+        assert_eq!(Target::from_cursor(&mut function).unwrap(),
+                   Target::Function);
 
         let e = &[0, 9, 65, 71, 71, 82, 69, 71, 65, 84, 69];
         let mut aggregate: Cursor<&[u8]> = Cursor::new(e);
-        assert_eq!(
-            Target::from_cursor(&mut aggregate).unwrap(),
-            Target::Aggregate
-        );
+        assert_eq!(Target::from_cursor(&mut aggregate).unwrap(),
+                   Target::Aggregate);
     }
 
     #[test]

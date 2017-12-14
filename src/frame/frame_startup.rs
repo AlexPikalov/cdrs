@@ -61,16 +61,14 @@ impl Frame {
         let opcode = Opcode::Startup;
         let body = BodyReqStartup::new(compression);
 
-        Frame {
-            version: version,
-            flags: vec![flag],
-            stream: stream,
-            opcode: opcode,
-            body: body.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame { version: version,
+                flags: vec![flag],
+                stream: stream,
+                opcode: opcode,
+                body: body.into_cbytes(),
+                // for request frames it's always None
+                tracing_id: None,
+                warnings: vec![], }
     }
 }
 
