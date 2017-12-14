@@ -45,7 +45,6 @@ type Result<T> = result::Result<T, CompressionError>;
 pub const LZ4: &'static str = "lz4";
 pub const SNAPPY: &'static str = "snappy";
 
-
 /// It's an error which may occure during encoding or deconding
 /// frame body. As there are only two types of compressors it
 /// contains two related enum options.
@@ -199,8 +198,6 @@ impl<'a> From<&'a str> for Compression {
     }
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -270,7 +267,6 @@ mod tests {
             .expect("Should work without exceptions");
     }
 
-
     #[test]
     fn test_compression_decode_none() {
         let none_compression = Compression::None;
@@ -278,7 +274,6 @@ mod tests {
         let encoded = none_compression.encode(bytes.clone()).unwrap();
         assert_eq!(none_compression.decode(encoded).unwrap(), bytes);
     }
-
 
     #[test]
     fn test_compression_encode_lz4_with_invalid_input() {
@@ -288,7 +283,6 @@ mod tests {
         let decode = lz4_compression.decode(encoded);
         assert_eq!(decode.is_err(), true);
     }
-
 
     #[test]
     fn test_compression_encode_snappy_with_non_utf8() {

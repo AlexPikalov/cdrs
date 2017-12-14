@@ -2,7 +2,7 @@ use rand;
 use IntoBytes;
 use frame::*;
 use frame::events::SimpleServerEvent;
-use types::{CStringList, CString};
+use types::{CString, CStringList};
 
 /// The structure which represents a body of a frame of type `options`.
 pub struct BodyReqRegister {

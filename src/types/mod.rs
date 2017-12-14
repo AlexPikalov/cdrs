@@ -36,13 +36,15 @@ pub trait AsRustType<T> {
 
 pub trait AsRust {
     fn as_rust<R>(&self) -> CDRSResult<Option<R>>
-        where Self: AsRustType<R>
+    where
+        Self: AsRustType<R>,
     {
         self.as_rust_type()
     }
 
     fn as_r_rust<T>(&self) -> CDRSResult<T>
-        where Self: AsRustType<T>
+    where
+        Self: AsRustType<T>,
     {
         self.as_rust()
             .and_then(|op| op.ok_or("Value is null or non-set".into()))
@@ -61,13 +63,15 @@ pub trait IntoRustByName<R> {
 
 pub trait ByName {
     fn by_name<R>(&self, name: &str) -> CDRSResult<Option<R>>
-        where Self: IntoRustByName<R>
+    where
+        Self: IntoRustByName<R>,
     {
         self.get_by_name(name)
     }
 
     fn r_by_name<R>(&self, name: &str) -> CDRSResult<R>
-        where Self: IntoRustByName<R>
+    where
+        Self: IntoRustByName<R>,
     {
         self.by_name(name)
             .and_then(|op| op.ok_or(column_is_empty_err()))
@@ -86,13 +90,15 @@ pub trait IntoRustByIndex<R> {
 
 pub trait ByIndex {
     fn by_index<R>(&self, index: usize) -> CDRSResult<Option<R>>
-        where Self: IntoRustByIndex<R>
+    where
+        Self: IntoRustByIndex<R>,
     {
         self.get_by_index(index)
     }
 
     fn r_by_index<R>(&self, index: usize) -> CDRSResult<R>
-        where Self: IntoRustByIndex<R>
+    where
+        Self: IntoRustByIndex<R>,
     {
         self.by_index(index)
             .and_then(|op| op.ok_or(column_is_empty_err()))
@@ -573,7 +579,6 @@ impl IntoBytes for CBytesShort {
     }
 }
 
-
 /// Cassandra int type.
 pub type CInt = i32;
 
@@ -634,7 +639,6 @@ pub fn cursor_next_value(cursor: &mut Cursor<&[u8]>, len: u64) -> CDRSResult<Vec
     cursor.set_position(current_position + len);
     Ok(buff)
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -817,7 +821,6 @@ mod tests {
         let val = cursor_next_value(&mut cursor, l).unwrap();
         assert_eq!(val, vec![0, 1, 2]);
     }
-
 
     #[test]
     fn test_try_u16_from_bytes() {

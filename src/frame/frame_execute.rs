@@ -34,16 +34,18 @@ impl<'a> IntoBytes for BodyReqExecute<'a> {
 
 impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
-    pub fn new_req_execute(id: &CBytesShort,
-                           query_parameters: ParamsReqQuery,
-                           flags: Vec<Flag>)
-                           -> Frame {
+    pub fn new_req_execute(
+        id: &CBytesShort,
+        query_parameters: ParamsReqQuery,
+        flags: Vec<Flag>,
+    ) -> Frame {
         let version = Version::Request;
         let stream = rand::random::<u16>();
         let opcode = Opcode::Execute;
-        debug!("prepared statement id{:?} getting executed  with parameters  {:?}",
-               id,
-               query_parameters);
+        debug!(
+            "prepared statement id{:?} getting executed  with parameters  {:?}",
+            id, query_parameters
+        );
         let body = BodyReqExecute::new(id, query_parameters);
 
         Frame {

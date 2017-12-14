@@ -85,14 +85,10 @@ pub fn parse_frame(cursor: &mut Read, compressor: &Compression) -> error::Result
 
 fn convert_frame_into_result(frame: Frame) -> error::Result<Frame> {
     match frame.opcode {
-        Opcode::Error => {
-            frame.get_body().and_then(|err| match err {
-                                          ResponseBody::Error(err) => {
-                                              Err(error::Error::Server(err))
-                                          }
-                                          _ => unreachable!(),
-                                      })
-        }
+        Opcode::Error => frame.get_body().and_then(|err| match err {
+            ResponseBody::Error(err) => Err(error::Error::Server(err)),
+            _ => unreachable!(),
+        }),
         _ => Ok(frame),
     }
 }

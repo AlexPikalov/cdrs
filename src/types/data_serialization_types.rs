@@ -8,7 +8,6 @@ use super::blob::Blob;
 use error;
 use FromCursor;
 
-
 // https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L813
 
 // Decodes Cassandra `ascii` data (bytes) into Rust's `Result<String, FromUtf8Error>`.
@@ -41,7 +40,10 @@ pub fn decode_blob(bytes: &Vec<u8>) -> Result<Blob, io::Error> {
 pub fn decode_boolean(bytes: &[u8]) -> Result<bool, io::Error> {
     let false_byte: u8 = 0;
     if bytes.is_empty() {
-        Err(io::Error::new(io::ErrorKind::UnexpectedEof, "no bytes were found"))
+        Err(io::Error::new(
+            io::ErrorKind::UnexpectedEof,
+            "no bytes were found",
+        ))
     } else {
         Ok(bytes[0] != false_byte)
     }
@@ -97,7 +99,12 @@ pub fn decode_float(bytes: &[u8]) -> Result<f32, io::Error> {
 pub fn decode_inet(bytes: &[u8]) -> Result<net::IpAddr, io::Error> {
     match bytes.len() {
         // v4
-        4 => Ok(net::IpAddr::V4(net::Ipv4Addr::new(bytes[0], bytes[1], bytes[2], bytes[3]))),
+        4 => Ok(net::IpAddr::V4(net::Ipv4Addr::new(
+            bytes[0],
+            bytes[1],
+            bytes[2],
+            bytes[3],
+        ))),
         // v6
         16 => {
             let a = from_u16_bytes(&bytes[0..2]);
@@ -112,8 +119,10 @@ pub fn decode_inet(bytes: &[u8]) -> Result<net::IpAddr, io::Error> {
         }
         _ => {
             // let message = format!("Unparseable  Ip address {:?}", bytes);
-            Err(io::Error::new(io::ErrorKind::Other,
-                               format!("Unparseable  Ip address {:?}", bytes)))
+            Err(io::Error::new(
+                io::ErrorKind::Other,
+                format!("Unparseable  Ip address {:?}", bytes),
+            ))
         }
     }
 }
@@ -199,15 +208,15 @@ pub fn decode_udt(bytes: &[u8], l: usize) -> Result<Vec<CBytes>, io::Error> {
     for _ in 0..l {
         let v = CBytes::from_cursor(&mut cursor)
             .or_else(|err| match err {
-                         error::Error::Io(io_err) => {
-                             if io_err.kind() == io::ErrorKind::UnexpectedEof {
-                                 Ok(CBytes::new_empty())
-                             } else {
-                                 Err(io_err.into())
-                             }
-                         }
-                         _ => Err(err),
-                     })
+                error::Error::Io(io_err) => {
+                    if io_err.kind() == io::ErrorKind::UnexpectedEof {
+                        Ok(CBytes::new_empty())
+                    } else {
+                        Err(io_err.into())
+                    }
+                }
+                _ => Err(err),
+            })
             .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
         udt.push(v);
     }
@@ -256,8 +265,10 @@ mod tests {
 
     #[test]
     fn decode_blob_test() {
-        assert_eq!(decode_blob(&vec![0, 0, 0, 3]).unwrap().into_vec(),
-                   vec![0, 0, 0, 3]);
+        assert_eq!(
+            decode_blob(&vec![0, 0, 0, 3]).unwrap().into_vec(),
+            vec![0, 0, 0, 3]
+        );
     }
 
     #[test]
@@ -353,10 +364,12 @@ mod tests {
 
     #[test]
     fn decode_timeuuid_test() {
-        assert_eq!(decode_timeuuid(&[4, 54, 67, 12, 43, 2, 98, 76, 32, 50, 87, 5, 1, 33, 43, 87])
-                       .unwrap()
-                       .as_bytes(),
-                   &[4, 54, 67, 12, 43, 2, 98, 76, 32, 50, 87, 5, 1, 33, 43, 87]);
+        assert_eq!(
+            decode_timeuuid(&[4, 54, 67, 12, 43, 2, 98, 76, 32, 50, 87, 5, 1, 33, 43, 87])
+                .unwrap()
+                .as_bytes(),
+            &[4, 54, 67, 12, 43, 2, 98, 76, 32, 50, 87, 5, 1, 33, 43, 87]
+        );
     }
 
     #[test]
@@ -375,11 +388,13 @@ mod tests {
     fn as_rust_blob_test() {
         let d_type = DataType { id: ColType::Blob };
         let data = CBytes::new(vec![1, 2, 3]);
-        assert_eq!(as_rust_type!(d_type, data, Blob)
-                       .unwrap()
-                       .unwrap()
-                       .into_vec(),
-                   vec![1, 2, 3]);
+        assert_eq!(
+            as_rust_type!(d_type, data, Blob)
+                .unwrap()
+                .unwrap()
+                .into_vec(),
+            vec![1, 2, 3]
+        );
         let wrong_type = DataType { id: ColType::Map };
         assert!(as_rust_type!(wrong_type, data, Blob).is_err());
     }
@@ -394,12 +409,18 @@ mod tests {
             id: ColType::Varchar,
         };
         let data = CBytes::new(b"abc".to_vec());
-        assert_eq!(as_rust_type!(type_custom, data, String).unwrap().unwrap(),
-                   "abc");
-        assert_eq!(as_rust_type!(type_ascii, data, String).unwrap().unwrap(),
-                   "abc");
-        assert_eq!(as_rust_type!(type_varchar, data, String).unwrap().unwrap(),
-                   "abc");
+        assert_eq!(
+            as_rust_type!(type_custom, data, String).unwrap().unwrap(),
+            "abc"
+        );
+        assert_eq!(
+            as_rust_type!(type_ascii, data, String).unwrap().unwrap(),
+            "abc"
+        );
+        assert_eq!(
+            as_rust_type!(type_varchar, data, String).unwrap().unwrap(),
+            "abc"
+        );
         let wrong_type = DataType { id: ColType::Map };
         assert!(as_rust_type!(wrong_type, data, String).is_err());
     }
@@ -411,14 +432,18 @@ mod tests {
         };
         let data_true = CBytes::new(vec![1]);
         let data_false = CBytes::new(vec![0]);
-        assert_eq!(as_rust_type!(type_boolean, data_true, bool)
-                       .unwrap()
-                       .unwrap(),
-                   true);
-        assert_eq!(as_rust_type!(type_boolean, data_false, bool)
-                       .unwrap()
-                       .unwrap(),
-                   false);
+        assert_eq!(
+            as_rust_type!(type_boolean, data_true, bool)
+                .unwrap()
+                .unwrap(),
+            true
+        );
+        assert_eq!(
+            as_rust_type!(type_boolean, data_false, bool)
+                .unwrap()
+                .unwrap(),
+            false
+        );
         let wrong_type = DataType { id: ColType::Map };
         assert!(as_rust_type!(wrong_type, data_false, bool).is_err());
     }
@@ -437,8 +462,10 @@ mod tests {
         };
         let data = CBytes::new(vec![0, 0, 0, 0, 0, 0, 0, 100]);
         assert_eq!(as_rust_type!(type_bigint, data, i64).unwrap().unwrap(), 100);
-        assert_eq!(as_rust_type!(type_timestamp, data, i64).unwrap().unwrap(),
-                   100);
+        assert_eq!(
+            as_rust_type!(type_timestamp, data, i64).unwrap().unwrap(),
+            100
+        );
         assert_eq!(as_rust_type!(type_time, data, i64).unwrap().unwrap(), 100);
         assert_eq!(as_rust_type!(type_varint, data, i64).unwrap().unwrap(), 100);
         let wrong_type = DataType { id: ColType::Map };
@@ -462,8 +489,10 @@ mod tests {
             id: ColType::Smallint,
         };
         let data = CBytes::new(vec![0, 100]);
-        assert_eq!(as_rust_type!(type_smallint, data, i16).unwrap().unwrap(),
-                   100);
+        assert_eq!(
+            as_rust_type!(type_smallint, data, i16).unwrap().unwrap(),
+            100
+        );
         let wrong_type = DataType { id: ColType::Map };
         assert!(as_rust_type!(wrong_type, data, i16).is_err());
     }

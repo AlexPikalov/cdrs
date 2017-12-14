@@ -1,10 +1,10 @@
-use std::sync::mpsc::{Sender, Receiver, channel};
+use std::sync::mpsc::{channel, Receiver, Sender};
 use std::iter::Iterator;
 
 use std::error::Error;
 use error;
-use frame::events::{ServerEvent as FrameServerEvent, SimpleServerEvent as FrameSimpleServerEvent,
-                    SchemaChange as FrameSchemaChange};
+use frame::events::{SchemaChange as FrameSchemaChange, ServerEvent as FrameServerEvent,
+                    SimpleServerEvent as FrameSimpleServerEvent};
 use frame::parser::parse_frame;
 use compression::Compression;
 use transport::CDRSTransport;

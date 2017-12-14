@@ -77,12 +77,10 @@ impl TransportTcp {
     /// let tcp_transport = TransportTcp::new(addr).unwrap();
     /// ```
     pub fn new(addr: &str) -> io::Result<TransportTcp> {
-        TcpStream::connect(addr).map(|socket| {
-                                         TransportTcp {
-                                             tcp: socket,
-                                             addr: addr.to_string(),
-                                         }
-                                     })
+        TcpStream::connect(addr).map(|socket| TransportTcp {
+            tcp: socket,
+            addr: addr.to_string(),
+        })
     }
 }
 
@@ -104,12 +102,10 @@ impl Write for TransportTcp {
 
 impl CDRSTransport for TransportTcp {
     fn try_clone(&self) -> io::Result<TransportTcp> {
-        TcpStream::connect(self.addr.as_str()).map(|socket| {
-                                                       TransportTcp {
-                                                           tcp: socket,
-                                                           addr: self.addr.clone(),
-                                                       }
-                                                   })
+        TcpStream::connect(self.addr.as_str()).map(|socket| TransportTcp {
+            tcp: socket,
+            addr: self.addr.clone(),
+        })
     }
 
     fn close(&mut self, close: net::Shutdown) -> io::Result<()> {
@@ -139,19 +135,19 @@ impl TransportTls {
     pub fn new(addr: &str, connector: &SslConnector) -> io::Result<TransportTls> {
         let a: Vec<&str> = addr.split(':').collect();
         let res = net::TcpStream::connect(addr).map(|socket| {
-            connector.connect(a[0], socket).map(|sslsocket| {
-                                                    TransportTls {
-                                                        ssl: sslsocket,
-                                                        connector: connector.clone(),
-                                                        addr: addr.to_string(),
-                                                    }
-                                                })
+            connector
+                .connect(a[0], socket)
+                .map(|sslsocket| TransportTls {
+                    ssl: sslsocket,
+                    connector: connector.clone(),
+                    addr: addr.to_string(),
+                })
         });
 
         res.and_then(|res| {
-                         res.map(|n: TransportTls| n)
-                             .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
-                     })
+            res.map(|n: TransportTls| n)
+                .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
+        })
     }
 }
 #[cfg(feature = "ssl")]
@@ -181,25 +177,27 @@ impl CDRSTransport for TransportTls {
         let ip = match self.addr.split(":").nth(0) {
             Some(_ip) => _ip,
             None => {
-                return Err(io::Error::new(io::ErrorKind::Other,
-                                          "Wrong addess string - IP is missed"))
+                return Err(io::Error::new(
+                    io::ErrorKind::Other,
+                    "Wrong addess string - IP is missed",
+                ))
             }
         };
 
         let res = net::TcpStream::connect(self.addr.as_str()).map(|socket| {
-            self.connector.connect(ip, socket).map(|sslsocket| {
-                                                       TransportTls {
-                                                           ssl: sslsocket,
-                                                           connector: self.connector.clone(),
-                                                           addr: self.addr.clone(),
-                                                       }
-                                                   })
+            self.connector
+                .connect(ip, socket)
+                .map(|sslsocket| TransportTls {
+                    ssl: sslsocket,
+                    connector: self.connector.clone(),
+                    addr: self.addr.clone(),
+                })
         });
 
         res.and_then(|res| {
-                         res.map(|n: TransportTls| n)
-                             .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
-                     })
+            res.map(|n: TransportTls| n)
+                .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
+        })
     }
 
     fn close(&mut self, _close: net::Shutdown) -> io::Result<()> {

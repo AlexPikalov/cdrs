@@ -40,7 +40,8 @@ pub struct Value {
 impl Value {
     /// The factory method which creates a normal type value basing on provided bytes.
     pub fn new_normal<B>(v: B) -> Value
-        where B: Into<Bytes>
+    where
+        B: Into<Bytes>,
     {
         let bytes = v.into().0;
         let l = bytes.len() as i32;
@@ -162,7 +163,11 @@ impl Into<Bytes> for u64 {
 
 impl Into<Bytes> for bool {
     fn into(self) -> Bytes {
-        if self { Bytes(vec![1]) } else { Bytes(vec![0]) }
+        if self {
+            Bytes(vec![1])
+        } else {
+            Bytes(vec![0])
+        }
     }
 }
 
@@ -220,8 +225,9 @@ impl<T: Into<Bytes> + Clone + Debug> From<Vec<T>> for Bytes {
 }
 
 impl<K, V> From<HashMap<K, V>> for Bytes
-    where K: Into<Bytes> + Clone + Debug + Hash + Eq,
-          V: Into<Bytes> + Clone + Debug
+where
+    K: Into<Bytes> + Clone + Debug + Hash + Eq,
+    V: Into<Bytes> + Clone + Debug,
 {
     fn from(map: HashMap<K, V>) -> Bytes {
         let mut bytes: Vec<u8> = vec![];

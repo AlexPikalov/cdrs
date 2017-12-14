@@ -38,7 +38,6 @@ impl<'a> Authenticator for PasswordAuthenticator<'a> {
 #[derive(Debug, Clone)]
 pub struct NoneAuthenticator;
 
-
 impl Authenticator for NoneAuthenticator {
     fn get_auth_token(&self) -> CBytes {
         CBytes::new(vec![0])
@@ -48,7 +47,6 @@ impl Authenticator for NoneAuthenticator {
         None
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -68,8 +66,10 @@ mod tests {
     #[test]
     fn test_password_authenticator_get_cassandra_name() {
         let auth = PasswordAuthenticator::new("foo", "bar");
-        assert_eq!(auth.get_cassandra_name(),
-                   Some("org.apache.cassandra.auth.PasswordAuthenticator"));
+        assert_eq!(
+            auth.get_cassandra_name(),
+            Some("org.apache.cassandra.auth.PasswordAuthenticator")
+        );
     }
 
     #[test]

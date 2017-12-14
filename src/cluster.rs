@@ -3,7 +3,7 @@
 //! please refer to original documentation.
 use std::iter::Iterator;
 use query::QueryBuilder;
-use client::{CDRS, Session};
+use client::{Session, CDRS};
 use error::{Error as CError, Result as CResult};
 use authenticators::Authenticator;
 use compression::Compression;
@@ -94,14 +94,16 @@ pub struct ClusterConnectionManager<T, X> {
 }
 
 impl<T, X> ClusterConnectionManager<T, X>
-    where T: Authenticator + Send + Sync + 'static
+where
+    T: Authenticator + Send + Sync + 'static,
 {
     /// Creates a new instance of `ConnectionManager`.
     /// It requires transport, authenticator and compression as inputs.
-    pub fn new(load_balancer: LoadBalancer<X>,
-               authenticator: T,
-               compression: Compression)
-               -> ClusterConnectionManager<T, X> {
+    pub fn new(
+        load_balancer: LoadBalancer<X>,
+        authenticator: T,
+        compression: Compression,
+    ) -> ClusterConnectionManager<T, X> {
         ClusterConnectionManager {
             load_balancer: load_balancer,
             authenticator: authenticator,
@@ -110,9 +112,10 @@ impl<T, X> ClusterConnectionManager<T, X>
     }
 }
 
-impl<T: Authenticator + Send + Sync + 'static,
-     X: CDRSTransport + Send + Sync + 'static> r2d2::ManageConnection
-    for ClusterConnectionManager<T, X> {
+impl<
+    T: Authenticator + Send + Sync + 'static,
+    X: CDRSTransport + Send + Sync + 'static,
+> r2d2::ManageConnection for ClusterConnectionManager<T, X> {
     type Connection = Session<T, X>;
     type Error = CError;
 

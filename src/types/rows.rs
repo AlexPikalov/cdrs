@@ -2,16 +2,16 @@ use std::net::IpAddr;
 use uuid::Uuid;
 use time::Timespec;
 
-use frame::frame_result::{RowsMetadata, ColType, ColSpec, BodyResResultRows, ColTypeOption,
-                          ColTypeOptionValue};
-use types::{CBytes, IntoRustByName, ByName, IntoRustByIndex, ByIndex};
+use frame::frame_result::{BodyResResultRows, ColSpec, ColType, ColTypeOption, ColTypeOptionValue,
+                          RowsMetadata};
+use types::{ByIndex, ByName, CBytes, IntoRustByIndex, IntoRustByName};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
 use types::udt::UDT;
 use types::tuple::Tuple;
 use types::blob::Blob;
-use error::{Error, Result, column_is_empty_err};
+use error::{column_is_empty_err, Error, Result};
 
 #[derive(Debug)]
 pub struct Row {
@@ -23,12 +23,10 @@ impl Row {
     pub fn from_frame_body(body: BodyResResultRows) -> Vec<Row> {
         body.rows_content
             .iter()
-            .map(|row| {
-                     Row {
-                         metadata: body.metadata.clone(),
-                         row_content: row.clone(),
-                     }
-                 })
+            .map(|row| Row {
+                metadata: body.metadata.clone(),
+                row_content: row.clone(),
+            })
             .collect()
     }
 
@@ -38,10 +36,10 @@ impl Row {
             .iter()
             .position(|spec| spec.name.as_str() == name)
             .map(|i| {
-                     let ref col_spec = self.metadata.col_specs[i];
-                     let ref data = self.row_content[i];
-                     (col_spec, data)
-                 })
+                let ref col_spec = self.metadata.col_specs[i];
+                let ref data = self.row_content[i];
+                (col_spec, data)
+            })
     }
 
     fn get_col_spec_by_index(&self, index: usize) -> Option<(&ColSpec, &CBytes)> {

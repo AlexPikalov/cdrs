@@ -1,11 +1,10 @@
 use std::io::Cursor;
 
-use {IntoBytes, FromBytes, FromCursor};
+use {FromBytes, FromCursor, IntoBytes};
 use error;
 use types::*;
 use types::rows::Row;
 use frame::events::SchemaChange;
-
 
 /// `ResultKind` is enum which represents types of result.
 #[derive(Debug)]
@@ -39,13 +38,13 @@ impl FromBytes for ResultKind {
         try_from_bytes(bytes)
             .map_err(Into::into)
             .and_then(|r| match r {
-                          0x0001 => Ok(ResultKind::Void),
-                          0x0002 => Ok(ResultKind::Rows),
-                          0x0003 => Ok(ResultKind::SetKeyspace),
-                          0x0004 => Ok(ResultKind::Prepared),
-                          0x0005 => Ok(ResultKind::SchemaChange),
-                          _ => Err("Unexpected result kind".into()),
-                      })
+                0x0001 => Ok(ResultKind::Void),
+                0x0002 => Ok(ResultKind::Rows),
+                0x0003 => Ok(ResultKind::SetKeyspace),
+                0x0004 => Ok(ResultKind::Prepared),
+                0x0005 => Ok(ResultKind::SchemaChange),
+                _ => Err("Unexpected result kind".into()),
+            })
     }
 }
 
@@ -76,27 +75,23 @@ pub enum ResResultBody {
 impl ResResultBody {
     /// It retrieves`ResResultBody` from `io::Cursor`
     /// having knowledge about expected kind of result.
-    fn parse_body_from_cursor(mut cursor: &mut Cursor<&[u8]>,
-                              result_kind: ResultKind)
-                              -> error::Result<ResResultBody> {
+    fn parse_body_from_cursor(
+        mut cursor: &mut Cursor<&[u8]>,
+        result_kind: ResultKind,
+    ) -> error::Result<ResResultBody> {
         Ok(match result_kind {
-               ResultKind::Void => {
-                   ResResultBody::Void(BodyResResultVoid::from_cursor(&mut cursor)?)
-               }
-               ResultKind::Rows => {
-                   ResResultBody::Rows(BodyResResultRows::from_cursor(&mut cursor)?)
-               }
-               ResultKind::SetKeyspace => {
-                   ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)?)
-               }
-               ResultKind::Prepared => {
-                   ResResultBody::Prepared(BodyResResultPrepared::from_cursor(&mut cursor)?)
-               }
-               ResultKind::SchemaChange => {
-                   ResResultBody::SchemaChange(SchemaChange::from_cursor(&mut cursor)?)
-               }
-
-           })
+            ResultKind::Void => ResResultBody::Void(BodyResResultVoid::from_cursor(&mut cursor)?),
+            ResultKind::Rows => ResResultBody::Rows(BodyResResultRows::from_cursor(&mut cursor)?),
+            ResultKind::SetKeyspace => {
+                ResResultBody::SetKeyspace(BodyResResultSetKeyspace::from_cursor(&mut cursor)?)
+            }
+            ResultKind::Prepared => {
+                ResResultBody::Prepared(BodyResResultPrepared::from_cursor(&mut cursor)?)
+            }
+            ResultKind::SchemaChange => {
+                ResResultBody::SchemaChange(SchemaChange::from_cursor(&mut cursor)?)
+            }
+        })
     }
 
     /// It converts body into `Vec<Row>` if body's type is `Row` and returns `None` otherwise.
@@ -138,7 +133,6 @@ impl FromCursor for ResResultBody {
 #[derive(Debug, Default)]
 pub struct BodyResResultVoid {}
 
-
 impl FromBytes for BodyResResultVoid {
     fn from_bytes(_bytes: &[u8]) -> error::Result<BodyResResultVoid> {
         // as it's empty by definition just create BodyResVoid
@@ -175,7 +169,6 @@ impl FromCursor for BodyResResultSetKeyspace {
     }
 }
 
-
 /// Structure that represents result of type
 /// [rows](https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L533).
 #[derive(Debug)]
@@ -190,17 +183,18 @@ pub struct BodyResResultRows {
 
 impl BodyResResultRows {
     /// It retrieves rows content having knowledge about number of rows and columns.
-    fn get_rows_content(mut cursor: &mut Cursor<&[u8]>,
-                        rows_count: i32,
-                        columns_count: i32)
-                        -> Vec<Vec<CBytes>> {
+    fn get_rows_content(
+        mut cursor: &mut Cursor<&[u8]>,
+        rows_count: i32,
+        columns_count: i32,
+    ) -> Vec<Vec<CBytes>> {
         (0..rows_count)
             .map(|_| {
-                     (0..columns_count)
+                (0..columns_count)
                      // XXX unwrap()
                          .map(|_| CBytes::from_cursor(&mut cursor).unwrap() as CBytes)
                          .collect()
-                 })
+            })
             .collect()
     }
 }
@@ -213,10 +207,10 @@ impl FromCursor for BodyResResultRows {
             BodyResResultRows::get_rows_content(&mut cursor, rows_count, metadata.columns_count);
 
         Ok(BodyResResultRows {
-               metadata: metadata,
-               rows_count: rows_count,
-               rows_content: rows_content,
-           })
+            metadata: metadata,
+            rows_count: rows_count,
+            rows_content: rows_content,
+        })
     }
 }
 
@@ -260,12 +254,12 @@ impl FromCursor for RowsMetadata {
         let col_specs = ColSpec::parse_colspecs(&mut cursor, columns_count, has_global_table_space);
 
         Ok(RowsMetadata {
-               flags: flags,
-               columns_count: columns_count,
-               paging_state: paging_state,
-               global_table_space: global_table_space,
-               col_specs: col_specs,
-           })
+            flags: flags,
+            columns_count: columns_count,
+            paging_state: paging_state,
+            global_table_space: global_table_space,
+            col_specs: col_specs,
+        })
     }
 }
 
@@ -327,11 +321,11 @@ impl FromBytes for RowsMetadataFlag {
         try_from_bytes(bytes)
             .map_err(Into::into)
             .and_then(|f| match f as i32 {
-                          GLOBAL_TABLE_SPACE => Ok(RowsMetadataFlag::GlobalTableSpace),
-                          HAS_MORE_PAGES => Ok(RowsMetadataFlag::HasMorePages),
-                          NO_METADATA => Ok(RowsMetadataFlag::NoMetadata),
-                          _ => Err("Unexpected rows metadata flag".into()),
-                      })
+                GLOBAL_TABLE_SPACE => Ok(RowsMetadataFlag::GlobalTableSpace),
+                HAS_MORE_PAGES => Ok(RowsMetadataFlag::HasMorePages),
+                NO_METADATA => Ok(RowsMetadataFlag::NoMetadata),
+                _ => Err("Unexpected rows metadata flag".into()),
+            })
     }
 }
 
@@ -354,10 +348,11 @@ impl ColSpec {
     /// parse_colspecs tables mutable cursor,
     /// number of columns (column_count) and flags that indicates
     /// if Global_tables_spec is specified. It returns column_count of ColSpecs.
-    pub fn parse_colspecs(mut cursor: &mut Cursor<&[u8]>,
-                          column_count: i32,
-                          with_globale_table_spec: bool)
-                          -> Vec<ColSpec> {
+    pub fn parse_colspecs(
+        mut cursor: &mut Cursor<&[u8]>,
+        column_count: i32,
+        with_globale_table_spec: bool,
+    ) -> Vec<ColSpec> {
         (0..column_count)
             .map(|_| {
                 let ksname: Option<CString> = if !with_globale_table_spec {
@@ -423,33 +418,33 @@ impl FromBytes for ColType {
         try_from_bytes(bytes)
             .map_err(Into::into)
             .and_then(|b| match b {
-                          0x0000 => Ok(ColType::Custom),
-                          0x0001 => Ok(ColType::Ascii),
-                          0x0002 => Ok(ColType::Bigint),
-                          0x0003 => Ok(ColType::Blob),
-                          0x0004 => Ok(ColType::Boolean),
-                          0x0005 => Ok(ColType::Counter),
-                          0x0006 => Ok(ColType::Decimal),
-                          0x0007 => Ok(ColType::Double),
-                          0x0008 => Ok(ColType::Float),
-                          0x0009 => Ok(ColType::Int),
-                          0x000B => Ok(ColType::Timestamp),
-                          0x000C => Ok(ColType::Uuid),
-                          0x000D => Ok(ColType::Varchar),
-                          0x000E => Ok(ColType::Varint),
-                          0x000F => Ok(ColType::Timeuuid),
-                          0x0010 => Ok(ColType::Inet),
-                          0x0011 => Ok(ColType::Date),
-                          0x0012 => Ok(ColType::Time),
-                          0x0013 => Ok(ColType::Smallint),
-                          0x0014 => Ok(ColType::Tinyint),
-                          0x0020 => Ok(ColType::List),
-                          0x0021 => Ok(ColType::Map),
-                          0x0022 => Ok(ColType::Set),
-                          0x0030 => Ok(ColType::Udt),
-                          0x0031 => Ok(ColType::Tuple),
-                          _ => Err("Unexpected column type".into()),
-                      })
+                0x0000 => Ok(ColType::Custom),
+                0x0001 => Ok(ColType::Ascii),
+                0x0002 => Ok(ColType::Bigint),
+                0x0003 => Ok(ColType::Blob),
+                0x0004 => Ok(ColType::Boolean),
+                0x0005 => Ok(ColType::Counter),
+                0x0006 => Ok(ColType::Decimal),
+                0x0007 => Ok(ColType::Double),
+                0x0008 => Ok(ColType::Float),
+                0x0009 => Ok(ColType::Int),
+                0x000B => Ok(ColType::Timestamp),
+                0x000C => Ok(ColType::Uuid),
+                0x000D => Ok(ColType::Varchar),
+                0x000E => Ok(ColType::Varint),
+                0x000F => Ok(ColType::Timeuuid),
+                0x0010 => Ok(ColType::Inet),
+                0x0011 => Ok(ColType::Date),
+                0x0012 => Ok(ColType::Time),
+                0x0013 => Ok(ColType::Smallint),
+                0x0014 => Ok(ColType::Tinyint),
+                0x0020 => Ok(ColType::List),
+                0x0021 => Ok(ColType::Map),
+                0x0022 => Ok(ColType::Set),
+                0x0030 => Ok(ColType::Udt),
+                0x0031 => Ok(ColType::Tuple),
+                _ => Err("Unexpected column type".into()),
+            })
     }
 }
 
@@ -476,9 +471,9 @@ impl FromCursor for ColTypeOption {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<ColTypeOption> {
         let id = ColType::from_cursor(&mut cursor)?;
         let value = match id {
-            ColType::Custom => {
-                Some(ColTypeOptionValue::CString(CString::from_cursor(&mut cursor)?))
-            }
+            ColType::Custom => Some(ColTypeOptionValue::CString(CString::from_cursor(
+                &mut cursor,
+            )?)),
             ColType::Set => {
                 let col_type = ColTypeOption::from_cursor(&mut cursor)?;
                 Some(ColTypeOptionValue::CSet(Box::new(col_type)))
@@ -488,21 +483,24 @@ impl FromCursor for ColTypeOption {
                 Some(ColTypeOptionValue::CList(Box::new(col_type)))
             }
             ColType::Udt => Some(ColTypeOptionValue::UdtType(CUdt::from_cursor(&mut cursor)?)),
-            ColType::Tuple => {
-                Some(ColTypeOptionValue::TupleType(CTuple::from_cursor(&mut cursor)?))
-            }
+            ColType::Tuple => Some(ColTypeOptionValue::TupleType(CTuple::from_cursor(
+                &mut cursor,
+            )?)),
             ColType::Map => {
                 let name_type = ColTypeOption::from_cursor(&mut cursor)?;
                 let value_type = ColTypeOption::from_cursor(&mut cursor)?;
-                Some(ColTypeOptionValue::CMap((Box::new(name_type), Box::new(value_type))))
+                Some(ColTypeOptionValue::CMap((
+                    Box::new(name_type),
+                    Box::new(value_type),
+                )))
             }
             _ => None,
         };
 
         Ok(ColTypeOption {
-               id: id,
-               value: value,
-           })
+            id: id,
+            value: value,
+        })
     }
 }
 
@@ -543,10 +541,10 @@ impl FromCursor for CUdt {
         }
 
         Ok(CUdt {
-               ks: ks,
-               udt_name: udt_name,
-               descriptions: descriptions,
-           })
+            ks: ks,
+            udt_name: udt_name,
+            descriptions: descriptions,
+        })
     }
 }
 
@@ -590,10 +588,10 @@ impl FromCursor for BodyResResultPrepared {
         let result_metadata = RowsMetadata::from_cursor(&mut cursor)?;
 
         Ok(BodyResResultPrepared {
-               id: id,
-               metadata: metadata,
-               result_metadata: result_metadata,
-           })
+            id: id,
+            metadata: metadata,
+            result_metadata: result_metadata,
+        })
     }
 }
 
@@ -620,10 +618,10 @@ impl FromCursor for PreparedMetadata {
         };
         let pk_index_results: Vec<Option<i16>> = (0..pk_count)
             .map(|_| {
-                     cursor_next_value(&mut cursor, SHORT_LEN as u64)
-                         .ok()
-                         .and_then(|b| try_i16_from_bytes(b.as_slice()).ok())
-                 })
+                cursor_next_value(&mut cursor, SHORT_LEN as u64)
+                    .ok()
+                    .and_then(|b| try_i16_from_bytes(b.as_slice()).ok())
+            })
             .collect();
 
         let pk_indexes: Vec<i16> = if pk_index_results.iter().any(Option::is_none) {
@@ -645,12 +643,12 @@ impl FromCursor for PreparedMetadata {
         let col_specs = ColSpec::parse_colspecs(&mut cursor, columns_count, has_global_table_space);
 
         Ok(PreparedMetadata {
-               flags: flags,
-               columns_count: columns_count,
-               pk_count: pk_count,
-               pk_indexes: pk_indexes,
-               global_table_spec: global_table_space,
-               col_specs: col_specs,
-           })
+            flags: flags,
+            columns_count: columns_count,
+            pk_count: pk_count,
+            pk_indexes: pk_indexes,
+            global_table_spec: global_table_space,
+            col_specs: col_specs,
+        })
     }
 }

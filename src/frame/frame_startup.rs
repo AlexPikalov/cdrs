@@ -77,7 +77,7 @@ impl Frame {
 #[cfg(test)]
 mod test {
     use super::*;
-    use frame::{Frame, Version, Flag, Opcode};
+    use frame::{Flag, Frame, Opcode, Version};
 
     #[test]
     fn new_body_req_startup_some_compression() {

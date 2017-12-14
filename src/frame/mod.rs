@@ -116,9 +116,11 @@ impl Version {
         } else if cfg!(feature = "v4") || cfg!(feature = "v5") {
             0x04
         } else {
-            panic!("{}",
-                   "Protocol version is not supported. CDRS should be run with protocol feature \
-                   set to v3, v4 or v5");
+            panic!(
+                "{}",
+                "Protocol version is not supported. CDRS should be run with protocol feature \
+                 set to v3, v4 or v5"
+            );
         }
     }
 
@@ -128,9 +130,11 @@ impl Version {
         } else if cfg!(feature = "v4") || cfg!(feature = "v5") {
             0x84
         } else {
-            panic!("{}",
-                   "Protocol version is not supported. CDRS should be run with protocol feature \
-                   set to v3, v4 or v5");
+            panic!(
+                "{}",
+                "Protocol version is not supported. CDRS should be run with protocol feature \
+                 set to v3, v4 or v5"
+            );
         }
     }
 }
@@ -147,12 +151,14 @@ impl AsByte for Version {
 impl From<Vec<u8>> for Version {
     fn from(v: Vec<u8>) -> Version {
         if v.len() != VERSION_LEN {
-            error!("Unexpected Cassandra verion. Should has {} byte(-s), got {:?}",
-                   VERSION_LEN,
-                   v);
-            panic!("Unexpected Cassandra verion. Should has {} byte(-s), got {:?}",
-                   VERSION_LEN,
-                   v);
+            error!(
+                "Unexpected Cassandra verion. Should has {} byte(-s), got {:?}",
+                VERSION_LEN, v
+            );
+            panic!(
+                "Unexpected Cassandra verion. Should has {} byte(-s), got {:?}",
+                VERSION_LEN, v
+            );
         }
         let version = v[0];
         let req = Version::request_version();
@@ -163,14 +169,14 @@ impl From<Vec<u8>> for Version {
         } else if version == res {
             Version::Response
         } else {
-            error!("Unexpected Cassandra version {:?}, either {:?} or {:?} is expected",
-                   version,
-                   req,
-                   res);
-            panic!("Unexpected Cassandra version {:?}, either {:?} or {:?} is expected",
-                   version,
-                   req,
-                   res);
+            error!(
+                "Unexpected Cassandra version {:?}, either {:?} or {:?} is expected",
+                version, req, res
+            );
+            panic!(
+                "Unexpected Cassandra version {:?}, either {:?} or {:?} is expected",
+                version, req, res
+            );
         }
     }
 }
@@ -213,7 +219,9 @@ impl Flag {
     pub fn many_to_cbytes(flags: &Vec<Flag>) -> u8 {
         flags
             .iter()
-            .fold(Flag::Ignore.as_byte(), |acc, f| acc | f.as_byte())
+            .fold(Flag::Ignore.as_byte(), |acc, f| {
+                acc | f.as_byte()
+            })
     }
 
     /// Indicates if flags contains `Flag::Compression`
@@ -329,7 +337,6 @@ impl From<u8> for Opcode {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -407,10 +414,12 @@ mod tests {
 
     #[test]
     fn test_flag_many_to_cbytes() {
-        let all = vec![Flag::Compression,
-                       Flag::Tracing,
-                       Flag::CustomPayload,
-                       Flag::Warning];
+        let all = vec![
+            Flag::Compression,
+            Flag::Tracing,
+            Flag::CustomPayload,
+            Flag::Warning,
+        ];
         assert_eq!(Flag::many_to_cbytes(&all), 1 | 2 | 4 | 8);
         let some = vec![Flag::Compression, Flag::Warning];
         assert_eq!(Flag::many_to_cbytes(&some), 1 | 8);
@@ -420,10 +429,12 @@ mod tests {
 
     #[test]
     fn test_flag_get_collection() {
-        let all = vec![Flag::Compression,
-                       Flag::Tracing,
-                       Flag::CustomPayload,
-                       Flag::Warning];
+        let all = vec![
+            Flag::Compression,
+            Flag::Tracing,
+            Flag::CustomPayload,
+            Flag::Warning,
+        ];
         assert_eq!(Flag::get_collection(1 | 2 | 4 | 8), all);
         let some = vec![Flag::Compression, Flag::Warning];
         assert_eq!(Flag::get_collection(1 | 8), some);

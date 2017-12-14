@@ -1,12 +1,9 @@
-
 use types::*;
 use types::value::*;
-use error::{Result as CResult, Error as CError};
+use error::{Error as CError, Result as CResult};
 use consistency::Consistency;
 use frame::frame_query::{ParamsReqQuery, QueryFlags};
-use frame::frame_batch::{BatchType, BatchQuery, BodyReqBatch, BatchQuerySubj};
-
-
+use frame::frame_batch::{BatchQuery, BatchQuerySubj, BatchType, BodyReqBatch};
 
 /// Structure that represents CQL query and parameters which will be applied during
 /// its execution
@@ -196,7 +193,6 @@ impl QueryParamsBuilder {
             serial_consistency: self.serial_consistency,
             timestamp: self.timestamp,
         }
-
     }
 }
 
@@ -230,20 +226,20 @@ impl BatchQueryBuilder {
     /// Add a query (non-prepared one)
     pub fn add_query<T: Into<String>>(mut self, query: T, values: Vec<BatchValue>) -> Self {
         self.queries.push(BatchQuery {
-                              is_prepared: false,
-                              subject: BatchQuerySubj::QueryString(CStringLong::new(query.into())),
-                              values: values,
-                          });
+            is_prepared: false,
+            subject: BatchQuerySubj::QueryString(CStringLong::new(query.into())),
+            values: values,
+        });
         self
     }
 
     /// Add a query (prepared one)
     pub fn add_query_prepared(mut self, query_id: CBytesShort, values: Vec<BatchValue>) -> Self {
         self.queries.push(BatchQuery {
-                              is_prepared: true,
-                              subject: BatchQuerySubj::PreparedId(query_id),
-                              values: values,
-                          });
+            is_prepared: true,
+            subject: BatchQuerySubj::PreparedId(query_id),
+            values: values,
+        });
         self
     }
 
@@ -288,8 +284,10 @@ impl BatchQueryBuilder {
                 .any(|q| q.values.iter().any(|v| v.0.is_some()));
 
             if some_names_for_values {
-                return Err(CError::General(String::from("Inconsistent query values - mixed \
-                                                         with and without names values")));
+                return Err(CError::General(String::from(
+                    "Inconsistent query values - mixed \
+                     with and without names values",
+                )));
             }
         }
 
@@ -298,13 +296,13 @@ impl BatchQueryBuilder {
         }
 
         Ok(BodyReqBatch {
-               batch_type: self.batch_type,
-               queries: self.queries,
-               query_flags: flags,
-               consistency: self.consistency,
-               serial_consistency: self.serial_consistency,
-               timestamp: self.timestamp,
-           })
+            batch_type: self.batch_type,
+            queries: self.queries,
+            query_flags: flags,
+            consistency: self.consistency,
+            serial_consistency: self.serial_consistency,
+            timestamp: self.timestamp,
+        })
     }
 }
 
@@ -375,7 +373,7 @@ mod batch_query_builder {
                 assert!(n.timestamp == None);
                 assert!(n.queries.is_empty());
             }
-            Err(_) => assert!(false,"Error should not happen"),
+            Err(_) => assert!(false, "Error should not happen"),
         }
     }
 

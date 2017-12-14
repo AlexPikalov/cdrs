@@ -18,16 +18,16 @@ pub struct BodyReqQuery {
 
 impl BodyReqQuery {
     // Fabric function that produces Query request body.
-    fn new(query: String,
-           consistency: Consistency,
-           values: Option<Vec<Value>>,
-           with_names: Option<bool>,
-           page_size: Option<i32>,
-           paging_state: Option<CBytes>,
-           serial_consistency: Option<Consistency>,
-           timestamp: Option<i64>)
-           -> BodyReqQuery {
-
+    fn new(
+        query: String,
+        consistency: Consistency,
+        values: Option<Vec<Value>>,
+        with_names: Option<bool>,
+        page_size: Option<i32>,
+        paging_state: Option<CBytes>,
+        serial_consistency: Option<Consistency>,
+        timestamp: Option<i64>,
+    ) -> BodyReqQuery {
         // query flags
         let mut flags: Vec<QueryFlags> = vec![];
         if values.is_some() {
@@ -154,19 +154,22 @@ impl IntoBytes for ParamsReqQuery {
                                     .into_cbytes()
                                     .as_slice());
         }
-        if QueryFlags::has_with_serial_consistency(self.flags_as_byte()) &&
-           self.serial_consistency.is_some() {
+        if QueryFlags::has_with_serial_consistency(self.flags_as_byte())
+            && self.serial_consistency.is_some()
+        {
             // XXX clone
-            v.extend_from_slice(self.serial_consistency
+            v.extend_from_slice(
+                self.serial_consistency
                                     .clone()
                                     // unwrap is safe as we've checked that
                                     // self.serial_consistency.is_some()
                                     .unwrap()
                                     .into_cbytes()
-                                    .as_slice());
+                                    .as_slice(),
+            );
         }
-        if QueryFlags::has_with_default_timestamp(self.flags_as_byte()) &&
-           self.timestamp.is_some() {
+        if QueryFlags::has_with_default_timestamp(self.flags_as_byte()) && self.timestamp.is_some()
+        {
             // unwrap is safe as we've checked that self.timestamp.is_some()
             v.extend_from_slice(to_bigint(self.timestamp.unwrap()).as_slice());
         }
@@ -292,27 +295,30 @@ impl AsByte for QueryFlags {
 
 impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
-    pub fn new_req_query(query: String,
-                         consistency: Consistency,
-                         values: Option<Vec<Value>>,
-                         with_names: Option<bool>,
-                         page_size: Option<i32>,
-                         paging_state: Option<CBytes>,
-                         serial_consistency: Option<Consistency>,
-                         timestamp: Option<i64>,
-                         flags: Vec<Flag>)
-                         -> Frame {
+    pub fn new_req_query(
+        query: String,
+        consistency: Consistency,
+        values: Option<Vec<Value>>,
+        with_names: Option<bool>,
+        page_size: Option<i32>,
+        paging_state: Option<CBytes>,
+        serial_consistency: Option<Consistency>,
+        timestamp: Option<i64>,
+        flags: Vec<Flag>,
+    ) -> Frame {
         let version = Version::Request;
         let stream = rand::random::<u16>();
         let opcode = Opcode::Query;
-        let body = BodyReqQuery::new(query,
-                                     consistency,
-                                     values,
-                                     with_names,
-                                     page_size,
-                                     paging_state,
-                                     serial_consistency,
-                                     timestamp);
+        let body = BodyReqQuery::new(
+            query,
+            consistency,
+            values,
+            with_names,
+            page_size,
+            paging_state,
+            serial_consistency,
+            timestamp,
+        );
 
         Frame {
             version: version,

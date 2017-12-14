@@ -19,10 +19,11 @@ impl<T: Authenticator + Send + Sync + 'static, X: CDRSTransport + Send + Sync + 
     ConnectionManager<T, X> {
     /// Creates a new instance of `ConnectionManager`.
     /// It requires transport, authenticator and compression as inputs.
-    pub fn new(transport: X,
-               authenticator: T,
-               compression: Compression)
-               -> ConnectionManager<T, X> {
+    pub fn new(
+        transport: X,
+        authenticator: T,
+        compression: Compression,
+    ) -> ConnectionManager<T, X> {
         ConnectionManager {
             transport: transport,
             authenticator: authenticator,
@@ -31,8 +32,10 @@ impl<T: Authenticator + Send + Sync + 'static, X: CDRSTransport + Send + Sync + 
     }
 }
 
-impl<T: Authenticator + Send + Sync + 'static,
-     X: CDRSTransport + Send + Sync + 'static> r2d2::ManageConnection for ConnectionManager<T, X> {
+impl<
+    T: Authenticator + Send + Sync + 'static,
+    X: CDRSTransport + Send + Sync + 'static,
+> r2d2::ManageConnection for ConnectionManager<T, X> {
     type Connection = Session<T, X>;
     type Error = CError;
 

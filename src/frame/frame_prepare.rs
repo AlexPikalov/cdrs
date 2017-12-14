@@ -12,7 +12,9 @@ pub struct BodyReqPrepare {
 impl BodyReqPrepare {
     /// Creates new body of a frame of type `prepare` that prepares query `query`.
     pub fn new(query: String) -> BodyReqPrepare {
-        BodyReqPrepare { query: CStringLong::new(query) }
+        BodyReqPrepare {
+            query: CStringLong::new(query),
+        }
     }
 }
 

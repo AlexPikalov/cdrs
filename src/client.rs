@@ -91,7 +91,9 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
 
             let auth_check = self.authenticator
                 .get_cassandra_name()
-                .ok_or(error::Error::General("No authenticator was provided".to_string()))
+                .ok_or(error::Error::General(
+                    "No authenticator was provided".to_string(),
+                ))
                 .map(|auth| {
                     if authenticator != auth {
                         let io_err = io::Error::new(
@@ -99,8 +101,7 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
                             format!(
                                 "Unsupported type of authenticator. {:?} got,
                              but {} is supported.",
-                                authenticator,
-                                authenticator
+                                authenticator, authenticator
                             ),
                         );
                         return Err(error::Error::Io(io_err));
@@ -113,10 +114,13 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
             }
 
             let auth_token_bytes = self.authenticator.get_auth_token().into_cbytes();
-            try!(self.transport
-                     .write(Frame::new_req_auth_response(auth_token_bytes)
-                                .into_cbytes()
-                                .as_slice()));
+            try!(
+                self.transport.write(
+                    Frame::new_req_auth_response(auth_token_bytes)
+                        .into_cbytes()
+                        .as_slice()
+                )
+            );
             try!(parse_frame(&mut self.transport, &compressor));
 
             return Ok(Session::start(self));
@@ -176,11 +180,12 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
     }
 
     /// The method makes a request to DB Server to prepare provided query.
-    pub fn prepare(&mut self,
-                   query: String,
-                   with_tracing: bool,
-                   with_warnings: bool)
-                   -> error::Result<Frame> {
+    pub fn prepare(
+        &mut self,
+        query: String,
+        with_tracing: bool,
+        with_warnings: bool,
+    ) -> error::Result<Frame> {
         let mut flags = vec![];
         if with_tracing {
             flags.push(Flag::Tracing);
@@ -199,12 +204,13 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
     /// The method makes a request to DB Server to execute a query with provided id
     /// using provided query parameters. `id` is an ID of a query which Server
     /// returns back to a driver as a response to `prepare` request.
-    pub fn execute(&mut self,
-                   id: &CBytesShort,
-                   query_parameters: QueryParams,
-                   with_tracing: bool,
-                   with_warnings: bool)
-                   -> error::Result<Frame> {
+    pub fn execute(
+        &mut self,
+        id: &CBytesShort,
+        query_parameters: QueryParams,
+        with_tracing: bool,
+        with_warnings: bool,
+    ) -> error::Result<Frame> {
         let mut flags = vec![];
         if with_tracing {
             flags.push(Flag::Tracing);
@@ -227,11 +233,12 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
     ///
     ///   let select_query = QueryBuilder::new("select * from emp").finalize();
     /// ```
-    pub fn query(&mut self,
-                 query: Query,
-                 with_tracing: bool,
-                 with_warnings: bool)
-                 -> error::Result<Frame> {
+    pub fn query(
+        &mut self,
+        query: Query,
+        with_tracing: bool,
+        with_warnings: bool,
+    ) -> error::Result<Frame> {
         let mut flags = vec![];
 
         if with_tracing {
@@ -242,25 +249,27 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
             flags.push(Flag::Warning);
         }
 
-        let query_frame = Frame::new_req_query(query.query,
-                                               query.consistency,
-                                               query.values,
-                                               query.with_names,
-                                               query.page_size,
-                                               query.paging_state,
-                                               query.serial_consistency,
-                                               query.timestamp,
-                                               flags)
-            .into_cbytes();
+        let query_frame = Frame::new_req_query(
+            query.query,
+            query.consistency,
+            query.values,
+            query.with_names,
+            query.page_size,
+            query.paging_state,
+            query.serial_consistency,
+            query.timestamp,
+            flags,
+        ).into_cbytes();
         try!(self.cdrs.transport.write(query_frame.as_slice()));
         parse_frame(&mut self.cdrs.transport, &self.compressor)
     }
 
-    pub fn batch(&mut self,
-                 batch_query: QueryBatch,
-                 with_tracing: bool,
-                 with_warnings: bool)
-                 -> error::Result<Frame> {
+    pub fn batch(
+        &mut self,
+        batch_query: QueryBatch,
+        with_tracing: bool,
+        with_warnings: bool,
+    ) -> error::Result<Frame> {
         let mut flags = vec![];
 
         if with_tracing {
@@ -278,9 +287,10 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
     }
 
     /// It consumes CDRS
-    pub fn listen_for<'a>(mut self,
-                          events: Vec<SimpleServerEvent>)
-                          -> error::Result<(Listener<X>, EventStream)> {
+    pub fn listen_for<'a>(
+        mut self,
+        events: Vec<SimpleServerEvent>,
+    ) -> error::Result<(Listener<X>, EventStream)> {
         let query_frame = Frame::new_req_register(events).into_cbytes();
         try!(self.cdrs.transport.write(query_frame.as_slice()));
         try!(parse_frame(&mut self.cdrs.transport, &self.compressor));

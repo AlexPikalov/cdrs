@@ -37,10 +37,10 @@ impl FromCursor for CDRSError {
         let additional_info = AdditionalErrorInfo::from_cursor_with_code(&mut cursor, error_code)?;
 
         Ok(CDRSError {
-               error_code: error_code,
-               message: message,
-               additional_info: additional_info,
-           })
+            error_code: error_code,
+            message: message,
+            additional_info: additional_info,
+        })
     }
 }
 
@@ -70,50 +70,65 @@ pub enum AdditionalErrorInfo {
 }
 
 impl AdditionalErrorInfo {
-    pub fn from_cursor_with_code(mut cursor: &mut io::Cursor<&[u8]>,
-                                 error_code: CInt)
-                                 -> error::Result<AdditionalErrorInfo> {
+    pub fn from_cursor_with_code(
+        mut cursor: &mut io::Cursor<&[u8]>,
+        error_code: CInt,
+    ) -> error::Result<AdditionalErrorInfo> {
         match error_code {
-            0x0000 => Ok(AdditionalErrorInfo::Server(SimpleError::from_cursor(&mut cursor)?)),
-            0x000A => Ok(AdditionalErrorInfo::Protocol(SimpleError::from_cursor(&mut cursor)?)),
-            0x0100 => {
-                Ok(AdditionalErrorInfo::Authentication(SimpleError::from_cursor(&mut cursor)?))
-            }
-            0x1000 => {
-                Ok(AdditionalErrorInfo::Unavailable(UnavailableError::from_cursor(&mut cursor)?))
-            }
-            0x1001 => Ok(AdditionalErrorInfo::Overloaded(SimpleError::from_cursor(&mut cursor)?)),
-            0x1002 => {
-                Ok(AdditionalErrorInfo::IsBootstrapping(SimpleError::from_cursor(&mut cursor)?))
-            }
-            0x1003 => Ok(AdditionalErrorInfo::Truncate(SimpleError::from_cursor(&mut cursor)?)),
-            0x1100 => {
-                Ok(AdditionalErrorInfo::WriteTimeout(WriteTimeoutError::from_cursor(&mut cursor)?))
-            }
-            0x1200 => {
-                Ok(AdditionalErrorInfo::ReadTimeout(ReadTimeoutError::from_cursor(&mut cursor)?))
-            }
-            0x1300 => {
-                Ok(AdditionalErrorInfo::ReadFailure(ReadFailureError::from_cursor(&mut cursor)?))
-            }
-            0x1400 => {
-                   Ok(AdditionalErrorInfo::FunctionFailure(
-                       FunctionFailureError::from_cursor(&mut cursor)?))
-               }
-            0x1500 => {
-                Ok(AdditionalErrorInfo::WriteFailure(WriteFailureError::from_cursor(&mut cursor)?))
-            }
-            0x2000 => Ok(AdditionalErrorInfo::Syntax(SimpleError::from_cursor(&mut cursor)?)),
-            0x2100 => Ok(AdditionalErrorInfo::Unauthorized(SimpleError::from_cursor(&mut cursor)?)),
-            0x2200 => Ok(AdditionalErrorInfo::Invalid(SimpleError::from_cursor(&mut cursor)?)),
-            0x2300 => Ok(AdditionalErrorInfo::Config(SimpleError::from_cursor(&mut cursor)?)),
-            0x2400 => {
-                   Ok(AdditionalErrorInfo::AlreadyExists(
-                       AlreadyExistsError::from_cursor(&mut cursor)?))
-               }
-            0x2500 => {
-                Ok(AdditionalErrorInfo::Unprepared(UnpreparedError::from_cursor(&mut cursor)?))
-            }
+            0x0000 => Ok(AdditionalErrorInfo::Server(SimpleError::from_cursor(
+                &mut cursor,
+            )?)),
+            0x000A => Ok(AdditionalErrorInfo::Protocol(SimpleError::from_cursor(
+                &mut cursor,
+            )?)),
+            0x0100 => Ok(AdditionalErrorInfo::Authentication(
+                SimpleError::from_cursor(&mut cursor)?,
+            )),
+            0x1000 => Ok(AdditionalErrorInfo::Unavailable(
+                UnavailableError::from_cursor(&mut cursor)?,
+            )),
+            0x1001 => Ok(AdditionalErrorInfo::Overloaded(SimpleError::from_cursor(
+                &mut cursor,
+            )?)),
+            0x1002 => Ok(AdditionalErrorInfo::IsBootstrapping(
+                SimpleError::from_cursor(&mut cursor)?,
+            )),
+            0x1003 => Ok(AdditionalErrorInfo::Truncate(SimpleError::from_cursor(
+                &mut cursor,
+            )?)),
+            0x1100 => Ok(AdditionalErrorInfo::WriteTimeout(
+                WriteTimeoutError::from_cursor(&mut cursor)?,
+            )),
+            0x1200 => Ok(AdditionalErrorInfo::ReadTimeout(
+                ReadTimeoutError::from_cursor(&mut cursor)?,
+            )),
+            0x1300 => Ok(AdditionalErrorInfo::ReadFailure(
+                ReadFailureError::from_cursor(&mut cursor)?,
+            )),
+            0x1400 => Ok(AdditionalErrorInfo::FunctionFailure(
+                FunctionFailureError::from_cursor(&mut cursor)?,
+            )),
+            0x1500 => Ok(AdditionalErrorInfo::WriteFailure(
+                WriteFailureError::from_cursor(&mut cursor)?,
+            )),
+            0x2000 => Ok(AdditionalErrorInfo::Syntax(SimpleError::from_cursor(
+                &mut cursor,
+            )?)),
+            0x2100 => Ok(AdditionalErrorInfo::Unauthorized(
+                SimpleError::from_cursor(&mut cursor)?,
+            )),
+            0x2200 => Ok(AdditionalErrorInfo::Invalid(SimpleError::from_cursor(
+                &mut cursor,
+            )?)),
+            0x2300 => Ok(AdditionalErrorInfo::Config(SimpleError::from_cursor(
+                &mut cursor,
+            )?)),
+            0x2400 => Ok(AdditionalErrorInfo::AlreadyExists(
+                AlreadyExistsError::from_cursor(&mut cursor)?,
+            )),
+            0x2500 => Ok(AdditionalErrorInfo::Unprepared(
+                UnpreparedError::from_cursor(&mut cursor)?,
+            )),
             _ => Err("Unexpected additional error info".into()),
         }
     }
@@ -149,10 +164,10 @@ impl FromCursor for UnavailableError {
         let alive = CInt::from_cursor(&mut cursor)?;
 
         Ok(UnavailableError {
-               cl: cl,
-               required: required,
-               alive: alive,
-           })
+            cl: cl,
+            required: required,
+            alive: alive,
+        })
     }
 }
 
@@ -177,11 +192,11 @@ impl FromCursor for WriteTimeoutError {
         let write_type = WriteType::from_cursor(&mut cursor)?;
 
         Ok(WriteTimeoutError {
-               cl: cl,
-               received: received,
-               blockfor: blockfor,
-               write_type: write_type,
-           })
+            cl: cl,
+            received: received,
+            blockfor: blockfor,
+            write_type: write_type,
+        })
     }
 }
 
@@ -212,11 +227,11 @@ impl FromCursor for ReadTimeoutError {
         let data_present = try_from_bytes(cursor_next_value(&mut cursor, 1)?.as_slice())? as u8;
 
         Ok(ReadTimeoutError {
-               cl: cl,
-               received: received,
-               blockfor: blockfor,
-               data_present: data_present,
-           })
+            cl: cl,
+            received: received,
+            blockfor: blockfor,
+            data_present: data_present,
+        })
     }
 }
 
@@ -250,12 +265,12 @@ impl FromCursor for ReadFailureError {
         let data_present = try_from_bytes(cursor_next_value(&mut cursor, 1)?.as_slice())? as u8;
 
         Ok(ReadFailureError {
-               cl: cl,
-               received: received,
-               blockfor: blockfor,
-               num_failures: num_failures,
-               data_present: data_present,
-           })
+            cl: cl,
+            received: received,
+            blockfor: blockfor,
+            num_failures: num_failures,
+            data_present: data_present,
+        })
     }
 }
 
@@ -277,10 +292,10 @@ impl FromCursor for FunctionFailureError {
         let arg_types = CStringList::from_cursor(&mut cursor)?;
 
         Ok(FunctionFailureError {
-               keyspace: keyspace,
-               function: function,
-               arg_types: arg_types,
-           })
+            keyspace: keyspace,
+            function: function,
+            arg_types: arg_types,
+        })
     }
 }
 
@@ -309,12 +324,12 @@ impl FromCursor for WriteFailureError {
         let write_type = WriteType::from_cursor(&mut cursor)?;
 
         Ok(WriteFailureError {
-               cl: cl,
-               received: received,
-               blockfor: blockfor,
-               num_failures: num_failures,
-               write_type: write_type,
-           })
+            cl: cl,
+            received: received,
+            blockfor: blockfor,
+            num_failures: num_failures,
+            write_type: write_type,
+        })
     }
 }
 
@@ -340,15 +355,13 @@ pub enum WriteType {
 impl FromCursor for WriteType {
     fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<WriteType> {
         CString::from_cursor(&mut cursor).and_then(|wt| match wt.as_str() {
-                                                       "SIMPLE" => Ok(WriteType::Simple),
-                                                       "BATCH" => Ok(WriteType::Batch),
-                                                       "UNLOGGED_BATCH" => {
-                                                           Ok(WriteType::UnloggedBatch)
-                                                       }
-                                                       "COUNTER" => Ok(WriteType::Counter),
-                                                       "BATCH_LOG" => Ok(WriteType::BatchLog),
-                                                       _ => Err("Unexpected write type".into()),
-                                                   })
+            "SIMPLE" => Ok(WriteType::Simple),
+            "BATCH" => Ok(WriteType::Batch),
+            "UNLOGGED_BATCH" => Ok(WriteType::UnloggedBatch),
+            "COUNTER" => Ok(WriteType::Counter),
+            "BATCH_LOG" => Ok(WriteType::BatchLog),
+            _ => Err("Unexpected write type".into()),
+        })
     }
 }
 
@@ -369,9 +382,9 @@ impl FromCursor for AlreadyExistsError {
         let table = CString::from_cursor(&mut cursor)?;
 
         Ok(AlreadyExistsError {
-               ks: ks,
-               table: table,
-           })
+            ks: ks,
+            table: table,
+        })
     }
 }
 

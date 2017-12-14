@@ -27,7 +27,9 @@ mod tests {
         let few_bytes = &[0, 0, 0, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
         let mut cursor: Cursor<&[u8]> = Cursor::new(few_bytes);
         let body = BodyResAuthChallenge::from_cursor(&mut cursor).unwrap();
-        assert_eq!(body.data.into_plain().unwrap(),
-                   vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        assert_eq!(
+            body.data.into_plain().unwrap(),
+            vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        );
     }
 }

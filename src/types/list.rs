@@ -1,13 +1,13 @@
 use std::net::IpAddr;
 use uuid::Uuid;
-use frame::frame_result::{ColType, ColTypeOptionValue, ColTypeOption};
-use types::{CBytes, AsRustType, AsRust};
+use frame::frame_result::{ColType, ColTypeOption, ColTypeOptionValue};
+use types::{AsRust, AsRustType, CBytes};
 use types::data_serialization_types::*;
 use types::map::Map;
 use types::udt::UDT;
 use types::tuple::Tuple;
 use types::blob::Blob;
-use error::{Result, Error};
+use error::{Error, Result};
 
 // TODO: consider using pointers to ColTypeOption and Vec<CBytes> instead of owning them.
 #[derive(Debug)]
@@ -27,7 +27,8 @@ impl List {
     }
 
     fn map<T, F>(&self, f: F) -> Vec<T>
-        where F: FnMut(&CBytes) -> T
+    where
+        F: FnMut(&CBytes) -> T,
     {
         self.data.iter().map(f).collect()
     }

@@ -45,13 +45,11 @@ impl Frame {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use types::CBytes;
     use IntoBytes;
-
 
     #[test]
     fn body_req_auth_response() {
