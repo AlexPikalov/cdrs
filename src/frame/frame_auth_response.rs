@@ -32,26 +32,22 @@ impl Frame {
         let opcode = Opcode::AuthResponse;
         let body = BodyReqAuthResponse::new(CBytes::new(bytes));
 
-        Frame {
-            version: version,
-            flags: vec![flag],
-            stream: stream,
-            opcode: opcode,
-            body: body.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame { version: version,
+                flags: vec![flag],
+                stream: stream,
+                opcode: opcode,
+                body: body.into_cbytes(),
+                // for request frames it's always None
+                tracing_id: None,
+                warnings: vec![], }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use types::CBytes;
     use IntoBytes;
-
 
     #[test]
     fn body_req_auth_response() {

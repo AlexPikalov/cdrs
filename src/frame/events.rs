@@ -3,7 +3,7 @@ use std::cmp::PartialEq;
 
 use FromCursor;
 use error;
-use types::{CString, CStringList, CInet};
+use types::{CInet, CString, CStringList};
 
 // Event types
 const TOPOLOGY_CHANGE: &'static str = "TOPOLOGY_CHANGE";
@@ -29,7 +29,6 @@ const TABLE: &'static str = "TABLE";
 const TYPE: &'static str = "TYPE";
 const FUNCTION: &'static str = "FUNCTION";
 const AGGREGATE: &'static str = "AGGREGATE";
-
 
 /// Simplified `ServerEvent` that does not contain details
 /// about a concrete change. It may be useful for subscription
@@ -120,10 +119,8 @@ impl FromCursor for TopologyChange {
         let change_type = TopologyChangeType::from_cursor(&mut cursor)?;
         let addr = CInet::from_cursor(&mut cursor)?;
 
-        Ok(TopologyChange {
-               change_type: change_type,
-               addr: addr,
-           })
+        Ok(TopologyChange { change_type: change_type,
+                            addr: addr, })
     }
 }
 
@@ -135,14 +132,11 @@ pub enum TopologyChangeType {
 
 impl FromCursor for TopologyChangeType {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<TopologyChangeType> {
-        CString::from_cursor(&mut cursor)
-            .and_then(|tc| match tc.as_str() {
-                NEW_NODE => Ok(TopologyChangeType::NewNode),
-                REMOVED_NODE => {
-                   Ok(TopologyChangeType::RemovedNode)
-                }
-                _ => Err("Unexpected topology change type received from Cluster".into()),
-                })
+        CString::from_cursor(&mut cursor).and_then(|tc| match tc.as_str() {
+            NEW_NODE => Ok(TopologyChangeType::NewNode),
+            REMOVED_NODE => Ok(TopologyChangeType::RemovedNode),
+            _ => Err("Unexpected topology change type received from Cluster".into()),
+        })
     }
 }
 
@@ -158,10 +152,8 @@ impl FromCursor for StatusChange {
         let change_type = StatusChangeType::from_cursor(&mut cursor)?;
         let addr = CInet::from_cursor(&mut cursor)?;
 
-        Ok(StatusChange {
-               change_type: change_type,
-               addr: addr,
-           })
+        Ok(StatusChange { change_type: change_type,
+                          addr: addr, })
     }
 }
 
@@ -174,13 +166,10 @@ pub enum StatusChangeType {
 impl FromCursor for StatusChangeType {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<StatusChangeType> {
         CString::from_cursor(&mut cursor).and_then(|sct| match sct.as_str() {
-                                                       UP => Ok(StatusChangeType::Up),
-                                                       DOWN => Ok(StatusChangeType::Down),
-                                                       _ => {
-                                                           Err("Unexpected status change type"
-                                                                   .into())
-                                                       }
-                                                   })
+            UP => Ok(StatusChangeType::Up),
+            DOWN => Ok(StatusChangeType::Down),
+            _ => Err("Unexpected status change type".into()),
+        })
     }
 }
 
@@ -198,11 +187,9 @@ impl FromCursor for SchemaChange {
         let target = Target::from_cursor(&mut cursor)?;
         let options = ChangeSchemeOptions::from_cursor_and_target(&mut cursor, &target)?;
 
-        Ok(SchemaChange {
-               change_type: change_type,
-               target: target,
-               options: options,
-           })
+        Ok(SchemaChange { change_type: change_type,
+                          target: target,
+                          options: options, })
     }
 }
 
@@ -218,14 +205,11 @@ pub enum ChangeType {
 impl FromCursor for ChangeType {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<ChangeType> {
         CString::from_cursor(&mut cursor).and_then(|ct| match ct.as_str() {
-                                                       CREATED => Ok(ChangeType::Created),
-                                                       UPDATED => Ok(ChangeType::Updated),
-                                                       DROPPED => Ok(ChangeType::Dropped),
-                                                       _ => {
-                                                           Err("Unexpected schema change type"
-                                                                   .into())
-                                                       }
-                                                   })
+            CREATED => Ok(ChangeType::Created),
+            UPDATED => Ok(ChangeType::Updated),
+            DROPPED => Ok(ChangeType::Dropped),
+            _ => Err("Unexpected schema change type".into()),
+        })
     }
 }
 
@@ -243,16 +227,13 @@ pub enum Target {
 impl FromCursor for Target {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<Target> {
         CString::from_cursor(&mut cursor).and_then(|t| match t.as_str() {
-                                                       KEYSPACE => Ok(Target::Keyspace),
-                                                       TABLE => Ok(Target::Table),
-                                                       TYPE => Ok(Target::Type),
-                                                       FUNCTION => Ok(Target::Function),
-                                                       AGGREGATE => Ok(Target::Aggregate),
-                                                       _ => {
-                                                           Err("Unexpected schema change target"
-                                                                   .into())
-                                                       }
-                                                   })
+            KEYSPACE => Ok(Target::Keyspace),
+            TABLE => Ok(Target::Table),
+            TYPE => Ok(Target::Type),
+            FUNCTION => Ok(Target::Function),
+            AGGREGATE => Ok(Target::Aggregate),
+            _ => Err("Unexpected schema change target".into()),
+        })
     }
 }
 
@@ -275,14 +256,14 @@ impl ChangeSchemeOptions {
                               target: &Target)
                               -> error::Result<ChangeSchemeOptions> {
         Ok(match *target {
-               Target::Keyspace => ChangeSchemeOptions::from_cursor_keyspace(&mut cursor)?,
-               Target::Table | Target::Type => {
-                   ChangeSchemeOptions::from_cursor_table_type(&mut cursor)?
-               }
-               Target::Function | Target::Aggregate => {
-                   ChangeSchemeOptions::from_cursor_function_aggregate(&mut cursor)?
-               }
-           })
+            Target::Keyspace => ChangeSchemeOptions::from_cursor_keyspace(&mut cursor)?,
+            Target::Table | Target::Type => {
+                ChangeSchemeOptions::from_cursor_table_type(&mut cursor)?
+            }
+            Target::Function | Target::Aggregate => {
+                ChangeSchemeOptions::from_cursor_function_aggregate(&mut cursor)?
+            }
+        })
     }
 
     fn from_cursor_keyspace(mut cursor: &mut Cursor<&[u8]>) -> error::Result<ChangeSchemeOptions> {
@@ -301,7 +282,9 @@ impl ChangeSchemeOptions {
         let keyspace = CString::from_cursor(&mut cursor)?.into_plain();
         let name = CString::from_cursor(&mut cursor)?.into_plain();
         let types = CStringList::from_cursor(&mut cursor)?.into_plain();
-        Ok(ChangeSchemeOptions::FunctionAggregate((keyspace, name, types)))
+        Ok(ChangeSchemeOptions::FunctionAggregate((keyspace,
+                                                  name,
+                                                  types)))
     }
 }
 

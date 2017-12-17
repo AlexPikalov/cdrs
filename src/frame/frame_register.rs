@@ -2,7 +2,7 @@ use rand;
 use IntoBytes;
 use frame::*;
 use frame::events::SimpleServerEvent;
-use types::{CStringList, CString};
+use types::{CString, CStringList};
 
 /// The structure which represents a body of a frame of type `options`.
 pub struct BodyReqRegister {
@@ -11,12 +11,10 @@ pub struct BodyReqRegister {
 
 impl IntoBytes for BodyReqRegister {
     fn into_cbytes(&self) -> Vec<u8> {
-        let events_string_list = CStringList {
-            list: self.events
-                .iter()
-                .map(|event| CString::new(event.as_string()))
-                .collect(),
-        };
+        let events_string_list =
+            CStringList { list: self.events.iter()
+                                    .map(|event| CString::new(event.as_string()))
+                                    .collect(), };
         events_string_list.into_cbytes()
     }
 }
@@ -32,15 +30,13 @@ impl Frame {
         let opcode = Opcode::Register;
         let register_body = BodyReqRegister { events: events };
 
-        Frame {
-            version: version,
-            flags: vec![flag],
-            stream: stream,
-            opcode: opcode,
-            body: register_body.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame { version: version,
+                flags: vec![flag],
+                stream: stream,
+                opcode: opcode,
+                body: register_body.into_cbytes(),
+                // for request frames it's always None
+                tracing_id: None,
+                warnings: vec![], }
     }
 }

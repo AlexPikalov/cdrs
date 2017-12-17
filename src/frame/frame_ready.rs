@@ -4,7 +4,6 @@ use IntoBytes;
 #[derive(Debug, PartialEq, Default)]
 pub struct BodyResReady;
 
-
 impl From<Vec<u8>> for BodyResReady {
     fn from(_vec: Vec<u8>) -> BodyResReady {
         BodyResReady {}

@@ -44,26 +44,20 @@ impl Value {
     {
         let bytes = v.into().0;
         let l = bytes.len() as i32;
-        Value {
-            body: bytes,
-            value_type: ValueType::Normal(l),
-        }
+        Value { body: bytes,
+                value_type: ValueType::Normal(l), }
     }
 
     /// The factory method which creates null Cassandra value.
     pub fn new_null() -> Value {
-        Value {
-            body: vec![],
-            value_type: ValueType::Null,
-        }
+        Value { body: vec![],
+                value_type: ValueType::Null, }
     }
 
     /// The factory method which creates non-set Cassandra value.
     pub fn new_not_set() -> Value {
-        Value {
-            body: vec![],
-            value_type: ValueType::NotSet,
-        }
+        Value { body: vec![],
+                value_type: ValueType::NotSet, }
     }
 }
 
@@ -162,7 +156,11 @@ impl Into<Bytes> for u64 {
 
 impl Into<Bytes> for bool {
     fn into(self) -> Bytes {
-        if self { Bytes(vec![1]) } else { Bytes(vec![0]) }
+        if self {
+            Bytes(vec![1])
+        } else {
+            Bytes(vec![0])
+        }
     }
 }
 

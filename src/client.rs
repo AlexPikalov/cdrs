@@ -37,11 +37,9 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
     /// that is supported by particular DB Server. There are few authenticators already
     /// provided by this trait.
     pub fn new(transport: X, authenticator: T) -> CDRS<T, X> {
-        CDRS {
-            compressor: Compression::None,
-            authenticator: authenticator,
-            transport: transport,
-        }
+        CDRS { compressor: Compression::None,
+               authenticator: authenticator,
+               transport: transport, }
     }
 
     /// The method makes an Option request to DB Server. As a response the server returns
@@ -77,10 +75,11 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
 
         if start_response.opcode == Opcode::Authenticate {
             let body = start_response.get_body()?;
-            let authenticator = body.get_authenticator().expect(
-                "Cassandra Server did communicate that it needed password
+            let authenticator =
+                body.get_authenticator().expect(
+                    "Cassandra Server did communicate that it needed password
                 authentication but the  auth schema was missing in the body response",
-            );
+                );
 
             // This creates a new scope; avoiding a clone
             // and we check whether
@@ -89,34 +88,31 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
             //      the server and client are same if not send error back
             // 3. if it falls through it means the preliminary conditions are true
 
-            let auth_check = self.authenticator
-                .get_cassandra_name()
-                .ok_or(error::Error::General("No authenticator was provided".to_string()))
-                .map(|auth| {
-                    if authenticator != auth {
-                        let io_err = io::Error::new(
+            let auth_check =
+                self.authenticator.get_cassandra_name()
+                    .ok_or(error::Error::General("No authenticator was provided".to_string()))
+                    .map(|auth| {
+                             if authenticator != auth {
+                                 let io_err = io::Error::new(
                             io::ErrorKind::NotFound,
                             format!(
                                 "Unsupported type of authenticator. {:?} got,
                              but {} is supported.",
-                                authenticator,
-                                authenticator
+                                authenticator, authenticator
                             ),
                         );
-                        return Err(error::Error::Io(io_err));
-                    }
-                    Ok(())
-                });
+                                 return Err(error::Error::Io(io_err));
+                             }
+                             Ok(())
+                         });
 
             if let Err(err) = auth_check {
                 return Err(err);
             }
 
             let auth_token_bytes = self.authenticator.get_auth_token().into_cbytes();
-            try!(self.transport
-                     .write(Frame::new_req_auth_response(auth_token_bytes)
-                                .into_cbytes()
-                                .as_slice()));
+            try!(self.transport.write(Frame::new_req_auth_response(auth_token_bytes).into_cbytes()
+                                                                          .as_slice()));
             try!(parse_frame(&mut self.transport, &compressor));
 
             return Ok(Session::start(self));
@@ -126,8 +122,7 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
     }
 
     fn drop_connection(&mut self) -> error::Result<()> {
-        self.transport
-            .close(net::Shutdown::Both)
+        self.transport.close(net::Shutdown::Both)
             .map_err(|err| error::Error::Io(err))
     }
 }
@@ -143,11 +138,9 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
     /// Creates new session basing on CDRS instance.
     pub fn start(cdrs: CDRS<T, X>) -> Session<T, X> {
         let compressor = cdrs.compressor.clone();
-        Session {
-            cdrs: cdrs,
-            started: true,
-            compressor: compressor,
-        }
+        Session { cdrs: cdrs,
+                  started: true,
+                  compressor: compressor, }
     }
 
     /// The method overrides a compression method of current session
@@ -242,16 +235,17 @@ impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
             flags.push(Flag::Warning);
         }
 
-        let query_frame = Frame::new_req_query(query.query,
-                                               query.consistency,
-                                               query.values,
-                                               query.with_names,
-                                               query.page_size,
-                                               query.paging_state,
-                                               query.serial_consistency,
-                                               query.timestamp,
-                                               flags)
-            .into_cbytes();
+        let query_frame = Frame::new_req_query(
+            query.query,
+            query.consistency,
+            query.values,
+            query.with_names,
+            query.page_size,
+            query.paging_state,
+            query.serial_consistency,
+            query.timestamp,
+            flags,
+        ).into_cbytes();
         try!(self.cdrs.transport.write(query_frame.as_slice()));
         parse_frame(&mut self.cdrs.transport, &self.compressor)
     }

@@ -29,8 +29,7 @@ pub trait AsRustType<T> {
     fn as_rust_type(&self) -> CDRSResult<Option<T>>;
 
     fn as_r_type(&self) -> CDRSResult<T> {
-        self.as_rust_type()
-            .and_then(|op| op.ok_or(CDRSError::from("Value is null or non-set")))
+        self.as_rust_type().and_then(|op| op.ok_or(CDRSError::from("Value is null or non-set")))
     }
 }
 
@@ -44,8 +43,7 @@ pub trait AsRust {
     fn as_r_rust<T>(&self) -> CDRSResult<T>
         where Self: AsRustType<T>
     {
-        self.as_rust()
-            .and_then(|op| op.ok_or("Value is null or non-set".into()))
+        self.as_rust().and_then(|op| op.ok_or("Value is null or non-set".into()))
     }
 }
 
@@ -54,8 +52,7 @@ pub trait IntoRustByName<R> {
     fn get_by_name(&self, name: &str) -> CDRSResult<Option<R>>;
 
     fn get_r_by_name(&self, name: &str) -> CDRSResult<R> {
-        self.get_by_name(name)
-            .and_then(|op| op.ok_or(column_is_empty_err()))
+        self.get_by_name(name).and_then(|op| op.ok_or(column_is_empty_err()))
     }
 }
 
@@ -69,8 +66,7 @@ pub trait ByName {
     fn r_by_name<R>(&self, name: &str) -> CDRSResult<R>
         where Self: IntoRustByName<R>
     {
-        self.by_name(name)
-            .and_then(|op| op.ok_or(column_is_empty_err()))
+        self.by_name(name).and_then(|op| op.ok_or(column_is_empty_err()))
     }
 }
 
@@ -79,8 +75,7 @@ pub trait IntoRustByIndex<R> {
     fn get_by_index(&self, index: usize) -> CDRSResult<Option<R>>;
 
     fn get_r_by_index(&self, index: usize) -> CDRSResult<R> {
-        self.get_by_index(index)
-            .and_then(|op| op.ok_or(column_is_empty_err()))
+        self.get_by_index(index).and_then(|op| op.ok_or(column_is_empty_err()))
     }
 }
 
@@ -94,8 +89,7 @@ pub trait ByIndex {
     fn r_by_index<R>(&self, index: usize) -> CDRSResult<R>
         where Self: IntoRustByIndex<R>
     {
-        self.by_index(index)
-            .and_then(|op| op.ok_or(column_is_empty_err()))
+        self.by_index(index).and_then(|op| op.ok_or(column_is_empty_err()))
     }
 }
 
@@ -357,9 +351,8 @@ impl FromCursor for CString {
         let len: u64 = try_from_bytes(len_bytes.as_slice())?;
         let body_bytes = try!(cursor_next_value(&mut cursor, len));
 
-        String::from_utf8(body_bytes)
-            .map_err(Into::into)
-            .map(CString::new)
+        String::from_utf8(body_bytes).map_err(Into::into)
+                                     .map(CString::new)
     }
 }
 
@@ -405,9 +398,8 @@ impl FromCursor for CStringLong {
         let len: u64 = try_from_bytes(len_bytes.as_slice())?;
         let body_bytes = cursor_next_value(&mut cursor, len)?;
 
-        String::from_utf8(body_bytes)
-            .map_err(Into::into)
-            .map(CStringLong::new)
+        String::from_utf8(body_bytes).map_err(Into::into)
+                                     .map(CStringLong::new)
     }
 }
 
@@ -418,8 +410,7 @@ pub struct CStringList {
 
 impl CStringList {
     pub fn into_plain(self) -> Vec<String> {
-        self.list
-            .iter()
+        self.list.iter()
             .map(|string| string.clone().into_plain())
             .collect()
     }
@@ -468,10 +459,17 @@ impl CBytes {
     pub fn new(bytes: Vec<u8>) -> CBytes {
         CBytes { bytes: Some(bytes) }
     }
+
+    /// Creates Cassandra bytes that represent empty or null value
+    pub fn new_empty() -> CBytes {
+        CBytes { bytes: None }
+    }
+
     /// Converts `CBytes` into a plain array of bytes
     pub fn into_plain(self) -> Option<Vec<u8>> {
         self.bytes
     }
+
     // TODO: try to replace usage of `as_plain` by `as_slice`
     pub fn as_plain(&self) -> Option<Vec<u8>> {
         self.bytes.clone()
@@ -544,9 +542,8 @@ impl FromCursor for CBytesShort {
             return Ok(CBytesShort { bytes: None });
         }
 
-        cursor_next_value(&mut cursor, len as u64)
-            .map(CBytesShort::new)
-            .map_err(Into::into)
+        cursor_next_value(&mut cursor, len as u64).map(CBytesShort::new)
+                                                  .map_err(Into::into)
     }
 }
 
@@ -565,7 +562,6 @@ impl IntoBytes for CBytesShort {
         }
     }
 }
-
 
 /// Cassandra int type.
 pub type CInt = i32;
@@ -623,11 +619,10 @@ pub fn cursor_next_value(cursor: &mut Cursor<&[u8]>, len: u64) -> CDRSResult<Vec
     unsafe {
         buff.set_len(l);
     }
-    try!(cursor.read(&mut buff));
+    try!(cursor.read_exact(&mut buff));
     cursor.set_position(current_position + len);
     Ok(buff)
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -810,7 +805,6 @@ mod tests {
         let val = cursor_next_value(&mut cursor, l).unwrap();
         assert_eq!(val, vec![0, 1, 2]);
     }
-
 
     #[test]
     fn test_try_u16_from_bytes() {

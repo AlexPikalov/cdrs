@@ -1,10 +1,10 @@
-use std::sync::mpsc::{Sender, Receiver, channel};
+use std::sync::mpsc::{channel, Receiver, Sender};
 use std::iter::Iterator;
 
 use std::error::Error;
 use error;
-use frame::events::{ServerEvent as FrameServerEvent, SimpleServerEvent as FrameSimpleServerEvent,
-                    SchemaChange as FrameSchemaChange};
+use frame::events::{SchemaChange as FrameSchemaChange, ServerEvent as FrameServerEvent,
+                    SimpleServerEvent as FrameSimpleServerEvent};
 use frame::parser::parse_frame;
 use compression::Compression;
 use transport::CDRSTransport;
@@ -29,10 +29,8 @@ pub type SchemaChange = FrameSchemaChange;
 /// It is similar to `Receiver::iter`.
 pub fn new_listener<X>(transport: X) -> (Listener<X>, EventStream) {
     let (tx, rx) = channel();
-    let listener = Listener {
-        transport: transport,
-        tx: tx,
-    };
+    let listener = Listener { transport: transport,
+                              tx: tx, };
     let stream = EventStream { rx: rx };
     (listener, stream)
 }
@@ -50,9 +48,8 @@ impl<X: CDRSTransport> Listener<X> {
     /// It starts a process of listening to new events. Locks a frame.
     pub fn start(&mut self, compressor: &Compression) -> error::Result<()> {
         loop {
-            let event_opt = try!(parse_frame(&mut self.transport, compressor))
-                .get_body()?
-                .into_server_event();
+            let event_opt = try!(parse_frame(&mut self.transport, compressor)).get_body()?
+                                                                              .into_server_event();
 
             let event = if event_opt.is_some() {
                 // unwrap is safe is we've checked that event_opt.is_some()

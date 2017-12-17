@@ -118,7 +118,7 @@ impl Version {
         } else {
             panic!("{}",
                    "Protocol version is not supported. CDRS should be run with protocol feature \
-                   set to v3, v4 or v5");
+                    set to v3, v4 or v5");
         }
     }
 
@@ -130,7 +130,7 @@ impl Version {
         } else {
             panic!("{}",
                    "Protocol version is not supported. CDRS should be run with protocol feature \
-                   set to v3, v4 or v5");
+                    set to v3, v4 or v5");
         }
     }
 }
@@ -148,11 +148,9 @@ impl From<Vec<u8>> for Version {
     fn from(v: Vec<u8>) -> Version {
         if v.len() != VERSION_LEN {
             error!("Unexpected Cassandra verion. Should has {} byte(-s), got {:?}",
-                   VERSION_LEN,
-                   v);
+                   VERSION_LEN, v);
             panic!("Unexpected Cassandra verion. Should has {} byte(-s), got {:?}",
-                   VERSION_LEN,
-                   v);
+                   VERSION_LEN, v);
         }
         let version = v[0];
         let req = Version::request_version();
@@ -164,13 +162,9 @@ impl From<Vec<u8>> for Version {
             Version::Response
         } else {
             error!("Unexpected Cassandra version {:?}, either {:?} or {:?} is expected",
-                   version,
-                   req,
-                   res);
+                   version, req, res);
             panic!("Unexpected Cassandra version {:?}, either {:?} or {:?} is expected",
-                   version,
-                   req,
-                   res);
+                   version, req, res);
         }
     }
 }
@@ -211,9 +205,10 @@ impl Flag {
 
     /// The method converts a serie of `Flag`-s into a single byte.
     pub fn many_to_cbytes(flags: &Vec<Flag>) -> u8 {
-        flags
-            .iter()
-            .fold(Flag::Ignore.as_byte(), |acc, f| acc | f.as_byte())
+        flags.iter()
+             .fold(Flag::Ignore.as_byte(), |acc, f| {
+                 acc | f.as_byte()
+             })
     }
 
     /// Indicates if flags contains `Flag::Compression`
@@ -328,7 +323,6 @@ impl From<u8> for Opcode {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {

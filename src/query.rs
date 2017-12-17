@@ -1,12 +1,9 @@
-
 use types::*;
 use types::value::*;
-use error::{Result as CResult, Error as CError};
+use error::{Error as CError, Result as CResult};
 use consistency::Consistency;
 use frame::frame_query::{ParamsReqQuery, QueryFlags};
-use frame::frame_batch::{BatchType, BatchQuery, BodyReqBatch, BatchQuerySubj};
-
-
+use frame::frame_batch::{BatchQuery, BatchQuerySubj, BatchType, BodyReqBatch};
 
 /// Structure that represents CQL query and parameters which will be applied during
 /// its execution
@@ -43,10 +40,8 @@ impl QueryBuilder {
     /// Factory function that takes CQL as an argument and returns new `QueryBuilder`.
     /// Default consistency level is `One`
     pub fn new<T: Into<String>>(query: T) -> QueryBuilder {
-        QueryBuilder {
-            query: query.into(),
-            ..Default::default()
-        }
+        QueryBuilder { query: query.into(),
+                       ..Default::default() }
     }
 
     /// Sets new query consistency
@@ -87,16 +82,14 @@ impl QueryBuilder {
 
     /// Finalizes query building process and returns query itself
     pub fn finalize(self) -> Query {
-        Query {
-            query: self.query,
-            consistency: self.consistency,
-            values: self.values,
-            with_names: self.with_names,
-            page_size: self.page_size,
-            paging_state: self.paging_state,
-            serial_consistency: self.serial_consistency,
-            timestamp: self.timestamp,
-        }
+        Query { query: self.query,
+                consistency: self.consistency,
+                values: self.values,
+                with_names: self.with_names,
+                page_size: self.page_size,
+                paging_state: self.paging_state,
+                serial_consistency: self.serial_consistency,
+                timestamp: self.timestamp, }
     }
 }
 
@@ -116,15 +109,13 @@ pub struct QueryParamsBuilder {
 
 impl QueryParamsBuilder {
     pub fn new(consistency: Consistency) -> QueryParamsBuilder {
-        QueryParamsBuilder {
-            consistency: consistency,
-            values: None,
-            with_names: false,
-            page_size: None,
-            paging_state: None,
-            serial_consistency: None,
-            timestamp: None,
-        }
+        QueryParamsBuilder { consistency: consistency,
+                             values: None,
+                             with_names: false,
+                             page_size: None,
+                             paging_state: None,
+                             serial_consistency: None,
+                             timestamp: None, }
     }
 
     pub fn values(mut self, v: Vec<Value>) -> Self {
@@ -187,16 +178,13 @@ impl QueryParamsBuilder {
             flags.push(QueryFlags::WithDefaultTimestamp);
         }
 
-        QueryParams {
-            consistency: self.consistency,
-            flags: flags,
-            values: self.values,
-            page_size: self.page_size,
-            paging_state: self.paging_state,
-            serial_consistency: self.serial_consistency,
-            timestamp: self.timestamp,
-        }
-
+        QueryParams { consistency: self.consistency,
+                      flags: flags,
+                      values: self.values,
+                      page_size: self.page_size,
+                      paging_state: self.paging_state,
+                      serial_consistency: self.serial_consistency,
+                      timestamp: self.timestamp, }
     }
 }
 
@@ -213,13 +201,11 @@ pub struct BatchQueryBuilder {
 
 impl BatchQueryBuilder {
     pub fn new() -> BatchQueryBuilder {
-        BatchQueryBuilder {
-            batch_type: BatchType::Logged,
-            queries: vec![],
-            consistency: Consistency::One,
-            serial_consistency: None,
-            timestamp: None,
-        }
+        BatchQueryBuilder { batch_type: BatchType::Logged,
+                            queries: vec![],
+                            consistency: Consistency::One,
+                            serial_consistency: None,
+                            timestamp: None, }
     }
 
     pub fn batch_type(mut self, batch_type: BatchType) -> Self {
@@ -229,21 +215,18 @@ impl BatchQueryBuilder {
 
     /// Add a query (non-prepared one)
     pub fn add_query<T: Into<String>>(mut self, query: T, values: Vec<BatchValue>) -> Self {
-        self.queries.push(BatchQuery {
-                              is_prepared: false,
-                              subject: BatchQuerySubj::QueryString(CStringLong::new(query.into())),
-                              values: values,
-                          });
+        self.queries.push(BatchQuery { is_prepared: false,
+                               subject:
+                                   BatchQuerySubj::QueryString(CStringLong::new(query.into())),
+                               values: values, });
         self
     }
 
     /// Add a query (prepared one)
     pub fn add_query_prepared(mut self, query_id: CBytesShort, values: Vec<BatchValue>) -> Self {
-        self.queries.push(BatchQuery {
-                              is_prepared: true,
-                              subject: BatchQuerySubj::PreparedId(query_id),
-                              values: values,
-                          });
+        self.queries.push(BatchQuery { is_prepared: true,
+                                       subject: BatchQuerySubj::PreparedId(query_id),
+                                       values: values, });
         self
     }
 
@@ -278,14 +261,12 @@ impl BatchQueryBuilder {
             flags.push(QueryFlags::WithDefaultTimestamp);
         }
 
-        let with_names_for_values = self.queries
-            .iter()
-            .all(|q| q.values.iter().all(|v| v.0.is_some()));
+        let with_names_for_values = self.queries.iter()
+                                        .all(|q| q.values.iter().all(|v| v.0.is_some()));
 
         if !with_names_for_values {
-            let some_names_for_values = self.queries
-                .iter()
-                .any(|q| q.values.iter().any(|v| v.0.is_some()));
+            let some_names_for_values = self.queries.iter()
+                                            .any(|q| q.values.iter().any(|v| v.0.is_some()));
 
             if some_names_for_values {
                 return Err(CError::General(String::from("Inconsistent query values - mixed \
@@ -297,14 +278,12 @@ impl BatchQueryBuilder {
             flags.push(QueryFlags::WithNamesForValues);
         }
 
-        Ok(BodyReqBatch {
-               batch_type: self.batch_type,
-               queries: self.queries,
-               query_flags: flags,
-               consistency: self.consistency,
-               serial_consistency: self.serial_consistency,
-               timestamp: self.timestamp,
-           })
+        Ok(BodyReqBatch { batch_type: self.batch_type,
+                          queries: self.queries,
+                          query_flags: flags,
+                          consistency: self.consistency,
+                          serial_consistency: self.serial_consistency,
+                          timestamp: self.timestamp, })
     }
 }
 
@@ -321,15 +300,14 @@ mod query_builder {
 
     #[test]
     fn with_parameters() {
-        let _ = QueryBuilder::new("USE keyspace")
-            .consistency(Consistency::Two)
-            .values(vec![Value::new_null()])
-            .with_names(true)
-            .page_size(11)
-            .paging_state(CBytes::new(vec![1, 2, 3, 4, 5]))
-            .serial_consistency(Consistency::One)
-            .timestamp(1245678)
-            .finalize();
+        let _ = QueryBuilder::new("USE keyspace").consistency(Consistency::Two)
+                                                 .values(vec![Value::new_null()])
+                                                 .with_names(true)
+                                                 .page_size(11)
+                                                 .paging_state(CBytes::new(vec![1, 2, 3, 4, 5]))
+                                                 .serial_consistency(Consistency::One)
+                                                 .timestamp(1245678)
+                                                 .finalize();
     }
 }
 
@@ -344,14 +322,14 @@ mod query_params_builder {
 
     #[test]
     fn with_parameters() {
-        let _ = QueryParamsBuilder::new(Consistency::Two)
-            .values(vec![Value::new_null()])
-            .with_names(true)
-            .page_size(11)
-            .paging_state(CBytes::new(vec![1, 2, 3, 4, 5]))
-            .serial_consistency(Consistency::One)
-            .timestamp(1245678)
-            .finalize();
+        let _ = QueryParamsBuilder::new(Consistency::Two).values(vec![Value::new_null()])
+                                                         .with_names(true)
+                                                         .page_size(11)
+                                                         .paging_state(CBytes::new(vec![1, 2, 3,
+                                                                                        4, 5]))
+                                                         .serial_consistency(Consistency::One)
+                                                         .timestamp(1245678)
+                                                         .finalize();
     }
 }
 
@@ -375,29 +353,27 @@ mod batch_query_builder {
                 assert!(n.timestamp == None);
                 assert!(n.queries.is_empty());
             }
-            Err(_) => assert!(false,"Error should not happen"),
+            Err(_) => assert!(false, "Error should not happen"),
         }
     }
 
     #[test]
     fn with_parameters() {
-        let q = BatchQueryBuilder::new()
-            .batch_type(BatchType::Logged)
-            .add_query("some query".to_string(), vec![])
-            .add_query_prepared(CBytesShort::new(vec![1, 2, 3]), vec![])
-            .consistency(Consistency::One)
-            .serial_consistency(Some(Consistency::Two))
-            .timestamp(Some(1234))
-            .finalize();
+        let q = BatchQueryBuilder::new().batch_type(BatchType::Logged)
+                                        .add_query("some query".to_string(), vec![])
+                                        .add_query_prepared(CBytesShort::new(vec![1, 2, 3]), vec![])
+                                        .consistency(Consistency::One)
+                                        .serial_consistency(Some(Consistency::Two))
+                                        .timestamp(Some(1234))
+                                        .finalize();
         assert!(q.is_ok())
     }
 
     #[test]
     fn clear_queries() {
-        let q = BatchQueryBuilder::new()
-            .add_query("some query".to_string(), vec![])
-            .clear_queries()
-            .finalize();
+        let q = BatchQueryBuilder::new().add_query("some query".to_string(), vec![])
+                                        .clear_queries()
+                                        .finalize();
         assert!(q.is_ok())
     }
 }

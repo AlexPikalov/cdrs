@@ -27,7 +27,6 @@ impl BodyReqQuery {
            serial_consistency: Option<Consistency>,
            timestamp: Option<i64>)
            -> BodyReqQuery {
-
         // query flags
         let mut flags: Vec<QueryFlags> = vec![];
         if values.is_some() {
@@ -46,18 +45,14 @@ impl BodyReqQuery {
             flags.push(QueryFlags::WithDefaultTimestamp);
         }
 
-        BodyReqQuery {
-            query: CStringLong::new(query),
-            query_params: ParamsReqQuery {
-                consistency: consistency,
-                flags: flags,
-                values: values,
-                page_size: page_size,
-                paging_state: paging_state,
-                serial_consistency: serial_consistency,
-                timestamp: timestamp,
-            },
-        }
+        BodyReqQuery { query: CStringLong::new(query),
+                       query_params: ParamsReqQuery { consistency: consistency,
+                                                      flags: flags,
+                                                      values: values,
+                                                      page_size: page_size,
+                                                      paging_state: paging_state,
+                                                      serial_consistency: serial_consistency,
+                                                      timestamp: timestamp, }, }
     }
 }
 
@@ -154,8 +149,9 @@ impl IntoBytes for ParamsReqQuery {
                                     .into_cbytes()
                                     .as_slice());
         }
-        if QueryFlags::has_with_serial_consistency(self.flags_as_byte()) &&
-           self.serial_consistency.is_some() {
+        if QueryFlags::has_with_serial_consistency(self.flags_as_byte())
+           && self.serial_consistency.is_some()
+        {
             // XXX clone
             v.extend_from_slice(self.serial_consistency
                                     .clone()
@@ -165,8 +161,8 @@ impl IntoBytes for ParamsReqQuery {
                                     .into_cbytes()
                                     .as_slice());
         }
-        if QueryFlags::has_with_default_timestamp(self.flags_as_byte()) &&
-           self.timestamp.is_some() {
+        if QueryFlags::has_with_default_timestamp(self.flags_as_byte()) && self.timestamp.is_some()
+        {
             // unwrap is safe as we've checked that self.timestamp.is_some()
             v.extend_from_slice(to_bigint(self.timestamp.unwrap()).as_slice());
         }
@@ -314,15 +310,13 @@ impl Frame {
                                      serial_consistency,
                                      timestamp);
 
-        Frame {
-            version: version,
-            flags: flags,
-            stream: stream,
-            opcode: opcode,
-            body: body.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame { version: version,
+                flags: flags,
+                stream: stream,
+                opcode: opcode,
+                body: body.into_cbytes(),
+                // for request frames it's always None
+                tracing_id: None,
+                warnings: vec![], }
     }
 }
