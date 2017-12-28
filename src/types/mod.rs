@@ -628,7 +628,7 @@ pub fn cursor_next_value(cursor: &mut Cursor<&[u8]>, len: u64) -> CDRSResult<Vec
 mod tests {
     use std::io::Cursor;
     use super::*;
-    use {FromCursor, IntoBytes};
+    use frame::traits::{FromCursor, IntoBytes};
     use std::mem::transmute;
 
     // CString

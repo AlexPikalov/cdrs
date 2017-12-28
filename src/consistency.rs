@@ -146,7 +146,7 @@ impl FromCursor for Consistency {
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
-    use {FromBytes, FromCursor, IntoBytes};
+    use frame::traits::{FromBytes, FromCursor, IntoBytes};
     use super::*;
 
     #[test]

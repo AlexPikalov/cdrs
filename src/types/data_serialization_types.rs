@@ -6,6 +6,7 @@ use std::string::FromUtf8Error;
 use uuid;
 use super::*;
 use super::blob::Blob;
+use error;
 use frame::FromCursor;
 
 // https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L813

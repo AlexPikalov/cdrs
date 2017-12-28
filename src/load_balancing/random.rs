@@ -29,7 +29,7 @@ mod tests {
   #[test]
   fn random() {
     let nodes = vec!["a", "b", "c", "d", "e", "f", "g"];
-    let load_balancer = LoadBalancer::new(nodes, LoadBalancingStrategy::Random);
+    let load_balancer = LoadBalancer::new(nodes, Random);
     for _ in 0..100 {
       let s = load_balancer.next();
       assert!(s.is_some());

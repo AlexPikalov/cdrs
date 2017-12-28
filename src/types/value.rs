@@ -239,7 +239,7 @@ impl<K, V> From<HashMap<K, V>> for Bytes
 mod tests {
 
     use super::*;
-    use IntoBytes;
+    use frame::traits::IntoBytes;
 
     #[test]
     fn test_value_type_into_cbytes() {
