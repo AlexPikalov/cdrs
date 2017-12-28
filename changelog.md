@@ -1,3 +1,7 @@
+### v 1.2.1
+
+* Fixed buffer issue when UDT schema was changed https://github.com/AlexPikalov/cdrs/pull/191
+
 ### v 1.2.0
 
 * Fixed reconnection when a node went down and evaluation of peer address returns an error
@@ -7,7 +11,7 @@
 ### v 1.1.0
 
 * Create `Blob` type. It's a wrapper for `Vec<u8>` which represents Cassandra
-blob type.
+  blob type.
 
 * Fix full event to simple event mapping.
 
