@@ -54,6 +54,14 @@ impl<T: Into<Value> + Clone> From<Vec<T>> for QueryValues {
   }
 }
 
+impl<'a, T: Into<Value> + Clone> From<&'a [T]> for QueryValues {
+  /// It converts values from `Vec` to query values without names `QueryValues::SimpleValues`.
+  fn from(values: &'a [T]) -> QueryValues {
+    let vals = values.iter().map(|v| v.clone().into());
+    QueryValues::SimpleValues(vals.collect())
+  }
+}
+
 impl<S: ToString + Hash + Eq, V: Into<Value> + Clone> From<HashMap<S, V>> for QueryValues {
   /// It converts values from `HashMap` to query values with names `QueryValues::NamedValues`.
   fn from(values: HashMap<S, V>) -> QueryValues {
@@ -74,8 +82,7 @@ impl IntoBytes for QueryValues {
     match *self {
       QueryValues::SimpleValues(ref v) => v.iter().fold(bytes, QueryValues::value_into_bytes_fold),
       QueryValues::NamedValues(ref v) => {
-        v.iter()
-          .fold(bytes, QueryValues::named_value_into_bytes_fold)
+        v.iter().fold(bytes, QueryValues::named_value_into_bytes_fold)
       }
     }
   }
