@@ -2,14 +2,14 @@ use std::net::IpAddr;
 use uuid::Uuid;
 use time::Timespec;
 
-use frame::frame_result::{ColTypeOption, CTuple, ColType, ColTypeOptionValue};
-use types::{CBytes, IntoRustByIndex, ByIndex};
+use frame::frame_result::{CTuple, ColType, ColTypeOption, ColTypeOptionValue};
+use types::{ByIndex, CBytes, IntoRustByIndex};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
 use types::udt::UDT;
 use types::blob::Blob;
-use error::{Result, Error, column_is_empty_err};
+use error::{column_is_empty_err, Error, Result};
 
 use std::hash::{Hash, Hasher};
 

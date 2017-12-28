@@ -3,14 +3,14 @@ use std::collections::HashMap;
 use uuid::Uuid;
 use time::Timespec;
 
-use frame::frame_result::{ColTypeOption, CUdt, ColType, ColTypeOptionValue};
-use types::{CBytes, IntoRustByName, ByName};
+use frame::frame_result::{CUdt, ColType, ColTypeOption, ColTypeOptionValue};
+use types::{ByName, CBytes, IntoRustByName};
 use types::data_serialization_types::*;
 use types::list::List;
 use types::map::Map;
 use types::tuple::Tuple;
 use types::blob::Blob;
-use error::{Result, Error, column_is_empty_err};
+use error::{column_is_empty_err, Error, Result};
 
 #[derive(Debug)]
 pub struct UDT {

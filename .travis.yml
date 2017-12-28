@@ -19,11 +19,11 @@ before_install:
 
 
 install:
-  - (cargo install rustfmt --force  || true)
+  # - (cargo install rustfmt --force  || true)
   - PATH=$PATH:/home/travis/.cargo/bin
 
 script:
-  - cargo fmt -- --write-mode=diff
+  # - cargo fmt -- --write-mode=diff
   - cargo build --verbose
   - cargo test --verbose
 

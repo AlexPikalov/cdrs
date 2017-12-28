@@ -143,8 +143,6 @@ impl FromCursor for Consistency {
     }
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;

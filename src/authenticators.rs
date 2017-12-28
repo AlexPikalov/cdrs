@@ -13,10 +13,8 @@ pub struct PasswordAuthenticator<'a> {
 
 impl<'a> PasswordAuthenticator<'a> {
     pub fn new<'b>(username: &'b str, password: &'b str) -> PasswordAuthenticator<'b> {
-        PasswordAuthenticator {
-            username: username,
-            password: password,
-        }
+        PasswordAuthenticator { username: username,
+                                password: password, }
     }
 }
 
@@ -38,7 +36,6 @@ impl<'a> Authenticator for PasswordAuthenticator<'a> {
 #[derive(Debug, Clone)]
 pub struct NoneAuthenticator;
 
-
 impl Authenticator for NoneAuthenticator {
     fn get_auth_token(&self) -> CBytes {
         CBytes::new(vec![0])
@@ -48,7 +45,6 @@ impl Authenticator for NoneAuthenticator {
         None
     }
 }
-
 
 #[cfg(test)]
 mod tests {

@@ -8,7 +8,6 @@ use super::*;
 use super::blob::Blob;
 use frame::FromCursor;
 
-
 // https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L813
 
 // Decodes Cassandra `ascii` data (bytes) into Rust's `Result<String, FromUtf8Error>`.
@@ -41,7 +40,8 @@ pub fn decode_blob(bytes: &Vec<u8>) -> Result<Blob, io::Error> {
 pub fn decode_boolean(bytes: &[u8]) -> Result<bool, io::Error> {
     let false_byte: u8 = 0;
     if bytes.is_empty() {
-        Err(io::Error::new(io::ErrorKind::UnexpectedEof, "no bytes were found"))
+        Err(io::Error::new(io::ErrorKind::UnexpectedEof,
+                           "no bytes were found"))
     } else {
         Ok(bytes[0] != false_byte)
     }
@@ -64,10 +64,9 @@ pub fn decode_date(bytes: &[u8]) -> Result<i32, io::Error> {
 // Decodes Cassandra `decimal` data (bytes) into Rust's `Result<f32, io::Error>`
 pub fn decode_decimal(bytes: &[u8]) -> Result<f32, io::Error> {
     let ref separator = b'E';
-    let lr: Vec<Vec<u8>> = bytes
-        .split(|ch| ch == separator)
-        .map(|p| p.to_vec())
-        .collect();
+    let lr: Vec<Vec<u8>> = bytes.split(|ch| ch == separator)
+                                .map(|p| p.to_vec())
+                                .collect();
     let unscaled = try_i_from_bytes(lr[0].as_slice());
     if unscaled.is_err() {
         return Err(unscaled.unwrap_err());
@@ -97,7 +96,10 @@ pub fn decode_float(bytes: &[u8]) -> Result<f32, io::Error> {
 pub fn decode_inet(bytes: &[u8]) -> Result<net::IpAddr, io::Error> {
     match bytes.len() {
         // v4
-        4 => Ok(net::IpAddr::V4(net::Ipv4Addr::new(bytes[0], bytes[1], bytes[2], bytes[3]))),
+        4 => Ok(net::IpAddr::V4(net::Ipv4Addr::new(bytes[0],
+                                                   bytes[1],
+                                                   bytes[2],
+                                                   bytes[3]))),
         // v6
         16 => {
             let a = from_u16_bytes(&bytes[0..2]);
@@ -113,7 +115,8 @@ pub fn decode_inet(bytes: &[u8]) -> Result<net::IpAddr, io::Error> {
         _ => {
             // let message = format!("Unparseable  Ip address {:?}", bytes);
             Err(io::Error::new(io::ErrorKind::Other,
-                               format!("Unparseable  Ip address {:?}", bytes)))
+                               format!("Unparseable  Ip address {:?}",
+                                       bytes)))
         }
     }
 }
@@ -133,8 +136,9 @@ pub fn decode_list(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
         CInt::from_cursor(&mut cursor).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     let mut list = Vec::with_capacity(l as usize);
     for _ in 0..l {
-        let b = CBytes::from_cursor(&mut cursor)
-            .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
+        let b = CBytes::from_cursor(&mut cursor).map_err(|err| {
+            io::Error::new(io::ErrorKind::InvalidData, err)
+        })?;
         list.push(b);
     }
     Ok(list)
@@ -148,14 +152,17 @@ pub fn decode_set(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
 // Decodes Cassandra `map` data (bytes) into Rust's `Result<Vec<(CBytes, CBytes)>, io::Error>`
 pub fn decode_map(bytes: &[u8]) -> Result<Vec<(CBytes, CBytes)>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
-    let l = CInt::from_cursor(&mut cursor)
-        .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
+    let l = CInt::from_cursor(&mut cursor).map_err(|err| {
+        io::Error::new(io::ErrorKind::InvalidData, err)
+    })?;
     let mut map = Vec::with_capacity(l as usize);
     for _ in 0..l {
-        let n = CBytes::from_cursor(&mut cursor)
-            .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
-        let v = CBytes::from_cursor(&mut cursor)
-            .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
+        let n = CBytes::from_cursor(&mut cursor).map_err(|err| {
+            io::Error::new(io::ErrorKind::InvalidData, err)
+        })?;
+        let v = CBytes::from_cursor(&mut cursor).map_err(|err| {
+            io::Error::new(io::ErrorKind::InvalidData, err)
+        })?;
         map.push((n, v));
     }
     Ok(map)
@@ -197,8 +204,21 @@ pub fn decode_udt(bytes: &[u8], l: usize) -> Result<Vec<CBytes>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
     let mut udt = Vec::with_capacity(l);
     for _ in 0..l {
-        let v = CBytes::from_cursor(&mut cursor)
-            .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
+        let v =
+            CBytes::from_cursor(&mut cursor).or_else(|err| match err {
+                                                         error::Error::Io(io_err) => {
+                                                             if io_err.kind()
+                                                                == io::ErrorKind::UnexpectedEof {
+                                                                 Ok(CBytes::new_empty())
+                                                             } else {
+                                                                 Err(io_err.into())
+                                                             }
+                                                         }
+                                                         _ => Err(err),
+                                                     })
+                                            .map_err(|err| {
+                io::Error::new(io::ErrorKind::InvalidData, err)
+            })?;
         udt.push(v);
     }
     Ok(udt)
@@ -210,8 +230,9 @@ pub fn decode_tuple(bytes: &[u8], l: usize) -> Result<Vec<CBytes>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
     let mut udt = Vec::with_capacity(l);
     for _ in 0..l {
-        let v = CBytes::from_cursor(&mut cursor)
-            .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
+        let v = CBytes::from_cursor(&mut cursor).map_err(|err| {
+            io::Error::new(io::ErrorKind::InvalidData, err)
+        })?;
         udt.push(v);
     }
     Ok(udt)
@@ -343,10 +364,12 @@ mod tests {
 
     #[test]
     fn decode_timeuuid_test() {
-        assert_eq!(decode_timeuuid(&[4, 54, 67, 12, 43, 2, 98, 76, 32, 50, 87, 5, 1, 33, 43, 87])
-                       .unwrap()
-                       .as_bytes(),
-                   &[4, 54, 67, 12, 43, 2, 98, 76, 32, 50, 87, 5, 1, 33, 43, 87]);
+        assert_eq!(
+            decode_timeuuid(&[4, 54, 67, 12, 43, 2, 98, 76, 32, 50, 87, 5, 1, 33, 43, 87])
+                .unwrap()
+                .as_bytes(),
+            &[4, 54, 67, 12, 43, 2, 98, 76, 32, 50, 87, 5, 1, 33, 43, 87]
+        );
     }
 
     #[test]
@@ -365,10 +388,9 @@ mod tests {
     fn as_rust_blob_test() {
         let d_type = DataType { id: ColType::Blob };
         let data = CBytes::new(vec![1, 2, 3]);
-        assert_eq!(as_rust_type!(d_type, data, Blob)
-                       .unwrap()
-                       .unwrap()
-                       .into_vec(),
+        assert_eq!(as_rust_type!(d_type, data, Blob).unwrap()
+                                                    .unwrap()
+                                                    .into_vec(),
                    vec![1, 2, 3]);
         let wrong_type = DataType { id: ColType::Map };
         assert!(as_rust_type!(wrong_type, data, Blob).is_err());
@@ -376,13 +398,9 @@ mod tests {
 
     #[test]
     fn as_rust_string_test() {
-        let type_custom = DataType {
-            id: ColType::Custom,
-        };
+        let type_custom = DataType { id: ColType::Custom, };
         let type_ascii = DataType { id: ColType::Ascii };
-        let type_varchar = DataType {
-            id: ColType::Varchar,
-        };
+        let type_varchar = DataType { id: ColType::Varchar, };
         let data = CBytes::new(b"abc".to_vec());
         assert_eq!(as_rust_type!(type_custom, data, String).unwrap().unwrap(),
                    "abc");
@@ -396,18 +414,14 @@ mod tests {
 
     #[test]
     fn as_rust_bool_test() {
-        let type_boolean = DataType {
-            id: ColType::Boolean,
-        };
+        let type_boolean = DataType { id: ColType::Boolean, };
         let data_true = CBytes::new(vec![1]);
         let data_false = CBytes::new(vec![0]);
-        assert_eq!(as_rust_type!(type_boolean, data_true, bool)
-                       .unwrap()
-                       .unwrap(),
+        assert_eq!(as_rust_type!(type_boolean, data_true, bool).unwrap()
+                                                               .unwrap(),
                    true);
-        assert_eq!(as_rust_type!(type_boolean, data_false, bool)
-                       .unwrap()
-                       .unwrap(),
+        assert_eq!(as_rust_type!(type_boolean, data_false, bool).unwrap()
+                                                                .unwrap(),
                    false);
         let wrong_type = DataType { id: ColType::Map };
         assert!(as_rust_type!(wrong_type, data_false, bool).is_err());
@@ -415,16 +429,10 @@ mod tests {
 
     #[test]
     fn as_rust_i64_test() {
-        let type_bigint = DataType {
-            id: ColType::Bigint,
-        };
-        let type_timestamp = DataType {
-            id: ColType::Timestamp,
-        };
+        let type_bigint = DataType { id: ColType::Bigint, };
+        let type_timestamp = DataType { id: ColType::Timestamp, };
         let type_time = DataType { id: ColType::Time };
-        let type_varint = DataType {
-            id: ColType::Varint,
-        };
+        let type_varint = DataType { id: ColType::Varint, };
         let data = CBytes::new(vec![0, 0, 0, 0, 0, 0, 0, 100]);
         assert_eq!(as_rust_type!(type_bigint, data, i64).unwrap().unwrap(), 100);
         assert_eq!(as_rust_type!(type_timestamp, data, i64).unwrap().unwrap(),
@@ -448,9 +456,7 @@ mod tests {
 
     #[test]
     fn as_rust_i16_test() {
-        let type_smallint = DataType {
-            id: ColType::Smallint,
-        };
+        let type_smallint = DataType { id: ColType::Smallint, };
         let data = CBytes::new(vec![0, 100]);
         assert_eq!(as_rust_type!(type_smallint, data, i16).unwrap().unwrap(),
                    100);
@@ -460,9 +466,7 @@ mod tests {
 
     #[test]
     fn as_rust_i8_test() {
-        let type_tinyint = DataType {
-            id: ColType::Tinyint,
-        };
+        let type_tinyint = DataType { id: ColType::Tinyint, };
         let data = CBytes::new(vec![100]);
         assert_eq!(as_rust_type!(type_tinyint, data, i8).unwrap().unwrap(), 100);
         let wrong_type = DataType { id: ColType::Map };
@@ -471,9 +475,7 @@ mod tests {
 
     #[test]
     fn as_rust_f64_test() {
-        let type_double = DataType {
-            id: ColType::Double,
-        };
+        let type_double = DataType { id: ColType::Double, };
         let data = CBytes::new(to_float_big(0.1 as f64));
         assert_eq!(as_rust_type!(type_double, data, f64).unwrap().unwrap(), 0.1);
         let wrong_type = DataType { id: ColType::Map };

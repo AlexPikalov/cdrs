@@ -166,13 +166,9 @@ impl From<Vec<u8>> for Version {
             Version::Response
         } else {
             error!("Unexpected Cassandra version {:?}, either {:?} or {:?} is expected",
-                   version,
-                   req,
-                   res);
+                   version, req, res);
             panic!("Unexpected Cassandra version {:?}, either {:?} or {:?} is expected",
-                   version,
-                   req,
-                   res);
+                   version, req, res);
         }
     }
 }
@@ -217,9 +213,10 @@ impl Flag {
 
     /// The method converts a serie of `Flag`-s into a single byte.
     pub fn many_to_cbytes(flags: &Vec<Flag>) -> u8 {
-        flags
-            .iter()
-            .fold(Flag::Ignore.as_byte(), |acc, f| acc | f.as_byte())
+        flags.iter()
+             .fold(Flag::Ignore.as_byte(), |acc, f| {
+            acc | f.as_byte()
+        })
     }
 
     /// Indicates if flags contains `Flag::Compression`
@@ -339,7 +336,6 @@ impl From<u8> for Opcode {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {

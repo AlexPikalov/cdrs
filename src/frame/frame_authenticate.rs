@@ -12,9 +12,7 @@ pub struct BodyResAuthenticate {
 
 impl FromCursor for BodyResAuthenticate {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<BodyResAuthenticate> {
-        Ok(BodyResAuthenticate {
-               data: CString::from_cursor(&mut cursor)?,
-           })
+        Ok(BodyResAuthenticate { data: CString::from_cursor(&mut cursor)?, })
     }
 }
 

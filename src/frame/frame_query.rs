@@ -44,19 +44,15 @@ impl BodyReqQuery {
             flags.push(QueryFlags::WithDefaultTimestamp);
         }
 
-        BodyReqQuery {
-            query: CStringLong::new(query),
-            query_params: QueryParams {
-                consistency,
-                flags,
-                with_names,
-                values,
-                page_size,
-                paging_state,
-                serial_consistency,
-                timestamp,
-            },
-        }
+        BodyReqQuery { query: CStringLong::new(query),
+                       query_params: QueryParams { consistency,
+                                                   flags,
+                                                   with_names,
+                                                   values,
+                                                   page_size,
+                                                   paging_state,
+                                                   serial_consistency,
+                                                   timestamp, }, }
     }
 }
 
@@ -95,16 +91,14 @@ impl Frame {
                                      serial_consistency,
                                      timestamp);
 
-        Frame {
-            version: version,
-            flags: flags,
-            stream: stream,
-            opcode: opcode,
-            body: body.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame { version: version,
+                flags: flags,
+                stream: stream,
+                opcode: opcode,
+                body: body.into_cbytes(),
+                // for request frames it's always None
+                tracing_id: None,
+                warnings: vec![], }
     }
 
     /// **Note:** This function should be used internally for building query request frames.

@@ -23,11 +23,9 @@ impl<T: Authenticator + Send + Sync + 'static, X: CDRSTransport + Send + Sync + 
                authenticator: T,
                compression: Compression)
                -> ConnectionManager<T, X> {
-        ConnectionManager {
-            transport: transport,
-            authenticator: authenticator,
-            compression: compression,
-        }
+        ConnectionManager { transport: transport,
+                            authenticator: authenticator,
+                            compression: compression, }
     }
 }
 
