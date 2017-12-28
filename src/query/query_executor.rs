@@ -28,23 +28,23 @@ pub trait QueryExecutor<'a> {
   }
 
   /// Executes a query with bounded values (either with or without names).
-  fn query_with_values<Q: ToString>(&'a mut self,
-                                    query: Q,
-                                    values: QueryValues)
-                                    -> error::Result<Frame> {
+  fn query_with_values<Q: ToString, V: Into<QueryValues>>(&'a mut self,
+                                                          query: Q,
+                                                          values: V)
+                                                          -> error::Result<Frame> {
     self.query_with_values_tw(query, values, false, false)
   }
 
   /// Executes a query with bounded values (either with or without names)
   /// and ability to see warnings, trace a request and default parameters.
-  fn query_with_values_tw<Q: ToString>(&'a mut self,
-                                       query: Q,
-                                       values: QueryValues,
-                                       with_tracing: bool,
-                                       with_warnings: bool)
-                                       -> error::Result<Frame> {
+  fn query_with_values_tw<Q: ToString, V: Into<QueryValues>>(&'a mut self,
+                                                             query: Q,
+                                                             values: V,
+                                                             with_tracing: bool,
+                                                             with_warnings: bool)
+                                                             -> error::Result<Frame> {
     let query_params_builder = QueryParamsBuilder::new();
-    let query_params = query_params_builder.values(values).finalize();
+    let query_params = query_params_builder.values(values.into()).finalize();
     self.query_with_params_tw(query, query_params, with_tracing, with_warnings)
   }
 
