@@ -135,14 +135,12 @@ of CDRS connections both plain and SSL-encrypted:
 ```rust
 use cdrs::connection_manager::ConnectionManager;
 
-let config = r2d2::Config::builder()
-    .pool_size(15)
-    .build();
 let transport = TransportTcp::new(ADDR).unwrap();
 let authenticator = PasswordAuthenticator::new(USER, PASS);
 let manager = ConnectionManager::new(transport, authenticator, Compression::None);
-
-let pool = r2d2::Pool::new(config, manager).unwrap();
+let pool = r2d2::Pool::builder()
+    .max_size(15)
+    .build(manager).unwrap();
 
 for _ in 0..20 {
     let pool = pool.clone();
@@ -446,9 +444,9 @@ let cluster = vec![_ADDR1, _ADDR2]
     .iter()
     .map(|addr| TransportTcp::new(addr).unwrap())
     .collect();
-let config = r2d2::Config::builder()
-    .pool_size(15)
-    .build();
+let pool = r2d2::Pool::builder()
+    .max_size(15)
+    .build(manager).expect("Failed to initialize Cassandra connection pool");
 ```
 After that you need to choose desired load balancing strategy and instantiate
 cluster collection manager. At current moment
