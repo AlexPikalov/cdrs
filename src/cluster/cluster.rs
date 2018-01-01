@@ -19,6 +19,18 @@ impl<'a> Cluster {
     Session::new(&self.nodes_addrs, lb)
   }
 
+  pub fn connect_snappy<LB>(&self, lb: LB) -> error::Result<Session<LB>>
+    where LB: LoadBalancingStrategy<'a, TransportTcp> + Sized
+  {
+    Session::new_snappy(&self.nodes_addrs, lb)
+  }
+
+  pub fn connect_lz4<LB>(&self, lb: LB) -> error::Result<Session<LB>>
+    where LB: LoadBalancingStrategy<'a, TransportTcp> + Sized
+  {
+    Session::new_lz4(&self.nodes_addrs, lb)
+  }
+
   #[cfg(feature = "ssl")]
   pub fn connect_ssl() {
     unimplemented!()

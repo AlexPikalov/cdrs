@@ -15,7 +15,7 @@ use query::{ExecExecutor, PrepareExecutor, PreparedQuery, Query, QueryExecutor, 
 pub struct Session<LB> {
   nodes: Vec<TransportTcp>,
   load_balancing: LB,
-  compression: Compression,
+  pub compression: Compression,
 }
 
 impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> Session<LB> {
@@ -26,11 +26,33 @@ impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> Session<LB> {
       nodes.push(TransportTcp::new(&addr)?);
     }
 
-    Ok(Session {
-         nodes,
-         load_balancing: load_balancing,
-         compression: Compression::None,
-       })
+    Ok(Session { nodes,
+                 load_balancing: load_balancing,
+                 compression: Compression::None, })
+  }
+
+  pub fn new_snappy(addrs: &Vec<&str>, load_balancing: LB) -> error::Result<Session<LB>> {
+    let mut nodes: Vec<TransportTcp> = Vec::with_capacity(addrs.len());
+
+    for addr in addrs {
+      nodes.push(TransportTcp::new(&addr)?);
+    }
+
+    Ok(Session { nodes,
+                 load_balancing: load_balancing,
+                 compression: Compression::Snappy, })
+  }
+
+  pub fn new_lz4(addrs: &Vec<&str>, load_balancing: LB) -> error::Result<Session<LB>> {
+    let mut nodes: Vec<TransportTcp> = Vec::with_capacity(addrs.len());
+
+    for addr in addrs {
+      nodes.push(TransportTcp::new(&addr)?);
+    }
+
+    Ok(Session { nodes,
+                 load_balancing: load_balancing,
+                 compression: Compression::Lz4, })
   }
 }
 
@@ -49,10 +71,8 @@ impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> QueryExecutor<'a> 
                                        with_tracing: bool,
                                        with_warnings: bool)
                                        -> error::Result<Frame> {
-    let query = Query {
-      query: query.to_string(),
-      params: query_params,
-    };
+    let query = Query { query: query.to_string(),
+                        params: query_params, };
 
     let mut flags = vec![];
 
