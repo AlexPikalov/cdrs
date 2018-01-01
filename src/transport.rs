@@ -201,6 +201,6 @@ impl CDRSTransport for TransportTls {
     }
 
     fn is_alive(&self) -> bool {
-        self.ssl.get_ref().peer_addr().is_ok();
+        self.ssl.get_ref().peer_addr().is_ok()
     }
 }

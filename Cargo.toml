@@ -25,7 +25,7 @@ byteorder = "0.5.3"
 log = "0.3.6"
 lz4-compress = "=0.1.0"
 openssl = { version = "0.9.6", optional = true }
-r2d2 = "0.7.1"
+r2d2 = "0.8.2"
 rand = "0.3"
 snap = "0.2"
 time = "0.1.36"

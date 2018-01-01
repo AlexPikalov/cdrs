@@ -18,7 +18,6 @@ const _ADDR1: &'static str = "127.0.0.1:9042";
 const _ADDR2: &'static str = "127.0.0.1:9043";
 
 fn main() {
-    let config = r2d2::Config::builder().pool_size(15).build();
     // TODO: setup cluster with different nodes and test it
     let cluster = vec![_ADDR1, _ADDR2]
         .iter()
@@ -27,8 +26,7 @@ fn main() {
     let authenticator = PasswordAuthenticator::new(_USER, _PASS);
     let load_balancer = LoadBalancer::new(cluster, LoadBalancingStrategy::RoundRobin);
     let manager = ClusterConnectionManager::new(load_balancer, authenticator, Compression::None);
-
-    let pool = r2d2::Pool::new(config, manager).unwrap();
+    let pool = r2d2::Pool::builder().max_size(15).build(manager).unwrap();
 
     let (tx, rx) = channel();
     for i in 0..20 {
