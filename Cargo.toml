@@ -26,7 +26,7 @@ log = "0.4.1"
 lz4-compress = "=0.1.0"
 openssl = { version = "0.9.23", optional = true }
 r2d2 = "0.8.2"
-rand = "0.3"
+rand = "0.4.1"
 snap = "0.2"
 time = "0.1.36"
 uuid = "0.5.0"
