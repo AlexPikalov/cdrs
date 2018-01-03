@@ -58,4 +58,5 @@ fn insert_values(session: &mut CurrentSession, table_name: &str) {
   session.query_with_values(q, values)
          .expect("Insert values error");
   println!("* Values inserted into {}", table_name);
+  let values_with_names = query_values!("my_bigint" => bigint, "my_int" => int);
 }
