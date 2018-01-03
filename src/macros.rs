@@ -9,8 +9,34 @@
 /// is more concise see
 /// @https://doc.rust-lang.org/book/method-syntax.html
 ///
-///
-///
+
+#[macro_export]
+macro_rules! query_values {
+    ($($value:expr),*) => {
+        {
+            use cdrs::types::value::Value;
+            use cdrs::query::QueryValues;
+            let mut values: Vec<Value> = Vec::new();
+            $(
+                values.push($value.into());
+            )*
+            QueryValues::SimpleValues(values)
+        }
+    };
+    ($($name:expr => $value:expr),*) => {
+        {
+            use cdrs::types::value::Value;
+            use cdrs::query::QueryValues;
+            use std::collections::HashMap;
+            let mut values: HashMap<String, Value> = HashMap::new();
+            $(
+                values.insert($name.to_string(), $value.into());
+            )*
+            QueryValues::NamedValues(values)
+        }
+    };
+}
+
 macro_rules! builder_opt_field {
     ($field:ident, $field_type:ty) => {
         pub fn $field(mut self,
