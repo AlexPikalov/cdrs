@@ -1,4 +1,5 @@
 use error;
+use authenticators::Authenticator;
 use frame::frame_result::{RowsMetadata, RowsMetadataFlag};
 use cluster::session::Session;
 use query::{ExecExecutor, PreparedQuery, QueryExecutor, QueryParamsBuilder};
@@ -7,17 +8,17 @@ use types::CBytes;
 use transport::TransportTcp;
 use load_balancing::LoadBalancingStrategy;
 
-pub struct SessionPager<'a, LB: 'a> {
+pub struct SessionPager<'a, LB: 'a, A: 'a> {
   page_size: i32,
-  session: &'a mut Session<LB>,
+  session: &'a mut Session<LB, A>,
 }
 
-impl<'a, LB: 'a> SessionPager<'a, LB> {
-  pub fn new(session: &'a mut Session<LB>, page_size: i32) -> SessionPager<LB> {
+impl<'a, LB: 'a, A: 'a> SessionPager<'a, LB, A> {
+  pub fn new(session: &'a mut Session<LB, A>, page_size: i32) -> SessionPager<LB, A> {
     SessionPager { session, page_size }
   }
 
-  pub fn query<Q>(&'a mut self, query: Q) -> QueryPager<'a, LB, Q>
+  pub fn query<Q>(&'a mut self, query: Q) -> QueryPager<'a, LB, Q, A>
     where Q: ToString,
           LB: 'a
   {
@@ -27,7 +28,7 @@ impl<'a, LB: 'a> SessionPager<'a, LB> {
                  query, }
   }
 
-  pub fn exec(&'a mut self, query: &'a PreparedQuery) -> ExecPager<'a, LB>
+  pub fn exec(&'a mut self, query: &'a PreparedQuery) -> ExecPager<'a, LB, A>
     where LB: 'a
   {
     ExecPager { pager: self,
@@ -37,14 +38,17 @@ impl<'a, LB: 'a> SessionPager<'a, LB> {
   }
 }
 
-pub struct QueryPager<'a, LB: 'a, Q: ToString> {
-  pager: &'a mut SessionPager<'a, LB>,
+pub struct QueryPager<'a, LB: 'a, Q: ToString, A: 'a> {
+  pager: &'a mut SessionPager<'a, LB, A>,
   paging_state: Option<CBytes>,
   has_more_pages: Option<bool>,
   query: Q,
 }
 
-impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized, Q: ToString> QueryPager<'a, LB, Q> {
+impl<'a,
+     LB: LoadBalancingStrategy<'a, TransportTcp> + Sized,
+     Q: ToString,
+     A: Authenticator + Sized> QueryPager<'a, LB, Q, A> {
   pub fn next(&'a mut self) -> error::Result<Vec<Row>> {
     let mut params = QueryParamsBuilder::new().page_size(self.pager.page_size);
     if self.paging_state.is_some() {
@@ -71,14 +75,15 @@ impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized, Q: ToString> Query
   }
 }
 
-pub struct ExecPager<'a, LB: 'a> {
-  pager: &'a mut SessionPager<'a, LB>,
+pub struct ExecPager<'a, LB: 'a, A: 'a> {
+  pager: &'a mut SessionPager<'a, LB, A>,
   paging_state: Option<CBytes>,
   has_more_pages: Option<bool>,
   query: &'a PreparedQuery,
 }
 
-impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> ExecPager<'a, LB> {
+impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized, A: Authenticator + Sized>
+  ExecPager<'a, LB, A> {
   pub fn next(&'a mut self) -> error::Result<Vec<Row>> {
     let mut params = QueryParamsBuilder::new().page_size(self.pager.page_size);
     if self.paging_state.is_some() {
