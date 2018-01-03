@@ -4,7 +4,7 @@ use frame::FromCursor;
 use error;
 use frame::Opcode;
 use frame::frame_result::{BodyResResultPrepared, BodyResResultRows, BodyResResultSetKeyspace,
-                          BodyResResultVoid, ResResultBody};
+                          BodyResResultVoid, ResResultBody, RowsMetadata};
 use frame::frame_event::BodyResEvent;
 use frame::frame_error::CDRSError;
 use frame::frame_supported::*;
@@ -74,14 +74,19 @@ impl ResponseBody {
         }
     }
 
+    pub fn as_rows_metadata(&self) -> Option<RowsMetadata> {
+        match *self {
+            ResponseBody::Result(ref res) => res.as_rows_metadata(),
+            _ => None,
+        }
+    }
+
     pub fn as_cols(&self) -> Option<&BodyResResultRows> {
         match *self {
-            ResponseBody::Result(ref res) => {
-                match res {
-                    &ResResultBody::Rows(ref rows) => Some(rows),
-                    _ => None,
-                }
-            }
+            ResponseBody::Result(ref res) => match res {
+                &ResResultBody::Rows(ref rows) => Some(rows),
+                _ => None,
+            },
             _ => None,
         }
     }

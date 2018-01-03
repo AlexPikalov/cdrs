@@ -1,8 +1,10 @@
 mod cluster;
+mod pager;
 mod session;
 
 pub use cluster::cluster::Cluster;
 pub use cluster::session::Session;
+pub use cluster::pager::{ExecPager, QueryPager, SessionPager};
 
 use transport::CDRSTransport;
 use compression::Compression;

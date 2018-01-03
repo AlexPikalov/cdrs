@@ -1,7 +1,7 @@
 use error;
 use transport::TransportTcp;
 use load_balancing::LoadBalancingStrategy;
-use cluster::GetTransport;
+use cluster::{GetTransport, SessionPager};
 
 
 use std::io::Write;
@@ -53,6 +53,10 @@ impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized> Session<LB> {
     Ok(Session { nodes,
                  load_balancing: load_balancing,
                  compression: Compression::Lz4, })
+  }
+
+  pub fn paged(&'a mut self, page_size: i32) -> SessionPager<'a, LB> {
+    return SessionPager::new(self, page_size);
   }
 }
 

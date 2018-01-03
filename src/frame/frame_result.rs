@@ -100,6 +100,14 @@ impl ResResultBody {
         }
     }
 
+    /// It returns `Some` rows metadata if frame result is of type rows and `None` othewise
+    pub fn as_rows_metadata(&self) -> Option<RowsMetadata> {
+        match *self {
+            ResResultBody::Rows(ref rows_body) => Some(rows_body.metadata.clone()),
+            _ => None,
+        }
+    }
+
     /// It unwraps body and returns BodyResResultPrepared which contains an exact result of
     /// PREPARE query.
     pub fn into_prepared(self) -> Option<BodyResResultPrepared> {
