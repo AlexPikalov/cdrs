@@ -14,16 +14,15 @@ use query::{ExecExecutor, PrepareExecutor, PreparedQuery, Query, QueryExecutor, 
 
 
 pub struct Session<LB, A> {
-  nodes: Vec<TransportTcp>,
   load_balancing: LB,
   authenticator: A,
   pub compression: Compression,
 }
 
-impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized, A: Authenticator + 'a + Sized>
+impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + 'a + Sized>
   Session<LB, A> {
   pub fn new(addrs: &Vec<&str>,
-             load_balancing: LB,
+             mut load_balancing: LB,
              authenticator: A)
              -> error::Result<Session<LB, A>> {
     let mut nodes: Vec<TransportTcp> = Vec::with_capacity(addrs.len());
@@ -34,14 +33,15 @@ impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized, A: Authenticator +
       nodes.push(transport);
     }
 
-    Ok(Session { nodes,
-                 load_balancing,
+    load_balancing.init(nodes);
+
+    Ok(Session { load_balancing,
                  authenticator,
                  compression: Compression::None, })
   }
 
   pub fn new_snappy(addrs: &Vec<&str>,
-                    load_balancing: LB,
+                    mut load_balancing: LB,
                     authenticator: A)
                     -> error::Result<Session<LB, A>> {
     let mut nodes: Vec<TransportTcp> = Vec::with_capacity(addrs.len());
@@ -52,14 +52,15 @@ impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized, A: Authenticator +
       nodes.push(transport);
     }
 
-    Ok(Session { nodes,
-                 load_balancing,
+    load_balancing.init(nodes);
+
+    Ok(Session { load_balancing,
                  authenticator,
                  compression: Compression::Snappy, })
   }
 
   pub fn new_lz4(addrs: &Vec<&str>,
-                 load_balancing: LB,
+                 mut load_balancing: LB,
                  authenticator: A)
                  -> error::Result<Session<LB, A>> {
     let mut nodes: Vec<TransportTcp> = Vec::with_capacity(addrs.len());
@@ -70,8 +71,9 @@ impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized, A: Authenticator +
       nodes.push(transport);
     }
 
-    Ok(Session { nodes,
-                 load_balancing,
+    load_balancing.init(nodes);
+
+    Ok(Session { load_balancing,
                  authenticator,
                  compression: Compression::Lz4, })
   }
@@ -143,18 +145,17 @@ impl<'a, LB: LoadBalancingStrategy<'a, TransportTcp> + Sized, A: Authenticator +
 }
 
 impl<'a,
-     LB: LoadBalancingStrategy<'a, TransportTcp> + Sized,
+     LB: LoadBalancingStrategy<TransportTcp> + Sized,
      A: Authenticator + Sized> GetTransport<'a, TransportTcp> for Session<LB, A> {
-  fn get_transport(&'a mut self) -> &'a mut TransportTcp {
-    self.load_balancing.next(&mut self.nodes).expect("")
+  fn get_transport(&mut self) -> Option<&mut TransportTcp> {
+    self.load_balancing.next()
   }
 }
 
-impl<'a,
-     LB: LoadBalancingStrategy<'a, TransportTcp> + Sized,
-     A: Authenticator + Sized> QueryExecutor<'a> for Session<LB, A> {
+impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + Sized> QueryExecutor<'a>
+  for Session<LB, A> {
   /// Executes a query with query params and ability to trace a request and see warnings.
-  fn query_with_params_tw<Q: ToString>(&'a mut self,
+  fn query_with_params_tw<Q: ToString>(&mut self,
                                        query: Q,
                                        query_params: QueryParams,
                                        with_tracing: bool,
@@ -175,14 +176,14 @@ impl<'a,
 
     let query_frame = Frame::new_query(query, flags).into_cbytes();
     let ref compression = self.compression.clone();
-    let transport = self.get_transport();
+    let transport = self.get_transport().ok_or("Unable to get transport")?;
     try!(transport.write(query_frame.as_slice()));
     parse_frame(transport, compression)
   }
 }
 
 impl<'a,
-     LB: LoadBalancingStrategy<'a, TransportTcp> + Sized,
+     LB: LoadBalancingStrategy<TransportTcp> + Sized,
      A: Authenticator + Sized> PrepareExecutor<'a> for Session<LB, A> {
   fn prepare_tw<Q: ToString>(&'a mut self,
                              query: Q,
@@ -199,16 +200,15 @@ impl<'a,
 
     let options_frame = Frame::new_req_prepare(query.to_string(), flags).into_cbytes();
     let ref compression = self.compression.clone();
-    let transport = self.get_transport();
+    let transport = self.get_transport().ok_or("Unable to get transport")?;
 
     try!(transport.write(options_frame.as_slice()));
     parse_frame(transport, compression)
   }
 }
 
-impl<'a,
-     LB: LoadBalancingStrategy<'a, TransportTcp> + Sized,
-     A: Authenticator + Sized> ExecExecutor<'a> for Session<LB, A> {
+impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + Sized> ExecExecutor<'a>
+  for Session<LB, A> {
   fn exec_with_params_tw(&'a mut self,
                          prepared: &PreparedQuery,
                          query_parameters: QueryParams,
@@ -225,7 +225,7 @@ impl<'a,
 
     let options_frame = Frame::new_req_execute(prepared, query_parameters, flags).into_cbytes();
     let ref compression = self.compression.clone();
-    let transport = self.get_transport();
+    let transport = self.get_transport().ok_or("Unable to get transport")?;
 
     (transport.write(options_frame.as_slice()))?;
     parse_frame(transport, compression)

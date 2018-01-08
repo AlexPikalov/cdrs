@@ -5,6 +5,7 @@ use cdrs::authenticators::NoneAuthenticator;
 use cdrs::cluster::{Cluster, Session};
 use cdrs::query::{QueryExecutor, QueryValues};
 use cdrs::load_balancing::{Random, RoundRobin};
+use cdrs::transport::TransportTcp;
 
 const _ADDR: &'static str = "127.0.0.1:9042";
 
@@ -12,7 +13,7 @@ const CREATE_KEY_SPACE: &'static str =
   "CREATE KEYSPACE IF NOT EXISTS new_test_ks WITH REPLICATION = { \
    'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
 
-type CurrentSession = Session<RoundRobin, NoneAuthenticator>;
+type CurrentSession = Session<RoundRobin<TransportTcp>, NoneAuthenticator>;
 
 // NO AUTHENTICATION
 fn main() {
@@ -33,6 +34,8 @@ fn main() {
   create_table(&mut snappy_compression, "snappy_compression");
 
   insert_values(&mut no_compression, "no_compression");
+  select_values(&mut no_compression, "no_compression");
+  paged_selection(&mut no_compression, "no_compression");
 }
 
 fn create_keyspace(session: &mut CurrentSession) {
@@ -59,4 +62,34 @@ fn insert_values(session: &mut CurrentSession, table_name: &str) {
          .expect("Insert values error");
   println!("* Values inserted into {}", table_name);
   let values_with_names = query_values!("my_bigint" => bigint, "my_int" => int);
+}
+
+fn select_values(session: &mut CurrentSession, table_name: &str) {
+  let q = format!("SELECT * FROM new_test_ks.{};", table_name);
+  session.query(q).expect("Insert values error");
+  println!("* Values selected from {}", table_name);
+}
+
+fn paged_selection(session: &mut CurrentSession, table_name: &str) {
+  let q = format!("SELECT * FROM new_test_ks.{};", table_name);
+  let mut pager = session.paged(1);
+  let mut query_pager = pager.query(q);
+
+  query_pager.next().expect("ok 1");
+  println!("Row is last {:?}", query_pager.is_last());
+
+  query_pager.next().expect("ok 2");
+  println!("Row is last {:?}", query_pager.is_last());
+
+  query_pager.next().expect("ok 3");
+  println!("Row is last {:?}", query_pager.is_last());
+  // loop {
+  //   println!("Row {:?}, is last {:?}",
+  //            query_pager.next(),
+  //            query_pager.is_last());
+
+  //   if query_pager.is_last() {
+  //     break;
+  //   }
+  // }
 }

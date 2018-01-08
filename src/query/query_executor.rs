@@ -3,7 +3,7 @@ use frame::Frame;
 use query::{QueryParams, QueryParamsBuilder, QueryValues};
 
 pub trait QueryExecutor<'a> {
-  fn query_with_params_tw<Q: ToString>(&'a mut self,
+  fn query_with_params_tw<Q: ToString>(&mut self,
                                        query: Q,
                                        query_params: QueryParams,
                                        with_tracing: bool,
@@ -12,13 +12,13 @@ pub trait QueryExecutor<'a> {
 
   /// Executes a query with default parameters:
   /// * TDB
-  fn query<Q: ToString>(&'a mut self, query: Q) -> error::Result<Frame> {
+  fn query<Q: ToString>(&mut self, query: Q) -> error::Result<Frame> {
     self.query_tw(query, false, false)
   }
 
   /// Executes a query with ability to trace it and see warnings, and default parameters:
   /// * TBD
-  fn query_tw<Q: ToString>(&'a mut self,
+  fn query_tw<Q: ToString>(&mut self,
                            query: Q,
                            with_tracing: bool,
                            with_warnings: bool)
@@ -28,7 +28,7 @@ pub trait QueryExecutor<'a> {
   }
 
   /// Executes a query with bounded values (either with or without names).
-  fn query_with_values<Q: ToString, V: Into<QueryValues>>(&'a mut self,
+  fn query_with_values<Q: ToString, V: Into<QueryValues>>(&mut self,
                                                           query: Q,
                                                           values: V)
                                                           -> error::Result<Frame> {
@@ -37,7 +37,7 @@ pub trait QueryExecutor<'a> {
 
   /// Executes a query with bounded values (either with or without names)
   /// and ability to see warnings, trace a request and default parameters.
-  fn query_with_values_tw<Q: ToString, V: Into<QueryValues>>(&'a mut self,
+  fn query_with_values_tw<Q: ToString, V: Into<QueryValues>>(&mut self,
                                                              query: Q,
                                                              values: V,
                                                              with_tracing: bool,
@@ -49,7 +49,7 @@ pub trait QueryExecutor<'a> {
   }
 
   /// Executes a query with query params without warnings and tracing.
-  fn query_with_params<Q: ToString>(&'a mut self,
+  fn query_with_params<Q: ToString>(&mut self,
                                     query: Q,
                                     query_params: QueryParams)
                                     -> error::Result<Frame> {

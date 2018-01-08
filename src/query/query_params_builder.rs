@@ -34,8 +34,16 @@ impl QueryParamsBuilder {
   /// Sets new values.
   /// Sets new query consistency
   pub fn values(mut self, values: QueryValues) -> Self {
-    self.with_names = Some(values.with_names());
+    let with_names = values.with_names();
+    self.with_names = Some(with_names);
     self.values = Some(values);
+    self.flags = self.flags.or(Some(vec![])).map(|mut flags| {
+                                                   flags.push(QueryFlags::Value);
+                                                   if with_names {
+                                                     flags.push(QueryFlags::WithNamesForValues);
+                                                   }
+                                                   flags
+                                                 });
 
     self
   }
@@ -43,11 +51,29 @@ impl QueryParamsBuilder {
   /// Sets new with_names parameter value.
   builder_opt_field!(with_names, bool);
 
-  /// Sets new pagesize value.
-  builder_opt_field!(page_size, i32);
+  /// Sets new values.
+  /// Sets new query consistency
+  pub fn page_size(mut self, size: i32) -> Self {
+    self.page_size = Some(size);
+    self.flags = self.flags.or(Some(vec![])).map(|mut flags| {
+                                                   flags.push(QueryFlags::PageSize);
+                                                   flags
+                                                 });
 
-  /// Sets new paging state value.
-  builder_opt_field!(paging_state, CBytes);
+    self
+  }
+
+  /// Sets new values.
+  /// Sets new query consistency
+  pub fn paging_state(mut self, state: CBytes) -> Self {
+    self.paging_state = Some(state);
+    self.flags = self.flags.or(Some(vec![])).map(|mut flags| {
+                                                   flags.push(QueryFlags::WithPagingState);
+                                                   flags
+                                                 });
+
+    self
+  }
 
   /// Sets new serial_consistency value.
   builder_opt_field!(serial_consistency, Consistency);
@@ -57,15 +83,13 @@ impl QueryParamsBuilder {
 
   /// Finalizes query building process and returns query itself
   pub fn finalize(self) -> QueryParams {
-    QueryParams {
-      consistency: self.consistency,
-      flags: self.flags.unwrap_or(vec![]),
-      values: self.values,
-      with_names: self.with_names,
-      page_size: self.page_size,
-      paging_state: self.paging_state,
-      serial_consistency: self.serial_consistency,
-      timestamp: self.timestamp,
-    }
+    QueryParams { consistency: self.consistency,
+                  flags: self.flags.unwrap_or(vec![]),
+                  values: self.values,
+                  with_names: self.with_names,
+                  page_size: self.page_size,
+                  paging_state: self.paging_state,
+                  serial_consistency: self.serial_consistency,
+                  timestamp: self.timestamp, }
   }
 }

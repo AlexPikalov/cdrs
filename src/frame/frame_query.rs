@@ -37,6 +37,9 @@ impl BodyReqQuery {
         if page_size.is_some() {
             flags.push(QueryFlags::PageSize);
         }
+        if paging_state.is_some() {
+            flags.push(QueryFlags::WithPagingState);
+        }
         if serial_consistency.is_some() {
             flags.push(QueryFlags::WithSerialConsistency);
         }

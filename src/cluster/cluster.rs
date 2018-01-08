@@ -15,22 +15,22 @@ impl<'a> Cluster {
   }
 
   pub fn connect<LB, A>(&self, lb: LB, authenticator: A) -> error::Result<Session<LB, A>>
-    where LB: LoadBalancingStrategy<'a, TransportTcp> + Sized,
+    where LB: LoadBalancingStrategy<TransportTcp> + Sized,
           A: Authenticator + 'a + Sized
   {
     Session::new(&self.nodes_addrs, lb, authenticator)
   }
 
   pub fn connect_snappy<LB, A>(&self, lb: LB, authenticator: A) -> error::Result<Session<LB, A>>
-    where LB: LoadBalancingStrategy<'a, TransportTcp> + Sized,
+    where LB: LoadBalancingStrategy<TransportTcp> + Sized,
           A: Authenticator + 'a + Sized
   {
     Session::new_snappy(&self.nodes_addrs, lb, authenticator)
   }
 
   pub fn connect_lz4<LB, A>(&self, lb: LB, authenticator: A) -> error::Result<Session<LB, A>>
-    where LB: LoadBalancingStrategy<'a, TransportTcp> + Sized,
-    A: Authenticator + 'a + Sized
+    where LB: LoadBalancingStrategy<TransportTcp> + Sized,
+          A: Authenticator + 'a + Sized
   {
     Session::new_lz4(&self.nodes_addrs, lb, authenticator)
   }

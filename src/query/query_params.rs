@@ -1,5 +1,5 @@
 use consistency::Consistency;
-use types::{to_bigint, to_short, CBytes};
+use types::{to_bigint, to_int, to_short, CBytes};
 use frame::AsByte;
 use frame::IntoBytes;
 use query::query_flags::QueryFlags;
@@ -87,6 +87,15 @@ impl IntoBytes for QueryParams {
                                     // self.paging_state.is_some()
                                     .unwrap()
                                     .into_cbytes()
+                                    .as_slice());
+    }
+    if QueryFlags::has_page_size(self.flags_as_byte()) && self.page_size.is_some() {
+      // XXX clone
+      v.extend_from_slice(to_int(self.page_size
+                                    .clone()
+                                    // unwrap is safe as we've checked that
+                                    // self.page_size.is_some()
+                                    .unwrap())
                                     .as_slice());
     }
     if QueryFlags::has_with_serial_consistency(self.flags_as_byte())

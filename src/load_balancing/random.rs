@@ -2,9 +2,15 @@ use rand;
 
 use super::LoadBalancingStrategy;
 
-pub struct Random {}
+pub struct Random<N> {
+  cluster: Vec<N>,
+}
 
-impl Random {
+impl<N> Random<N> {
+  pub fn new() -> Self {
+    Random { cluster: vec![] }
+  }
+
   /// Returns random number from a range
   fn rnd_idx(bounds: (usize, usize)) -> usize {
     let min = bounds.0;
@@ -14,11 +20,20 @@ impl Random {
   }
 }
 
-impl<'a, N> LoadBalancingStrategy<'a, N> for Random {
+impl<N> From<Vec<N>> for Random<N> {
+  fn from(cluster: Vec<N>) -> Random<N> {
+    Random { cluster }
+  }
+}
+
+impl<N> LoadBalancingStrategy<N> for Random<N> {
+  fn init(&mut self, cluster: Vec<N>) {
+    self.cluster = cluster;
+  }
   /// Returns next random node from a cluster
-  fn next(&mut self, cluster: &'a mut Vec<N>) -> Option<&'a mut N> {
-    let len = cluster.len();
-    cluster.get_mut(Self::rnd_idx((0, len)))
+  fn next(&mut self) -> Option<&mut N> {
+    let len = self.cluster.len();
+    self.cluster.get_mut(Self::rnd_idx((0, len)))
   }
 }
 

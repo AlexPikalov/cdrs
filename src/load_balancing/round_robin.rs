@@ -1,20 +1,33 @@
 use super::LoadBalancingStrategy;
 
-pub struct RoundRobin {
+pub struct RoundRobin<N> {
+  cluster: Vec<N>,
   prev_idx: usize,
 }
 
-impl RoundRobin {
+impl<N> RoundRobin<N> {
   pub fn new() -> Self {
-    RoundRobin { prev_idx: 0 }
+    RoundRobin { prev_idx: 0,
+                 cluster: vec![], }
   }
 }
 
-impl<'a, N> LoadBalancingStrategy<'a, N> for RoundRobin {
+impl<N> From<Vec<N>> for RoundRobin<N> {
+  fn from(cluster: Vec<N>) -> RoundRobin<N> {
+    RoundRobin { prev_idx: 0,
+                 cluster, }
+  }
+}
+
+impl<N> LoadBalancingStrategy<N> for RoundRobin<N> {
+  fn init(&mut self, cluster: Vec<N>) {
+    self.cluster = cluster;
+  }
+
   /// Returns next node from a cluster
-  fn next(&'a mut self, cluster: &'a mut Vec<N>) -> Option<&'a mut N> {
-    self.prev_idx = (self.prev_idx + 1) % cluster.len();
-    cluster.get_mut(self.prev_idx)
+  fn next(&mut self) -> Option<&mut N> {
+    self.prev_idx = (self.prev_idx + 1) % self.cluster.len();
+    self.cluster.get_mut(self.prev_idx)
   }
 }
 
