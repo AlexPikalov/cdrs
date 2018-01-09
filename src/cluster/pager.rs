@@ -73,7 +73,7 @@ impl<'a,
         .ok_or("Pager query should yield a vector of rows".into())
   }
 
-  pub fn is_last(&self) -> bool {
+  pub fn has_more(&self) -> bool {
     !self.has_more_pages.unwrap_or(false)
   }
 }

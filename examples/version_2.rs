@@ -76,20 +76,11 @@ fn paged_selection(session: &mut CurrentSession, table_name: &str) {
   let mut query_pager = pager.query(q);
 
   query_pager.next().expect("ok 1");
-  println!("Row is last {:?}", query_pager.is_last());
+  println!("Row has more {:?}", query_pager.has_more());
 
   query_pager.next().expect("ok 2");
-  println!("Row is last {:?}", query_pager.is_last());
+  println!("Row has more {:?}", query_pager.has_more());
 
   query_pager.next().expect("ok 3");
-  println!("Row is last {:?}", query_pager.is_last());
-  // loop {
-  //   println!("Row {:?}, is last {:?}",
-  //            query_pager.next(),
-  //            query_pager.is_last());
-
-  //   if query_pager.is_last() {
-  //     break;
-  //   }
-  // }
+  println!("Row has more {:?}", query_pager.has_more());
 }
