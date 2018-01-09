@@ -79,6 +79,15 @@ impl IntoBytes for QueryParams {
         v.extend_from_slice(values.into_cbytes().as_slice());
       }
     }
+    if QueryFlags::has_page_size(self.flags_as_byte()) && self.page_size.is_some() {
+      // XXX clone
+      v.extend_from_slice(to_int(self.page_size
+                                    .clone()
+                                    // unwrap is safe as we've checked that
+                                    // self.page_size.is_some()
+                                    .unwrap())
+                                    .as_slice());
+    }
     if QueryFlags::has_with_paging_state(self.flags_as_byte()) && self.paging_state.is_some() {
       // XXX clone
       v.extend_from_slice(self.paging_state
@@ -87,15 +96,6 @@ impl IntoBytes for QueryParams {
                                     // self.paging_state.is_some()
                                     .unwrap()
                                     .into_cbytes()
-                                    .as_slice());
-    }
-    if QueryFlags::has_page_size(self.flags_as_byte()) && self.page_size.is_some() {
-      // XXX clone
-      v.extend_from_slice(to_int(self.page_size
-                                    .clone()
-                                    // unwrap is safe as we've checked that
-                                    // self.page_size.is_some()
-                                    .unwrap())
                                     .as_slice());
     }
     if QueryFlags::has_with_serial_consistency(self.flags_as_byte())

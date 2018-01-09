@@ -56,7 +56,6 @@ impl<'a,
     if self.paging_state.is_some() {
       params = params.paging_state(self.paging_state.clone().unwrap());
     }
-    println!("****** params {:?}", params);
 
     let body = self.pager
                    .session
@@ -67,7 +66,6 @@ impl<'a,
       body.as_rows_metadata()
           .ok_or("Pager query should yield a vector of rows".into());
     let metadata = metadata_res?;
-    println!(">>>>> metadata {:?}", metadata);
 
     self.has_more_pages = Some(RowsMetadataFlag::has_has_more_pages(metadata.flags.clone()));
     self.paging_state = metadata.paging_state.clone();
