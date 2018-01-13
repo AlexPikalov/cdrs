@@ -1,5 +1,8 @@
 use error;
 use frame::Frame;
+use types::CBytesShort;
+
+pub type PreparedQuery = CBytesShort;
 
 pub trait PrepareExecutor<'a> {
   /// It prepares a query for execution, along with query itself
@@ -9,10 +12,10 @@ pub trait PrepareExecutor<'a> {
                              query: Q,
                              with_tracing: bool,
                              with_warnings: bool)
-                             -> error::Result<Frame>;
+                             -> error::Result<PreparedQuery>;
 
   /// It prepares query without additional tracing information and warnings.
-  fn prepare<Q: ToString>(&'a mut self, query: Q) -> error::Result<Frame> {
+  fn prepare<Q: ToString>(&'a mut self, query: Q) -> error::Result<PreparedQuery> {
     self.prepare_tw(query, false, false)
   }
 }

@@ -189,7 +189,7 @@ impl<'a,
                              query: Q,
                              with_tracing: bool,
                              with_warnings: bool)
-                             -> error::Result<Frame> {
+                             -> error::Result<PreparedQuery> {
     let mut flags = vec![];
     if with_tracing {
       flags.push(Flag::Tracing);
@@ -203,7 +203,8 @@ impl<'a,
     let transport = self.get_transport().ok_or("Unable to get transport")?;
 
     try!(transport.write(options_frame.as_slice()));
-    parse_frame(transport, compression)
+    parse_frame(transport, compression).and_then(|response| response.get_body())
+                                       .and_then(|body| Ok(body.into_prepared().expect("").id))
   }
 }
 
