@@ -1,14 +1,37 @@
 use error;
-use frame::Frame;
-use query::{QueryParams, QueryParamsBuilder, QueryValues};
+use frame::{Flag, Frame, IntoBytes};
+use query::{Query, QueryParams, QueryParamsBuilder, QueryValues};
+use cluster::{GetCompressor, GetTransport};
+use transport::CDRSTransport;
+use frame::parser::parse_frame;
 
-pub trait QueryExecutor<'a> {
+pub trait QueryExecutor<'a, T: CDRSTransport + 'a>
+  : GetTransport<'a, T> + GetCompressor<'a> {
   fn query_with_params_tw<Q: ToString>(&mut self,
                                        query: Q,
                                        query_params: QueryParams,
                                        with_tracing: bool,
                                        with_warnings: bool)
-                                       -> error::Result<Frame>;
+                                       -> error::Result<Frame> {
+    let query = Query { query: query.to_string(),
+                        params: query_params, };
+
+    let mut flags = vec![];
+
+    if with_tracing {
+      flags.push(Flag::Tracing);
+    }
+
+    if with_warnings {
+      flags.push(Flag::Warning);
+    }
+
+    let query_frame = Frame::new_query(query, flags).into_cbytes();
+    let ref compression = self.get_compressor();
+    let transport = self.get_transport().ok_or("Unable to get transport")?;
+    try!(transport.write(query_frame.as_slice()));
+    parse_frame(transport, compression)
+  }
 
   /// Executes a query with default parameters:
   /// * TDB

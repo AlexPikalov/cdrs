@@ -1,17 +1,36 @@
 use error;
-use frame::Frame;
 use query::{QueryParams, QueryParamsBuilder, QueryValues};
+use frame::{Flag, Frame, IntoBytes};
+use frame::parser::parse_frame;
 use types::CBytesShort;
+use cluster::{GetCompressor, GetTransport};
+use transport::CDRSTransport;
 
 pub type PreparedQuery = CBytesShort;
 
-pub trait ExecExecutor<'a> {
+pub trait ExecExecutor<'a, T: CDRSTransport + 'a>
+  : GetTransport<'a, T> + GetCompressor<'a> {
   fn exec_with_params_tw(&'a mut self,
                          prepared: &PreparedQuery,
                          query_parameters: QueryParams,
                          with_tracing: bool,
                          with_warnings: bool)
-                         -> error::Result<Frame>;
+                         -> error::Result<Frame> {
+    let mut flags = vec![];
+    if with_tracing {
+      flags.push(Flag::Tracing);
+    }
+    if with_warnings {
+      flags.push(Flag::Warning);
+    }
+
+    let options_frame = Frame::new_req_execute(prepared, query_parameters, flags).into_cbytes();
+    let ref compression = self.get_compressor();
+    let transport = self.get_transport().ok_or("Unable to get transport")?;
+
+    (transport.write(options_frame.as_slice()))?;
+    parse_frame(transport, compression)
+  }
 
   fn exec_with_params(&'a mut self,
                       prepared: &PreparedQuery,

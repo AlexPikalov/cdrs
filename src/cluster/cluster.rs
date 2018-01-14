@@ -36,7 +36,17 @@ impl<'a> Cluster {
   }
 
   #[cfg(feature = "ssl")]
-  pub fn connect_ssl() {
+  pub fn connect_ssl(&self, lb: LB, authenticator: A) {
+    unimplemented!()
+  }
+
+  #[cfg(feature = "ssl")]
+  pub fn connect_snappy_ssl(&self, lb: LB, authenticator: A) {
+    unimplemented!()
+  }
+
+  #[cfg(feature = "ssl")]
+  pub fn connect_lz4_ssl(&self, lb: LB, authenticator: A) {
     unimplemented!()
   }
 }

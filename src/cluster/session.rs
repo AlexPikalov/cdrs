@@ -1,7 +1,7 @@
 use error;
 use transport::{CDRSTransport, TransportTcp};
 use load_balancing::LoadBalancingStrategy;
-use cluster::{GetTransport, SessionPager};
+use cluster::{CDRSSession, GetCompressor, GetTransport, SessionPager};
 
 use std::io;
 use std::io::Write;
@@ -152,83 +152,29 @@ impl<'a,
   }
 }
 
-impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + Sized> QueryExecutor<'a>
+impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + Sized> GetCompressor<'a>
   for Session<LB, A> {
-  /// Executes a query with query params and ability to trace a request and see warnings.
-  fn query_with_params_tw<Q: ToString>(&mut self,
-                                       query: Q,
-                                       query_params: QueryParams,
-                                       with_tracing: bool,
-                                       with_warnings: bool)
-                                       -> error::Result<Frame> {
-    let query = Query { query: query.to_string(),
-                        params: query_params, };
-
-    let mut flags = vec![];
-
-    if with_tracing {
-      flags.push(Flag::Tracing);
-    }
-
-    if with_warnings {
-      flags.push(Flag::Warning);
-    }
-
-    let query_frame = Frame::new_query(query, flags).into_cbytes();
-    let ref compression = self.compression.clone();
-    let transport = self.get_transport().ok_or("Unable to get transport")?;
-    try!(transport.write(query_frame.as_slice()));
-    parse_frame(transport, compression)
+  fn get_compressor(&self) -> Compression {
+    self.compression.clone()
   }
 }
 
 impl<'a,
      LB: LoadBalancingStrategy<TransportTcp> + Sized,
-     A: Authenticator + Sized> PrepareExecutor<'a> for Session<LB, A> {
-  fn prepare_tw<Q: ToString>(&'a mut self,
-                             query: Q,
-                             with_tracing: bool,
-                             with_warnings: bool)
-                             -> error::Result<PreparedQuery> {
-    let mut flags = vec![];
-    if with_tracing {
-      flags.push(Flag::Tracing);
-    }
-    if with_warnings {
-      flags.push(Flag::Warning);
-    }
-
-    let options_frame = Frame::new_req_prepare(query.to_string(), flags).into_cbytes();
-    let ref compression = self.compression.clone();
-    let transport = self.get_transport().ok_or("Unable to get transport")?;
-
-    try!(transport.write(options_frame.as_slice()));
-    parse_frame(transport, compression).and_then(|response| response.get_body())
-                                       .and_then(|body| Ok(body.into_prepared().expect("").id))
-  }
+     A: Authenticator + Sized> QueryExecutor<'a, TransportTcp> for Session<LB, A> {
 }
 
-impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + Sized> ExecExecutor<'a>
-  for Session<LB, A> {
-  fn exec_with_params_tw(&'a mut self,
-                         prepared: &PreparedQuery,
-                         query_parameters: QueryParams,
-                         with_tracing: bool,
-                         with_warnings: bool)
-                         -> error::Result<Frame> {
-    let mut flags = vec![];
-    if with_tracing {
-      flags.push(Flag::Tracing);
-    }
-    if with_warnings {
-      flags.push(Flag::Warning);
-    }
+impl<'a,
+     LB: LoadBalancingStrategy<TransportTcp> + Sized,
+     A: Authenticator + Sized> PrepareExecutor<'a, TransportTcp> for Session<LB, A> {
+}
 
-    let options_frame = Frame::new_req_execute(prepared, query_parameters, flags).into_cbytes();
-    let ref compression = self.compression.clone();
-    let transport = self.get_transport().ok_or("Unable to get transport")?;
+impl<'a,
+     LB: LoadBalancingStrategy<TransportTcp> + Sized,
+     A: Authenticator + Sized> ExecExecutor<'a, TransportTcp> for Session<LB, A> {
+}
 
-    (transport.write(options_frame.as_slice()))?;
-    parse_frame(transport, compression)
-  }
+impl<'a,
+     LB: LoadBalancingStrategy<TransportTcp> + Sized,
+     A: Authenticator + Sized> CDRSSession<'a, TransportTcp> for Session<LB, A> {
 }
