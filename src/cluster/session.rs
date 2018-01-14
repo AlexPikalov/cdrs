@@ -4,18 +4,17 @@ use load_balancing::LoadBalancingStrategy;
 use cluster::{CDRSSession, GetCompressor, GetTransport, SessionPager};
 
 use std::io;
-use std::io::Write;
 
 use authenticators::Authenticator;
 use compression::Compression;
-use frame::{Flag, Frame, IntoBytes, Opcode};
+use frame::{Frame, IntoBytes, Opcode};
 use frame::parser::parse_frame;
-use query::{ExecExecutor, PrepareExecutor, PreparedQuery, Query, QueryExecutor, QueryParams};
+use query::{ExecExecutor, PrepareExecutor, QueryExecutor};
 
 
 pub struct Session<LB, A> {
   load_balancing: LB,
-  authenticator: A,
+  #[allow(dead_code)] authenticator: A,
   pub compression: Compression,
 }
 

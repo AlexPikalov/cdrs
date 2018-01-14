@@ -1,26 +1,24 @@
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::marker::PhantomData;
 
 use error;
-use authenticators::Authenticator;
 use frame::frame_result::{RowsMetadata, RowsMetadataFlag};
-use cluster::session::Session;
 use cluster::CDRSSession;
-use query::{ExecExecutor, PreparedQuery, QueryExecutor, QueryParamsBuilder};
+use query::{PreparedQuery, QueryParamsBuilder};
 use types::rows::Row;
 use types::CBytes;
-use transport::{CDRSTransport, TransportTcp};
-use load_balancing::LoadBalancingStrategy;
+use transport::CDRSTransport;
 
 pub struct SessionPager<'a, S: CDRSSession<'a, T> + 'a, T: CDRSTransport + 'a> {
   page_size: i32,
   session: &'a mut S,
+  transport_type: PhantomData<&'a T>,
 }
-
 
 impl<'a, 'b: 'a, S: CDRSSession<'a, T>, T: CDRSTransport + 'a> SessionPager<'a, S, T> {
   pub fn new(session: &'b mut S, page_size: i32) -> SessionPager<'a, S, T> {
-    SessionPager { session, page_size }
+    SessionPager { session,
+                   page_size,
+                   transport_type: PhantomData, }
   }
 
   pub fn query<Q>(&'a mut self, query: Q) -> QueryPager<'a, Q, SessionPager<'a, S, T>>
