@@ -78,7 +78,7 @@ impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + 'a 
                  compression: Compression::Lz4, })
   }
 
-  pub fn paged(&'a mut self, page_size: i32) -> SessionPager<'a, LB, A> {
+  pub fn paged(&'a mut self, page_size: i32) -> SessionPager<'a, Session<LB, A>, TransportTcp> {
     return SessionPager::new(self, page_size);
   }
 

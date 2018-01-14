@@ -5,23 +5,25 @@ use error;
 use authenticators::Authenticator;
 use frame::frame_result::{RowsMetadata, RowsMetadataFlag};
 use cluster::session::Session;
+use cluster::CDRSSession;
 use query::{ExecExecutor, PreparedQuery, QueryExecutor, QueryParamsBuilder};
 use types::rows::Row;
 use types::CBytes;
-use transport::TransportTcp;
+use transport::{CDRSTransport, TransportTcp};
 use load_balancing::LoadBalancingStrategy;
 
-pub struct SessionPager<'a, LB: 'a, A: 'a> {
+pub struct SessionPager<'a, S: CDRSSession<'a, T> + 'a, T: CDRSTransport + 'a> {
   page_size: i32,
-  session: &'a mut Session<LB, A>,
+  session: &'a mut S,
 }
 
-impl<'a, 'b: 'a, LB: 'a, A: 'a> SessionPager<'a, LB, A> {
-  pub fn new(session: &'b mut Session<LB, A>, page_size: i32) -> SessionPager<'a, LB, A> {
+
+impl<'a, 'b: 'a, S: CDRSSession<'a, T>, T: CDRSTransport + 'a> SessionPager<'a, S, T> {
+  pub fn new(session: &'b mut S, page_size: i32) -> SessionPager<'a, S, T> {
     SessionPager { session, page_size }
   }
 
-  pub fn query<Q>(&'a mut self, query: Q) -> QueryPager<'a, LB, A, Q>
+  pub fn query<Q>(&'a mut self, query: Q) -> QueryPager<'a, Q, SessionPager<'a, S, T>>
     where Q: ToString
   {
     QueryPager { pager: self,
@@ -30,7 +32,7 @@ impl<'a, 'b: 'a, LB: 'a, A: 'a> SessionPager<'a, LB, A> {
                  query, }
   }
 
-  pub fn exec(&'a mut self, query: &'a PreparedQuery) -> ExecPager<'a, LB, A> {
+  pub fn exec(&'a mut self, query: &'a PreparedQuery) -> ExecPager<'a, SessionPager<'a, S, T>> {
     ExecPager { pager: self,
                 paging_state: None,
                 has_more_pages: None,
@@ -38,17 +40,15 @@ impl<'a, 'b: 'a, LB: 'a, A: 'a> SessionPager<'a, LB, A> {
   }
 }
 
-pub struct QueryPager<'a, LB: 'a, A: 'a, Q: ToString> {
-  pager: &'a mut SessionPager<'a, LB, A>,
+pub struct QueryPager<'a, Q: ToString, P: 'a> {
+  pager: &'a mut P,
   paging_state: Option<CBytes>,
   has_more_pages: Option<bool>,
   query: Q,
 }
 
-impl<'a,
-     LB: LoadBalancingStrategy<TransportTcp> + Sized,
-     Q: ToString,
-     A: Authenticator + Sized> QueryPager<'a, LB, A, Q> {
+impl<'a, Q: ToString, T: CDRSTransport + 'a, S: CDRSSession<'a, T>>
+  QueryPager<'a, Q, SessionPager<'a, S, T>> {
   pub fn next(&mut self) -> error::Result<Vec<Row>> {
     let mut params = QueryParamsBuilder::new().page_size(self.pager.page_size);
     if self.paging_state.is_some() {
@@ -76,15 +76,14 @@ impl<'a,
   }
 }
 
-pub struct ExecPager<'a, LB: 'a, A: 'a> {
-  pager: &'a mut SessionPager<'a, LB, A>,
+pub struct ExecPager<'a, P: 'a> {
+  pager: &'a mut P,
   paging_state: Option<CBytes>,
   has_more_pages: Option<bool>,
   query: &'a PreparedQuery,
 }
 
-impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + Sized>
-  ExecPager<'a, LB, A> {
+impl<'a, T: CDRSTransport + 'a, S: CDRSSession<'a, T>> ExecPager<'a, SessionPager<'a, S, T>> {
   pub fn next(&mut self) -> error::Result<Vec<Row>> {
     let mut params = QueryParamsBuilder::new().page_size(self.pager.page_size);
     if self.paging_state.is_some() {

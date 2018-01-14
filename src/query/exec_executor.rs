@@ -10,7 +10,7 @@ pub type PreparedQuery = CBytesShort;
 
 pub trait ExecExecutor<'a, T: CDRSTransport + 'a>
   : GetTransport<'a, T> + GetCompressor<'a> {
-  fn exec_with_params_tw(&'a mut self,
+  fn exec_with_params_tw(&mut self,
                          prepared: &PreparedQuery,
                          query_parameters: QueryParams,
                          with_tracing: bool,
@@ -32,14 +32,14 @@ pub trait ExecExecutor<'a, T: CDRSTransport + 'a>
     parse_frame(transport, compression)
   }
 
-  fn exec_with_params(&'a mut self,
+  fn exec_with_params(&mut self,
                       prepared: &PreparedQuery,
                       query_parameters: QueryParams)
                       -> error::Result<Frame> {
     self.exec_with_params_tw(prepared, query_parameters, false, false)
   }
 
-  fn exec_with_values_tw<V: Into<QueryValues>>(&'a mut self,
+  fn exec_with_values_tw<V: Into<QueryValues>>(&mut self,
                                                prepared: &PreparedQuery,
                                                values: V,
                                                with_tracing: bool,
@@ -50,14 +50,14 @@ pub trait ExecExecutor<'a, T: CDRSTransport + 'a>
     self.exec_with_params_tw(prepared, query_params, with_tracing, with_warnings)
   }
 
-  fn exec_with_values<V: Into<QueryValues>>(&'a mut self,
+  fn exec_with_values<V: Into<QueryValues>>(&mut self,
                                             prepared: &PreparedQuery,
                                             values: V)
                                             -> error::Result<Frame> {
     self.exec_with_values_tw(prepared, values, false, false)
   }
 
-  fn exec_tw(&'a mut self,
+  fn exec_tw(&mut self,
              prepared: &PreparedQuery,
              with_tracing: bool,
              with_warnings: bool)
