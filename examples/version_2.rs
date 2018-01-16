@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate cdrs;
 
-use cdrs::authenticators::NoneAuthenticator;
+use cdrs::authenticators::{Authenticator, NoneAuthenticator};
 use cdrs::cluster::{Cluster, Session};
 use cdrs::query::{ExecExecutor, PrepareExecutor, PreparedQuery, QueryExecutor, QueryValues};
 use cdrs::load_balancing::{Random, RoundRobin};
@@ -17,12 +17,12 @@ type CurrentSession = Session<RoundRobin<TransportTcp>, NoneAuthenticator>;
 
 // NO AUTHENTICATION
 fn main() {
-  let cluster = Cluster::new(vec![_ADDR]);
-  let mut no_compression = cluster.connect(RoundRobin::new(), NoneAuthenticator {})
+  let cluster = Cluster::new(vec![_ADDR], NoneAuthenticator {});
+  let mut no_compression = cluster.connect(RoundRobin::new())
                                   .expect("No compression connection error");
-  let mut lz4_compression = cluster.connect_lz4(RoundRobin::new(), NoneAuthenticator {})
+  let mut lz4_compression = cluster.connect_lz4(RoundRobin::new())
                                    .expect("LZ4 compression connection error");
-  let mut snappy_compression = cluster.connect_snappy(RoundRobin::new(), NoneAuthenticator {})
+  let mut snappy_compression = cluster.connect_snappy(RoundRobin::new())
                                       .expect("Snappy compression connection error");
 
   create_keyspace(&mut no_compression);
