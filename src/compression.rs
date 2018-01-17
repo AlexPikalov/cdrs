@@ -8,28 +8,20 @@
 //!by the server, messages can be compressed (including the response to the STARTUP
 //!request).
 //!
-//!CDRS provides generic trait [`Compressor`][compressor].
-//!Enum [`Compression`][compression] contains implementation
-//!for `Compressor`.
-//!
 //!```no_run
-//!use cdrs::client::CDRS;
-//!use cdrs::query::QueryBuilder;
+//!use cdrs::cluster::Cluster;
 //!use cdrs::authenticators::NoneAuthenticator;
-//!use cdrs::compression::Compression;
-//!use cdrs::transport::TransportTcp;
+//!use cdrs::load_balancing::RoundRobin;
 //!
-//!let addr = "127.0.0.1:9042";
-//!let tcp_transport = TransportTcp::new(addr).unwrap();
-//!
-//!// pass authenticator into CDRS' constructor
-//!let client = CDRS::new(tcp_transport, NoneAuthenticator);
-//!let session = client.start(Compression::None);
-//!//let session = client.start(Compression::Lz4)
-//!//let session = client.start(Compression::Snappy)
+//!const _ADDR: &'static str = "127.0.0.1:9042";
+//!let cluster = Cluster::new(vec![_ADDR], NoneAuthenticator {});
+//!let mut no_compression = cluster.connect(RoundRobin::new())
+//!                                .expect("No compression connection error");
+//!let mut lz4_compression = cluster.connect_lz4(RoundRobin::new())
+//!                                 .expect("LZ4 compression connection error");
+//!let mut snappy_compression = cluster.connect_snappy(RoundRobin::new())
+//!                                  .expect("Snappy compression connection error");
 //!```
-//![compression]:enum.Compression.html
-//![compressor]:trait.Compressor.html
 
 use std::convert::From;
 use std::error::Error;

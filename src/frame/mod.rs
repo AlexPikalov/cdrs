@@ -340,7 +340,7 @@ impl From<u8> for Opcode {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use AsByte;
+    use frame::traits::AsByte;
 
     #[test]
     #[cfg(not(feature = "v3"))]

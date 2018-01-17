@@ -20,7 +20,7 @@ impl IntoBytes for BodyResReady {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use IntoBytes;
+    use frame::traits::IntoBytes;
 
     #[test]
     fn body_res_ready_new() {

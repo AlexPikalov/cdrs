@@ -10,21 +10,6 @@
 //! * `TransportTls` is a transport which is used to establish SSL encrypted connection
 //!with Apache Cassandra server. **Note:** this option is available if and only if CDRS is imported
 //!with `ssl` feature.
-//!
-//! # Examples
-//!
-//!```no_run
-//!    use cdrs::transport::TransportTcp;
-//!    use cdrs::authenticators::NoneAuthenticator;
-//!    use cdrs::client::CDRS;
-//!
-//!    let addr = "127.0.0.1:9042";
-//!    let tcp_transport = TransportTcp::new(addr).unwrap();
-//!
-//!    // pass authenticator into CDRS' constructor
-//!    let client = CDRS::new(tcp_transport, NoneAuthenticator);
-//!```
-//![tTcp]:struct.TransportTcp.html
 
 use std::io;
 use std::io::{Read, Write};

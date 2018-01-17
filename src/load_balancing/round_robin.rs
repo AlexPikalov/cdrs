@@ -39,9 +39,9 @@ mod tests {
   fn round_robin() {
     let nodes = vec!["a", "b", "c"];
     let nodes_c = nodes.clone();
-    let load_balancer = LoadBalancer::new(nodes, RoundRobin);
+    let mut load_balancer = RoundRobin::from(nodes);
     for i in 0..10 {
-      assert_eq!(&nodes_c[i % 3], load_balancer.next().unwrap());
+      assert_eq!(&nodes_c[(i + 1) % 3], load_balancer.next().unwrap());
     }
   }
 }

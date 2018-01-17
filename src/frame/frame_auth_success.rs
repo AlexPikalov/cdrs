@@ -15,9 +15,9 @@ impl FromCursor for BodyReqAuthSuccess {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use FromCursor;
     use std::io::Cursor;
+    use super::*;
+    use frame::traits::FromCursor;
 
     #[test]
     fn test_name() {

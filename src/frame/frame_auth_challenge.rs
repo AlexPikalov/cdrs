@@ -18,9 +18,9 @@ impl FromCursor for BodyResAuthChallenge {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use FromCursor;
     use std::io::Cursor;
+    use super::*;
+    use frame::traits::FromCursor;
 
     #[test]
     fn body_res_auth_challenge_from_cursor() {

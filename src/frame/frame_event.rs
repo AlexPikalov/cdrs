@@ -21,7 +21,7 @@ impl FromCursor for BodyResEvent {
 mod tests {
     use super::*;
     use std::io::Cursor;
-    use FromCursor;
+    use frame::traits::FromCursor;
     use frame::events::*;
 
     #[test]

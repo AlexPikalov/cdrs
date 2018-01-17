@@ -20,7 +20,7 @@ impl FromCursor for BodyResAuthenticate {
 mod tests {
     use super::*;
     use std::io::Cursor;
-    use FromCursor;
+    use frame::traits::FromCursor;
 
     #[test]
     fn body_res_authenticate() {

@@ -46,7 +46,7 @@ impl Frame {
 mod tests {
     use super::*;
     use types::CBytes;
-    use IntoBytes;
+    use frame::traits::IntoBytes;
 
     #[test]
     fn body_req_auth_response() {

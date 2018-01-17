@@ -44,7 +44,7 @@ mod tests {
   #[test]
   fn random() {
     let nodes = vec!["a", "b", "c", "d", "e", "f", "g"];
-    let load_balancer = LoadBalancer::new(nodes, Random);
+    let mut load_balancer = Random::from(nodes);
     for _ in 0..100 {
       let s = load_balancer.next();
       assert!(s.is_some());

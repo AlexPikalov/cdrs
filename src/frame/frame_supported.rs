@@ -28,7 +28,7 @@ impl FromCursor for BodyResSupported {
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
-    use FromCursor;
+    use frame::traits::FromCursor;
     use super::*;
 
     #[test]
