@@ -8,7 +8,7 @@ use load_balancing::LoadBalancingStrategy;
 #[cfg(feature = "ssl")]
 use transport::TransportTls;
 #[cfg(feature = "ssl")]
-use openssl::ssl::{SslConnector, SslStream};
+use openssl::ssl::SslConnector;
 
 pub struct Cluster<A> {
   nodes_addrs: Vec<&'static str>,
