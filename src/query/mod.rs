@@ -1,3 +1,5 @@
+mod batch_executor;
+mod batch_query_builder;
 mod exec_executor;
 mod prepare_executor;
 mod query_executor;
@@ -7,6 +9,8 @@ mod query_params_builder;
 mod query_values;
 mod query_params;
 
+pub use query::batch_executor::BatchExecutor;
+pub use query::batch_query_builder::{BatchQueryBuilder, QueryBatch};
 pub use query::exec_executor::ExecExecutor;
 pub use query::prepare_executor::{PrepareExecutor, PreparedQuery};
 pub use query::query_executor::QueryExecutor;

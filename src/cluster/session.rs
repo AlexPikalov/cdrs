@@ -9,7 +9,7 @@ use authenticators::Authenticator;
 use compression::Compression;
 use frame::{Frame, IntoBytes, Opcode};
 use frame::parser::parse_frame;
-use query::{ExecExecutor, PrepareExecutor, QueryExecutor};
+use query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
 
 #[cfg(feature = "ssl")]
 use transport::TransportTls;
@@ -125,6 +125,12 @@ impl<'a,
      T: CDRSTransport + 'a,
      LB: LoadBalancingStrategy<T> + Sized,
      A: Authenticator + Sized> ExecExecutor<'a, T> for Session<LB, A> {
+}
+
+impl<'a,
+     T: CDRSTransport + 'a,
+     LB: LoadBalancingStrategy<T> + Sized,
+     A: Authenticator + Sized> BatchExecutor<'a, T> for Session<LB, A> {
 }
 
 impl<'a,

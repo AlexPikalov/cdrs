@@ -8,7 +8,7 @@ use types::value::Value;
 /// Enum that represents two types of query values:
 /// * values without name
 /// * values with names
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum QueryValues {
   SimpleValues(Vec<Value>),
   NamedValues(HashMap<String, Value>),

@@ -2,8 +2,8 @@ use rand;
 use frame::*;
 use query::QueryFlags;
 use types::*;
-use types::value::Value;
 use consistency::Consistency;
+use query::QueryValues;
 
 /// `BodyResReady`
 #[derive(Debug, Clone)]
@@ -98,7 +98,7 @@ pub struct BatchQuery {
     /// to implement. This will be fixed in a future version of the native
     /// protocol. See https://issues.apache.org/jira/browse/CASSANDRA-10246 for
     /// more details
-    pub values: Vec<(Option<CString>, Value)>,
+    pub values: QueryValues,
 }
 
 /// It contains either an id of prepared query or CQL string.
@@ -130,15 +130,7 @@ impl IntoBytes for BatchQuery {
 
         bytes.extend_from_slice(to_short(self.values.len() as i16).as_slice());
 
-        bytes = self.values.iter().fold(bytes, |mut _bytes, v| {
-            if let Some(ref name) = v.0 {
-                _bytes.extend_from_slice(name.into_cbytes().as_slice());
-            }
-
-            _bytes.extend_from_slice(v.1.into_cbytes().as_slice());
-
-            _bytes
-        });
+        bytes.extend_from_slice(self.values.into_cbytes().as_slice());
 
         bytes
     }

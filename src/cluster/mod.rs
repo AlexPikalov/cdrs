@@ -8,7 +8,7 @@ pub use cluster::pager::{QueryPager, SessionPager};
 
 use transport::CDRSTransport;
 use compression::Compression;
-use query::{ExecExecutor, PrepareExecutor, QueryExecutor};
+use query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
 
 pub trait GetTransport<'a, T: CDRSTransport + 'a> {
   fn get_transport(&mut self) -> Option<&mut T>;
@@ -23,5 +23,6 @@ pub trait CDRSSession<'a, T: CDRSTransport + 'a>
   + GetTransport<'a, T>
   + QueryExecutor<'a, T>
   + PrepareExecutor<'a, T>
-  + ExecExecutor<'a, T> {
+  + ExecExecutor<'a, T>
+  + BatchExecutor<'a, T> {
 }
