@@ -10,7 +10,7 @@ use types::*;
 
 /// `Consistency` is an enum which represents Cassandra's consistency levels.
 /// To find more details about each consistency level please refer to Cassandra official docs.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Consistency {
     /// A write must be written to the commit log and memtable on all replica nodes in the cluster
     /// for that partition key.	Provides the highest consistency
