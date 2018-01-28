@@ -1,4 +1,5 @@
 language: rust
+group: deprecated-2017Q4
 cache: cargo
 rust:
   - stable
@@ -12,7 +13,7 @@ before_install:
  - sudo update-java-alternatives -s java-8-oracle
  - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
  - java -version
- - sudo rm -rf /var/lib/cassandra/*
+ - sudo rm -rf /var/lib/cassandra
  - if [ ! -d "apache-cassandra-3.9" ]; then wget https://archive.apache.org/dist/cassandra/3.9/apache-cassandra-3.9-bin.tar.gz && tar -xvzf apache-cassandra-3.9-bin.tar.gz; fi
  - sudo sh ./apache-cassandra-3.9/bin/cassandra -R
  - sleep 20
