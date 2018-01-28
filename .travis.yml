@@ -10,8 +10,13 @@ matrix:
     - rust: nightly
 
 before_install:
- - sudo update-java-alternatives -s java-8-oracle
- - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+ - wget --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u152-b16/aa0333dd3019491ca4f6ddbe78cdb6d0/jdk-8u152-linux-x64.tar.gz
+ - sudo mkdir /var/lib/jdk
+ - tar -zxf jdk-8u152-linux-x64.tar.gz -C /var/lib/jdk
+ - sudo update-alternatives --install /usr/bin/java java /var/lib/jdk/jdk1.8.0_152/bin/java 100
+ - sudo update-alternatives --install /usr/bin/javac javac /opt/jdk/jdk1.8.0_152/bin/javac 100
+#  - sudo update-java-alternatives -s java-8-oracle
+#  - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
  - java -version
  - sudo rm -rf /var/lib/cassandra/*
  - if [ ! -d "apache-cassandra-3.11.1" ]; then wget https://archive.apache.org/dist/cassandra/3.11.1/apache-cassandra-3.11.1-bin.tar.gz && tar -xvzf apache-cassandra-3.11.1-bin.tar.gz; fi
@@ -39,7 +44,6 @@ addons:
       - binutils-dev
       - zlib1g-dev
       # - libbfd-dev
-      - oracle-java8-installer-8u151-1
 
 after_success:
   wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&#
