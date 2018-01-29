@@ -1,9 +1,9 @@
 extern crate cdrs;
-extern crate uuid;
-extern crate time;
-extern crate regex;
 #[macro_use]
 extern crate maplit;
+extern crate regex;
+extern crate time;
+extern crate uuid;
 
 mod common;
 
@@ -11,7 +11,7 @@ use common::*;
 
 use uuid::Uuid;
 use cdrs::query::QueryBuilder;
-use cdrs::types::{IntoRustByName, AsRust};
+use cdrs::types::{AsRust, IntoRustByName};
 use cdrs::types::value::Value;
 use cdrs::types::list::List;
 use cdrs::types::map::Map;
@@ -21,6 +21,7 @@ use std::str::FromStr;
 use std::collections::HashMap;
 
 #[test]
+#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn list() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_lists \
@@ -42,29 +43,28 @@ fn list() {
 
     let cql = "SELECT * FROM cdrs_test.test_lists";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_list_row: List = row.get_r_by_name("my_text_list").expect("my_text_list");
         let my_text_list_row: Vec<String> =
             my_text_list_row.as_r_rust().expect("my_text_list as rust");
-        let my_nested_list_outer_row: List = row.get_r_by_name("my_nested_list")
-            .expect("my_nested_list");
-        let my_nested_list_outer_row: Vec<List> = my_nested_list_outer_row
-            .as_r_rust()
-            .expect("my_nested_list (outer) as rust");
+        let my_nested_list_outer_row: List =
+            row.get_r_by_name("my_nested_list").expect("my_nested_list");
+        let my_nested_list_outer_row: Vec<List> =
+            my_nested_list_outer_row.as_r_rust()
+                                    .expect("my_nested_list (outer) as rust");
         let mut my_nested_list_row = Vec::with_capacity(my_nested_list_outer_row.len());
         for my_nested_list_inner_row in my_nested_list_outer_row {
-            let my_nested_list_inner_row: Vec<i32> = my_nested_list_inner_row
-                .as_r_rust()
-                .expect("my_nested_list (inner) as rust");
+            let my_nested_list_inner_row: Vec<i32> =
+                my_nested_list_inner_row.as_r_rust()
+                                        .expect("my_nested_list (inner) as rust");
             my_nested_list_row.push(my_nested_list_inner_row);
         }
         assert_eq!(my_text_list_row, my_text_list);
@@ -73,6 +73,7 @@ fn list() {
 }
 
 #[test]
+#[ignore]
 #[cfg(feature = "v4")]
 #[cfg(not(feature = "appveyor"))]
 fn list_v4() {
@@ -95,29 +96,28 @@ fn list_v4() {
 
     let cql = "SELECT * FROM cdrs_test.test_lists_v4";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_list_row: List = row.get_r_by_name("my_text_list").expect("my_text_list");
         let my_text_list_row: Vec<String> =
             my_text_list_row.as_r_rust().expect("my_text_list as rust");
-        let my_nested_list_outer_row: List = row.get_r_by_name("my_nested_list")
-            .expect("my_nested_list");
-        let my_nested_list_outer_row: Vec<List> = my_nested_list_outer_row
-            .as_r_rust()
-            .expect("my_nested_list (outer) as rust");
+        let my_nested_list_outer_row: List =
+            row.get_r_by_name("my_nested_list").expect("my_nested_list");
+        let my_nested_list_outer_row: Vec<List> =
+            my_nested_list_outer_row.as_r_rust()
+                                    .expect("my_nested_list (outer) as rust");
         let mut my_nested_list_row = Vec::with_capacity(my_nested_list_outer_row.len());
         for my_nested_list_inner_row in my_nested_list_outer_row {
-            let my_nested_list_inner_row: Vec<i16> = my_nested_list_inner_row
-                .as_r_rust()
-                .expect("my_nested_list (inner) as rust");
+            let my_nested_list_inner_row: Vec<i16> =
+                my_nested_list_inner_row.as_r_rust()
+                                        .expect("my_nested_list (inner) as rust");
             my_nested_list_row.push(my_nested_list_inner_row);
         }
         assert_eq!(my_text_list_row, my_text_list);
@@ -126,6 +126,7 @@ fn list_v4() {
 }
 
 #[test]
+#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn set() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_sets \
@@ -147,29 +148,28 @@ fn set() {
 
     let cql = "SELECT * FROM cdrs_test.test_sets";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_set_row: List = row.get_r_by_name("my_text_set").expect("my_text_set");
         let my_text_set_row: Vec<String> =
             my_text_set_row.as_r_rust().expect("my_text_set as rust");
-        let my_nested_set_outer_row: List = row.get_r_by_name("my_nested_set")
-            .expect("my_nested_set");
-        let my_nested_set_outer_row: Vec<List> = my_nested_set_outer_row
-            .as_r_rust()
-            .expect("my_nested_set (outer) as rust");
+        let my_nested_set_outer_row: List =
+            row.get_r_by_name("my_nested_set").expect("my_nested_set");
+        let my_nested_set_outer_row: Vec<List> =
+            my_nested_set_outer_row.as_r_rust()
+                                   .expect("my_nested_set (outer) as rust");
         let mut my_nested_set_row = Vec::with_capacity(my_nested_set_outer_row.len());
         for my_nested_set_inner_row in my_nested_set_outer_row {
-            let my_nested_set_inner_row: Vec<i32> = my_nested_set_inner_row
-                .as_r_rust()
-                .expect("my_nested_set (inner) as rust");
+            let my_nested_set_inner_row: Vec<i32> =
+                my_nested_set_inner_row.as_r_rust()
+                                       .expect("my_nested_set (inner) as rust");
             my_nested_set_row.push(my_nested_set_inner_row);
         }
         assert_eq!(my_text_set_row, my_text_set);
@@ -178,6 +178,7 @@ fn set() {
 }
 
 #[test]
+#[ignore]
 #[cfg(feature = "v4")]
 #[cfg(not(feature = "appveyor"))]
 fn set_v4() {
@@ -200,29 +201,28 @@ fn set_v4() {
 
     let cql = "SELECT * FROM cdrs_test.test_sets_v4";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_set_row: List = row.get_r_by_name("my_text_set").expect("my_text_set");
         let my_text_set_row: Vec<String> =
             my_text_set_row.as_r_rust().expect("my_text_set as rust");
-        let my_nested_set_outer_row: List = row.get_r_by_name("my_nested_set")
-            .expect("my_nested_set");
-        let my_nested_set_outer_row: Vec<List> = my_nested_set_outer_row
-            .as_r_rust()
-            .expect("my_nested_set (outer) as rust");
+        let my_nested_set_outer_row: List =
+            row.get_r_by_name("my_nested_set").expect("my_nested_set");
+        let my_nested_set_outer_row: Vec<List> =
+            my_nested_set_outer_row.as_r_rust()
+                                   .expect("my_nested_set (outer) as rust");
         let mut my_nested_set_row = Vec::with_capacity(my_nested_set_outer_row.len());
         for my_nested_set_inner_row in my_nested_set_outer_row {
-            let my_nested_set_inner_row: Vec<i16> = my_nested_set_inner_row
-                .as_r_rust()
-                .expect("my_nested_set (inner) as rust");
+            let my_nested_set_inner_row: Vec<i16> =
+                my_nested_set_inner_row.as_r_rust()
+                                       .expect("my_nested_set (inner) as rust");
             my_nested_set_row.push(my_nested_set_inner_row);
         }
         assert_eq!(my_text_set_row, my_text_set);
@@ -231,6 +231,7 @@ fn set_v4() {
 }
 
 #[test]
+#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn map_without_blob() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_maps_without_blob \
@@ -239,14 +240,12 @@ fn map_without_blob() {
                my_nested_map map<uuid, frozen<map<bigint, int>>>)";
     let mut session = setup(cql).expect("setup");
 
-    let my_text_map =
-        hashmap!{
+    let my_text_map = hashmap!{
         "key1".to_string() => "value1".to_string(),
         "key2".to_string() => "value2".to_string(),
         "key3".to_string() => "value3".to_string(),
     };
-    let my_nested_map: HashMap<Uuid, HashMap<i64, i32>> =
-        hashmap!{
+    let my_nested_map: HashMap<Uuid, HashMap<i64, i32>> = hashmap!{
         Uuid::from_str("bb16106a-10bc-4a07-baa3-126ffe208c43").unwrap() => hashmap!{
             1 => 1,
             2 => 2,
@@ -271,31 +270,28 @@ fn map_without_blob() {
 
     let cql = "SELECT * FROM cdrs_test.test_maps_without_blob";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_map_row: Map = row.get_r_by_name("my_text_map").expect("my_text_map");
         let my_text_map_row: HashMap<String, String> =
             my_text_map_row.as_r_rust().expect("my_text_map as rust");
-        let my_nested_map_outer_row: Map = row.get_r_by_name("my_nested_map")
-            .expect("my_nested_map");
+        let my_nested_map_outer_row: Map =
+            row.get_r_by_name("my_nested_map").expect("my_nested_map");
         let my_nested_map_outer_row: HashMap<Uuid, Map> =
-            my_nested_map_outer_row
-                .as_r_rust()
-                .expect("my_nested_map (outer) as rust");
+            my_nested_map_outer_row.as_r_rust()
+                                   .expect("my_nested_map (outer) as rust");
         let mut my_nested_map_row = HashMap::with_capacity(my_nested_map_outer_row.len());
         for (index, my_nested_map_inner_row) in my_nested_map_outer_row {
             let my_nested_map_inner_row: HashMap<i64, i32> =
-                my_nested_map_inner_row
-                    .as_r_rust()
-                    .expect("my_nested_map (inner) as rust");
+                my_nested_map_inner_row.as_r_rust()
+                                       .expect("my_nested_map (inner) as rust");
             my_nested_map_row.insert(index, my_nested_map_inner_row);
         }
         assert_eq!(my_text_map_row, my_text_map);
@@ -304,6 +300,7 @@ fn map_without_blob() {
 }
 
 #[test]
+#[ignore]
 #[cfg(feature = "v4")]
 #[cfg(not(feature = "appveyor"))]
 fn map_without_blob_v4() {
@@ -312,14 +309,12 @@ fn map_without_blob_v4() {
                my_nested_map map<uuid, frozen<map<bigint, tinyint>>>)";
     let mut session = setup(cql).expect("setup");
 
-    let my_text_map =
-        hashmap!{
+    let my_text_map = hashmap!{
         "key1".to_string() => "value1".to_string(),
         "key2".to_string() => "value2".to_string(),
         "key3".to_string() => "value3".to_string(),
     };
-    let my_nested_map: HashMap<Uuid, HashMap<i64, i8>> =
-        hashmap!{
+    let my_nested_map: HashMap<Uuid, HashMap<i64, i8>> = hashmap!{
         Uuid::from_str("bb16106a-10bc-4a07-baa3-126ffe208c43").unwrap() => hashmap!{
             1 => 1,
             2 => 2,
@@ -342,31 +337,28 @@ fn map_without_blob_v4() {
 
     let cql = "SELECT * FROM cdrs_test.test_maps_without_blob_v4";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_map_row: Map = row.get_r_by_name("my_text_map").expect("my_text_map");
         let my_text_map_row: HashMap<String, String> =
             my_text_map_row.as_r_rust().expect("my_text_map as rust");
-        let my_nested_map_outer_row: Map = row.get_r_by_name("my_nested_map")
-            .expect("my_nested_map");
+        let my_nested_map_outer_row: Map =
+            row.get_r_by_name("my_nested_map").expect("my_nested_map");
         let my_nested_map_outer_row: HashMap<Uuid, Map> =
-            my_nested_map_outer_row
-                .as_r_rust()
-                .expect("my_nested_map (outer) as rust");
+            my_nested_map_outer_row.as_r_rust()
+                                   .expect("my_nested_map (outer) as rust");
         let mut my_nested_map_row = HashMap::with_capacity(my_nested_map_outer_row.len());
         for (index, my_nested_map_inner_row) in my_nested_map_outer_row {
             let my_nested_map_inner_row: HashMap<i64, i8> =
-                my_nested_map_inner_row
-                    .as_r_rust()
-                    .expect("my_nested_map (inner) as rust");
+                my_nested_map_inner_row.as_r_rust()
+                                       .expect("my_nested_map (inner) as rust");
             my_nested_map_row.insert(index, my_nested_map_inner_row);
         }
         assert_eq!(my_text_map_row, my_text_map);
@@ -375,6 +367,7 @@ fn map_without_blob_v4() {
 }
 
 #[test]
+#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn map() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_maps \
@@ -382,14 +375,12 @@ fn map() {
                my_nested_map map<uuid, frozen<map<bigint, blob>>>)";
     let mut session = setup(cql).expect("setup");
 
-    let my_text_map =
-        hashmap!{
+    let my_text_map = hashmap!{
         "key1".to_string() => "value1".to_string(),
         "key2".to_string() => "value2".to_string(),
         "key3".to_string() => "value3".to_string(),
     };
-    let my_nested_map: HashMap<Uuid, HashMap<i64, Blob>> =
-        hashmap!{
+    let my_nested_map: HashMap<Uuid, HashMap<i64, Blob>> = hashmap!{
         Uuid::from_str("bb16106a-10bc-4a07-baa3-126ffe208c43").unwrap() => hashmap!{
             1 => vec![52, 121, 209, 200, 81, 118, 181, 17].into(),
             2 => vec![226, 90, 51, 10, 26, 87, 141, 61].into(),
@@ -412,31 +403,28 @@ fn map() {
 
     let cql = "SELECT * FROM cdrs_test.test_maps";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_text_map_row: Map = row.get_r_by_name("my_text_map").expect("my_text_map");
         let my_text_map_row: HashMap<String, String> =
             my_text_map_row.as_r_rust().expect("my_text_map as rust");
-        let my_nested_map_outer_row: Map = row.get_r_by_name("my_nested_map")
-            .expect("my_nested_map");
+        let my_nested_map_outer_row: Map =
+            row.get_r_by_name("my_nested_map").expect("my_nested_map");
         let my_nested_map_outer_row: HashMap<Uuid, Map> =
-            my_nested_map_outer_row
-                .as_r_rust()
-                .expect("my_nested_map (outer) as rust");
+            my_nested_map_outer_row.as_r_rust()
+                                   .expect("my_nested_map (outer) as rust");
         let mut my_nested_map_row = HashMap::with_capacity(my_nested_map_outer_row.len());
         for (index, my_nested_map_inner_row) in my_nested_map_outer_row {
             let my_nested_map_inner_row: HashMap<i64, Blob> =
-                my_nested_map_inner_row
-                    .as_r_rust()
-                    .expect("my_nested_map (inner) as rust");
+                my_nested_map_inner_row.as_r_rust()
+                                       .expect("my_nested_map (inner) as rust");
             my_nested_map_row.insert(index, my_nested_map_inner_row);
         }
         assert_eq!(my_text_map_row, my_text_map);
