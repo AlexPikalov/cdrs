@@ -1,5 +1,6 @@
 language: rust
 cache: cargo
+group: deprecated-2017Q4
 rust:
   - stable
   - beta
