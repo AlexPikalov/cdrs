@@ -1,8 +1,8 @@
 // NOTE: having crud_operations do we still need it?
 extern crate cdrs;
+extern crate env_logger;
 #[macro_use]
 extern crate log;
-extern crate env_logger;
 
 use cdrs::client::CDRS;
 use cdrs::query::QueryBuilder;
@@ -36,6 +36,7 @@ struct User {
 }
 
 #[test]
+#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn write_and_read_from_cassandra() {
     run_test(|| read_write())
@@ -86,13 +87,12 @@ fn insert_data_users() {
             (user_name, password, gender, session_token, state)
     VALUES (?, ?, ?, ?, ?)";
 
-    let prepared = session
-        .prepare(insert_table_cql.to_string(), true, true)
-        .unwrap()
-        .get_body()
-        .unwrap()
-        .into_prepared()
-        .unwrap();
+    let prepared = session.prepare(insert_table_cql.to_string(), true, true)
+                          .unwrap()
+                          .get_body()
+                          .unwrap()
+                          .into_prepared()
+                          .unwrap();
 
     println!("prepared:\n{:?}", prepared);
 
@@ -101,9 +101,8 @@ fn insert_data_users() {
                              "male".into(),
                              "09000".into(),
                              "FL".into()];
-    let execution_params = QueryParamsBuilder::new(Consistency::One)
-        .values(v)
-        .finalize();
+    let execution_params = QueryParamsBuilder::new(Consistency::One).values(v)
+                                                                    .finalize();
 
     let ref query_id = prepared.id;
     let executed = session.execute(query_id, execution_params, true, true);
@@ -127,36 +126,36 @@ fn read_from_user_table() {
         Ok(res) => {
             let res_body = res.get_body().expect("shold have body");
             if let Some(rows) = res_body.into_rows() {
-                let users: Vec<User> = rows.iter()
-                    .map(|row| {
-                        let mut user = User { ..Default::default() };
-                        if let Ok(Some(user_name)) = row.get_by_name("user_name") {
-                            user.user_name = user_name;
-                        }
+                let users: Vec<User> =
+                    rows.iter().map(|row| {
+                                 let mut user = User { ..Default::default() };
+                                 if let Ok(Some(user_name)) = row.get_by_name("user_name") {
+                                     user.user_name = user_name;
+                                 }
 
-                        if let Ok(Some(password)) = row.get_by_name("password") {
-                            user.password = password;
-                        }
+                                 if let Ok(Some(password)) = row.get_by_name("password") {
+                                     user.password = password;
+                                 }
 
-                        if let Ok(Some(gender)) = row.get_by_name("gender") {
-                            user.gender = gender;
-                        }
+                                 if let Ok(Some(gender)) = row.get_by_name("gender") {
+                                     user.gender = gender;
+                                 }
 
-                        if let Ok(Some(session_token)) = row.get_by_name("session_token") {
-                            user.session_token = session_token;
-                        }
+                                 if let Ok(Some(session_token)) = row.get_by_name("session_token") {
+                                     user.session_token = session_token;
+                                 }
 
-                        if let Ok(Some(state)) = row.get_by_name("state") {
-                            user.state = state;
-                        }
+                                 if let Ok(Some(state)) = row.get_by_name("state") {
+                                     user.state = state;
+                                 }
 
-                        if let Ok(Some(m)) = row.get_by_name("some_map") {
-                            user.some_map = Some(m);
-                        }
+                                 if let Ok(Some(m)) = row.get_by_name("some_map") {
+                                     user.some_map = Some(m);
+                                 }
 
-                        user
-                    })
-                    .collect();
+                                 user
+                             })
+                        .collect();
                 println!("Users {:?}", users);
 
 
@@ -188,9 +187,8 @@ fn create_keyspace() {
     let create_ks_cql = "CREATE KEYSPACE IF NOT EXISTS user_keyspace WITH REPLICATION = { 'class' \
                          : 'SimpleStrategy', 'replication_factor' : 1 } ;";
 
-    let create_ks_query = QueryBuilder::new(create_ks_cql)
-        .consistency(Consistency::One)
-        .finalize();
+    let create_ks_query = QueryBuilder::new(create_ks_cql).consistency(Consistency::One)
+                                                          .finalize();
 
     let create_ks_query_result = session.query(create_ks_query, false, false);
 
@@ -211,9 +209,8 @@ fn create_table() {
         some_map map<text, text>
     );";
 
-    let create_table_query = QueryBuilder::new(create_table_cql)
-        .consistency(Consistency::One)
-        .finalize();
+    let create_table_query = QueryBuilder::new(create_table_cql).consistency(Consistency::One)
+                                                                .finalize();
 
     let create_table_query_result = session.query(create_table_query, false, false);
 
@@ -231,9 +228,8 @@ fn drop_keyspace() {
     let drop_ks = "DROP KEYSPACE IF EXISTS user_keyspace;";
     let with_tracing = false;
     let with_warnings = false;
-    let drop_ks_query = QueryBuilder::new(drop_ks)
-        .consistency(Consistency::One)
-        .finalize();
+    let drop_ks_query = QueryBuilder::new(drop_ks).consistency(Consistency::One)
+                                                  .finalize();
     let drop_ks_query_result = session.query(drop_ks_query, with_tracing, with_warnings);
 
     assert!(drop_ks_query_result.is_ok(),

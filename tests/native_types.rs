@@ -1,7 +1,7 @@
 extern crate cdrs;
-extern crate uuid;
-extern crate time;
 extern crate regex;
+extern crate time;
+extern crate uuid;
 
 mod common;
 
@@ -10,7 +10,7 @@ use common::*;
 use uuid::Uuid;
 use cdrs::query::QueryBuilder;
 use cdrs::types::map::Map;
-use cdrs::types::value::{Value, Bytes};
+use cdrs::types::value::{Bytes, Value};
 use cdrs::types::{AsRust, ByName, IntoRustByName};
 use cdrs::types::blob::Blob;
 
@@ -19,6 +19,7 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::collections::HashMap;
 
 #[test]
+#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn string() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_string \
@@ -39,13 +40,12 @@ fn string() {
 
     let cql = "SELECT * FROM cdrs_test.test_string";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
@@ -59,6 +59,7 @@ fn string() {
 }
 
 #[test]
+#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn counter() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_counter \
@@ -76,13 +77,12 @@ fn counter() {
 
     let cql = "SELECT * FROM cdrs_test.test_counter";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
@@ -95,6 +95,7 @@ fn counter() {
 
 // TODO varint
 #[test]
+#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn integer() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_integer \
@@ -113,13 +114,12 @@ fn integer() {
 
     let cql = "SELECT * FROM cdrs_test.test_integer";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
@@ -134,6 +134,7 @@ fn integer() {
 
 // TODO counter, varint
 #[test]
+#[ignore]
 #[cfg(feature = "v4")]
 #[cfg(not(feature = "appveyor"))]
 fn integer_v4() {
@@ -160,13 +161,12 @@ fn integer_v4() {
 
     let cql = "SELECT * FROM cdrs_test.test_integer_v4";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
@@ -185,6 +185,7 @@ fn integer_v4() {
 
 // TODO decimal
 #[test]
+#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn float() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_float \
@@ -201,13 +202,12 @@ fn float() {
 
     let cql = "SELECT * FROM cdrs_test.test_float";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
@@ -219,6 +219,7 @@ fn float() {
 }
 
 #[test]
+#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn blob() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_blob \
@@ -234,11 +235,10 @@ fn blob() {
         .map(|x| x.clone())
         .collect();
 
-    let val_map: HashMap<String, Bytes> = my_map
-        .clone()
-        .into_iter()
-        .map(|(k, v)| (k, Bytes::new(v.into_vec())))
-        .collect();
+    let val_map: HashMap<String, Bytes> = my_map.clone()
+                                                .into_iter()
+                                                .map(|(k, v)| (k, Bytes::new(v.into_vec())))
+                                                .collect();
 
     let values: Vec<Value> = vec![my_blob.clone().into(), val_map.into()];
 
@@ -248,28 +248,28 @@ fn blob() {
 
     let cql = "SELECT * FROM cdrs_test.test_blob";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
         let my_blob_row: Blob = row.get_r_by_name("my_blob").expect("my_blob");
         assert_eq!(my_blob_row, my_blob);
-        let my_map_row: HashMap<String, Blob> = row.r_by_name::<Map>("my_mapblob")
-            .expect("my_mapblob by name")
-            .as_r_rust()
-            .expect("my_mapblob as r rust");
+        let my_map_row: HashMap<String, Blob> =
+            row.r_by_name::<Map>("my_mapblob").expect("my_mapblob by name")
+               .as_r_rust()
+               .expect("my_mapblob as r rust");
         assert_eq!(my_map_row, my_map);
     }
 }
 
 // TODO timeuuid
 #[test]
+#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn uuid() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_uuid \
@@ -285,13 +285,12 @@ fn uuid() {
 
     let cql = "SELECT * FROM cdrs_test.test_uuid";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
@@ -302,6 +301,7 @@ fn uuid() {
 
 // TODO date, time, duration
 #[test]
+#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn time() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_time \
@@ -317,18 +317,17 @@ fn time() {
 
     let cql = "SELECT * FROM cdrs_test.test_time";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {
-        let my_timestamp_row: time::Timespec = row.get_r_by_name("my_timestamp")
-            .expect("my_timestamp");
+        let my_timestamp_row: time::Timespec =
+            row.get_r_by_name("my_timestamp").expect("my_timestamp");
         assert_eq!(my_timestamp_row.sec, my_timestamp.sec);
         assert_eq!(my_timestamp_row.nsec / 1_000_000,
                    my_timestamp.nsec / 1_000_000); // C* `timestamp` has millisecond precision
@@ -336,6 +335,7 @@ fn time() {
 }
 
 #[test]
+#[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn inet() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_inet \
@@ -352,13 +352,12 @@ fn inet() {
 
     let cql = "SELECT * FROM cdrs_test.test_inet";
     let query = QueryBuilder::new(cql).finalize();
-    let rows = session
-        .query(query, false, false)
-        .expect("query")
-        .get_body()
-        .expect("get body")
-        .into_rows()
-        .expect("into rows");
+    let rows = session.query(query, false, false)
+                      .expect("query")
+                      .get_body()
+                      .expect("get body")
+                      .into_rows()
+                      .expect("into rows");
 
     assert_eq!(rows.len(), 1);
     for row in rows {

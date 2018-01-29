@@ -20,7 +20,7 @@ use time::Timespec;
 
 use std::collections::HashMap;
 
-#[test]
+#[test] #[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn simple_udt() {
     let create_type_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.simple_udt (my_text text)";
@@ -77,7 +77,7 @@ fn simple_udt() {
     }
 }
 
-#[test]
+#[test] #[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn nested_udt() {
     let create_type1_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.nested_inner_udt (my_text text)";
@@ -164,7 +164,7 @@ fn nested_udt() {
     }
 }
 
-#[test]
+#[test] #[ignore]
 #[cfg(not(feature = "appveyor"))]
 fn alter_udt_add() {
     let drop_table_cql = "DROP TABLE IF EXISTS cdrs_test.test_alter_udt_add";
