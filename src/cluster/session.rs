@@ -1,4 +1,5 @@
 use std::io;
+use std::io::Write;
 
 use error;
 use transport::{CDRSTransport, TransportTcp};
@@ -10,6 +11,8 @@ use compression::Compression;
 use frame::{Frame, IntoBytes, Opcode};
 use frame::parser::parse_frame;
 use query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
+use events::{new_listener, EventStream, Listener};
+use frame::events::SimpleServerEvent;
 
 #[cfg(feature = "ssl")]
 use transport::TransportTls;
@@ -56,7 +59,7 @@ impl<'a, LB: Sized, A: Authenticator + 'a + Sized> Session<LB, A> {
       let authenticator = body.get_authenticator()
                               .expect(
         "Cassandra Server did communicate that it needed password
-                authentication but the  auth schema was missing in the body response",
+                authentication but the auth schema was missing in the body response",
       );
 
       // This creates a new scope; avoiding a clone
@@ -76,7 +79,7 @@ impl<'a, LB: Sized, A: Authenticator + 'a + Sized> Session<LB, A> {
               format!(
                 "Unsupported type of authenticator. {:?} got,
                              but {} is supported.",
-                authenticator, authenticator
+                authenticator, auth
               ),
             );
                          return Err(error::Error::Io(io_err));
@@ -197,6 +200,20 @@ impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + 'a 
                  authenticator,
                  compression: Compression::Lz4, })
   }
+
+  pub fn listen(&mut self,
+                events: Vec<SimpleServerEvent>)
+                -> error::Result<(Listener<TransportTcp>, EventStream)> {
+    let compression = self.get_compressor();
+    let transport = self.get_transport()
+                        .ok_or("Cannot connect to a cluster - no nodes provided")?;
+    let mut transport = transport.try_clone()?;
+
+    let query_frame = Frame::new_req_register(events).into_cbytes();
+    try!(transport.write(query_frame.as_slice()));
+    try!(parse_frame(&mut transport, &compression));
+    Ok(new_listener(transport))
+  }
 }
 
 #[cfg(feature = "ssl")]
@@ -260,5 +277,19 @@ impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a 
     Ok(Session { load_balancing,
                  authenticator,
                  compression: Compression::Lz4, })
+  }
+
+  pub fn listen_ssl(&mut self,
+                    events: Vec<SimpleServerEvent>)
+                    -> error::Result<(Listener<TransportTls>, EventStream)> {
+    let compression = self.get_compressor();
+    let transport = self.get_transport()
+                        .ok_or("Cannot connect to a cluster - no nodes provided")?;
+    let mut transport = transport.try_clone()?;
+
+    let query_frame = Frame::new_req_register(events).into_cbytes();
+    try!(transport.write(query_frame.as_slice()));
+    try!(parse_frame(&mut transport, &compression));
+    Ok(new_listener(transport))
   }
 }
