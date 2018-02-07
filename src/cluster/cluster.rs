@@ -10,6 +10,14 @@ use transport::TransportTls;
 #[cfg(feature = "ssl")]
 use openssl::ssl::SslConnector;
 
+/// The main structure for communication with Cassandra cluster.
+///
+/// ```
+/// let authenticator = NoneAuthenticator{};
+/// let cluster = Cluster::new(vec!["127.0.0.1:9042"], authenticator);
+/// ```
+/// The first argument is a list of cluster's node addresses, authenticator could be
+/// whatever structure that implements `Authenticator` trait.
 pub struct Cluster<A> {
   nodes_addrs: Vec<&'static str>,
   authenticator: A,

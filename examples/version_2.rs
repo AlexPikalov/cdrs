@@ -17,7 +17,7 @@ type CurrentSession = Session<RoundRobin<TransportTcp>, NoneAuthenticator>;
 
 // NO AUTHENTICATION
 fn main() {
-  let cluster = Cluster::new(vec![_ADDR], NoneAuthenticator {});
+  let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
   let mut no_compression = cluster.connect(RoundRobin::new())
                                   .expect("No compression connection error");
   let mut lz4_compression = cluster.connect_lz4(RoundRobin::new())
