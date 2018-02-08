@@ -1,11 +1,4 @@
-# CDRS [![Build Status](https://travis-ci.org/AlexPikalov/cdrs.svg?branch=master)](https://travis-ci.org/AlexPikalov/cdrs) [![Build status](https://ci.appveyor.com/api/projects/status/sirj4flws6o0dvb7/branch/master?svg=true)](https://ci.appveyor.com/project/harrydevnull/cdrs/branch/master)
-
-
-[![crates.io version](https://img.shields.io/crates/v/cdrs.svg)](https://crates.io/crates/cdrs)
-[![Join the chat at https://gitter.im/cdrs-rs/Lobby](https://badges.gitter.im/cdrs-rs/Lobby.svg)](https://gitter.im/cdrs-rs/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Coverage Status](https://coveralls.io/repos/github/harrydevnull/cdrs/badge.svg?branch=master)](https://coveralls.io/github/harrydevnull/cdrs?branch=master)
-[![codecov](https://codecov.io/gh/harrydevnull/cdrs/branch/master/graph/badge.svg)](https://codecov.io/gh/harrydevnull/cdrs)
-
+# CDRS [![crates.io version](https://img.shields.io/crates/v/cdrs.svg)](https://crates.io/crates/cdrs) [![Build Status](https://travis-ci.org/AlexPikalov/cdrs.svg?branch=master)](https://travis-ci.org/AlexPikalov/cdrs) [![Build status](https://ci.appveyor.com/api/projects/status/sirj4flws6o0dvb7/branch/master?svg=true)](https://ci.appveyor.com/project/harrydevnull/cdrs/branch/master)
 
 **CDRS** is a native driver for [Apache Cassandra](http://cassandra.apache.org) written in [Rust](https://www.rust-lang.org).
 The motivation to write it in Rust is a lack of native one.
@@ -18,6 +11,7 @@ Also it provides tools for [mapping results](#select-query-mapping-results)
 into Rust structures.
 
 ## Content
+
 * [Creating new connection and authorization](#creating-new-connection-and-authorization)
 * [Creating new encrypted connection](#creating-new-encrypted-connection)
 * [Connecting via r2d2 connection pool](#connecting-via-r2d2-connection-pool)
@@ -35,9 +29,7 @@ into Rust structures.
 * [Performance](#performance)
 * [Supported features](#supported-features)
 
-
 ### Creating new connection
-
 
 ```rust
 use cdrs::client::CDRS;
@@ -58,8 +50,6 @@ use cdrs::compression;
 // start session without compression
 let mut session = try!(client.start(compression::None));
 ```
-
-
 
 ### Creating new connection with authentication
 
@@ -85,7 +75,6 @@ use cdrs::compression;
 // start session without compression
 let mut session = try!(client.start(compression::None));
 ```
-
 
 ### Creating new encrypted connection
 
@@ -152,7 +141,6 @@ for _ in 0..20 {
         // it will be returned to the pool when it falls out of scope.
     });
 }
-
 ```
 
 There is a related example.
@@ -195,7 +183,6 @@ you need to start Session first.
 #### Use Query:
 
 ```rust
-
 let create_query: Query = QueryBuilder::new("USE my_namespace;").finalize();
 let with_tracing = false;
 let with_warnings = false;
@@ -232,7 +219,6 @@ let with_tracing = false;
 let with_warnings = false;
 
 let table_created = session.query(create_query, with_tracing, with_warnings).is_ok();
-
 ```
 
 #### Insert/Update Query (Structures serialization)
@@ -311,13 +297,11 @@ As an example let's consider a case when application gets a collection
 of messages of following format:
 
 ```rust
-
 struct Message {
     pub author: String,
     pub text: String,
     pub optional_field: Option<String>
 }
-
 ```
 
 To get a collection of messages `Vec<Message>` let's convert a result of query
@@ -337,7 +321,6 @@ let messages: Vec<CResult<Message>> = rows
         optional_field: row.get_by_name("optional_field")
     })
     .collect();
-
 ```
 
 or by column position:
@@ -358,7 +341,6 @@ They could be represented as `Vec<T>`. To convert a frame into a structure
 that contains a collection of elements do as follows:
 
 ```rust
-
 struct Author {
     pub name: String,
     pub messages: Vec<String>
@@ -382,7 +364,6 @@ let messages: Vec<CAuthor> = rows
         };
     })
     .collect();
-
 ```
 
 #### Prepare and execute a query:
@@ -421,11 +402,11 @@ CDRS provides functionality which allows listening to server events. Events
 inform user about following changes:
 
 * **Topology change** - events related to change in the cluster topology.
-Currently, events are sent when new nodes are added to the cluster, and
-when nodes are removed.
+  Currently, events are sent when new nodes are added to the cluster, and
+  when nodes are removed.
 
 * **Status change** - events related to change of node status. Currently,
-up/down events are sent.
+  up/down events are sent.
 
 * **Schema_change** - events related to schema change.
 
@@ -450,13 +431,16 @@ let config = r2d2::Config::builder()
     .pool_size(15)
     .build();
 ```
+
 After that you need to choose desired load balancing strategy and instantiate
 cluster collection manager. At current moment
 two static strategies were implemented: `Random` and `RoundRobin`.
+
 ```rust
 let load_balancer = LoadBalancer::new(cluster, LoadBalancingStrategy::RoundRobin);
 let manager = ClusterConnectionManager::new(load_balancer, authenticator, Compression::None);
 ```
+
 After that you'll be able to communicate with cluster via r2d2 connection pool.
 
 ### Performance
@@ -476,91 +460,88 @@ To find last results refer to [benchmarks.md](./benchmarks.md)
 
 ### Supported features
 
-- [x] lz4 decompression
-- [x] snappy decompression
-- [x] password authorization
-- [x] tracing information
-- [x] warning information
-- [x] SSL encrypted connection
-- [x] load balancing
-- [x] connection pooling
+* [x] lz4 decompression
+* [x] snappy decompression
+* [x] password authorization
+* [x] tracing information
+* [x] warning information
+* [x] SSL encrypted connection
+* [x] load balancing
+* [x] connection pooling
 
 ### Frames
 
 #### Request
 
-- [x] STARTUP
-- [x] AUTH_RESPONSE
-- [x] OPTIONS
-- [x] QUERY
-- [x] PREPARE
-- [x] EXECUTE
-- [x] BATCH
-- [x] REGISTER
+* [x] STARTUP
+* [x] AUTH_RESPONSE
+* [x] OPTIONS
+* [x] QUERY
+* [x] PREPARE
+* [x] EXECUTE
+* [x] BATCH
+* [x] REGISTER
 
 #### Response
 
-- [x] ERROR
-- [x] READY
-- [x] AUTHENTICATE
-- [x] SUPPORTED
-- [x] RESULT (Void)
-- [x] RESULT (Rows)
-- [x] RESULT (Set_keyspace)
-- [x] RESULT (Prepared)
-- [x] RESULT (Schema_change)
-  - [x] Target KEYSPACE
-  - [x] Target TABLE
-  - [x] Target TYPE
-  - [x] Target FUNCTION
-  - [x] Target AGGREGATE
-- [x] EVENT
-- [x] AUTH_CHALLENGE
-- [x] AUTH_SUCCESS
+* [x] ERROR
+* [x] READY
+* [x] AUTHENTICATE
+* [x] SUPPORTED
+* [x] RESULT (Void)
+* [x] RESULT (Rows)
+* [x] RESULT (Set_keyspace)
+* [x] RESULT (Prepared)
+* [x] RESULT (Schema_change)
+  * [x] Target KEYSPACE
+  * [x] Target TABLE
+  * [x] Target TYPE
+  * [x] Target FUNCTION
+  * [x] Target AGGREGATE
+* [x] EVENT
+* [x] AUTH_CHALLENGE
+* [x] AUTH_SUCCESS
 
-
-Issues
-------
+## Issues
 
 Feel free to submit issues and enhancement requests.
 
-Contributing
-------------
+## Contributing
 
 Please refer to each project's style guidelines and guidelines for submitting patches and additions. In general, we follow the "fork-and-pull" Git workflow.
 
- 1. **Fork** the repo on GitHub
- 2. **Clone** the project to your own machine
- 3. **Commit** changes to your own branch
- 4. **Run  ```cargo test --all-features && cargo fmt -- --write-mode=diff```
- 5. **Push** your work back up to your fork
- 6. Submit a **Pull request** so that we can review your changes
+1. **Fork** the repo on GitHub
+2. **Clone** the project to your own machine
+3. **Commit** changes to your own branch
+4. \*\*Run `cargo test --all-features && cargo fmt -- --write-mode=diff`
+5. **Push** your work back up to your fork
+6. Submit a **Pull request** so that we can review your changes
 
 NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 while running the tests you might need a local cassandra server working.
 The easiest way was to run cassandra on docker on local machine
 
+## Running Cassandra on Local
 
-Running Cassandra on Local
----------------------------
+1. If you have docker on the machine type the below command
 
- 1. If you have docker on the machine type the below command
-     ```
-     docker run --name cassandra-1 -d -p 9042:9042 -p 9160:9160 cassandra:2.2.1
+   ```
+   docker run --name cassandra-1 -d -p 9042:9042 -p 9160:9160 cassandra:2.2.1
+   ```
 
-     ```
-     `docker ps `
-       should show an output like below
+   `docker ps`
+   should show an output like below
 
-     ```
-        CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                                                                     NAMES
-        a78c3a43bf1b        cassandra:2.2.1     "/docker-entrypoin..."   4 days ago          Up 4 days           7000-7001/tcp, 0.0.0.0:9042->9042/tcp, 7199/tcp, 0.0.0.0:9160->9160/tcp   cassandra-1
-      ```
+   ```
+      CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                                                                     NAMES
+      a78c3a43bf1b        cassandra:2.2.1     "/docker-entrypoin..."   4 days ago          Up 4 days           7000-7001/tcp, 0.0.0.0:9042->9042/tcp, 7199/tcp, 0.0.0.0:9160->9160/tcp   cassandra-1
+   ```
 
- 2. If docker is new to your tool set; it is never too late to know this awesome tool https://docs.docker.com/docker-for-mac/
+2. If docker is new to your tool set; it is never too late to know this awesome tool https://docs.docker.com/docker-for-mac/
 
- Running Cassandra Cluster on local
- -----------------------------------
+Running Cassandra Cluster on local
+
+---
 
 To start Apache Cassandra cluster on local just run `tests/build-cluster.sh`.
 This script will create two nodes of Apache Cassandra 3.9 with following exposed

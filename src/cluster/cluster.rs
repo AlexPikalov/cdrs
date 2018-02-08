@@ -12,7 +12,8 @@ use openssl::ssl::SslConnector;
 
 /// The main structure for communication with Cassandra cluster.
 ///
-/// ```
+/// ```ignore,no_run
+/// extern crate cdrs;
 /// let authenticator = NoneAuthenticator{};
 /// let cluster = Cluster::new(vec!["127.0.0.1:9042"], authenticator);
 /// ```
@@ -28,6 +29,7 @@ impl<'a, A: Authenticator + Sized> Cluster<A> {
     Cluster { nodes_addrs,
               authenticator, }
   }
+
 
   pub fn connect<LB>(&self, lb: LB) -> error::Result<Session<LB, A>>
     where LB: LoadBalancingStrategy<TransportTcp> + Sized
