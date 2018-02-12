@@ -1,6 +1,6 @@
 # CDRS [![crates.io version](https://img.shields.io/crates/v/cdrs.svg)](https://crates.io/crates/cdrs) [![Build Status](https://travis-ci.org/AlexPikalov/cdrs.svg?branch=master)](https://travis-ci.org/AlexPikalov/cdrs) [![Build status](https://ci.appveyor.com/api/projects/status/sirj4flws6o0dvb7/branch/master?svg=true)](https://ci.appveyor.com/project/harrydevnull/cdrs/branch/master)
 
-CDRS is Apache **C**assandra **d**river written in pure **R**u**s**t. The driver implements all the features described in Cassandra binary protocol specification (versions 3 an 4).
+CDRS is Apache **C**assandra **d**river written in pure **R**u**s**t. The driver implements all the features described in Cassandra binary protocol specification (versions 3 and 4).
 
 ### Describing Cassandra Cluster and starting new Session
 
@@ -169,7 +169,7 @@ session.exec_with_values(&preparedQuery, values_with_names).unwrap();
 let with_tracing = true;
 let with_warnings = true;
 
-let values_with_names = query_values!{"my_bigint" => bigint, "my_int" => int};
+let values_with_names = query_values!{"my_bigint" => 1 as i64, "my_int" => 2 as i32};
 
 session.exec_with_values_tw(&preparedQuery, values_with_names, with_tracing, with_warnings).unwrap();
 
@@ -195,3 +195,60 @@ session.exec_with_parameters_tw(&preparedQuery, params.finalize(), with_tracing,
 ### Batch queries
 
 CDRS `Session` supports batching few queries in a single request to Apache Cassandra via implementing `cdrs::query::BatchExecutor` trait:
+
+```rust
+// batch two queries
+use cdrs::query::{BatchQueryBuilder, QueryBatch};
+
+let mut queries = BatchQueryBuilder::new();
+queries = queries.add_query_prepared(&prepared_query);
+queries = queries.add_query("INSERT INTO my.store (my_int) VALUES (?)", query_values!(1 as i32));
+session.batch_with_params(queries.finalyze());
+
+// batch queries with tracing and warning information
+use cdrs::query::{BatchQueryBuilder, QueryBatch};
+
+let with_tracing = true;
+let with_warnings = true;
+let mut queries = BatchQueryBuilder::new();
+queries = queries.add_query_prepared(&prepared_query);
+queries = queries.add_query("INSERT INTO my.store (my_int) VALUES (?)", query_values!(1 as i32));
+session.batch_with_params_tw(queries.finalyze(), with_tracing, with_warnings);
+```
+
+### Query values types
+
+Accordingly to specification along with queries there could be provided something that is called values. Apache Cassandra server will use values instead of `?` symbols from a query string.
+
+There are two types of queries defined in the spec and supported by CDRS driver. Each of these two types could be easily constructed via provided `query_values!` macros.
+
+* simple values - could be imagine as a list of values. The order of simple values matters because server will put them in the same number as columns were provided in query string.
+
+```rust
+let simple_values = query_values!(1 as i32, 2 as i32);
+```
+
+* named values are similar to hash maps, where keys represent column names which the a value has to be assigned to.
+
+```rust
+let values_with_names = query_values!{"my_bigint" => 1 as i64, "my_int" => 2 as i32};
+```
+
+Each type that implements `Into<cdrs::types::value::Value>` could be used as a value in `query_values!` macros. For primitive types please refer to following [wrapper CDRS types](https://github.com/AlexPikalov/cdrs/blob/master/type-mapping.md) that could be easily converted to `Value`. For custom types (in Cassandra terminology User Defined Types) `IntoCDRSValue` derive could be used:
+
+```rust
+#[derive(Debug, IntoCDRSValue)]
+struct Udt {
+    pub number: i32,
+    pub number_16: i16,
+    pub number_8: N,
+}
+
+// for nested structures it works as well
+#[derive(Debug, IntoCDRSValue)]
+struct N {
+    pub n: i16,
+}
+```
+
+Look into this [link](https://github.com/AlexPikalov/into-cdrs-value-derive/tree/master/example) to find a full example how to use CDRS + [_into-cdrs-value-derive_](https://github.com/AlexPikalov/into-cdrs-value-derive) crate.
