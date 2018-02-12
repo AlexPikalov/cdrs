@@ -1,6 +1,7 @@
 //! The modules which contains CDRS Cassandra client.
 use std::net;
 use std::io;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use query::{Query, QueryBatch, QueryParams};
 use frame::{Flag, Frame, Opcode};
@@ -128,17 +129,97 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
 }
 
 /// The object that provides functionality for communication with Cassandra server.
-pub struct Session<T: Authenticator, X: CDRSTransport> {
+pub struct Session<T: Authenticator, X: CDRSTransport>(RefCell<InternalSession<T, X>>);
+
+impl <T: Authenticator, X: CDRSTransport> Session<T, X> {
+     /// Creates new session basing on CDRS instance.
+    pub fn start(cdrs: CDRS<T, X>) -> Session<T, X> {
+        Session(RefCell::new(InternalSession::start(cdrs)))
+    }
+
+    /// The method overrides a compression method of current session
+    pub fn compressor(&self, compressor: Compression) -> &Self {
+        self.0.borrow_mut().compressor(compressor);
+        self
+    }
+
+    /// Manually ends current session.
+    /// Apart of that session will be ended automatically when the instance is dropped.
+    pub fn end(&self) {
+        self.0.borrow_mut().end();
+    }
+
+    /// The method returns `true` if underlying connection is still alive, and `false` otherwise.
+    pub fn is_connected(&self) -> bool {
+        self.0.borrow().is_connected()
+    }
+
+    /// The method makes a request to DB Server to prepare provided query.
+    pub fn prepare(&self,
+                   query: String,
+                   with_tracing: bool,
+                   with_warnings: bool)
+                   -> error::Result<Frame> {
+        self.0.borrow_mut().prepare(query, with_tracing, with_warnings)
+    }
+
+    /// The method makes a request to DB Server to execute a query with provided id
+    /// using provided query parameters. `id` is an ID of a query which Server
+    /// returns back to a driver as a response to `prepare` request.
+    pub fn execute(&self,
+                   id: &CBytesShort,
+                   query_parameters: QueryParams,
+                   with_tracing: bool,
+                   with_warnings: bool)
+                   -> error::Result<Frame> {
+        self.0.borrow_mut().execute(id, query_parameters, with_tracing, with_warnings)
+    }
+
+    /// The method makes a request to DB Server to execute a query provided in `query` argument.
+    /// you can build the query with QueryBuilder
+    /// ```
+    /// use cdrs::query::QueryBuilder;
+    /// use cdrs::compression::Compression;
+    /// use cdrs::consistency::Consistency;
+    ///
+    ///   let select_query = QueryBuilder::new("select * from emp").finalize();
+    /// ```
+    pub fn query(&self,
+                 query: Query,
+                 with_tracing: bool,
+                 with_warnings: bool)
+                 -> error::Result<Frame> {
+        self.0.borrow_mut().query(query, with_tracing, with_warnings)
+    }
+
+    pub fn batch(&self,
+                 batch_query: QueryBatch,
+                 with_tracing: bool,
+                 with_warnings: bool)
+                 -> error::Result<Frame> {
+        self.0.borrow_mut().batch(batch_query, with_tracing, with_warnings)
+    }
+
+    /// It consumes CDRS
+    pub fn listen_for<'a>(self,
+                          events: Vec<SimpleServerEvent>)
+                          -> error::Result<(Listener<X>, EventStream)> {
+        self.0.into_inner().listen_for(events)
+    }
+}
+
+/// The object that provides functionality for communication with Cassandra server.
+struct InternalSession<T: Authenticator, X: CDRSTransport> {
     started: bool,
     cdrs: CDRS<T, X>,
     compressor: Compression,
 }
 
-impl<T: Authenticator, X: CDRSTransport> Session<T, X> {
+impl<T: Authenticator, X: CDRSTransport> InternalSession<T, X> {
     /// Creates new session basing on CDRS instance.
-    pub fn start(cdrs: CDRS<T, X>) -> Session<T, X> {
+    pub fn start(cdrs: CDRS<T, X>) -> InternalSession<T, X> {
         let compressor = cdrs.compressor.clone();
-        Session { cdrs: cdrs,
+        InternalSession { cdrs: cdrs,
                   started: true,
                   compressor: compressor, }
     }

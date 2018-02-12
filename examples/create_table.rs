@@ -17,7 +17,7 @@ fn main() {
     let authenticator = PasswordAuthenticator::new(_USER, _PASS);
     let tcp_transport = TransportTcp::new(_ADDR).unwrap();
     let client = CDRS::new(tcp_transport, authenticator);
-    let mut session = client.start(Compression::None).unwrap();
+    let session = client.start(Compression::None).unwrap();
 
     // NOTE: keyspace "keyspace" should already exist
     let create_table_cql = "CREATE TABLE keyspace.users (

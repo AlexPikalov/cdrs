@@ -26,7 +26,7 @@ fn simple_udt() {
     let create_type_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.simple_udt (my_text text)";
     let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_simple_udt \
                             (my_key int PRIMARY KEY, my_udt simple_udt)";
-    let mut session = setup_multiple(&[create_type_cql, create_table_cql]).expect("setup");
+    let session = setup_multiple(&[create_type_cql, create_table_cql]).expect("setup");
 
     #[derive(Debug, Clone, PartialEq)]
     struct MyUdt {
@@ -85,7 +85,7 @@ fn nested_udt() {
                             (my_inner_udt frozen<nested_inner_udt>)";
     let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_nested_udt \
                             (my_key int PRIMARY KEY, my_outer_udt nested_outer_udt)";
-    let mut session =
+    let session =
         setup_multiple(&[create_type1_cql, create_type2_cql, create_table_cql]).expect("setup");
 
     #[derive(Debug, Clone, PartialEq)]
@@ -172,7 +172,7 @@ fn alter_udt_add() {
     let create_type_cql = "CREATE TYPE cdrs_test.alter_udt_add_udt (my_text text)";
     let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_alter_udt_add \
                             (my_key int PRIMARY KEY, my_map frozen<map<text, alter_udt_add_udt>>)";
-    let mut session = setup_multiple(&[drop_table_cql,
+    let session = setup_multiple(&[drop_table_cql,
                                        drop_type_cql,
                                        create_type_cql,
                                        create_table_cql])

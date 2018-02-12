@@ -20,7 +20,7 @@ fn main() {
     let authenticator = PasswordAuthenticator::new(_USER, _PASS);
     let tcp_transport = TransportTcp::new(_ADDR).unwrap();
     let client = CDRS::new(tcp_transport, authenticator);
-    let mut session = client.start(Compression::None).unwrap();
+    let session = client.start(Compression::None).unwrap();
 
     let prepare_query = "INSERT INTO keyspace.integers (integer) VALUES (1);".to_string();
     let with_tracing = false;

@@ -27,7 +27,7 @@ fn list() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_lists \
                (my_text_list frozen<list<text>> PRIMARY KEY, \
                my_nested_list list<frozen<list<int>>>)";
-    let mut session = setup(cql).expect("setup");
+    let session = setup(cql).expect("setup");
 
     let my_text_list = vec!["text1".to_string(),
                             "text2".to_string(),
@@ -80,7 +80,7 @@ fn list_v4() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_lists_v4 \
                (my_text_list frozen<list<text>> PRIMARY KEY, \
                my_nested_list list<frozen<list<smallint>>>)";
-    let mut session = setup(cql).expect("setup");
+    let session = setup(cql).expect("setup");
 
     let my_text_list = vec!["text1".to_string(),
                             "text2".to_string(),
@@ -132,7 +132,7 @@ fn set() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_sets \
                (my_text_set frozen<set<text>> PRIMARY KEY, \
                my_nested_set set<frozen<set<int>>>)";
-    let mut session = setup(cql).expect("setup");
+    let session = setup(cql).expect("setup");
 
     let my_text_set = vec!["text1".to_string(),
                            "text2".to_string(),
@@ -185,7 +185,7 @@ fn set_v4() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_sets_v4 \
                (my_text_set frozen<set<text>> PRIMARY KEY, \
                my_nested_set set<frozen<set<smallint>>>)";
-    let mut session = setup(cql).expect("setup");
+    let session = setup(cql).expect("setup");
 
     let my_text_set = vec!["text1".to_string(),
                            "text2".to_string(),
@@ -238,7 +238,7 @@ fn map_without_blob() {
                (my_key int PRIMARY KEY, \
                my_text_map map<text, text>, \
                my_nested_map map<uuid, frozen<map<bigint, int>>>)";
-    let mut session = setup(cql).expect("setup");
+    let session = setup(cql).expect("setup");
 
     let my_text_map = hashmap!{
         "key1".to_string() => "value1".to_string(),
@@ -307,7 +307,7 @@ fn map_without_blob_v4() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_maps_without_blob_v4 \
                (my_text_map frozen<map<text, text>> PRIMARY KEY, \
                my_nested_map map<uuid, frozen<map<bigint, tinyint>>>)";
-    let mut session = setup(cql).expect("setup");
+    let session = setup(cql).expect("setup");
 
     let my_text_map = hashmap!{
         "key1".to_string() => "value1".to_string(),
@@ -373,7 +373,7 @@ fn map() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_maps \
                (my_text_map frozen<map<text, text>> PRIMARY KEY, \
                my_nested_map map<uuid, frozen<map<bigint, blob>>>)";
-    let mut session = setup(cql).expect("setup");
+    let session = setup(cql).expect("setup");
 
     let my_text_map = hashmap!{
         "key1".to_string() => "value1".to_string(),

@@ -18,7 +18,7 @@ pub fn setup_multiple(create_cqls: &[&'static str]) -> Result<CSession> {
     let authenticator = NoneAuthenticator;
     let tcp_transport = TransportTcp::new(ADDR)?;
     let client = CDRS::new(tcp_transport, authenticator);
-    let mut session = client.start(Compression::None)?;
+    let session = client.start(Compression::None)?;
     let re_table_name = Regex::new(r"CREATE TABLE IF NOT EXISTS (\w+\.\w+)").unwrap();
 
     let cql = "CREATE KEYSPACE IF NOT EXISTS cdrs_test WITH \
