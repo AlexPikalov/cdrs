@@ -30,7 +30,6 @@ impl<'a, A: Authenticator + Sized> Cluster<A> {
               authenticator, }
   }
 
-
   pub fn connect<LB>(&self, lb: LB) -> error::Result<Session<LB, A>>
     where LB: LoadBalancingStrategy<TransportTcp> + Sized
   {
