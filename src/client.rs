@@ -129,33 +129,29 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
 }
 
 /// The object that provides functionality for communication with Cassandra server.
-pub struct Session<T: Authenticator, X: CDRSTransport> {
-    session: RefCell<InternalSession<T, X>>
-}
+pub struct Session<T: Authenticator, X: CDRSTransport>(RefCell<InternalSession<T, X>>);
 
 impl <T: Authenticator, X: CDRSTransport> Session<T, X> {
      /// Creates new session basing on CDRS instance.
     pub fn start(cdrs: CDRS<T, X>) -> Session<T, X> {
-        Session {
-            session: RefCell::new(InternalSession::start(cdrs)),
-        }
+        Session(RefCell::new(InternalSession::start(cdrs)))
     }
 
     /// The method overrides a compression method of current session
     pub fn compressor(&self, compressor: Compression) -> &Self {
-        self.session.borrow_mut().compressor(compressor);
+        self.0.borrow_mut().compressor(compressor);
         self
     }
 
     /// Manually ends current session.
     /// Apart of that session will be ended automatically when the instance is dropped.
     pub fn end(&self) {
-        self.session.borrow_mut().end();
+        self.0.borrow_mut().end();
     }
 
     /// The method returns `true` if underlying connection is still alive, and `false` otherwise.
     pub fn is_connected(&self) -> bool {
-        self.session.borrow().is_connected()
+        self.0.borrow().is_connected()
     }
 
     /// The method makes a request to DB Server to prepare provided query.
@@ -164,7 +160,7 @@ impl <T: Authenticator, X: CDRSTransport> Session<T, X> {
                    with_tracing: bool,
                    with_warnings: bool)
                    -> error::Result<Frame> {
-        self.session.borrow_mut().prepare(query, with_tracing, with_warnings)
+        self.0.borrow_mut().prepare(query, with_tracing, with_warnings)
     }
 
     /// The method makes a request to DB Server to execute a query with provided id
@@ -176,7 +172,7 @@ impl <T: Authenticator, X: CDRSTransport> Session<T, X> {
                    with_tracing: bool,
                    with_warnings: bool)
                    -> error::Result<Frame> {
-        self.session.borrow_mut().execute(id, query_parameters, with_tracing, with_warnings)
+        self.0.borrow_mut().execute(id, query_parameters, with_tracing, with_warnings)
     }
 
     /// The method makes a request to DB Server to execute a query provided in `query` argument.
@@ -193,7 +189,7 @@ impl <T: Authenticator, X: CDRSTransport> Session<T, X> {
                  with_tracing: bool,
                  with_warnings: bool)
                  -> error::Result<Frame> {
-        self.session.borrow_mut().query(query, with_tracing, with_warnings)
+        self.0.borrow_mut().query(query, with_tracing, with_warnings)
     }
 
     pub fn batch(&self,
@@ -201,14 +197,14 @@ impl <T: Authenticator, X: CDRSTransport> Session<T, X> {
                  with_tracing: bool,
                  with_warnings: bool)
                  -> error::Result<Frame> {
-        self.session.borrow_mut().batch(batch_query, with_tracing, with_warnings)
+        self.0.borrow_mut().batch(batch_query, with_tracing, with_warnings)
     }
 
     /// It consumes CDRS
     pub fn listen_for<'a>(self,
                           events: Vec<SimpleServerEvent>)
                           -> error::Result<(Listener<X>, EventStream)> {
-        self.session.into_inner().listen_for(events)
+        self.0.into_inner().listen_for(events)
     }
 }
 
