@@ -35,7 +35,7 @@ fn main() {
 
         thread::spawn(move || {
             let query = QueryBuilder::new("SELECT * FROM system.peers;").finalize();
-            let mut conn = pool.get().unwrap();
+            let conn = pool.get().unwrap();
             let res = if conn.query(query, false, false).is_ok() {
                 format!("Thread #{} - ok", i)
             } else {

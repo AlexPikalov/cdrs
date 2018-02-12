@@ -21,7 +21,7 @@ fn connect_to_cassandra() {
     assert_eq!(tcp_transport.is_ok(), true);
 
     let client = CDRS::new(tcp_transport.unwrap(), authenticator);
-    let mut session = client.start(Compression::None).unwrap();
+    let session = client.start(Compression::None).unwrap();
 
     let select_peers = "SELECT peer,data_center,rack,tokens,rpc_address,release_version FROM \
                         system.peers";

@@ -128,6 +128,7 @@ impl<'a, T: Authenticator + 'a, X: CDRSTransport + 'a> CDRS<T, X> {
     }
 }
 
+/// The object that provides functionality for communication with Cassandra server.
 pub struct Session<T: Authenticator, X: CDRSTransport> {
     session: RefCell<InternalSession<T, X>>
 }

@@ -18,7 +18,7 @@ fn main() {
     let select_query = QueryBuilder::new("SELECT * FROM my_namespace.emp;").finalize();
 
     match client.start(Compression::None) {
-        Ok(mut session) => {
+        Ok(session) => {
             let with_tracing = false;
             let with_warnings = false;
             let query_op = session.query(select_query, with_tracing, with_warnings);

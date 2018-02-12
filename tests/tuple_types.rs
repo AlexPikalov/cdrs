@@ -25,7 +25,7 @@ use std::str::FromStr;
 fn simple_tuple() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.simple_tuple \
                (my_tuple tuple<text, int> PRIMARY KEY)";
-    let mut session = setup(cql).expect("setup");
+    let session = setup(cql).expect("setup");
 
     #[derive(Debug, Clone, PartialEq)]
     struct MyTuple {
@@ -86,7 +86,7 @@ fn nested_tuples() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_nested_tuples \
                (my_key int PRIMARY KEY, \
                my_outer_tuple tuple<uuid, blob, tuple<text, int, timestamp>>)";
-    let mut session = setup(cql).expect("setup");
+    let session = setup(cql).expect("setup");
 
     #[derive(Debug, Clone, PartialEq)]
     struct MyInnerTuple {

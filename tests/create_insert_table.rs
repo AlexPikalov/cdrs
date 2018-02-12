@@ -82,7 +82,7 @@ fn teardown() {
 fn insert_data_users() {
     println!("insert_data_users");
     let ctx = TestContext::new();
-    let mut session = ctx.client.start(Compression::None).unwrap();
+    let session = ctx.client.start(Compression::None).unwrap();
     let insert_table_cql = "INSERT INTO user_keyspace.users
             (user_name, password, gender, session_token, state)
     VALUES (?, ?, ?, ?, ?)";
@@ -113,7 +113,7 @@ fn insert_data_users() {
 fn read_from_user_table() {
     println!("read_from_user_table");
     let ctx = TestContext::new();
-    let mut session = ctx.client.start(Compression::None).unwrap();
+    let session = ctx.client.start(Compression::None).unwrap();
     let select_query = QueryBuilder::new(
         "\
         SELECT user_name, password, gender, session_token, state, some_map \
@@ -183,7 +183,7 @@ impl TestContext {
 
 fn create_keyspace() {
     let ctx = TestContext::new();
-    let mut session = ctx.client.start(Compression::None).unwrap();
+    let session = ctx.client.start(Compression::None).unwrap();
     let create_ks_cql = "CREATE KEYSPACE IF NOT EXISTS user_keyspace WITH REPLICATION = { 'class' \
                          : 'SimpleStrategy', 'replication_factor' : 1 } ;";
 
@@ -198,7 +198,7 @@ fn create_keyspace() {
 
 fn create_table() {
     let ctx = TestContext::new();
-    let mut session = ctx.client.start(Compression::None).unwrap();
+    let session = ctx.client.start(Compression::None).unwrap();
     let create_table_cql = "CREATE TABLE IF NOT EXISTS user_keyspace.users (
         user_name varchar PRIMARY KEY,
         password varchar,
@@ -224,7 +224,7 @@ fn create_table() {
 
 fn drop_keyspace() {
     let ctx = TestContext::new();
-    let mut session = ctx.client.start(Compression::None).unwrap();
+    let session = ctx.client.start(Compression::None).unwrap();
     let drop_ks = "DROP KEYSPACE IF EXISTS user_keyspace;";
     let with_tracing = false;
     let with_warnings = false;

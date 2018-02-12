@@ -20,7 +20,7 @@ fn create_keyspace() {
         let authenticator = NoneAuthenticator;
         let tcp_transport = TransportTcp::new(ADDR).expect("create transport");
         let client = CDRS::new(tcp_transport, authenticator);
-        let mut session = client.start(Compression::None).expect("start session");
+        let session = client.start(Compression::None).expect("start session");
 
         let drop_ks_cql = "DROP KEYSPACE IF EXISTS create_ks_test";
         let drop_query = QueryBuilder::new(drop_ks_cql).finalize();
@@ -79,7 +79,7 @@ fn alter_keyspace() {
         let authenticator = NoneAuthenticator;
         let tcp_transport = TransportTcp::new(ADDR).expect("create transport");
         let client = CDRS::new(tcp_transport, authenticator);
-        let mut session = client.start(Compression::None).expect("start session");
+        let session = client.start(Compression::None).expect("start session");
 
         let drop_ks_cql = "DROP KEYSPACE IF EXISTS alter_ks_test";
         let drop_query = QueryBuilder::new(drop_ks_cql).finalize();
@@ -132,7 +132,7 @@ fn use_keyspace() {
         let authenticator = NoneAuthenticator;
         let tcp_transport = TransportTcp::new(ADDR).expect("create transport");
         let client = CDRS::new(tcp_transport, authenticator);
-        let mut session = client.start(Compression::None).expect("start session");
+        let session = client.start(Compression::None).expect("start session");
 
         let create_ks_cql = "CREATE KEYSPACE IF NOT EXISTS use_ks_test WITH \
                              replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
@@ -161,7 +161,7 @@ fn drop_keyspace() {
         let authenticator = NoneAuthenticator;
         let tcp_transport = TransportTcp::new(ADDR).expect("create transport");
         let client = CDRS::new(tcp_transport, authenticator);
-        let mut session = client.start(Compression::None).expect("start session");
+        let session = client.start(Compression::None).expect("start session");
 
         let create_ks_cql = "CREATE KEYSPACE IF NOT EXISTS drop_ks_test WITH \
                              replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
