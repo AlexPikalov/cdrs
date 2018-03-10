@@ -30,16 +30,16 @@ fn main() {
         // inspects all events in a stream
         .inspect(|event| println!("inspect event {:?}", event))
         // filter by event's type: schema changes
-        .filter(|event| event == &SimpleServerEvent::SchemaChange);
-  // // filter by event's specific information: new node was added
-  // .filter(|event| {
-  //     match event {
-  //         &ServerEvent::SchemaChange(ref event) => {
-  //             event.change_type == ChangeType::Created && event.target == Target::Table
-  //         },
-  //         _ => false
-  //     }
-  // });
+        .filter(|event| event == &SimpleServerEvent::SchemaChange)
+        // filter by event's specific information: new table was added
+        .filter(|event| {
+            match event {
+                &ServerEvent::SchemaChange(ref event) => {
+                    event.change_type == ChangeType::Created && event.target == Target::Table
+                },
+                _ => false
+            }
+        });
 
   println!("Start listen for server events");
 
