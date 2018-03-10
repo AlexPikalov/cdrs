@@ -33,17 +33,20 @@ impl<'a, LB, A> GetCompressor<'a> for Session<LB, A> {
 }
 
 impl<'a, LB: Sized, A: Authenticator + 'a + Sized> Session<LB, A> {
-  pub fn paged<T: CDRSTransport>(&'a mut self,
-                                 page_size: i32)
-                                 -> SessionPager<'a, Session<LB, A>, T>
-    where Session<LB, A>: CDRSSession<'a, T>
+  pub fn paged<T: CDRSTransport>(
+    &'a mut self,
+    page_size: i32,
+  ) -> SessionPager<'a, Session<LB, A>, T>
+  where
+    Session<LB, A>: CDRSSession<'a, T>,
   {
     return SessionPager::new(self, page_size);
   }
 
-  fn startup<'b, T: CDRSTransport>(transport: &'b mut T,
-                                   session_authenticator: &'b A)
-                                   -> error::Result<()> {
+  fn startup<'b, T: CDRSTransport>(
+    transport: &'b mut T,
+    session_authenticator: &'b A,
+  ) -> error::Result<()> {
     let ref mut compression = Compression::None;
     let startup_frame = Frame::new_req_startup(compression.as_str()).into_cbytes();
 
@@ -56,8 +59,7 @@ impl<'a, LB: Sized, A: Authenticator + 'a + Sized> Session<LB, A> {
 
     if start_response.opcode == Opcode::Authenticate {
       let body = start_response.get_body()?;
-      let authenticator = body.get_authenticator()
-                              .expect(
+      let authenticator = body.get_authenticator().expect(
         "Cassandra Server did communicate that it needed password
                 authentication but the auth schema was missing in the body response",
       );
@@ -69,31 +71,39 @@ impl<'a, LB: Sized, A: Authenticator + 'a + Sized> Session<LB, A> {
       //      the server and client are same if not send error back
       // 3. if it falls through it means the preliminary conditions are true
 
-      let auth_check =
-        session_authenticator.get_cassandra_name()
-                     .ok_or(error::Error::General("No authenticator was provided".to_string()))
-                     .map(|auth| {
-                       if authenticator != auth {
-                         let io_err = io::Error::new(
+      let auth_check = session_authenticator
+        .get_cassandra_name()
+        .ok_or(error::Error::General(
+          "No authenticator was provided".to_string(),
+        ))
+        .map(|auth| {
+          if authenticator != auth {
+            let io_err = io::Error::new(
               io::ErrorKind::NotFound,
               format!(
                 "Unsupported type of authenticator. {:?} got,
                              but {} is supported.",
-                authenticator, auth
+                authenticator,
+                auth
               ),
             );
-                         return Err(error::Error::Io(io_err));
-                       }
-                       Ok(())
-                     });
+            return Err(error::Error::Io(io_err));
+          }
+          Ok(())
+        });
 
       if let Err(err) = auth_check {
         return Err(err);
       }
 
       let auth_token_bytes = session_authenticator.get_auth_token().into_cbytes();
-      try!(transport.write(Frame::new_req_auth_response(auth_token_bytes).into_cbytes()
-                                                                         .as_slice()));
+      try!(
+        transport.write(
+          Frame::new_req_auth_response(auth_token_bytes)
+            .into_cbytes()
+            .as_slice()
+        )
+      );
       try!(parse_frame(transport, compression));
 
       return Ok(());
@@ -103,51 +113,64 @@ impl<'a, LB: Sized, A: Authenticator + 'a + Sized> Session<LB, A> {
   }
 }
 
-impl<'a,
-     T: CDRSTransport + 'a,
-     LB: LoadBalancingStrategy<T> + Sized,
-     A: Authenticator + Sized> GetTransport<'a, T> for Session<LB, A> {
+impl<
+  'a,
+  T: CDRSTransport + 'a,
+  LB: LoadBalancingStrategy<T> + Sized,
+  A: Authenticator + Sized,
+> GetTransport<'a, T> for Session<LB, A> {
   fn get_transport(&mut self) -> Option<&mut T> {
     self.load_balancing.next()
   }
 }
 
-impl<'a,
-     T: CDRSTransport + 'a,
-     LB: LoadBalancingStrategy<T> + Sized,
-     A: Authenticator + Sized> QueryExecutor<'a, T> for Session<LB, A> {
+impl<
+  'a,
+  T: CDRSTransport + 'a,
+  LB: LoadBalancingStrategy<T> + Sized,
+  A: Authenticator + Sized,
+> QueryExecutor<'a, T> for Session<LB, A> {
 }
 
-impl<'a,
-     T: CDRSTransport + 'a,
-     LB: LoadBalancingStrategy<T> + Sized,
-     A: Authenticator + Sized> PrepareExecutor<'a, T> for Session<LB, A> {
+impl<
+  'a,
+  T: CDRSTransport + 'a,
+  LB: LoadBalancingStrategy<T> + Sized,
+  A: Authenticator + Sized,
+> PrepareExecutor<'a, T> for Session<LB, A> {
 }
 
-impl<'a,
-     T: CDRSTransport + 'a,
-     LB: LoadBalancingStrategy<T> + Sized,
-     A: Authenticator + Sized> ExecExecutor<'a, T> for Session<LB, A> {
+impl<
+  'a,
+  T: CDRSTransport + 'a,
+  LB: LoadBalancingStrategy<T> + Sized,
+  A: Authenticator + Sized,
+> ExecExecutor<'a, T> for Session<LB, A> {
 }
 
-impl<'a,
-     T: CDRSTransport + 'a,
-     LB: LoadBalancingStrategy<T> + Sized,
-     A: Authenticator + Sized> BatchExecutor<'a, T> for Session<LB, A> {
+impl<
+  'a,
+  T: CDRSTransport + 'a,
+  LB: LoadBalancingStrategy<T> + Sized,
+  A: Authenticator + Sized,
+> BatchExecutor<'a, T> for Session<LB, A> {
 }
 
-impl<'a,
-     T: CDRSTransport + 'a,
-     LB: LoadBalancingStrategy<T> + Sized,
-     A: Authenticator + Sized> CDRSSession<'a, T> for Session<LB, A> {
+impl<
+  'a,
+  T: CDRSTransport + 'a,
+  LB: LoadBalancingStrategy<T> + Sized,
+  A: Authenticator + Sized,
+> CDRSSession<'a, T> for Session<LB, A> {
 }
 
 impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + 'a + Sized>
   Session<LB, A> {
-  pub fn new(addrs: &Vec<&str>,
-             mut load_balancing: LB,
-             authenticator: A)
-             -> error::Result<Session<LB, A>> {
+  pub fn new(
+    addrs: &Vec<&str>,
+    mut load_balancing: LB,
+    authenticator: A,
+  ) -> error::Result<Session<LB, A>> {
     let mut nodes: Vec<TransportTcp> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
@@ -158,15 +181,18 @@ impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + 'a 
 
     load_balancing.init(nodes);
 
-    Ok(Session { load_balancing,
-                 authenticator,
-                 compression: Compression::None, })
+    Ok(Session {
+      load_balancing,
+      authenticator,
+      compression: Compression::None,
+    })
   }
 
-  pub fn new_snappy(addrs: &Vec<&str>,
-                    mut load_balancing: LB,
-                    authenticator: A)
-                    -> error::Result<Session<LB, A>> {
+  pub fn new_snappy(
+    addrs: &Vec<&str>,
+    mut load_balancing: LB,
+    authenticator: A,
+  ) -> error::Result<Session<LB, A>> {
     let mut nodes: Vec<TransportTcp> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
@@ -177,15 +203,18 @@ impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + 'a 
 
     load_balancing.init(nodes);
 
-    Ok(Session { load_balancing,
-                 authenticator,
-                 compression: Compression::Snappy, })
+    Ok(Session {
+      load_balancing,
+      authenticator,
+      compression: Compression::Snappy,
+    })
   }
 
-  pub fn new_lz4(addrs: &Vec<&str>,
-                 mut load_balancing: LB,
-                 authenticator: A)
-                 -> error::Result<Session<LB, A>> {
+  pub fn new_lz4(
+    addrs: &Vec<&str>,
+    mut load_balancing: LB,
+    authenticator: A,
+  ) -> error::Result<Session<LB, A>> {
     let mut nodes: Vec<TransportTcp> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
@@ -196,22 +225,30 @@ impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + 'a 
 
     load_balancing.init(nodes);
 
-    Ok(Session { load_balancing,
-                 authenticator,
-                 compression: Compression::Lz4, })
+    Ok(Session {
+      load_balancing,
+      authenticator,
+      compression: Compression::Lz4,
+    })
   }
 
-  pub fn listen(&mut self,
-                events: Vec<SimpleServerEvent>)
-                -> error::Result<(Listener<TransportTcp>, EventStream)> {
+  pub fn listen(
+    &mut self,
+    events: Vec<SimpleServerEvent>,
+  ) -> error::Result<(Listener<TransportTcp>, EventStream)> {
+    let authenticator = self.authenticator.clone();
     let compression = self.get_compressor();
-    let transport = self.get_transport()
-                        .ok_or("Cannot connect to a cluster - no nodes provided")?;
+    let transport = self
+      .get_transport()
+      .ok_or("Cannot connect to a cluster - no nodes provided")?;
     let mut transport = transport.try_clone()?;
+    Self::startup(&mut transport, &authenticator)?;
 
     let query_frame = Frame::new_req_register(events).into_cbytes();
     try!(transport.write(query_frame.as_slice()));
+    println!("send register");
     try!(parse_frame(&mut transport, &compression));
+    println!("receive response");
     Ok(new_listener(transport))
   }
 }
@@ -219,11 +256,12 @@ impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + 'a 
 #[cfg(feature = "ssl")]
 impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a + Sized>
   Session<LB, A> {
-  pub fn new_ssl(addrs: &Vec<&str>,
-                 mut load_balancing: LB,
-                 authenticator: A,
-                 ssl_connector: &SslConnector)
-                 -> error::Result<Session<LB, A>> {
+  pub fn new_ssl(
+    addrs: &Vec<&str>,
+    mut load_balancing: LB,
+    authenticator: A,
+    ssl_connector: &SslConnector,
+  ) -> error::Result<Session<LB, A>> {
     let mut nodes: Vec<TransportTls> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
@@ -234,16 +272,19 @@ impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a 
 
     load_balancing.init(nodes);
 
-    Ok(Session { load_balancing,
-                 authenticator,
-                 compression: Compression::None, })
+    Ok(Session {
+      load_balancing,
+      authenticator,
+      compression: Compression::None,
+    })
   }
 
-  pub fn new_snappy_ssl(addrs: &Vec<&str>,
-                        mut load_balancing: LB,
-                        authenticator: A,
-                        ssl_connector: &SslConnector)
-                        -> error::Result<Session<LB, A>> {
+  pub fn new_snappy_ssl(
+    addrs: &Vec<&str>,
+    mut load_balancing: LB,
+    authenticator: A,
+    ssl_connector: &SslConnector,
+  ) -> error::Result<Session<LB, A>> {
     let mut nodes: Vec<TransportTls> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
@@ -254,16 +295,19 @@ impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a 
 
     load_balancing.init(nodes);
 
-    Ok(Session { load_balancing,
-                 authenticator,
-                 compression: Compression::Snappy, })
+    Ok(Session {
+      load_balancing,
+      authenticator,
+      compression: Compression::Snappy,
+    })
   }
 
-  pub fn new_lz4_ssl(addrs: &Vec<&str>,
-                     mut load_balancing: LB,
-                     authenticator: A,
-                     ssl_connector: &SslConnector)
-                     -> error::Result<Session<LB, A>> {
+  pub fn new_lz4_ssl(
+    addrs: &Vec<&str>,
+    mut load_balancing: LB,
+    authenticator: A,
+    ssl_connector: &SslConnector,
+  ) -> error::Result<Session<LB, A>> {
     let mut nodes: Vec<TransportTls> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
@@ -274,18 +318,24 @@ impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a 
 
     load_balancing.init(nodes);
 
-    Ok(Session { load_balancing,
-                 authenticator,
-                 compression: Compression::Lz4, })
+    Ok(Session {
+      load_balancing,
+      authenticator,
+      compression: Compression::Lz4,
+    })
   }
 
-  pub fn listen_ssl(&mut self,
-                    events: Vec<SimpleServerEvent>)
-                    -> error::Result<(Listener<TransportTls>, EventStream)> {
+  pub fn listen_ssl(
+    &mut self,
+    events: Vec<SimpleServerEvent>,
+  ) -> error::Result<(Listener<TransportTls>, EventStream)> {
+    let authenticator = self.authenticator.clone();
     let compression = self.get_compressor();
-    let transport = self.get_transport()
-                        .ok_or("Cannot connect to a cluster - no nodes provided")?;
+    let transport = self
+      .get_transport()
+      .ok_or("Cannot connect to a cluster - no nodes provided")?;
     let mut transport = transport.try_clone()?;
+    Self::startup(&mut transport, &authenticator)?;
 
     let query_frame = Frame::new_req_register(events).into_cbytes();
     try!(transport.write(query_frame.as_slice()));
