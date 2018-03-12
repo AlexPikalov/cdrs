@@ -20,7 +20,7 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::collections::HashMap;
 
 #[test]
-#[cfg(not(feature = "appveyor"))]
+#[ignore]
 fn string() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_string \
                (my_ascii ascii PRIMARY KEY, my_text text, my_varchar varchar)";
@@ -58,7 +58,7 @@ fn string() {
 }
 
 #[test]
-#[cfg(not(feature = "appveyor"))]
+#[ignore]
 fn counter() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_counter \
                (my_bigint bigint PRIMARY KEY, my_counter counter)";
@@ -92,7 +92,7 @@ fn counter() {
 
 // TODO varint
 #[test]
-#[cfg(not(feature = "appveyor"))]
+#[ignore]
 fn integer() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_integer \
                (my_bigint bigint PRIMARY KEY, my_int int, my_boolean boolean)";
@@ -132,7 +132,7 @@ fn integer() {
 // TODO counter, varint
 #[test]
 #[cfg(feature = "v4")]
-#[cfg(not(feature = "appveyor"))]
+#[ignore]
 fn integer_v4() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_integer_v4 \
                (my_bigint bigint PRIMARY KEY, my_int int, my_smallint smallint, \
@@ -178,7 +178,7 @@ fn integer_v4() {
 
 // TODO decimal
 #[test]
-#[cfg(not(feature = "appveyor"))]
+#[ignore]
 fn float() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_float \
                (my_float float PRIMARY KEY, my_double double)";
@@ -212,7 +212,7 @@ fn float() {
 }
 
 #[test]
-#[cfg(not(feature = "appveyor"))]
+#[ignore]
 fn blob() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_blob \
                (my_blob blob PRIMARY KEY, my_mapblob map<text, blob>)";
@@ -264,7 +264,7 @@ fn blob() {
 
 // TODO timeuuid
 #[test]
-#[cfg(not(feature = "appveyor"))]
+#[ignore]
 fn uuid() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_uuid \
                (my_uuid uuid PRIMARY KEY)";
@@ -296,7 +296,7 @@ fn uuid() {
 
 // TODO date, time, duration
 #[test]
-#[cfg(not(feature = "appveyor"))]
+#[ignore]
 fn time() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_time \
                (my_timestamp timestamp PRIMARY KEY)";
@@ -332,7 +332,7 @@ fn time() {
 }
 
 #[test]
-#[cfg(not(feature = "appveyor"))]
+#[ignore]
 fn inet() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_inet \
                (my_inet_v4 inet PRIMARY KEY, my_inet_v6 inet)";

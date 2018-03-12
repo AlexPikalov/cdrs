@@ -12,7 +12,7 @@ use cdrs::types::map::Map;
 const ADDR: &'static str = "127.0.0.1:9042";
 
 #[test]
-#[cfg(not(feature = "appveyor"))]
+#[ignore]
 fn create_keyspace() {
   let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
   let mut session = cluster.connect(RoundRobin::new())
@@ -66,7 +66,7 @@ fn create_keyspace() {
 }
 
 #[test]
-#[cfg(not(feature = "appveyor"))]
+#[ignore]
 fn alter_keyspace() {
   let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
   let mut session = cluster.connect(RoundRobin::new())
@@ -112,7 +112,7 @@ fn alter_keyspace() {
 }
 
 #[test]
-#[cfg(not(feature = "appveyor"))]
+#[ignore]
 fn use_keyspace() {
   let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
   let mut session = cluster.connect(RoundRobin::new())
