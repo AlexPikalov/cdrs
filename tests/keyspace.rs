@@ -137,7 +137,7 @@ fn use_keyspace() {
 }
 
 #[test]
-#[cfg(not(feature = "appveyor"))]
+#[ignore]
 fn drop_keyspace() {
   let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
   let mut session = cluster.connect(RoundRobin::new())
