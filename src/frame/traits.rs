@@ -2,7 +2,6 @@ use std::io::Cursor;
 
 use error;
 use types;
-use types::rows;
 use query;
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.
@@ -57,9 +56,4 @@ impl<T: Into<types::value::Bytes>> IntoCDRSValue for T {
 /// The trait that allows transformation of `Self` to CDRS query values.
 pub trait IntoQueryValues {
   fn into_query_values(self) -> query::QueryValues;
-}
-
-// The trait that tries to transform a CDRS `Row` into a structure of given type.
-pub trait TryFromGetByName: Sized {
-  fn try_from_get_by_name(with_get_by_name: types::IntoRustByName<Self>) -> error::Result<Self>;
 }
