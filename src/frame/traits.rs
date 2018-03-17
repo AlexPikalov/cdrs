@@ -61,5 +61,5 @@ pub trait IntoQueryValues {
 
 // The trait that tries to transform a CDRS `Row` into a structure of given type.
 pub trait TryFromRow: Sized {
-  fn try_from_row(frame: rows::Row) -> error::Result<Self>;
+  fn try_from_row(row: rows::Row) -> error::Result<Self>;
 }
