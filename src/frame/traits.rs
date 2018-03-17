@@ -1,7 +1,9 @@
 use std::io::Cursor;
 
+use frame;
 use error;
 use types;
+use query;
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.
 pub trait IntoBytes {
@@ -13,7 +15,8 @@ pub trait IntoBytes {
 pub trait FromBytes {
   /// It gets and array of bytes and should return an implementor struct.
   fn from_bytes(&[u8]) -> error::Result<Self>
-    where Self: Sized;
+  where
+    Self: Sized;
 }
 
 /// `AsBytes` should be used to convert a value into a single byte.
@@ -34,7 +37,8 @@ pub trait FromSingleByte {
 pub trait FromCursor {
   /// It should return an implementor from an `io::Cursor` over an array of bytes.
   fn from_cursor(&mut Cursor<&[u8]>) -> error::Result<Self>
-    where Self: Sized;
+  where
+    Self: Sized;
 }
 
 /// The trait that allows transformation of `Self` to `types::value::Value`.
@@ -48,4 +52,14 @@ impl<T: Into<types::value::Bytes>> IntoCDRSValue for T {
     let bytes: types::value::Bytes = self.into();
     bytes.into()
   }
+}
+
+/// The trait that allows transformation of `Self` to CDRS query values.
+pub trait IntoQueryValues {
+  fn into_query_values(self) -> query::QueryValues;
+}
+
+// The trait that tries to transform a CDRS `Row` into a structure of given type.
+pub trait TryFromRow: Sized {
+  fn try_from_row(frame: frame::Frame) -> error::Result<Self>;
 }
