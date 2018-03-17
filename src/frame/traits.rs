@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
-use frame;
 use error;
 use types;
+use types::rows;
 use query;
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.
@@ -61,5 +61,5 @@ pub trait IntoQueryValues {
 
 // The trait that tries to transform a CDRS `Row` into a structure of given type.
 pub trait TryFromRow: Sized {
-  fn try_from_row(frame: frame::Frame) -> error::Result<Self>;
+  fn try_from_row(frame: rows::Row) -> error::Result<Self>;
 }
