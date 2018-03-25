@@ -32,7 +32,7 @@ pub enum Error {
 }
 
 pub fn column_is_empty_err<T: Display>(column_name: T) -> Error {
-    Error::General(format!("Column or UDT property {} is empty", column_name))
+    Error::General(format!("Column or UDT property '{}' is empty", column_name))
 }
 
 impl fmt::Display for Error {

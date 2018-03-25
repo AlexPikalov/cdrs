@@ -1,7 +1,8 @@
 use std::io::Cursor;
 
 use error;
-use types;
+use types::rows::Row;
+use types::udt::UDT;
 use query;
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.
@@ -40,20 +41,15 @@ pub trait FromCursor {
     Self: Sized;
 }
 
-/// The trait that allows transformation of `Self` to `types::value::Value`.
-pub trait IntoCDRSValue {
-  /// It converts `Self` to `types::value::Value`.
-  fn into_cdrs_value(self) -> types::value::Value;
-}
-
-impl<T: Into<types::value::Bytes>> IntoCDRSValue for T {
-  fn into_cdrs_value(self) -> types::value::Value {
-    let bytes: types::value::Bytes = self.into();
-    bytes.into()
-  }
-}
-
 /// The trait that allows transformation of `Self` to CDRS query values.
 pub trait IntoQueryValues {
   fn into_query_values(self) -> query::QueryValues;
+}
+
+pub trait TryFromRow: Sized {
+  fn try_from_row(row: Row) -> error::Result<Self>;
+}
+
+pub trait TryFromUDT: Sized {
+  fn try_from_udt(udt: UDT) -> error::Result<Self>;
 }

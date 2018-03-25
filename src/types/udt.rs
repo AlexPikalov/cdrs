@@ -12,7 +12,7 @@ use types::tuple::Tuple;
 use types::blob::Blob;
 use error::{column_is_empty_err, Error, Result};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct UDT {
     data: HashMap<String, (ColTypeOption, CBytes)>,
 }
