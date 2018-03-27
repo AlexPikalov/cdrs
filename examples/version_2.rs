@@ -3,7 +3,7 @@ extern crate cdrs;
 
 use cdrs::authenticators::{Authenticator, NoneAuthenticator};
 use cdrs::cluster::{Cluster, Session};
-use cdrs::query::{ExecExecutor, PrepareExecutor, PreparedQuery, QueryExecutor, QueryValues};
+use cdrs::query::*;
 use cdrs::load_balancing::{Random, RoundRobin};
 use cdrs::transport::TransportTcp;
 
