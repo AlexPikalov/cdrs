@@ -17,8 +17,6 @@ use cdrs::types::prelude::*;
 use cdrs::types::from_cdrs::FromCDRSByName;
 use cdrs::frame::IntoBytes;
 
-const _ADDR: &'static str = "127.0.0.1:9042";
-
 type CurrentSession = Session<RoundRobin<TransportTcp>, NoneAuthenticator>;
 
 fn main() {
