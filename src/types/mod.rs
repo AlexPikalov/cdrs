@@ -25,6 +25,18 @@ pub mod udt;
 pub mod value;
 pub mod tuple;
 
+pub mod prelude {
+    pub use types::blob::Blob;
+    pub use types::list::List;
+    pub use types::map::Map;
+    pub use types::rows::Row;
+    pub use types::udt::UDT;
+    pub use types::tuple::Tuple;
+    pub use types::AsRustType;
+    pub use types::value::{Bytes, Value};
+    pub use frame::{TryFromRow, TryFromUDT};
+}
+
 /// Should be used to represent a single column as a Rust value.
 pub trait AsRustType<T> {
     fn as_rust_type(&self) -> CDRSResult<Option<T>>;

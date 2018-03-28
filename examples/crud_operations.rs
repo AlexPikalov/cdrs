@@ -13,14 +13,8 @@ use cdrs::query::*;
 use cdrs::load_balancing::{RoundRobin};
 use cdrs::transport::TransportTcp;
 
-use cdrs::types::rows::Row;
-use cdrs::types::udt::UDT;
-use cdrs::types::map::Map;
-use cdrs::types::list::List;
-use cdrs::frame::{TryFromRow, TryFromUDT};
+use cdrs::types::prelude::*;
 use cdrs::types::from_cdrs::FromCDRSByName;
-use cdrs::types::AsRustType;
-use cdrs::types::value::{Bytes, Value};
 use cdrs::frame::IntoBytes;
 
 const _ADDR: &'static str = "127.0.0.1:9042";
