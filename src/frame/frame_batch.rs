@@ -12,7 +12,7 @@ pub struct BodyReqBatch {
     pub queries: Vec<BatchQuery>,
     pub consistency: Consistency,
     /// **IMPORTANT NOTE:** with names flag does not work and should not be used.
-    /// https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L409
+    /// https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L413
     pub query_flags: Vec<QueryFlags>,
     pub serial_consistency: Option<Consistency>,
     pub timestamp: Option<i64>,
