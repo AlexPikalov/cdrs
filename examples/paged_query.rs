@@ -70,8 +70,11 @@ fn paged_selection_query(session: &mut CurrentSession) {
   let mut query_pager = pager.query(q);
 
   loop {
-    query_pager.next().expect("pager next");
-    println!(" * Pager has more {:?}", query_pager.has_more());
+    let rows = query_pager.next().expect("pager next");
+    for row in rows {
+      let my_row = RowStruct::try_from_row(row).expect("decode row");
+      println!("row - {:?}", my_row);
+    }
 
     if !query_pager.has_more() {
       break;
