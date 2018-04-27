@@ -24,7 +24,7 @@ use std::collections::HashMap;
 fn string() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_string \
                (my_ascii ascii PRIMARY KEY, my_text text, my_varchar varchar)";
-    let session = setup(cql).expect("setup");
+    let mut session = setup(cql).expect("setup");
 
     let my_ascii = "my_ascii";
     let my_text = "my_text";
@@ -60,7 +60,7 @@ fn string() {
 fn counter() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_counter \
                (my_bigint bigint PRIMARY KEY, my_counter counter)";
-    let session = setup(cql).expect("setup");
+    let mut session = setup(cql).expect("setup");
 
     let my_bigint: i64 = 10_000_000_000_000_000;
     let my_counter: i64 = 100_000_000;
@@ -93,7 +93,7 @@ fn counter() {
 fn integer() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_integer \
                (my_bigint bigint PRIMARY KEY, my_int int, my_boolean boolean)";
-    let session = setup(cql).expect("setup");
+    let mut session = setup(cql).expect("setup");
 
     let my_bigint: i64 = 10_000_000_000_000_000;
     let my_int: i32 = 100_000_000;
@@ -133,7 +133,7 @@ fn integer_v4() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_integer_v4 \
                (my_bigint bigint PRIMARY KEY, my_int int, my_smallint smallint, \
                my_tinyint tinyint, my_boolean boolean)";
-    let session = setup(cql).expect("setup");
+    let mut session = setup(cql).expect("setup");
 
     let my_bigint: i64 = 10_000_000_000_000_000;
     let my_int: i32 = 100_000_000;
@@ -176,7 +176,7 @@ fn integer_v4() {
 fn float() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_float \
                (my_float float PRIMARY KEY, my_double double)";
-    let session = setup(cql).expect("setup");
+    let mut session = setup(cql).expect("setup");
 
     let my_float: f32 = 123.456;
     let my_double: f64 = 987.654;
@@ -208,7 +208,7 @@ fn float() {
 fn blob() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_blob \
                (my_blob blob PRIMARY KEY, my_mapblob map<text, blob>)";
-    let session = setup(cql).expect("setup");
+    let mut session = setup(cql).expect("setup");
 
     let my_blob: Blob = vec![0, 1, 2, 4, 8, 16, 32, 64, 128, 255].into();
     let my_map: HashMap<String, Blob> = [
@@ -257,7 +257,7 @@ fn blob() {
 fn uuid() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_uuid \
                (my_uuid uuid PRIMARY KEY)";
-    let session = setup(cql).expect("setup");
+    let mut session = setup(cql).expect("setup");
 
     let my_uuid = Uuid::from_str("bb16106a-10bc-4a07-baa3-126ffe208c43").unwrap();
     let values = query_values!(my_uuid);
@@ -287,7 +287,7 @@ fn uuid() {
 fn time() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_time \
                (my_timestamp timestamp PRIMARY KEY)";
-    let session = setup(cql).expect("setup");
+    let mut session = setup(cql).expect("setup");
 
     let my_timestamp = time::get_time();
     let values = query_values!(my_timestamp);
@@ -319,7 +319,7 @@ fn time() {
 fn inet() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_inet \
                (my_inet_v4 inet PRIMARY KEY, my_inet_v6 inet)";
-    let session = setup(cql).expect("setup");
+    let mut session = setup(cql).expect("setup");
 
     let my_inet_v4 = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
     let my_inet_v6 = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1));
