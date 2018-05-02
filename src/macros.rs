@@ -1,15 +1,3 @@
-/// instead of writing functions which resemble
-/// ```
-/// pub fn query<'a> (&'a mut self,query: String) -> &'a mut Self{
-///     self.query = Some(query);
-///            self
-/// }
-/// ```
-/// and repeating it for all the attributes; it is extracted out as a macro so that code
-/// is more concise see
-/// @https://doc.rust-lang.org/book/method-syntax.html
-///
-
 #[macro_export]
 macro_rules! query_values {
     ($($value:expr),*) => {
