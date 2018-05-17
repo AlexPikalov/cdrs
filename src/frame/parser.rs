@@ -16,16 +16,11 @@ pub fn parse_frame(cursor: &mut Read, compressor: &Compression) -> error::Result
     let mut length_bytes = [0; LENGTH_LEN];
 
     // NOTE: order of reads matters
-    let v = try!(cursor.read(&mut version_bytes));
-    let f = try!(cursor.read(&mut flag_bytes));
-    let s = try!(cursor.read(&mut stream_bytes));
-    let o = try!(cursor.read(&mut opcode_bytes));
-    let l = try!(cursor.read(&mut length_bytes));
-
-    if v != Version::BYTE_LENGTH || f != Flag::BYTE_LENGTH || s != STREAM_LEN
-       || o != Opcode::BYTE_LENGTH || l != LENGTH_LEN {
-        return Err(error::Error::from("Empty or corrupted frame received"));
-    }
+    try!(cursor.read_exact(&mut version_bytes));
+    try!(cursor.read_exact(&mut flag_bytes));
+    try!(cursor.read_exact(&mut stream_bytes));
+    try!(cursor.read_exact(&mut opcode_bytes));
+    try!(cursor.read_exact(&mut length_bytes));
 
     let version = Version::from(version_bytes.to_vec());
     let flags = Flag::get_collection(flag_bytes[0]);
