@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::io::Cursor;
 
-use FromCursor;
+use frame::FromCursor;
 use error;
 use types::{cursor_next_value, try_from_bytes, CString, CStringList, SHORT_LEN};
 
@@ -28,7 +28,7 @@ impl FromCursor for BodyResSupported {
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
-    use FromCursor;
+    use frame::traits::FromCursor;
     use super::*;
 
     #[test]

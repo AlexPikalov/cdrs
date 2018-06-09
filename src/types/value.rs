@@ -7,7 +7,7 @@ use std::fmt::Debug;
 
 use uuid::Uuid;
 use time::Timespec;
-use IntoBytes;
+use frame::IntoBytes;
 
 use super::*;
 use super::blob::Blob;
@@ -239,7 +239,7 @@ impl<K, V> From<HashMap<K, V>> for Bytes
 mod tests {
 
     use super::*;
-    use IntoBytes;
+    use frame::traits::IntoBytes;
 
     #[test]
     fn test_value_type_into_cbytes() {

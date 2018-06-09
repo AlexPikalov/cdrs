@@ -2,48 +2,40 @@ extern crate cdrs;
 
 use std::collections::HashMap;
 
-use cdrs::types::ByName;
-use cdrs::client::CDRS;
-use cdrs::query::QueryBuilder;
-use cdrs::types::{AsRust, IntoRustByName};
 use cdrs::authenticators::NoneAuthenticator;
-use cdrs::compression::Compression;
-use cdrs::transport::TransportTcp;
+use cdrs::cluster::Cluster;
+use cdrs::load_balancing::RoundRobin;
+use cdrs::query::QueryExecutor;
+use cdrs::types::{AsRust, ByName, IntoRustByName};
 use cdrs::types::map::Map;
 
 const ADDR: &'static str = "127.0.0.1:9042";
 
 #[test]
 #[ignore]
-#[cfg(not(feature = "appveyor"))]
 fn create_keyspace() {
-        let authenticator = NoneAuthenticator;
-        let tcp_transport = TransportTcp::new(ADDR).expect("create transport");
-        let client = CDRS::new(tcp_transport, authenticator);
-        let session = client.start(Compression::None).expect("start session");
+        let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
+        let mut session =
+                cluster.connect(RoundRobin::new()).expect("No compression connection error");
 
-        let drop_ks_cql = "DROP KEYSPACE IF EXISTS create_ks_test";
-        let drop_query = QueryBuilder::new(drop_ks_cql).finalize();
-        let keyspace_droped = session.query(drop_query, false, false).is_ok();
+        let drop_query = "DROP KEYSPACE IF EXISTS create_ks_test";
+        let keyspace_droped = session.query(drop_query).is_ok();
         assert!(keyspace_droped, "Should drop new keyspace without errors");
 
-        let create_ks_cql = "CREATE KEYSPACE IF NOT EXISTS create_ks_test WITH \
-                             replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
-                             AND durable_writes = false";
-        let create_query = QueryBuilder::new(create_ks_cql).finalize();
-        let keyspace_created = session.query(create_query, false, false).is_ok();
+        let create_query = "CREATE KEYSPACE IF NOT EXISTS create_ks_test WITH \
+                            replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
+                            AND durable_writes = false";
+        let keyspace_created = session.query(create_query).is_ok();
         assert!(keyspace_created,
                 "Should create new keyspace without errors");
 
-        let select_ks_cql =
+        let select_query =
                 "SELECT * FROM system_schema.keyspaces WHERE keyspace_name = 'create_ks_test'";
-        let select_query = QueryBuilder::new(select_ks_cql).finalize();
-        let keyspace_selected =
-                session.query(select_query, false, false).expect("select keyspace query")
-                       .get_body()
-                       .expect("get select keyspace query body")
-                       .into_rows()
-                       .expect("convert keyspaces results into rows");
+        let keyspace_selected = session.query(select_query).expect("select keyspace query")
+                                       .get_body()
+                                       .expect("get select keyspace query body")
+                                       .into_rows()
+                                       .expect("convert keyspaces results into rows");
 
         assert_eq!(keyspace_selected.len(), 1);
         let keyspace = &keyspace_selected[0];
@@ -74,42 +66,35 @@ fn create_keyspace() {
 
 #[test]
 #[ignore]
-#[cfg(not(feature = "appveyor"))]
 fn alter_keyspace() {
-        let authenticator = NoneAuthenticator;
-        let tcp_transport = TransportTcp::new(ADDR).expect("create transport");
-        let client = CDRS::new(tcp_transport, authenticator);
-        let session = client.start(Compression::None).expect("start session");
+        let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
+        let mut session =
+                cluster.connect(RoundRobin::new()).expect("No compression connection error");
 
-        let drop_ks_cql = "DROP KEYSPACE IF EXISTS alter_ks_test";
-        let drop_query = QueryBuilder::new(drop_ks_cql).finalize();
-        let keyspace_droped = session.query(drop_query, false, false).is_ok();
+        let drop_query = "DROP KEYSPACE IF EXISTS alter_ks_test";
+        let keyspace_droped = session.query(drop_query).is_ok();
         assert!(keyspace_droped, "Should drop new keyspace without errors");
 
-        let create_ks_cql = "CREATE KEYSPACE IF NOT EXISTS alter_ks_test WITH \
-                             replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
-                             AND durable_writes = false";
-        let create_query = QueryBuilder::new(create_ks_cql).finalize();
-        let keyspace_created = session.query(create_query, false, false).is_ok();
+        let create_query = "CREATE KEYSPACE IF NOT EXISTS alter_ks_test WITH \
+                            replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
+                            AND durable_writes = false";
+        let keyspace_created = session.query(create_query).is_ok();
         assert!(keyspace_created,
                 "Should create new keyspace without errors");
 
-        let alter_ks_cql = "ALTER KEYSPACE alter_ks_test WITH \
-                            replication = {'class': 'SimpleStrategy', 'replication_factor': 3} \
-                            AND durable_writes = false";
-        let alter_query = QueryBuilder::new(alter_ks_cql).finalize();
-        assert!(session.query(alter_query, false, false).is_ok(),
+        let alter_query = "ALTER KEYSPACE alter_ks_test WITH \
+                           replication = {'class': 'SimpleStrategy', 'replication_factor': 3} \
+                           AND durable_writes = false";
+        assert!(session.query(alter_query).is_ok(),
                 "alter should be without errors");
 
-        let select_ks_cql =
+        let select_query =
                 "SELECT * FROM system_schema.keyspaces WHERE keyspace_name = 'alter_ks_test'";
-        let select_query = QueryBuilder::new(select_ks_cql).finalize();
-        let keyspace_selected =
-                session.query(select_query, false, false).expect("select keyspace query")
-                       .get_body()
-                       .expect("get select keyspace query body")
-                       .into_rows()
-                       .expect("convert keyspaces results into rows");
+        let keyspace_selected = session.query(select_query).expect("select keyspace query")
+                                       .get_body()
+                                       .expect("get select keyspace query body")
+                                       .into_rows()
+                                       .expect("convert keyspaces results into rows");
 
         assert_eq!(keyspace_selected.len(), 1);
         let keyspace = &keyspace_selected[0];
@@ -127,25 +112,20 @@ fn alter_keyspace() {
 
 #[test]
 #[ignore]
-#[cfg(not(feature = "appveyor"))]
 fn use_keyspace() {
-        let authenticator = NoneAuthenticator;
-        let tcp_transport = TransportTcp::new(ADDR).expect("create transport");
-        let client = CDRS::new(tcp_transport, authenticator);
-        let session = client.start(Compression::None).expect("start session");
+        let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
+        let mut session =
+                cluster.connect(RoundRobin::new()).expect("No compression connection error");
 
-        let create_ks_cql = "CREATE KEYSPACE IF NOT EXISTS use_ks_test WITH \
-                             replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
-                             AND durable_writes = false";
-        let create_query = QueryBuilder::new(create_ks_cql).finalize();
-        let keyspace_created = session.query(create_query, false, false).is_ok();
+        let create_query = "CREATE KEYSPACE IF NOT EXISTS use_ks_test WITH \
+                            replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
+                            AND durable_writes = false";
+        let keyspace_created = session.query(create_query).is_ok();
         assert!(keyspace_created,
                 "Should create new keyspace without errors");
 
-        let use_ks_cql = "USE use_ks_test";
-
-        let use_query = QueryBuilder::new(use_ks_cql).finalize();
-        let keyspace_used = session.query(use_query, false, false).expect("should use selected")
+        let use_query = "USE use_ks_test";
+        let keyspace_used = session.query(use_query).expect("should use selected")
                                    .get_body()
                                    .expect("should get body")
                                    .into_set_keyspace()
@@ -156,23 +136,19 @@ fn use_keyspace() {
 
 #[test]
 #[ignore]
-#[cfg(not(feature = "appveyor"))]
 fn drop_keyspace() {
-        let authenticator = NoneAuthenticator;
-        let tcp_transport = TransportTcp::new(ADDR).expect("create transport");
-        let client = CDRS::new(tcp_transport, authenticator);
-        let session = client.start(Compression::None).expect("start session");
+        let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
+        let mut session =
+                cluster.connect(RoundRobin::new()).expect("No compression connection error");
 
-        let create_ks_cql = "CREATE KEYSPACE IF NOT EXISTS drop_ks_test WITH \
-                             replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
-                             AND durable_writes = false";
-        let create_query = QueryBuilder::new(create_ks_cql).finalize();
-        let keyspace_created = session.query(create_query, false, false).is_ok();
+        let create_query = "CREATE KEYSPACE IF NOT EXISTS drop_ks_test WITH \
+                            replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
+                            AND durable_writes = false";
+        let keyspace_created = session.query(create_query).is_ok();
         assert!(keyspace_created,
                 "Should create new keyspace without errors");
 
-        let drop_ks_cql = "DROP KEYSPACE drop_ks_test";
-        let drop_query = QueryBuilder::new(drop_ks_cql).finalize();
-        let keyspace_droped = session.query(drop_query, false, false).is_ok();
+        let drop_query = "DROP KEYSPACE drop_ks_test";
+        let keyspace_droped = session.query(drop_query).is_ok();
         assert!(keyspace_droped, "Should drop new keyspace without errors");
 }

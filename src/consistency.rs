@@ -4,7 +4,7 @@ use std::io;
 use std::convert::From;
 use std::default::Default;
 
-use {FromBytes, FromCursor, IntoBytes};
+use frame::{FromBytes, FromCursor, IntoBytes};
 use error;
 use types::*;
 
@@ -146,7 +146,7 @@ impl FromCursor for Consistency {
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
-    use {FromBytes, FromCursor, IntoBytes};
+    use frame::traits::{FromBytes, FromCursor, IntoBytes};
     use super::*;
 
     #[test]

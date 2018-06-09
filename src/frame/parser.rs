@@ -1,6 +1,6 @@
 use std::io::{Cursor, Read};
 
-use FromCursor;
+use frame::FromCursor;
 use compression::Compression;
 use frame::frame_response::ResponseBody;
 use super::*;
@@ -9,22 +9,18 @@ use types::data_serialization_types::decode_timeuuid;
 use error;
 
 pub fn parse_frame(cursor: &mut Read, compressor: &Compression) -> error::Result<Frame> {
-    let mut version_bytes = [0; VERSION_LEN];
-    let mut flag_bytes = [0; FLAG_LEN];
-    let mut opcode_bytes = [0; OPCODE_LEN];
+    let mut version_bytes = [0; Version::BYTE_LENGTH];
+    let mut flag_bytes = [0; Flag::BYTE_LENGTH];
+    let mut opcode_bytes = [0; Opcode::BYTE_LENGTH];
     let mut stream_bytes = [0; STREAM_LEN];
     let mut length_bytes = [0; LENGTH_LEN];
 
     // NOTE: order of reads matters
-    let v = try!(cursor.read(&mut version_bytes));
-    let f = try!(cursor.read(&mut flag_bytes));
-    let s = try!(cursor.read(&mut stream_bytes));
-    let o = try!(cursor.read(&mut opcode_bytes));
-    let l = try!(cursor.read(&mut length_bytes));
-
-    if v == 0 || f == 0 || s == 0 || o == 0 || l == 0 {
-        return Err(error::Error::from("Empty frame received"));
-    }
+    try!(cursor.read_exact(&mut version_bytes));
+    try!(cursor.read_exact(&mut flag_bytes));
+    try!(cursor.read_exact(&mut stream_bytes));
+    try!(cursor.read_exact(&mut opcode_bytes));
+    try!(cursor.read_exact(&mut length_bytes));
 
     let version = Version::from(version_bytes.to_vec());
     let flags = Flag::get_collection(flag_bytes[0]);

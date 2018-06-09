@@ -1,7 +1,6 @@
 use rand;
 use types::*;
 use frame::*;
-use IntoBytes;
 
 /// Struct that represents a body of a frame of type `prepare`
 #[derive(Debug)]

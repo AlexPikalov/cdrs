@@ -3,6 +3,7 @@ use std::fmt;
 use std::io;
 use std::result;
 use std::string::FromUtf8Error;
+use std::fmt::Display;
 use frame::frame_error::CDRSError;
 use compression::CompressionError;
 use uuid::ParseError;
@@ -22,7 +23,7 @@ pub enum Error {
     UUIDParse(ParseError),
     /// General error
     General(String),
-    /// Internal error that may be raised during String::from_utf8
+    /// Internal error that may be raised during `String::from_utf8`
     FromUtf8(FromUtf8Error),
     /// Internal Compression/Decompression error
     Compression(CompressionError),
@@ -30,8 +31,8 @@ pub enum Error {
     Server(CDRSError),
 }
 
-pub fn column_is_empty_err() -> Error {
-    Error::General("Column or UDT property is empty".to_string())
+pub fn column_is_empty_err<T: Display>(column_name: T) -> Error {
+    Error::General(format!("Column or UDT property '{}' is empty", column_name))
 }
 
 impl fmt::Display for Error {

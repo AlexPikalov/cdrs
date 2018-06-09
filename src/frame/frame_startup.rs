@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use rand;
 use frame::*;
 use types::to_short;
-use IntoBytes;
 
 const CQL_VERSION: &'static str = "CQL_VERSION";
 const CQL_VERSION_VAL: &'static str = "3.0.0";

@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use {FromBytes, FromCursor, IntoBytes};
+use frame::{FromBytes, FromCursor, IntoBytes};
 use error;
 use types::*;
 use types::rows::Row;
@@ -96,6 +96,14 @@ impl ResResultBody {
     pub fn into_rows(self) -> Option<Vec<Row>> {
         match self {
             ResResultBody::Rows(rows_body) => Some(Row::from_frame_body(rows_body)),
+            _ => None,
+        }
+    }
+
+    /// It returns `Some` rows metadata if frame result is of type rows and `None` othewise
+    pub fn as_rows_metadata(&self) -> Option<RowsMetadata> {
+        match *self {
+            ResResultBody::Rows(ref rows_body) => Some(rows_body.metadata.clone()),
             _ => None,
         }
     }
@@ -595,13 +603,12 @@ impl FromCursor for PreparedMetadata {
             // v4 or v5
             CInt::from_cursor(&mut cursor)?
         };
-        let pk_index_results: Vec<Option<i16>> =
-            (0..pk_count).map(|_| {
-                             cursor_next_value(&mut cursor, SHORT_LEN as u64)
+        let pk_index_results: Vec<Option<i16>> = (0..pk_count).map(|_| {
+            cursor_next_value(&mut cursor, SHORT_LEN as u64)
                     .ok()
                     .and_then(|b| try_i16_from_bytes(b.as_slice()).ok())
-                         })
-                         .collect();
+        })
+                                                              .collect();
 
         let pk_indexes: Vec<i16> = if pk_index_results.iter().any(Option::is_none) {
             return Err("pk indexes error".into());

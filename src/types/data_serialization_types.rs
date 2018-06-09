@@ -2,11 +2,12 @@ use std::ops::Mul;
 use std::io;
 use std::net;
 use std::string::FromUtf8Error;
+
 use uuid;
 use super::*;
 use super::blob::Blob;
 use error;
-use FromCursor;
+use frame::FromCursor;
 
 // https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L813
 
@@ -96,12 +97,10 @@ pub fn decode_float(bytes: &[u8]) -> Result<f32, io::Error> {
 pub fn decode_inet(bytes: &[u8]) -> Result<net::IpAddr, io::Error> {
     match bytes.len() {
         // v4
-        4 => {
-            Ok(net::IpAddr::V4(net::Ipv4Addr::new(bytes[0],
-                                                  bytes[1],
-                                                  bytes[2],
-                                                  bytes[3])))
-        }
+        4 => Ok(net::IpAddr::V4(net::Ipv4Addr::new(bytes[0],
+                                                   bytes[1],
+                                                   bytes[2],
+                                                   bytes[3]))),
         // v6
         16 => {
             let a = from_u16_bytes(&bytes[0..2]);
@@ -138,11 +137,9 @@ pub fn decode_list(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
         CInt::from_cursor(&mut cursor).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     let mut list = Vec::with_capacity(l as usize);
     for _ in 0..l {
-        let b =
-            CBytes::from_cursor(&mut cursor).map_err(|err| {
-                                                          io::Error::new(io::ErrorKind::InvalidData,
-                                                                         err)
-                                                      })?;
+        let b = CBytes::from_cursor(&mut cursor).map_err(|err| {
+            io::Error::new(io::ErrorKind::InvalidData, err)
+        })?;
         list.push(b);
     }
     Ok(list)
@@ -157,21 +154,16 @@ pub fn decode_set(bytes: &[u8]) -> Result<Vec<CBytes>, io::Error> {
 pub fn decode_map(bytes: &[u8]) -> Result<Vec<(CBytes, CBytes)>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
     let l = CInt::from_cursor(&mut cursor).map_err(|err| {
-                                                        io::Error::new(io::ErrorKind::InvalidData,
-                                                                       err)
-                                                    })?;
+        io::Error::new(io::ErrorKind::InvalidData, err)
+    })?;
     let mut map = Vec::with_capacity(l as usize);
     for _ in 0..l {
-        let n =
-            CBytes::from_cursor(&mut cursor).map_err(|err| {
-                                                          io::Error::new(io::ErrorKind::InvalidData,
-                                                                         err)
-                                                      })?;
-        let v =
-            CBytes::from_cursor(&mut cursor).map_err(|err| {
-                                                          io::Error::new(io::ErrorKind::InvalidData,
-                                                                         err)
-                                                      })?;
+        let n = CBytes::from_cursor(&mut cursor).map_err(|err| {
+            io::Error::new(io::ErrorKind::InvalidData, err)
+        })?;
+        let v = CBytes::from_cursor(&mut cursor).map_err(|err| {
+            io::Error::new(io::ErrorKind::InvalidData, err)
+        })?;
         map.push((n, v));
     }
     Ok(map)
@@ -217,8 +209,7 @@ pub fn decode_udt(bytes: &[u8], l: usize) -> Result<Vec<CBytes>, io::Error> {
             CBytes::from_cursor(&mut cursor).or_else(|err| match err {
                                                          error::Error::Io(io_err) => {
                                                              if io_err.kind()
-                                                                == io::ErrorKind::UnexpectedEof
-                                                             {
+                                                                == io::ErrorKind::UnexpectedEof {
                                                                  Ok(CBytes::new_empty())
                                                              } else {
                                                                  Err(io_err.into())
@@ -227,9 +218,8 @@ pub fn decode_udt(bytes: &[u8], l: usize) -> Result<Vec<CBytes>, io::Error> {
                                                          _ => Err(err),
                                                      })
                                             .map_err(|err| {
-                                                         io::Error::new(io::ErrorKind::InvalidData,
-                                                                        err)
-                                                     })?;
+                io::Error::new(io::ErrorKind::InvalidData, err)
+            })?;
         udt.push(v);
     }
     Ok(udt)
@@ -241,11 +231,9 @@ pub fn decode_tuple(bytes: &[u8], l: usize) -> Result<Vec<CBytes>, io::Error> {
     let mut cursor: io::Cursor<&[u8]> = io::Cursor::new(bytes);
     let mut udt = Vec::with_capacity(l);
     for _ in 0..l {
-        let v =
-            CBytes::from_cursor(&mut cursor).map_err(|err| {
-                                                          io::Error::new(io::ErrorKind::InvalidData,
-                                                                         err)
-                                                      })?;
+        let v = CBytes::from_cursor(&mut cursor).map_err(|err| {
+            io::Error::new(io::ErrorKind::InvalidData, err)
+        })?;
         udt.push(v);
     }
     Ok(udt)

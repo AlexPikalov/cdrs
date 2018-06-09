@@ -1,5 +1,4 @@
 use rand;
-use IntoBytes;
 use frame::*;
 
 /// The structure which represents a body of a frame of type `options`.

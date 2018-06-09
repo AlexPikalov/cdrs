@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use FromCursor;
+use frame::FromCursor;
 use error;
 
 /// `BodyReqAuthSuccess` is a frame that represents a successfull authentication response.
@@ -15,9 +15,9 @@ impl FromCursor for BodyReqAuthSuccess {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use FromCursor;
     use std::io::Cursor;
+    use super::*;
+    use frame::traits::FromCursor;
 
     #[test]
     fn test_name() {

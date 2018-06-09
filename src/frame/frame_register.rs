@@ -1,5 +1,4 @@
 use rand;
-use IntoBytes;
 use frame::*;
 use frame::events::SimpleServerEvent;
 use types::{CString, CStringList};

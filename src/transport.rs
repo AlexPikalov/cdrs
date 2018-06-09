@@ -10,21 +10,6 @@
 //! * `TransportTls` is a transport which is used to establish SSL encrypted connection
 //!with Apache Cassandra server. **Note:** this option is available if and only if CDRS is imported
 //!with `ssl` feature.
-//!
-//! # Examples
-//!
-//!```no_run
-//!    use cdrs::transport::TransportTcp;
-//!    use cdrs::authenticators::NoneAuthenticator;
-//!    use cdrs::client::CDRS;
-//!
-//!    let addr = "127.0.0.1:9042";
-//!    let tcp_transport = TransportTcp::new(addr).unwrap();
-//!
-//!    // pass authenticator into CDRS' constructor
-//!    let client = CDRS::new(tcp_transport, NoneAuthenticator);
-//!```
-//![tTcp]:struct.TransportTcp.html
 
 use std::io;
 use std::io::{Read, Write};
@@ -77,8 +62,10 @@ impl TransportTcp {
     /// let tcp_transport = TransportTcp::new(addr).unwrap();
     /// ```
     pub fn new(addr: &str) -> io::Result<TransportTcp> {
-        TcpStream::connect(addr).map(|socket| TransportTcp { tcp: socket,
-                                                             addr: addr.to_string(), })
+        TcpStream::connect(addr).map(|socket| {
+            TransportTcp { tcp: socket,
+                           addr: addr.to_string(), }
+        })
     }
 }
 
@@ -100,9 +87,10 @@ impl Write for TransportTcp {
 
 impl CDRSTransport for TransportTcp {
     fn try_clone(&self) -> io::Result<TransportTcp> {
-        TcpStream::connect(self.addr.as_str()).map(|socket| TransportTcp { tcp: socket,
-                                                                           addr:
-                                                                               self.addr.clone(), })
+        TcpStream::connect(self.addr.as_str()).map(|socket| {
+            TransportTcp { tcp: socket,
+                           addr: self.addr.clone(), }
+        })
     }
 
     fn close(&mut self, close: net::Shutdown) -> io::Result<()> {
@@ -131,10 +119,11 @@ impl TransportTls {
     pub fn new(addr: &str, connector: &SslConnector) -> io::Result<TransportTls> {
         let a: Vec<&str> = addr.split(':').collect();
         let res = net::TcpStream::connect(addr).map(|socket| {
-            connector.connect(a[0], socket)
-                     .map(|sslsocket| TransportTls { ssl: sslsocket,
-                                                     connector: connector.clone(),
-                                                     addr: addr.to_string(), })
+            connector.connect(a[0], socket).map(|sslsocket| {
+                TransportTls { ssl: sslsocket,
+                               connector: connector.clone(),
+                               addr: addr.to_string(), }
+            })
         });
 
         res.and_then(|res| {
@@ -176,11 +165,10 @@ impl CDRSTransport for TransportTls {
 
         let res = net::TcpStream::connect(self.addr.as_str()).map(|socket| {
             self.connector.connect(ip, socket).map(|sslsocket| {
-                                                       TransportTls { ssl: sslsocket,
-                                                                      connector:
-                                                                          self.connector.clone(),
-                                                                      addr: self.addr.clone(), }
-                                                   })
+                TransportTls { ssl: sslsocket,
+                               connector: self.connector.clone(),
+                               addr: self.addr.clone(), }
+            })
         });
 
         res.and_then(|res| {

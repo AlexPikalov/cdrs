@@ -7,7 +7,7 @@ use std::net::SocketAddr;
 use byteorder::{BigEndian, ByteOrder, ReadBytesExt, WriteBytesExt};
 use error::{column_is_empty_err, Error as CDRSError, Result as CDRSResult};
 use types::data_serialization_types::decode_inet;
-use {FromBytes, FromCursor, IntoBytes};
+use frame::traits::{FromBytes, FromCursor, IntoBytes};
 
 pub const LONG_STR_LEN: usize = 4;
 pub const SHORT_LEN: usize = 2;
@@ -17,6 +17,7 @@ pub const UUID_LEN: usize = 16;
 #[macro_use]
 pub mod blob;
 pub mod data_serialization_types;
+pub mod from_cdrs;
 pub mod list;
 pub mod map;
 pub mod rows;
@@ -24,26 +25,42 @@ pub mod udt;
 pub mod value;
 pub mod tuple;
 
+pub mod prelude {
+    pub use types::blob::Blob;
+    pub use types::list::List;
+    pub use types::map::Map;
+    pub use types::rows::Row;
+    pub use types::udt::UDT;
+    pub use types::tuple::Tuple;
+    pub use types::AsRustType;
+    pub use types::value::{Bytes, Value};
+    pub use frame::{TryFromRow, TryFromUDT};
+}
+
 /// Should be used to represent a single column as a Rust value.
 pub trait AsRustType<T> {
     fn as_rust_type(&self) -> CDRSResult<Option<T>>;
 
     fn as_r_type(&self) -> CDRSResult<T> {
-        self.as_rust_type().and_then(|op| op.ok_or(CDRSError::from("Value is null or non-set")))
+        self.as_rust_type()
+            .and_then(|op| op.ok_or(CDRSError::from("Value is null or non-set")))
     }
 }
 
 pub trait AsRust {
     fn as_rust<R>(&self) -> CDRSResult<Option<R>>
-        where Self: AsRustType<R>
+    where
+        Self: AsRustType<R>,
     {
         self.as_rust_type()
     }
 
     fn as_r_rust<T>(&self) -> CDRSResult<T>
-        where Self: AsRustType<T>
+    where
+        Self: AsRustType<T>,
     {
-        self.as_rust().and_then(|op| op.ok_or("Value is null or non-set".into()))
+        self.as_rust()
+            .and_then(|op| op.ok_or("Value is null or non-set".into()))
     }
 }
 
@@ -52,21 +69,25 @@ pub trait IntoRustByName<R> {
     fn get_by_name(&self, name: &str) -> CDRSResult<Option<R>>;
 
     fn get_r_by_name(&self, name: &str) -> CDRSResult<R> {
-        self.get_by_name(name).and_then(|op| op.ok_or(column_is_empty_err()))
+        self.get_by_name(name)
+            .and_then(|op| op.ok_or(column_is_empty_err(name)))
     }
 }
 
 pub trait ByName {
     fn by_name<R>(&self, name: &str) -> CDRSResult<Option<R>>
-        where Self: IntoRustByName<R>
+    where
+        Self: IntoRustByName<R>,
     {
         self.get_by_name(name)
     }
 
     fn r_by_name<R>(&self, name: &str) -> CDRSResult<R>
-        where Self: IntoRustByName<R>
+    where
+        Self: IntoRustByName<R>,
     {
-        self.by_name(name).and_then(|op| op.ok_or(column_is_empty_err()))
+        self.by_name(name)
+            .and_then(|op| op.ok_or(column_is_empty_err(name)))
     }
 }
 
@@ -75,21 +96,25 @@ pub trait IntoRustByIndex<R> {
     fn get_by_index(&self, index: usize) -> CDRSResult<Option<R>>;
 
     fn get_r_by_index(&self, index: usize) -> CDRSResult<R> {
-        self.get_by_index(index).and_then(|op| op.ok_or(column_is_empty_err()))
+        self.get_by_index(index)
+            .and_then(|op| op.ok_or(column_is_empty_err(index)))
     }
 }
 
 pub trait ByIndex {
     fn by_index<R>(&self, index: usize) -> CDRSResult<Option<R>>
-        where Self: IntoRustByIndex<R>
+    where
+        Self: IntoRustByIndex<R>,
     {
         self.get_by_index(index)
     }
 
     fn r_by_index<R>(&self, index: usize) -> CDRSResult<R>
-        where Self: IntoRustByIndex<R>
+    where
+        Self: IntoRustByIndex<R>,
     {
-        self.by_index(index).and_then(|op| op.ok_or(column_is_empty_err()))
+        self.by_index(index)
+            .and_then(|op| op.ok_or(column_is_empty_err(index)))
     }
 }
 
@@ -351,8 +376,9 @@ impl FromCursor for CString {
         let len: u64 = try_from_bytes(len_bytes.as_slice())?;
         let body_bytes = try!(cursor_next_value(&mut cursor, len));
 
-        String::from_utf8(body_bytes).map_err(Into::into)
-                                     .map(CString::new)
+        String::from_utf8(body_bytes)
+            .map_err(Into::into)
+            .map(CString::new)
     }
 }
 
@@ -398,8 +424,9 @@ impl FromCursor for CStringLong {
         let len: u64 = try_from_bytes(len_bytes.as_slice())?;
         let body_bytes = cursor_next_value(&mut cursor, len)?;
 
-        String::from_utf8(body_bytes).map_err(Into::into)
-                                     .map(CStringLong::new)
+        String::from_utf8(body_bytes)
+            .map_err(Into::into)
+            .map(CStringLong::new)
     }
 }
 
@@ -410,7 +437,8 @@ pub struct CStringList {
 
 impl CStringList {
     pub fn into_plain(self) -> Vec<String> {
-        self.list.iter()
+        self.list
+            .iter()
             .map(|string| string.clone().into_plain())
             .collect()
     }
@@ -436,7 +464,7 @@ impl FromCursor for CStringList {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CStringList> {
         // TODO: try to use slice instead
         let mut len_bytes = [0; SHORT_LEN];
-        try!(cursor.read(&mut len_bytes));
+        try!(cursor.read_exact(&mut len_bytes));
         let len = try_from_bytes(len_bytes.to_vec().as_slice())? as usize;
         let mut list = Vec::with_capacity(len);
         for _ in 0..len {
@@ -542,8 +570,9 @@ impl FromCursor for CBytesShort {
             return Ok(CBytesShort { bytes: None });
         }
 
-        cursor_next_value(&mut cursor, len as u64).map(CBytesShort::new)
-                                                  .map_err(Into::into)
+        cursor_next_value(&mut cursor, len as u64)
+            .map(CBytesShort::new)
+            .map_err(Into::into)
     }
 }
 
@@ -628,7 +657,7 @@ pub fn cursor_next_value(cursor: &mut Cursor<&[u8]>, len: u64) -> CDRSResult<Vec
 mod tests {
     use std::io::Cursor;
     use super::*;
-    use {FromCursor, IntoBytes};
+    use frame::traits::{FromCursor, IntoBytes};
     use std::mem::transmute;
 
     // CString
