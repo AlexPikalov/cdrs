@@ -76,12 +76,12 @@ let connector = ssl_connector_builder.build();
 When these preparation are done we're good to start SSL-encrypted session.
 
 ```rust
-let mut no_compression = cluster.connect_ssl(RoundRobin::new())
+let mut no_compression = cluster.connect_ssl(RoundRobin::new(), authenticator, connector)
                                   .expect("No compression connection error");
-  let mut lz4_compression = cluster.connect_lz4_ssl(RoundRobin::new())
-                                   .expect("LZ4 compression connection error");
-  let mut snappy_compression = cluster.connect_snappy_ssl(RoundRobin::new())
-                                      .expect("Snappy compression connection error");
+let mut lz4_compression = cluster.connect_lz4_ssl(RoundRobin::new(), authenticator, connector)
+                                  .expect("LZ4 compression connection error");
+let mut snappy_compression = cluster.connect_snappy_ssl(RoundRobin::new(), authenticator, connector)
+                                  .expect("Snappy compression connection error");
 ```
 
 More details regarding configuration Cassandra server for SSL-encrypted Client-Node communication could be found, for instance, on [DataStax website](https://docs.datastax.com/en/cassandra/3.0/cassandra/configuration/secureSSLClientToNode.html).
