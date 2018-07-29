@@ -41,7 +41,7 @@ pub trait BatchExecutor<T: CDRSTransport + 'static>:
       .and_then(|transport_cell| parse_frame(transport_cell, compression))
   }
 
-  fn batch_with_params(&mut self, batch: QueryBatch) -> error::Result<Frame> {
+  fn batch_with_params(&self, batch: QueryBatch) -> error::Result<Frame> {
     self.batch_with_params_tw(batch, false, false)
   }
 }
