@@ -54,7 +54,7 @@ impl<'a, A: Authenticator + Sized> Cluster<A> {
     ssl_connector: &SslConnector,
   ) -> error::Result<Session<LB, A>>
   where
-    LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized,
+    LB: LoadBalancingStrategy<RefCell<TransportTls>> + Sized,
   {
     Session::new_ssl(&self.nodes_addrs, lb, authenticator, ssl_connector)
   }
@@ -67,7 +67,7 @@ impl<'a, A: Authenticator + Sized> Cluster<A> {
     ssl_connector: &SslConnector,
   ) -> error::Result<Session<LB, A>>
   where
-    LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized,
+    LB: LoadBalancingStrategy<RefCell<TransportTls>> + Sized,
   {
     Session::new_snappy_ssl(&self.nodes_addrs, lb, authenticator, ssl_connector)
   }
@@ -80,7 +80,7 @@ impl<'a, A: Authenticator + Sized> Cluster<A> {
     ssl_connector: &SslConnector,
   ) -> error::Result<Session<LB, A>>
   where
-    LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized,
+    LB: LoadBalancingStrategy<RefCell<TransportTls>> + Sized,
   {
     Session::new_lz4_ssl(&self.nodes_addrs, lb, authenticator, ssl_connector)
   }

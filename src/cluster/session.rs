@@ -198,7 +198,7 @@ impl<'a, LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized, A: Authentica
 
   pub fn new_snappy(
     addrs: &Vec<&str>,
-    load_balancing: LB,
+    mut load_balancing: LB,
     authenticator: A,
   ) -> error::Result<Session<LB, A>> {
     let mut nodes: Vec<RefCell<TransportTcp>> = Vec::with_capacity(addrs.len());
@@ -208,6 +208,8 @@ impl<'a, LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized, A: Authentica
       Self::startup(&transport, &authenticator)?;
       nodes.push(transport);
     }
+
+    load_balancing.init(nodes);
 
     Ok(Session {
       load_balancing,
@@ -218,7 +220,7 @@ impl<'a, LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized, A: Authentica
 
   pub fn new_lz4(
     addrs: &Vec<&str>,
-    load_balancing: LB,
+    mut load_balancing: LB,
     authenticator: A,
   ) -> error::Result<Session<LB, A>> {
     let mut nodes: Vec<RefCell<TransportTcp>> = Vec::with_capacity(addrs.len());
@@ -228,6 +230,8 @@ impl<'a, LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized, A: Authentica
       Self::startup(&transport, &authenticator)?;
       nodes.push(transport);
     }
+
+    load_balancing.init(nodes);
 
     Ok(Session {
       load_balancing,
@@ -256,7 +260,7 @@ impl<'a, LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized, A: Authentica
 }
 
 #[cfg(feature = "ssl")]
-impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a + Sized>
+impl<'a, LB: LoadBalancingStrategy<RefCell<TransportTls>> + Sized, A: Authenticator + 'a + Sized>
   Session<LB, A>
 {
   pub fn new_ssl(
@@ -265,11 +269,11 @@ impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a 
     authenticator: A,
     ssl_connector: &SslConnector,
   ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<TransportTls> = Vec::with_capacity(addrs.len());
+    let mut nodes: Vec<RefCell<TransportTls>> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
-      let mut transport = TransportTls::new(&addr, ssl_connector)?;
-      Self::startup(&mut transport, &authenticator)?;
+      let transport = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
+      Self::startup(&transport, &authenticator)?;
       nodes.push(transport);
     }
 
@@ -288,11 +292,11 @@ impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a 
     authenticator: A,
     ssl_connector: &SslConnector,
   ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<TransportTls> = Vec::with_capacity(addrs.len());
+    let mut nodes: Vec<RefCell<TransportTls>> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
-      let mut transport = TransportTls::new(&addr, ssl_connector)?;
-      Self::startup(&mut transport, &authenticator)?;
+      let transport = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
+      Self::startup(&transport, &authenticator)?;
       nodes.push(transport);
     }
 
@@ -311,11 +315,11 @@ impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a 
     authenticator: A,
     ssl_connector: &SslConnector,
   ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<TransportTls> = Vec::with_capacity(addrs.len());
+    let mut nodes: Vec<RefCell<TransportTls>> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
-      let mut transport = TransportTls::new(&addr, ssl_connector)?;
-      Self::startup(&mut transport, &authenticator)?;
+      let transport = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
+      Self::startup(&transport, &authenticator)?;
       nodes.push(transport);
     }
 
@@ -329,20 +333,23 @@ impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a 
   }
 
   pub fn listen_ssl(
-    &mut self,
+    &self,
+    node: (&str, &SslConnector),
     events: Vec<SimpleServerEvent>,
-  ) -> error::Result<(Listener<TransportTls>, EventStream)> {
+  ) -> error::Result<(Listener<RefCell<TransportTls>>, EventStream)> {
+    let (addr, ssl_connector) = node;
     let authenticator = self.authenticator.clone();
     let compression = self.get_compressor();
     let transport = self
       .get_transport()
       .ok_or("Cannot connect to a cluster - no nodes provided")?;
-    let mut transport = transport.try_clone()?;
-    Self::startup(&mut transport, &authenticator)?;
+    let transport_cell = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
+    Self::startup(&transport, &authenticator)?;
 
     let query_frame = Frame::new_req_register(events).into_cbytes();
-    try!(transport.write(query_frame.as_slice()));
-    try!(parse_frame(&mut transport, &compression));
-    Ok(new_listener(transport))
+    transport_cell.borrow_mut().write(query_frame.as_slice())?;
+    parse_frame(&transport_cell, &compression)?;
+
+    Ok(new_listener(transport_cell))
   }
 }
