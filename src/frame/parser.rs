@@ -1,19 +1,21 @@
+use std::cell::RefCell;
 use std::io::{Cursor, Read};
 
-use frame::FromCursor;
-use compression::Compression;
-use frame::frame_response::ResponseBody;
 use super::*;
-use types::{from_bytes, CStringList, from_u16_bytes, UUID_LEN};
-use types::data_serialization_types::decode_timeuuid;
+use compression::Compression;
 use error;
+use frame::frame_response::ResponseBody;
+use frame::FromCursor;
+use types::data_serialization_types::decode_timeuuid;
+use types::{from_bytes, from_u16_bytes, CStringList, UUID_LEN};
 
-pub fn parse_frame(cursor: &mut Read, compressor: &Compression) -> error::Result<Frame> {
+pub fn parse_frame(cursor_cell: &RefCell<Read>, compressor: &Compression) -> error::Result<Frame> {
     let mut version_bytes = [0; Version::BYTE_LENGTH];
     let mut flag_bytes = [0; Flag::BYTE_LENGTH];
     let mut opcode_bytes = [0; Opcode::BYTE_LENGTH];
     let mut stream_bytes = [0; STREAM_LEN];
     let mut length_bytes = [0; LENGTH_LEN];
+    let mut cursor = cursor_cell.borrow_mut();
 
     // NOTE: order of reads matters
     try!(cursor.read_exact(&mut version_bytes));
@@ -66,27 +68,25 @@ pub fn parse_frame(cursor: &mut Read, compressor: &Compression) -> error::Result
 
     try!(body_cursor.read_to_end(&mut body));
 
-    let frame = Frame { version: version,
-                        flags: flags,
-                        opcode: opcode,
-                        stream: stream,
-                        body: body,
-                        tracing_id: tracing_id,
-                        warnings: warnings, };
+    let frame = Frame {
+        version: version,
+        flags: flags,
+        opcode: opcode,
+        stream: stream,
+        body: body,
+        tracing_id: tracing_id,
+        warnings: warnings,
+    };
 
     convert_frame_into_result(frame)
 }
 
 fn convert_frame_into_result(frame: Frame) -> error::Result<Frame> {
     match frame.opcode {
-        Opcode::Error => {
-            frame.get_body().and_then(|err| match err {
-                                          ResponseBody::Error(err) => {
-                                              Err(error::Error::Server(err))
-                                          }
-                                          _ => unreachable!(),
-                                      })
-        }
+        Opcode::Error => frame.get_body().and_then(|err| match err {
+            ResponseBody::Error(err) => Err(error::Error::Server(err)),
+            _ => unreachable!(),
+        }),
         _ => Ok(frame),
     }
 }

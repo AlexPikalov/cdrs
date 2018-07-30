@@ -10,13 +10,13 @@ mod common;
 
 use common::*;
 
-use cdrs::query::QueryExecutor;
-use cdrs::types::{AsRust, IntoRustByName};
-use cdrs::types::value::{Bytes, Value};
-use cdrs::types::udt::UDT;
-use cdrs::types::map::Map;
 use cdrs::error::Result;
 use cdrs::frame::IntoBytes;
+use cdrs::query::QueryExecutor;
+use cdrs::types::map::Map;
+use cdrs::types::udt::UDT;
+use cdrs::types::value::{Bytes, Value};
+use cdrs::types::{AsRust, IntoRustByName};
 use time::Timespec;
 
 use std::collections::HashMap;
@@ -27,7 +27,7 @@ fn simple_udt() {
   let create_type_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.simple_udt (my_text text)";
   let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_simple_udt \
                           (my_key int PRIMARY KEY, my_udt simple_udt)";
-  let mut session = setup_multiple(&[create_type_cql, create_table_cql]).expect("setup");
+  let session = setup_multiple(&[create_type_cql, create_table_cql]).expect("setup");
 
   #[derive(Debug, Clone, PartialEq)]
   struct MyUdt {
@@ -50,7 +50,9 @@ fn simple_udt() {
     }
   }
 
-  let my_udt = MyUdt { my_text: "my_text".to_string(), };
+  let my_udt = MyUdt {
+    my_text: "my_text".to_string(),
+  };
   let values = query_values!(0i32, my_udt.clone());
 
   let cql = "INSERT INTO cdrs_test.test_simple_udt \
@@ -58,12 +60,13 @@ fn simple_udt() {
   session.query_with_values(cql, values).expect("insert");
 
   let cql = "SELECT * FROM cdrs_test.test_simple_udt";
-  let rows = session.query(cql)
-                    .expect("query")
-                    .get_body()
-                    .expect("get body")
-                    .into_rows()
-                    .expect("into rows");
+  let rows = session
+    .query(cql)
+    .expect("query")
+    .get_body()
+    .expect("get body")
+    .into_rows()
+    .expect("into rows");
 
   assert_eq!(rows.len(), 1);
   for row in rows {
@@ -81,7 +84,7 @@ fn nested_udt() {
                           (my_inner_udt frozen<nested_inner_udt>)";
   let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_nested_udt \
                           (my_key int PRIMARY KEY, my_outer_udt nested_outer_udt)";
-  let mut session =
+  let session =
     setup_multiple(&[create_type1_cql, create_type2_cql, create_table_cql]).expect("setup");
 
   #[derive(Debug, Clone, PartialEq)]
@@ -114,7 +117,9 @@ fn nested_udt() {
     pub fn try_from(udt: UDT) -> Result<MyOuterUdt> {
       let my_inner_udt: UDT = udt.get_r_by_name("my_inner_udt")?;
       let my_inner_udt = MyInnerUdt::try_from(my_inner_udt).expect("from udt");
-      Ok(MyOuterUdt { my_inner_udt: my_inner_udt, })
+      Ok(MyOuterUdt {
+        my_inner_udt: my_inner_udt,
+      })
     }
   }
 
@@ -127,8 +132,12 @@ fn nested_udt() {
     }
   }
 
-  let my_inner_udt = MyInnerUdt { my_text: "my_text".to_string(), };
-  let my_outer_udt = MyOuterUdt { my_inner_udt: my_inner_udt, };
+  let my_inner_udt = MyInnerUdt {
+    my_text: "my_text".to_string(),
+  };
+  let my_outer_udt = MyOuterUdt {
+    my_inner_udt: my_inner_udt,
+  };
   let values = query_values!(0i32, my_outer_udt.clone());
 
   let cql = "INSERT INTO cdrs_test.test_nested_udt \
@@ -136,12 +145,13 @@ fn nested_udt() {
   session.query_with_values(cql, values).expect("insert");
 
   let cql = "SELECT * FROM cdrs_test.test_nested_udt";
-  let rows = session.query(cql)
-                    .expect("query")
-                    .get_body()
-                    .expect("get body")
-                    .into_rows()
-                    .expect("into rows");
+  let rows = session
+    .query(cql)
+    .expect("query")
+    .get_body()
+    .expect("get body")
+    .into_rows()
+    .expect("into rows");
 
   assert_eq!(rows.len(), 1);
   for row in rows {
@@ -159,7 +169,7 @@ fn alter_udt_add() {
   let create_type_cql = "CREATE TYPE cdrs_test.alter_udt_add_udt (my_text text)";
   let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_alter_udt_add \
                           (my_key int PRIMARY KEY, my_map frozen<map<text, alter_udt_add_udt>>)";
-  let mut session = setup_multiple(&[
+  let session = setup_multiple(&[
     drop_table_cql,
     drop_type_cql,
     create_type_cql,
@@ -190,12 +200,16 @@ fn alter_udt_add() {
     pub fn try_from(udt: UDT) -> Result<MyUdtB> {
       let my_text: String = udt.get_r_by_name("my_text")?;
       let my_timestamp: Option<Timespec> = udt.get_by_name("my_timestamp")?;
-      Ok(MyUdtB { my_text: my_text,
-                  my_timestamp: my_timestamp, })
+      Ok(MyUdtB {
+        my_text: my_text,
+        my_timestamp: my_timestamp,
+      })
     }
   }
 
-  let my_udt_a = MyUdtA { my_text: "my_text".to_string(), };
+  let my_udt_a = MyUdtA {
+    my_text: "my_text".to_string(),
+  };
   let my_map_a = hashmap! { "1" => my_udt_a.clone() };
   let values = query_values!(0i32, my_map_a.clone());
 
@@ -206,16 +220,19 @@ fn alter_udt_add() {
   let cql = "ALTER TYPE cdrs_test.alter_udt_add_udt ADD my_timestamp timestamp";
   session.query(cql).expect("alter type");
 
-  let my_udt_b = MyUdtB { my_text: my_udt_a.my_text,
-                          my_timestamp: None, };
+  let my_udt_b = MyUdtB {
+    my_text: my_udt_a.my_text,
+    my_timestamp: None,
+  };
 
   let cql = "SELECT * FROM cdrs_test.test_alter_udt_add";
-  let rows = session.query(cql)
-                    .expect("query")
-                    .get_body()
-                    .expect("get body")
-                    .into_rows()
-                    .expect("into rows");
+  let rows = session
+    .query(cql)
+    .expect("query")
+    .get_body()
+    .expect("get body")
+    .into_rows()
+    .expect("into rows");
 
   assert_eq!(rows.len(), 1);
   for row in rows {

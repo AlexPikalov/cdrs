@@ -1,14 +1,15 @@
-use error;
+use std::cell::RefCell;
 
 use authenticators::Authenticator;
-use transport::TransportTcp;
 use cluster::session::Session;
+use error;
 use load_balancing::LoadBalancingStrategy;
+use transport::TransportTcp;
 
 #[cfg(feature = "ssl")]
-use transport::TransportTls;
-#[cfg(feature = "ssl")]
 use openssl::ssl::SslConnector;
+#[cfg(feature = "ssl")]
+use transport::TransportTls;
 
 pub struct Cluster<A> {
   nodes_addrs: Vec<&'static str>,
@@ -25,14 +26,14 @@ impl<'a, A: Authenticator + Sized> Cluster<A> {
 
   pub fn connect<LB>(&self, lb: LB) -> error::Result<Session<LB, A>>
   where
-    LB: LoadBalancingStrategy<TransportTcp> + Sized,
+    LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized,
   {
     Session::new(&self.nodes_addrs, lb, self.authenticator.clone())
   }
 
   pub fn connect_snappy<LB>(&self, lb: LB) -> error::Result<Session<LB, A>>
   where
-    LB: LoadBalancingStrategy<TransportTcp> + Sized,
+    LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized,
     A: Authenticator + 'a + Sized,
   {
     Session::new_snappy(&self.nodes_addrs, lb, self.authenticator.clone())
@@ -40,7 +41,7 @@ impl<'a, A: Authenticator + Sized> Cluster<A> {
 
   pub fn connect_lz4<LB>(&self, lb: LB) -> error::Result<Session<LB, A>>
   where
-    LB: LoadBalancingStrategy<TransportTcp> + Sized,
+    LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized,
   {
     Session::new_lz4(&self.nodes_addrs, lb, self.authenticator.clone())
   }
@@ -53,7 +54,7 @@ impl<'a, A: Authenticator + Sized> Cluster<A> {
     ssl_connector: &SslConnector,
   ) -> error::Result<Session<LB, A>>
   where
-    LB: LoadBalancingStrategy<TransportTls> + Sized,
+    LB: LoadBalancingStrategy<RefCell<TransportTls>> + Sized,
   {
     Session::new_ssl(&self.nodes_addrs, lb, authenticator, ssl_connector)
   }
@@ -66,7 +67,7 @@ impl<'a, A: Authenticator + Sized> Cluster<A> {
     ssl_connector: &SslConnector,
   ) -> error::Result<Session<LB, A>>
   where
-    LB: LoadBalancingStrategy<TransportTls> + Sized,
+    LB: LoadBalancingStrategy<RefCell<TransportTls>> + Sized,
   {
     Session::new_snappy_ssl(&self.nodes_addrs, lb, authenticator, ssl_connector)
   }
@@ -79,7 +80,7 @@ impl<'a, A: Authenticator + Sized> Cluster<A> {
     ssl_connector: &SslConnector,
   ) -> error::Result<Session<LB, A>>
   where
-    LB: LoadBalancingStrategy<TransportTls> + Sized,
+    LB: LoadBalancingStrategy<RefCell<TransportTls>> + Sized,
   {
     Session::new_lz4_ssl(&self.nodes_addrs, lb, authenticator, ssl_connector)
   }

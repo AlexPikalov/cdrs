@@ -1,28 +1,29 @@
+use std::cell::RefCell;
 use std::io;
 use std::io::Write;
 
-use error;
-use transport::{CDRSTransport, TransportTcp};
-use load_balancing::LoadBalancingStrategy;
 use cluster::{CDRSSession, GetCompressor, GetTransport, SessionPager};
+use error;
+use load_balancing::LoadBalancingStrategy;
+use transport::{CDRSTransport, TransportTcp};
 
 use authenticators::Authenticator;
 use compression::Compression;
-use frame::{Frame, IntoBytes, Opcode};
-use frame::parser::parse_frame;
-use query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
 use events::{new_listener, EventStream, Listener};
 use frame::events::SimpleServerEvent;
+use frame::parser::parse_frame;
+use frame::{Frame, IntoBytes, Opcode};
+use query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
 
-#[cfg(feature = "ssl")]
-use transport::TransportTls;
 #[cfg(feature = "ssl")]
 use openssl::ssl::SslConnector;
-
+#[cfg(feature = "ssl")]
+use transport::TransportTls;
 
 pub struct Session<LB, A> {
   load_balancing: LB,
-  #[allow(dead_code)] authenticator: A,
+  #[allow(dead_code)]
+  authenticator: A,
   pub compression: Compression,
 }
 
@@ -33,24 +34,25 @@ impl<'a, LB, A> GetCompressor<'a> for Session<LB, A> {
 }
 
 impl<'a, LB: Sized, A: Authenticator + 'a + Sized> Session<LB, A> {
-  pub fn paged<T: CDRSTransport>(
-    &'a mut self,
+  pub fn paged<T: CDRSTransport + 'static>(
+    &'a self,
     page_size: i32,
   ) -> SessionPager<'a, Session<LB, A>, T>
   where
-    Session<LB, A>: CDRSSession<'a, T>,
+    Session<LB, A>: CDRSSession<'static, T>,
   {
     return SessionPager::new(self, page_size);
   }
 
-  fn startup<'b, T: CDRSTransport>(
-    transport: &'b mut T,
+  fn startup<'b, T: CDRSTransport + 'static>(
+    transport: &RefCell<T>,
     session_authenticator: &'b A,
   ) -> error::Result<()> {
     let ref mut compression = Compression::None;
     let startup_frame = Frame::new_req_startup(compression.as_str()).into_cbytes();
 
-    try!(transport.write(startup_frame.as_slice()));
+    transport.borrow_mut().write(startup_frame.as_slice())?;
+
     let start_response = try!(parse_frame(transport, compression));
 
     if start_response.opcode == Opcode::Ready {
@@ -83,8 +85,7 @@ impl<'a, LB: Sized, A: Authenticator + 'a + Sized> Session<LB, A> {
               format!(
                 "Unsupported type of authenticator. {:?} got,
                              but {} is supported.",
-                authenticator,
-                auth
+                authenticator, auth
               ),
             );
             return Err(error::Error::Io(io_err));
@@ -98,7 +99,7 @@ impl<'a, LB: Sized, A: Authenticator + 'a + Sized> Session<LB, A> {
 
       let auth_token_bytes = session_authenticator.get_auth_token().into_cbytes();
       try!(
-        transport.write(
+        transport.borrow_mut().write(
           Frame::new_req_auth_response(auth_token_bytes)
             .into_cbytes()
             .as_slice()
@@ -114,68 +115,75 @@ impl<'a, LB: Sized, A: Authenticator + 'a + Sized> Session<LB, A> {
 }
 
 impl<
-  'a,
-  T: CDRSTransport + 'a,
-  LB: LoadBalancingStrategy<T> + Sized,
-  A: Authenticator + Sized,
-> GetTransport<'a, T> for Session<LB, A> {
-  fn get_transport(&mut self) -> Option<&mut T> {
+    'a,
+    T: CDRSTransport + 'a,
+    LB: LoadBalancingStrategy<RefCell<T>> + Sized,
+    A: Authenticator + Sized,
+  > GetTransport<'a, T> for Session<LB, A>
+{
+  fn get_transport(&self) -> Option<&RefCell<T>> {
     self.load_balancing.next()
   }
 }
 
 impl<
-  'a,
-  T: CDRSTransport + 'a,
-  LB: LoadBalancingStrategy<T> + Sized,
-  A: Authenticator + Sized,
-> QueryExecutor<'a, T> for Session<LB, A> {
+    'a,
+    T: CDRSTransport + 'static,
+    LB: LoadBalancingStrategy<RefCell<T>> + Sized,
+    A: Authenticator + Sized,
+  > QueryExecutor<T> for Session<LB, A>
+{
 }
 
 impl<
-  'a,
-  T: CDRSTransport + 'a,
-  LB: LoadBalancingStrategy<T> + Sized,
-  A: Authenticator + Sized,
-> PrepareExecutor<'a, T> for Session<LB, A> {
+    'a,
+    T: CDRSTransport + 'static,
+    LB: LoadBalancingStrategy<RefCell<T>> + Sized,
+    A: Authenticator + Sized,
+  > PrepareExecutor<T> for Session<LB, A>
+{
 }
 
 impl<
-  'a,
-  T: CDRSTransport + 'a,
-  LB: LoadBalancingStrategy<T> + Sized,
-  A: Authenticator + Sized,
-> ExecExecutor<'a, T> for Session<LB, A> {
+    'a,
+    T: CDRSTransport + 'static,
+    LB: LoadBalancingStrategy<RefCell<T>> + Sized,
+    A: Authenticator + Sized,
+  > ExecExecutor<T> for Session<LB, A>
+{
 }
 
 impl<
-  'a,
-  T: CDRSTransport + 'a,
-  LB: LoadBalancingStrategy<T> + Sized,
-  A: Authenticator + Sized,
-> BatchExecutor<'a, T> for Session<LB, A> {
+    'a,
+    T: CDRSTransport + 'static,
+    LB: LoadBalancingStrategy<RefCell<T>> + Sized,
+    A: Authenticator + Sized,
+  > BatchExecutor<T> for Session<LB, A>
+{
 }
 
 impl<
-  'a,
-  T: CDRSTransport + 'a,
-  LB: LoadBalancingStrategy<T> + Sized,
-  A: Authenticator + Sized,
-> CDRSSession<'a, T> for Session<LB, A> {
+    'a,
+    T: CDRSTransport + 'static,
+    LB: LoadBalancingStrategy<RefCell<T>> + Sized,
+    A: Authenticator + Sized,
+  > CDRSSession<'a, T> for Session<LB, A>
+{
 }
 
-impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + 'a + Sized>
-  Session<LB, A> {
+impl<'a, LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized, A: Authenticator + 'a + Sized>
+  Session<LB, A>
+{
   pub fn new(
     addrs: &Vec<&str>,
     mut load_balancing: LB,
     authenticator: A,
   ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<TransportTcp> = Vec::with_capacity(addrs.len());
+    let mut nodes: Vec<RefCell<TransportTcp>> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
-      let mut transport = TransportTcp::new(&addr)?;
-      Self::startup(&mut transport, &authenticator)?;
+      let transport = RefCell::new(TransportTcp::new(&addr)?);
+      Self::startup(&transport, &authenticator)?;
       nodes.push(transport);
     }
 
@@ -193,11 +201,11 @@ impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + 'a 
     mut load_balancing: LB,
     authenticator: A,
   ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<TransportTcp> = Vec::with_capacity(addrs.len());
+    let mut nodes: Vec<RefCell<TransportTcp>> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
-      let mut transport = TransportTcp::new(&addr)?;
-      Self::startup(&mut transport, &authenticator)?;
+      let transport = RefCell::new(TransportTcp::new(&addr)?);
+      Self::startup(&transport, &authenticator)?;
       nodes.push(transport);
     }
 
@@ -215,11 +223,11 @@ impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + 'a 
     mut load_balancing: LB,
     authenticator: A,
   ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<TransportTcp> = Vec::with_capacity(addrs.len());
+    let mut nodes: Vec<RefCell<TransportTcp>> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
-      let mut transport = TransportTcp::new(&addr)?;
-      Self::startup(&mut transport, &authenticator)?;
+      let transport = RefCell::new(TransportTcp::new(&addr)?);
+      Self::startup(&transport, &authenticator)?;
       nodes.push(transport);
     }
 
@@ -233,40 +241,39 @@ impl<'a, LB: LoadBalancingStrategy<TransportTcp> + Sized, A: Authenticator + 'a 
   }
 
   pub fn listen(
-    &mut self,
+    &self,
+    node: &str,
     events: Vec<SimpleServerEvent>,
-  ) -> error::Result<(Listener<TransportTcp>, EventStream)> {
+  ) -> error::Result<(Listener<RefCell<TransportTcp>>, EventStream)> {
     let authenticator = self.authenticator.clone();
     let compression = self.get_compressor();
-    let transport = self
-      .get_transport()
-      .ok_or("Cannot connect to a cluster - no nodes provided")?;
-    let mut transport = transport.try_clone()?;
-    Self::startup(&mut transport, &authenticator)?;
+    let transport = TransportTcp::new(&node).map(RefCell::new)?;
+
+    Self::startup(&transport, &authenticator)?;
 
     let query_frame = Frame::new_req_register(events).into_cbytes();
-    try!(transport.write(query_frame.as_slice()));
-    println!("send register");
-    try!(parse_frame(&mut transport, &compression));
-    println!("receive response");
+    transport.borrow_mut().write(query_frame.as_slice())?;
+    parse_frame(&transport, &compression)?;
+
     Ok(new_listener(transport))
   }
 }
 
 #[cfg(feature = "ssl")]
-impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a + Sized>
-  Session<LB, A> {
+impl<'a, LB: LoadBalancingStrategy<RefCell<TransportTls>> + Sized, A: Authenticator + 'a + Sized>
+  Session<LB, A>
+{
   pub fn new_ssl(
     addrs: &Vec<&str>,
     mut load_balancing: LB,
     authenticator: A,
     ssl_connector: &SslConnector,
   ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<TransportTls> = Vec::with_capacity(addrs.len());
+    let mut nodes: Vec<RefCell<TransportTls>> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
-      let mut transport = TransportTls::new(&addr, ssl_connector)?;
-      Self::startup(&mut transport, &authenticator)?;
+      let transport = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
+      Self::startup(&transport, &authenticator)?;
       nodes.push(transport);
     }
 
@@ -285,11 +292,11 @@ impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a 
     authenticator: A,
     ssl_connector: &SslConnector,
   ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<TransportTls> = Vec::with_capacity(addrs.len());
+    let mut nodes: Vec<RefCell<TransportTls>> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
-      let mut transport = TransportTls::new(&addr, ssl_connector)?;
-      Self::startup(&mut transport, &authenticator)?;
+      let transport = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
+      Self::startup(&transport, &authenticator)?;
       nodes.push(transport);
     }
 
@@ -308,11 +315,11 @@ impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a 
     authenticator: A,
     ssl_connector: &SslConnector,
   ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<TransportTls> = Vec::with_capacity(addrs.len());
+    let mut nodes: Vec<RefCell<TransportTls>> = Vec::with_capacity(addrs.len());
 
     for addr in addrs {
-      let mut transport = TransportTls::new(&addr, ssl_connector)?;
-      Self::startup(&mut transport, &authenticator)?;
+      let transport = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
+      Self::startup(&transport, &authenticator)?;
       nodes.push(transport);
     }
 
@@ -326,20 +333,23 @@ impl<'a, LB: LoadBalancingStrategy<TransportTls> + Sized, A: Authenticator + 'a 
   }
 
   pub fn listen_ssl(
-    &mut self,
+    &self,
+    node: (&str, &SslConnector),
     events: Vec<SimpleServerEvent>,
-  ) -> error::Result<(Listener<TransportTls>, EventStream)> {
+  ) -> error::Result<(Listener<RefCell<TransportTls>>, EventStream)> {
+    let (addr, ssl_connector) = node;
     let authenticator = self.authenticator.clone();
     let compression = self.get_compressor();
     let transport = self
       .get_transport()
       .ok_or("Cannot connect to a cluster - no nodes provided")?;
-    let mut transport = transport.try_clone()?;
-    Self::startup(&mut transport, &authenticator)?;
+    let transport_cell = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
+    Self::startup(&transport, &authenticator)?;
 
     let query_frame = Frame::new_req_register(events).into_cbytes();
-    try!(transport.write(query_frame.as_slice()));
-    try!(parse_frame(&mut transport, &compression));
-    Ok(new_listener(transport))
+    transport_cell.borrow_mut().write(query_frame.as_slice())?;
+    parse_frame(&transport_cell, &compression)?;
+
+    Ok(new_listener(transport_cell))
   }
 }

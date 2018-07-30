@@ -5,33 +5,34 @@ extern crate cdrs_helpers_derive;
 #[macro_use]
 extern crate maplit;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 
 use cdrs::authenticators::NoneAuthenticator;
 use cdrs::cluster::{Cluster, Session};
+use cdrs::load_balancing::RoundRobin;
 use cdrs::query::*;
-use cdrs::load_balancing::{RoundRobin};
 use cdrs::transport::TransportTcp;
 
-use cdrs::types::prelude::*;
-use cdrs::types::from_cdrs::FromCDRSByName;
 use cdrs::frame::IntoBytes;
+use cdrs::types::from_cdrs::FromCDRSByName;
+use cdrs::types::prelude::*;
 
-type CurrentSession = Session<RoundRobin<TransportTcp>, NoneAuthenticator>;
+type CurrentSession = Session<RoundRobin<RefCell<TransportTcp>>, NoneAuthenticator>;
 
 fn main() {
   let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
-  let mut no_compression = cluster
+  let no_compression = cluster
     .connect(RoundRobin::new())
     .expect("No compression connection error");
 
-  create_keyspace(&mut no_compression);
-  create_udt(&mut no_compression);
-  create_table(&mut no_compression);
-  insert_struct(&mut no_compression);
-  select_struct(&mut no_compression);
-  update_struct(&mut no_compression);
-  delete_struct(&mut no_compression);
+  create_keyspace(&no_compression);
+  create_udt(&no_compression);
+  create_table(&no_compression);
+  insert_struct(&no_compression);
+  select_struct(&no_compression);
+  update_struct(&no_compression);
+  delete_struct(&no_compression);
 }
 
 #[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq)]
@@ -53,39 +54,38 @@ struct User {
   username: String,
 }
 
-fn create_keyspace(session: &mut CurrentSession) {
+fn create_keyspace(session: &CurrentSession) {
   let create_ks: &'static str = "CREATE KEYSPACE IF NOT EXISTS test_ks WITH REPLICATION = { \
                                  'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
   session.query(create_ks).expect("Keyspace creation error");
 }
 
-fn create_udt(session: &mut CurrentSession) {
+fn create_udt(session: &CurrentSession) {
   let create_type_cql = "CREATE TYPE IF NOT EXISTS test_ks.user (username text)";
   session
     .query(create_type_cql)
     .expect("Keyspace creation error");
 }
 
-fn create_table(session: &mut CurrentSession) {
-  let create_table_cql = "CREATE TABLE IF NOT EXISTS test_ks.my_test_table (key int PRIMARY KEY, \
-                          user test_ks.user, map map<text, frozen<test_ks.user>>, list list<frozen<test_ks.user>>);";
+fn create_table(session: &CurrentSession) {
+  let create_table_cql =
+    "CREATE TABLE IF NOT EXISTS test_ks.my_test_table (key int PRIMARY KEY, \
+     user test_ks.user, map map<text, frozen<test_ks.user>>, list list<frozen<test_ks.user>>);";
   session
     .query(create_table_cql)
     .expect("Table creation error");
 }
 
-fn insert_struct(session: &mut CurrentSession) {
+fn insert_struct(session: &CurrentSession) {
   let row = RowStruct {
     key: 3i32,
     user: User {
       username: "John".to_string(),
     },
     map: hashmap! { "John".to_string() => User { username: "John".to_string() } },
-    list: vec![
-      User {
-        username: "John".to_string(),
-      },
-    ],
+    list: vec![User {
+      username: "John".to_string(),
+    }],
   };
 
   let insert_struct_cql = "INSERT INTO test_ks.my_test_table \
@@ -95,7 +95,7 @@ fn insert_struct(session: &mut CurrentSession) {
     .expect("insert");
 }
 
-fn select_struct(session: &mut CurrentSession) {
+fn select_struct(session: &CurrentSession) {
   let select_struct_cql = "SELECT * FROM test_ks.my_test_table";
   let rows = session
     .query(select_struct_cql)
@@ -111,7 +111,7 @@ fn select_struct(session: &mut CurrentSession) {
   }
 }
 
-fn update_struct(session: &mut CurrentSession) {
+fn update_struct(session: &CurrentSession) {
   let update_struct_cql = "UPDATE test_ks.my_test_table SET user = ? WHERE key = ?";
   let upd_user = User {
     username: "Marry".to_string(),
@@ -122,7 +122,7 @@ fn update_struct(session: &mut CurrentSession) {
     .expect("update");
 }
 
-fn delete_struct(session: &mut CurrentSession) {
+fn delete_struct(session: &CurrentSession) {
   let delete_struct_cql = "DELETE FROM test_ks.my_test_table WHERE key = ?";
   let user_key = 1i32;
   session

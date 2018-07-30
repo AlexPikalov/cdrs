@@ -12,18 +12,18 @@ mod common;
 
 use common::*;
 
-use cdrs::query::QueryValues;
-use cdrs::query::QueryExecutor;
-use cdrs::types::{AsRust, AsRustType, IntoRustByName};
-use cdrs::types::value::{Bytes, Value};
-use cdrs::types::rows::Row;
-use cdrs::types::udt::UDT;
-use cdrs::types::map::Map;
 use cdrs::error::Result as CDRSResult;
 use cdrs::frame::IntoBytes;
-use time::Timespec;
 use cdrs::frame::{TryFromRow, TryFromUDT};
+use cdrs::query::QueryExecutor;
+use cdrs::query::QueryValues;
 use cdrs::types::from_cdrs::FromCDRSByName;
+use cdrs::types::map::Map;
+use cdrs::types::rows::Row;
+use cdrs::types::udt::UDT;
+use cdrs::types::value::{Bytes, Value};
+use cdrs::types::{AsRust, AsRustType, IntoRustByName};
+use time::Timespec;
 
 use std::collections::HashMap;
 
@@ -33,7 +33,7 @@ fn simple_udt() {
   let create_type_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.derive_udt (my_text text)";
   let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_derived_udt \
                           (my_key int PRIMARY KEY, my_udt derive_udt)";
-  let mut session = setup_multiple(&[create_type_cql, create_table_cql]).expect("setup");
+  let session = setup_multiple(&[create_type_cql, create_table_cql]).expect("setup");
 
   #[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq)]
   struct RowStruct {
@@ -89,7 +89,7 @@ fn nested_udt() {
                           (my_inner_udt frozen<nested_inner_udt>)";
   let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_nested_udt \
                           (my_key int PRIMARY KEY, my_outer_udt nested_outer_udt)";
-  let mut session =
+  let session =
     setup_multiple(&[create_type1_cql, create_type2_cql, create_table_cql]).expect("setup");
 
   #[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq)]
@@ -153,7 +153,7 @@ fn alter_udt_add() {
   let create_type_cql = "CREATE TYPE cdrs_test.alter_udt_add_udt (my_text text)";
   let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_alter_udt_add \
                           (my_key int PRIMARY KEY, my_map frozen<map<text, alter_udt_add_udt>>)";
-  let mut session = setup_multiple(&[
+  let session = setup_multiple(&[
     drop_table_cql,
     drop_type_cql,
     create_type_cql,

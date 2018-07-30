@@ -1,18 +1,20 @@
-use error;
-use transport::CDRSTransport;
 use cluster::{GetCompressor, GetTransport};
-use frame::{Flag, Frame};
+use error;
 use frame::parser::parse_frame;
 use frame::traits::IntoBytes;
+use frame::{Flag, Frame};
 use query::batch_query_builder::QueryBatch;
+use transport::CDRSTransport;
 
-pub trait BatchExecutor<'a, T: CDRSTransport + 'a>
-  : GetTransport<'a, T> + GetCompressor<'a> {
-  fn batch_with_params_tw(&mut self,
-                          batch: QueryBatch,
-                          with_tracing: bool,
-                          with_warnings: bool)
-                          -> error::Result<Frame> {
+pub trait BatchExecutor<T: CDRSTransport + 'static>:
+  GetTransport<'static, T> + GetCompressor<'static>
+{
+  fn batch_with_params_tw(
+    &self,
+    batch: QueryBatch,
+    with_tracing: bool,
+    with_warnings: bool,
+  ) -> error::Result<Frame> {
     let mut flags = vec![];
 
     if with_tracing {
@@ -25,13 +27,21 @@ pub trait BatchExecutor<'a, T: CDRSTransport + 'a>
 
     let query_frame = Frame::new_req_batch(batch, flags).into_cbytes();
     let ref compression = self.get_compressor();
-    let transport = self.get_transport().ok_or("Unable to get transport")?;
 
-    try!(transport.write(query_frame.as_slice()));
-    parse_frame(transport, compression)
+    self
+      .get_transport()
+      .ok_or(error::Error::from("Unable to get transport"))
+      .and_then(|transport_cell| {
+        let write_res = transport_cell
+          .borrow_mut()
+          .write(query_frame.as_slice())
+          .map_err(error::Error::from);
+        write_res.map(|_| transport_cell)
+      })
+      .and_then(|transport_cell| parse_frame(transport_cell, compression))
   }
 
-  fn batch_with_params(&mut self, batch: QueryBatch) -> error::Result<Frame> {
+  fn batch_with_params(&self, batch: QueryBatch) -> error::Result<Frame> {
     self.batch_with_params_tw(batch, false, false)
   }
 }

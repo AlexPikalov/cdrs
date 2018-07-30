@@ -3,12 +3,12 @@ use rand;
 use super::LoadBalancingStrategy;
 
 pub struct Random<N> {
-  cluster: Vec<N>,
+  pub cluster: Vec<N>,
 }
 
 impl<N> Random<N> {
-  pub fn new() -> Self {
-    Random { cluster: vec![] }
+  pub fn new(cluster: Vec<N>) -> Self {
+    Random { cluster }
   }
 
   /// Returns random number from a range
@@ -31,9 +31,9 @@ impl<N> LoadBalancingStrategy<N> for Random<N> {
     self.cluster = cluster;
   }
   /// Returns next random node from a cluster
-  fn next(&mut self) -> Option<&mut N> {
+  fn next(&self) -> Option<&N> {
     let len = self.cluster.len();
-    self.cluster.get_mut(Self::rnd_idx((0, len)))
+    self.cluster.get(Self::rnd_idx((0, len)))
   }
 }
 
@@ -44,7 +44,7 @@ mod tests {
   #[test]
   fn random() {
     let nodes = vec!["a", "b", "c", "d", "e", "f", "g"];
-    let mut load_balancer = Random::from(nodes);
+    let load_balancer = Random::from(nodes);
     for _ in 0..100 {
       let s = load_balancer.next();
       assert!(s.is_some());
