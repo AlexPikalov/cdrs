@@ -3,7 +3,8 @@ extern crate cdrs;
 use std::collections::HashMap;
 
 use cdrs::authenticators::NoneAuthenticator;
-use cdrs::cluster::Cluster;
+use cdrs::cluster::session::{new as new_session, Session};
+use cdrs::cluster::{ClusterConfig, NodeConfigBuilder, TcpConnectionPool};
 use cdrs::load_balancing::RoundRobin;
 use cdrs::query::QueryExecutor;
 use cdrs::types::map::Map;
@@ -14,9 +15,10 @@ const ADDR: &'static str = "127.0.0.1:9042";
 #[test]
 #[ignore]
 fn create_keyspace() {
-        let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
-        let session = cluster.connect(RoundRobin::new())
-                .expect("No compression connection error");
+        let node = NodeConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+        let cluster_config = ClusterConfig(vec![node]);
+        let lb = RoundRobin::new();
+        let session = new_session(&cluster_config, lb).expect("session should be created");
 
         let drop_query = "DROP KEYSPACE IF EXISTS create_ks_test";
         let keyspace_droped = session.query(drop_query).is_ok();
@@ -33,7 +35,8 @@ fn create_keyspace() {
 
         let select_query =
                 "SELECT * FROM system_schema.keyspaces WHERE keyspace_name = 'create_ks_test'";
-        let keyspace_selected = session.query(select_query)
+        let keyspace_selected = session
+                .query(select_query)
                 .expect("select keyspace query")
                 .get_body()
                 .expect("get select keyspace query body")
@@ -43,7 +46,8 @@ fn create_keyspace() {
         assert_eq!(keyspace_selected.len(), 1);
         let keyspace = &keyspace_selected[0];
 
-        let keyspace_name: String = keyspace.get_r_by_name("keyspace_name")
+        let keyspace_name: String = keyspace
+                .get_r_by_name("keyspace_name")
                 .expect("keyspace name into rust error");
         assert_eq!(
                 keyspace_name,
@@ -51,7 +55,8 @@ fn create_keyspace() {
                 "wrong keyspace name"
         );
 
-        let durable_writes: bool = keyspace.get_r_by_name("durable_writes")
+        let durable_writes: bool = keyspace
+                .get_r_by_name("durable_writes")
                 .expect("durable writes into rust error");
         assert_eq!(durable_writes, false, "wrong durable writes");
 
@@ -61,7 +66,8 @@ fn create_keyspace() {
                 "class".to_string(),
                 "org.apache.cassandra.locator.SimpleStrategy".to_string(),
         );
-        let strategy_options: HashMap<String, String> = keyspace.r_by_name::<Map>("replication")
+        let strategy_options: HashMap<String, String> = keyspace
+                .r_by_name::<Map>("replication")
                 .expect("strategy optioins into rust error")
                 .as_r_rust()
                 .expect("uuid_key_map");
@@ -74,9 +80,10 @@ fn create_keyspace() {
 #[test]
 #[ignore]
 fn alter_keyspace() {
-        let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
-        let session = cluster.connect(RoundRobin::new())
-                .expect("No compression connection error");
+        let node = NodeConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+        let cluster_config = ClusterConfig(vec![node]);
+        let lb = RoundRobin::new();
+        let session = new_session(&cluster_config, lb).expect("session should be created");
 
         let drop_query = "DROP KEYSPACE IF EXISTS alter_ks_test";
         let keyspace_droped = session.query(drop_query).is_ok();
@@ -101,7 +108,8 @@ fn alter_keyspace() {
 
         let select_query =
                 "SELECT * FROM system_schema.keyspaces WHERE keyspace_name = 'alter_ks_test'";
-        let keyspace_selected = session.query(select_query)
+        let keyspace_selected = session
+                .query(select_query)
                 .expect("select keyspace query")
                 .get_body()
                 .expect("get select keyspace query body")
@@ -111,7 +119,8 @@ fn alter_keyspace() {
         assert_eq!(keyspace_selected.len(), 1);
         let keyspace = &keyspace_selected[0];
 
-        let strategy_options: HashMap<String, String> = keyspace.r_by_name::<Map>("replication")
+        let strategy_options: HashMap<String, String> = keyspace
+                .r_by_name::<Map>("replication")
                 .expect("strategy optioins into rust error")
                 .as_r_rust()
                 .expect("uuid_key_map");
@@ -127,9 +136,10 @@ fn alter_keyspace() {
 #[test]
 #[ignore]
 fn use_keyspace() {
-        let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
-        let session = cluster.connect(RoundRobin::new())
-                .expect("No compression connection error");
+        let node = NodeConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+        let cluster_config = ClusterConfig(vec![node]);
+        let lb = RoundRobin::new();
+        let session = new_session(&cluster_config, lb).expect("session should be created");
 
         let create_query = "CREATE KEYSPACE IF NOT EXISTS use_ks_test WITH \
                             replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
@@ -141,7 +151,8 @@ fn use_keyspace() {
         );
 
         let use_query = "USE use_ks_test";
-        let keyspace_used = session.query(use_query)
+        let keyspace_used = session
+                .query(use_query)
                 .expect("should use selected")
                 .get_body()
                 .expect("should get body")
@@ -154,9 +165,10 @@ fn use_keyspace() {
 #[test]
 #[ignore]
 fn drop_keyspace() {
-        let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
-        let session = cluster.connect(RoundRobin::new())
-                .expect("No compression connection error");
+        let node = NodeConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+        let cluster_config = ClusterConfig(vec![node]);
+        let lb = RoundRobin::new();
+        let session = new_session(&cluster_config, lb).expect("session should be created");
 
         let create_query = "CREATE KEYSPACE IF NOT EXISTS drop_ks_test WITH \
                             replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \

@@ -1,12 +1,17 @@
-use cluster::{GetCompressor, GetTransport};
+use r2d2;
+use std::cell::RefCell;
+
+use cluster::{GetCompressor, GetConnection};
 use error;
-use frame::parser::parse_frame;
+use frame::parser::from_connection;
 use frame::{Flag, Frame, IntoBytes};
 use query::{Query, QueryParams, QueryParamsBuilder, QueryValues};
 use transport::CDRSTransport;
 
-pub trait QueryExecutor<T: CDRSTransport + 'static>:
-  GetTransport<'static, T> + GetCompressor<'static>
+pub trait QueryExecutor<
+  T: CDRSTransport + 'static,
+  M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+>: GetConnection<T, M> + GetCompressor<'static>
 {
   fn query_with_params_tw<Q: ToString>(
     &self,
@@ -34,7 +39,7 @@ pub trait QueryExecutor<T: CDRSTransport + 'static>:
     let ref compression = self.get_compressor();
 
     self
-      .get_transport()
+      .get_connection()
       .ok_or(error::Error::from("Unable to get transport"))
       .and_then(|transport_cell| {
         let write_res = transport_cell
@@ -43,7 +48,7 @@ pub trait QueryExecutor<T: CDRSTransport + 'static>:
           .map_err(error::Error::from);
         write_res.map(|_| transport_cell)
       })
-      .and_then(|transport_cell| parse_frame(transport_cell, compression))
+      .and_then(|transport_cell| from_connection(&transport_cell, compression))
   }
 
   /// Executes a query with default parameters:

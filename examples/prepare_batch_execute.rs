@@ -2,22 +2,18 @@
 extern crate cdrs;
 #[macro_use]
 extern crate cdrs_helpers_derive;
-#[macro_use]
-extern crate maplit;
-
-use std::cell::RefCell;
 
 use cdrs::authenticators::NoneAuthenticator;
-use cdrs::cluster::{Cluster, Session};
+use cdrs::cluster::session::{new as new_session, Session};
+use cdrs::cluster::{ClusterConfig, NodeConfigBuilder, TcpConnectionPool};
 use cdrs::load_balancing::RoundRobin;
 use cdrs::query::*;
-use cdrs::transport::TransportTcp;
 
 use cdrs::frame::IntoBytes;
 use cdrs::types::from_cdrs::FromCDRSByName;
 use cdrs::types::prelude::*;
 
-type CurrentSession = Session<RoundRobin<RefCell<TransportTcp>>, NoneAuthenticator>;
+type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;
 
 #[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq)]
 struct RowStruct {
@@ -33,10 +29,10 @@ impl RowStruct {
 }
 
 fn main() {
-  let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
-  let no_compression = cluster
-    .connect(RoundRobin::new())
-    .expect("No compression connection error");
+  let node = NodeConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+  let cluster_config = ClusterConfig(vec![node]);
+  let lb = RoundRobin::new();
+  let no_compression = new_session(&cluster_config, lb).expect("session should be created");
 
   create_keyspace(&no_compression);
   create_table(&no_compression);
