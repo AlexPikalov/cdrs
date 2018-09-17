@@ -6,7 +6,6 @@ extern crate cdrs_helpers_derive;
 extern crate maplit;
 
 use std::collections::HashMap;
-use std::time::SystemTime;
 
 use cdrs::authenticators::NoneAuthenticator;
 use cdrs::cluster::session::{new as new_session, Session};
@@ -105,17 +104,10 @@ fn select_struct(session: &CurrentSession) {
     .into_rows()
     .expect("into rows");
 
-  let now = SystemTime::now();
   for row in rows {
     let my_row: RowStruct = RowStruct::try_from_row(row).expect("into RowStruct");
     println!("struct got: {:?}", my_row);
   }
-  let dur = now.elapsed().unwrap();
-  println!(
-    "Into struct parsing time {:?}-{:?}",
-    dur.as_secs(),
-    dur.subsec_nanos()
-  );
 }
 
 fn update_struct(session: &CurrentSession) {
