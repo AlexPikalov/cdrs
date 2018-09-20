@@ -1,6 +1,6 @@
 use cdrs::authenticators::NoneAuthenticator;
 use cdrs::cluster::session::{new as new_session, Session};
-use cdrs::cluster::{ClusterConfig, NodeConfigBuilder, TcpConnectionPool};
+use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
 use cdrs::error::Result;
 use cdrs::load_balancing::RoundRobin;
 use cdrs::query::QueryExecutor;
@@ -15,8 +15,8 @@ pub fn setup(create_table_cql: &'static str) -> Result<CurrentSession> {
 }
 
 pub fn setup_multiple(create_cqls: &[&'static str]) -> Result<CurrentSession> {
-  let node = NodeConfigBuilder::new(ADDR, NoneAuthenticator {}).build();
-  let cluster_config = ClusterConfig(vec![node]);
+  let node = NodeTcpConfigBuilder::new(ADDR, NoneAuthenticator {}).build();
+  let cluster_config = ClusterTcpConfig(vec![node]);
   let lb = RoundRobin::new();
   let session = new_session(&cluster_config, lb).expect("session should be created");
   let re_table_name = Regex::new(r"CREATE TABLE IF NOT EXISTS (\w+\.\w+)").unwrap();

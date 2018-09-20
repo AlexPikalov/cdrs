@@ -1,39 +1,48 @@
+#[cfg(feature = "ssl")]
+use openssl::ssl::SslConnector;
 use std::time::Duration;
 
 use authenticators::Authenticator;
 
-pub struct ClusterConfig<'a, A: Authenticator + Sized>(pub Vec<NodeConfig<'a, A>>);
+pub struct ClusterSslConfig<'a, A: Authenticator + Sized>(pub Vec<NodeSslConfig<'a, A>>);
 
 #[derive(Clone)]
-pub struct NodeConfig<'a, A> {
+pub struct NodeSslConfig<'a, A> {
   pub addr: &'a str,
-  pub max_size: u32,
   pub authenticator: A,
+  pub ssl_connector: SslConnector,
+  pub max_size: u32,
   pub min_idle: Option<u32>,
   pub max_lifetime: Option<Duration>,
   pub idle_timeout: Option<Duration>,
   pub connection_timeout: Duration,
 }
 
-pub struct NodeConfigBuilder<'a, A> {
+pub struct NodeSslConfigBuilder<'a, A> {
   addr: &'a str,
-  max_size: Option<u32>,
   authenticator: A,
+  ssl_connector: SslConnector,
+  max_size: Option<u32>,
   min_idle: Option<u32>,
   max_lifetime: Option<Duration>,
   idle_timeout: Option<Duration>,
   connection_timeout: Option<Duration>,
 }
 
-impl<'a, A: Authenticator + Sized> NodeConfigBuilder<'a, A> {
+impl<'a, A: Authenticator + Sized> NodeSslConfigBuilder<'a, A> {
   const DEFAULT_MAX_SIZE: u32 = 10;
   const DEFAULT_CONNECTION_TIMEOUT: Duration = Duration::from_secs(30);
 
-  pub fn new<'b>(addr: &'b str, authenticator: A) -> NodeConfigBuilder<'b, A> {
-    NodeConfigBuilder {
+  pub fn new<'b>(
+    addr: &'b str,
+    authenticator: A,
+    ssl_connector: SslConnector,
+  ) -> NodeSslConfigBuilder<'b, A> {
+    NodeSslConfigBuilder {
       addr,
-      max_size: None,
       authenticator,
+      ssl_connector,
+      max_size: None,
       min_idle: None,
       max_lifetime: None,
       idle_timeout: None,
@@ -71,10 +80,11 @@ impl<'a, A: Authenticator + Sized> NodeConfigBuilder<'a, A> {
     self
   }
 
-  pub fn build(self) -> NodeConfig<'a, A> {
-    NodeConfig {
+  pub fn build(self) -> NodeSslConfig<'a, A> {
+    NodeSslConfig {
       addr: self.addr,
       authenticator: self.authenticator,
+      ssl_connector: self.ssl_connector,
 
       max_size: self.max_size.unwrap_or(Self::DEFAULT_MAX_SIZE),
       min_idle: self.min_idle,

@@ -2,8 +2,10 @@ use r2d2;
 use std::cell::RefCell;
 use std::io::Write;
 
+#[cfg(feature = "ssl")]
+use cluster::{new_ssl_pool, ClusterSslConfig, SslConnectionPool};
 use cluster::{
-  new_tcp_pool, startup, CDRSSession, ClusterConfig, GetCompressor, GetConnection,
+  new_tcp_pool, startup, CDRSSession, ClusterTcpConfig, GetCompressor, GetConnection,
   TcpConnectionPool,
 };
 use error;
@@ -58,7 +60,7 @@ impl<
   > GetConnection<T, M> for Session<LB>
 {
   fn get_connection(&self) -> Option<r2d2::PooledConnection<M>> {
-    self.load_balancing.next().and_then(|pool| pool.try_get())
+    self.load_balancing.next().and_then(|pool| pool.get().ok())
   }
 }
 
@@ -103,7 +105,7 @@ impl<
 {}
 
 pub fn new<A, LB>(
-  node_configs: &ClusterConfig<'static, A>,
+  node_configs: &ClusterTcpConfig<'static, A>,
   mut load_balancing: LB,
 ) -> error::Result<Session<LB>>
 where
@@ -126,7 +128,7 @@ where
 }
 
 pub fn new_snappy<A, LB>(
-  node_configs: &ClusterConfig<'static, A>,
+  node_configs: &ClusterTcpConfig<'static, A>,
   mut load_balancing: LB,
 ) -> error::Result<Session<LB>>
 where
@@ -149,7 +151,7 @@ where
 }
 
 pub fn new_lz4<A, LB>(
-  node_configs: &ClusterConfig<'static, A>,
+  node_configs: &ClusterTcpConfig<'static, A>,
   mut load_balancing: LB,
 ) -> error::Result<Session<LB>>
 where
@@ -178,7 +180,6 @@ impl<'a, L> Session<L> {
     authenticator: A,
     events: Vec<SimpleServerEvent>,
   ) -> error::Result<(Listener<RefCell<TransportTcp>>, EventStream)> {
-    let authenticator = authenticator;
     let compression = self.get_compressor();
     let transport = TransportTcp::new(&node).map(RefCell::new)?;
 
@@ -192,97 +193,96 @@ impl<'a, L> Session<L> {
   }
 }
 
-// #[cfg(feature = "ssl")]
-// impl<'a, LB: LoadBalancingStrategy<RefCell<TransportTls>> + Sized, A: Authenticator + 'a + Sized>
-//   Session<LB, A>
-// {
-//   pub fn new_ssl(
-//     addrs: &Vec<&str>,
-//     mut load_balancing: LB,
-//     authenticator: A,
-//     ssl_connector: &SslConnector,
-//   ) -> error::Result<Session<LB, A>> {
-//     let mut nodes: Vec<RefCell<TransportTls>> = Vec::with_capacity(addrs.len());
+#[cfg(feature = "ssl")]
+pub fn new_ssl<A, LB>(
+  node_configs: &ClusterSslConfig<'static, A>,
+  mut load_balancing: LB,
+) -> error::Result<Session<LB>>
+where
+  A: Authenticator + 'static + Sized,
+  LB: LoadBalancingStrategy<SslConnectionPool<A>> + Sized,
+{
+  let mut nodes: Vec<SslConnectionPool<A>> = Vec::with_capacity(node_configs.0.len());
 
-//     for addr in addrs {
-//       let transport = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
-//       Self::startup(&transport, &authenticator)?;
-//       nodes.push(transport);
-//     }
+  for node_config in &node_configs.0 {
+    let node_connection_pool = new_ssl_pool(node_config.clone())?;
+    nodes.push(node_connection_pool);
+  }
 
-//     load_balancing.init(nodes);
+  load_balancing.init(nodes);
 
-//     Ok(Session {
-//       load_balancing,
-//       authenticator,
-//       compression: Compression::None,
-//     })
-//   }
+  Ok(Session {
+    load_balancing,
+    compression: Compression::None,
+  })
+}
 
-//   pub fn new_snappy_ssl(
-//     addrs: &Vec<&str>,
-//     mut load_balancing: LB,
-//     authenticator: A,
-//     ssl_connector: &SslConnector,
-//   ) -> error::Result<Session<LB, A>> {
-//     let mut nodes: Vec<RefCell<TransportTls>> = Vec::with_capacity(addrs.len());
+#[cfg(feature = "ssl")]
+pub fn new_snappy_ssl<A, LB>(
+  node_configs: &ClusterSslConfig<'static, A>,
+  mut load_balancing: LB,
+) -> error::Result<Session<LB>>
+where
+  A: Authenticator + 'static + Sized,
+  LB: LoadBalancingStrategy<SslConnectionPool<A>> + Sized,
+{
+  let mut nodes: Vec<SslConnectionPool<A>> = Vec::with_capacity(node_configs.0.len());
 
-//     for addr in addrs {
-//       let transport = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
-//       Self::startup(&transport, &authenticator)?;
-//       nodes.push(transport);
-//     }
+  for node_config in &node_configs.0 {
+    let node_connection_pool = new_ssl_pool(node_config.clone())?;
+    nodes.push(node_connection_pool);
+  }
 
-//     load_balancing.init(nodes);
+  load_balancing.init(nodes);
 
-//     Ok(Session {
-//       load_balancing,
-//       authenticator,
-//       compression: Compression::Snappy,
-//     })
-//   }
+  Ok(Session {
+    load_balancing,
+    compression: Compression::Snappy,
+  })
+}
 
-//   pub fn new_lz4_ssl(
-//     addrs: &Vec<&str>,
-//     mut load_balancing: LB,
-//     authenticator: A,
-//     ssl_connector: &SslConnector,
-//   ) -> error::Result<Session<LB, A>> {
-//     let mut nodes: Vec<RefCell<TransportTls>> = Vec::with_capacity(addrs.len());
+#[cfg(feature = "ssl")]
+pub fn new_lz4_ssl<A, LB>(
+  node_configs: &ClusterSslConfig<'static, A>,
+  mut load_balancing: LB,
+) -> error::Result<Session<LB>>
+where
+  A: Authenticator + 'static + Sized,
+  LB: LoadBalancingStrategy<SslConnectionPool<A>> + Sized,
+{
+  let mut nodes: Vec<SslConnectionPool<A>> = Vec::with_capacity(node_configs.0.len());
 
-//     for addr in addrs {
-//       let transport = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
-//       Self::startup(&transport, &authenticator)?;
-//       nodes.push(transport);
-//     }
+  for node_config in &node_configs.0 {
+    let node_connection_pool = new_ssl_pool(node_config.clone())?;
+    nodes.push(node_connection_pool);
+  }
 
-//     load_balancing.init(nodes);
+  load_balancing.init(nodes);
 
-//     Ok(Session {
-//       load_balancing,
-//       authenticator,
-//       compression: Compression::Lz4,
-//     })
-//   }
+  Ok(Session {
+    load_balancing,
+    compression: Compression::Lz4,
+  })
+}
 
-//   pub fn listen_ssl(
-//     &self,
-//     node: (&str, &SslConnector),
-//     events: Vec<SimpleServerEvent>,
-//   ) -> error::Result<(Listener<RefCell<TransportTls>>, EventStream)> {
-//     let (addr, ssl_connector) = node;
-//     let authenticator = self.authenticator.clone();
-//     let compression = self.get_compressor();
-//     let transport = self
-//       .get_transport()
-//       .ok_or("Cannot connect to a cluster - no nodes provided")?;
-//     let transport_cell = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
-//     Self::startup(&transport, &authenticator)?;
+#[cfg(feature = "ssl")]
+impl<'a, L> Session<L> {
+  pub fn listen_ssl<A: Authenticator + 'static + Sized>(
+    &self,
+    node: (&str, &SslConnector),
+    authenticator: A,
+    events: Vec<SimpleServerEvent>,
+  ) -> error::Result<(Listener<RefCell<TransportTls>>, EventStream)> {
+    let (addr_ref, ssl_connector_ref) = node;
+    let compression = self.get_compressor();
+    let transport = TransportTls::new(addr_ref, ssl_connector_ref).map(RefCell::new)?;
 
-//     let query_frame = Frame::new_req_register(events).into_cbytes();
-//     transport_cell.borrow_mut().write(query_frame.as_slice())?;
-//     parse_frame(&transport_cell, &compression)?;
+    startup(&transport, &authenticator)?;
 
-//     Ok(new_listener(transport_cell))
-//   }
-// }
+    let query_frame = Frame::new_req_register(events).into_cbytes();
+    transport.borrow_mut().write(query_frame.as_slice())?;
+    parse_frame(&transport, &compression)?;
+
+    Ok(new_listener(transport))
+  }
+}

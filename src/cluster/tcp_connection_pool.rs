@@ -5,19 +5,17 @@ use std::io;
 use std::io::Write;
 
 use authenticators::Authenticator;
-use cluster::NodeConfig;
+use cluster::NodeTcpConfig;
 use compression::Compression;
 use error;
 use frame::parser::parse_frame;
 use frame::{Frame, IntoBytes, Opcode};
-#[cfg(feature = "ssl")]
-use transport::TransportTls;
 use transport::{CDRSTransport, TransportTcp};
 
 pub type TcpConnectionPool<A> = Pool<TcpConnectionsManager<A>>;
 
 pub fn new_tcp_pool<A: Authenticator + Send + Sync + 'static>(
-  node_config: NodeConfig<'static, A>,
+  node_config: NodeTcpConfig<'static, A>,
 ) -> error::Result<TcpConnectionPool<A>> {
   let manager = TcpConnectionsManager::new(node_config.addr, node_config.authenticator);
 

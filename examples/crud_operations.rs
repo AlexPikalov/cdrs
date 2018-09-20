@@ -9,7 +9,7 @@ use std::collections::HashMap;
 
 use cdrs::authenticators::NoneAuthenticator;
 use cdrs::cluster::session::{new as new_session, Session};
-use cdrs::cluster::{ClusterConfig, NodeConfigBuilder, TcpConnectionPool};
+use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
 use cdrs::load_balancing::RoundRobin;
 use cdrs::query::*;
 
@@ -20,8 +20,8 @@ use cdrs::types::prelude::*;
 type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;
 
 fn main() {
-  let node = NodeConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
-  let cluster_config = ClusterConfig(vec![node]);
+  let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+  let cluster_config = ClusterTcpConfig(vec![node]);
   let no_compression: CurrentSession =
     new_session(&cluster_config, RoundRobin::new()).expect("session should be created");
 

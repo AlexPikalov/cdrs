@@ -8,7 +8,7 @@ use std::thread;
 
 use cdrs::authenticators::NoneAuthenticator;
 use cdrs::cluster::session::{new as new_session, Session};
-use cdrs::cluster::{ClusterConfig, NodeConfigBuilder, TcpConnectionPool};
+use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
 use cdrs::load_balancing::RoundRobinSync;
 use cdrs::query::*;
 
@@ -19,8 +19,8 @@ use cdrs::types::prelude::*;
 type CurrentSession = Session<RoundRobinSync<TcpConnectionPool<NoneAuthenticator>>>;
 
 fn main() {
-  let node = NodeConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
-  let cluster_config = ClusterConfig(vec![node]);
+  let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+  let cluster_config = ClusterTcpConfig(vec![node]);
   let lb = RoundRobinSync::new();
   let no_compression: Arc<CurrentSession> =
     Arc::new(new_session(&cluster_config, lb).expect("session should be created"));

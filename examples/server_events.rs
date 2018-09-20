@@ -1,12 +1,11 @@
 extern crate cdrs;
 
 use std::iter::Iterator;
-use std::sync::Arc;
 use std::thread;
 
 use cdrs::authenticators::NoneAuthenticator;
-use cdrs::cluster::session::{new as new_session, Session};
-use cdrs::cluster::{ClusterConfig, NodeConfigBuilder, TcpConnectionPool};
+use cdrs::cluster::session::new as new_session;
+use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder};
 use cdrs::compression::Compression;
 use cdrs::frame::events::{ChangeType, ServerEvent, SimpleServerEvent, Target};
 use cdrs::load_balancing::RoundRobin;
@@ -14,8 +13,8 @@ use cdrs::load_balancing::RoundRobin;
 const _ADDR: &'static str = "127.0.0.1:9042";
 
 fn main() {
-  let node = NodeConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
-  let cluster_config = ClusterConfig(vec![node]);
+  let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+  let cluster_config = ClusterTcpConfig(vec![node]);
   let lb = RoundRobin::new();
   let no_compression = new_session(&cluster_config, lb).expect("session should be created");
 

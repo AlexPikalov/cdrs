@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use cdrs::authenticators::NoneAuthenticator;
 use cdrs::cluster::session::{new as new_session, Session};
-use cdrs::cluster::{ClusterConfig, NodeConfigBuilder, TcpConnectionPool};
+use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
 use cdrs::load_balancing::RoundRobin;
 use cdrs::query::QueryExecutor;
 use cdrs::types::map::Map;
@@ -15,8 +15,8 @@ const ADDR: &'static str = "127.0.0.1:9042";
 #[test]
 #[ignore]
 fn create_keyspace() {
-        let node = NodeConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
-        let cluster_config = ClusterConfig(vec![node]);
+        let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+        let cluster_config = ClusterTcpConfig(vec![node]);
         let lb = RoundRobin::new();
         let session = new_session(&cluster_config, lb).expect("session should be created");
 
@@ -80,8 +80,8 @@ fn create_keyspace() {
 #[test]
 #[ignore]
 fn alter_keyspace() {
-        let node = NodeConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
-        let cluster_config = ClusterConfig(vec![node]);
+        let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+        let cluster_config = ClusterTcpConfig(vec![node]);
         let lb = RoundRobin::new();
         let session = new_session(&cluster_config, lb).expect("session should be created");
 
@@ -136,8 +136,8 @@ fn alter_keyspace() {
 #[test]
 #[ignore]
 fn use_keyspace() {
-        let node = NodeConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
-        let cluster_config = ClusterConfig(vec![node]);
+        let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+        let cluster_config = ClusterTcpConfig(vec![node]);
         let lb = RoundRobin::new();
         let session = new_session(&cluster_config, lb).expect("session should be created");
 
@@ -165,8 +165,8 @@ fn use_keyspace() {
 #[test]
 #[ignore]
 fn drop_keyspace() {
-        let node = NodeConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
-        let cluster_config = ClusterConfig(vec![node]);
+        let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+        let cluster_config = ClusterTcpConfig(vec![node]);
         let lb = RoundRobin::new();
         let session = new_session(&cluster_config, lb).expect("session should be created");
 

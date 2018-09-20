@@ -1,16 +1,24 @@
 use r2d2;
 use std::cell;
 
-mod config;
-mod connection_pool;
+#[cfg(feature = "ssl")]
+mod config_ssl;
+mod config_tcp;
 mod pager;
 pub mod session;
+#[cfg(feature = "ssl")]
+mod ssl_connection_pool;
+mod tcp_connection_pool;
 
-pub use cluster::config::{ClusterConfig, NodeConfig, NodeConfigBuilder};
-pub use cluster::connection_pool::{
+#[cfg(feature = "ssl")]
+pub use cluster::config_ssl::{ClusterSslConfig, NodeSslConfig, NodeSslConfigBuilder};
+pub use cluster::config_tcp::{ClusterTcpConfig, NodeTcpConfig, NodeTcpConfigBuilder};
+pub use cluster::pager::{QueryPager, SessionPager};
+#[cfg(feature = "ssl")]
+pub use cluster::ssl_connection_pool::{new_ssl_pool, SslConnectionPool, SslConnectionsManager};
+pub use cluster::tcp_connection_pool::{
   new_tcp_pool, startup, TcpConnectionPool, TcpConnectionsManager,
 };
-pub use cluster::pager::{QueryPager, SessionPager};
 
 use compression::Compression;
 use error;
