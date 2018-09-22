@@ -1,5 +1,9 @@
 # CDRS [![crates.io version](https://img.shields.io/crates/v/cdrs.svg)](https://crates.io/crates/cdrs) [![Build Status](https://travis-ci.org/AlexPikalov/cdrs.svg?branch=master)](https://travis-ci.org/AlexPikalov/cdrs) [![Build status](https://ci.appveyor.com/api/projects/status/sirj4flws6o0dvb7/branch/master?svg=true)](https://ci.appveyor.com/project/harrydevnull/cdrs/branch/master)
 
+<p align="center">
+  <img src="./cdrs-logo.png" alt="CDRS - Apache Cassandra driver"/>
+</p>
+
 CDRS is Apache **C**assandra **d**river written in pure **R**u**s**t.
 
 ## Features
@@ -58,8 +62,8 @@ This example configures a cluster consisting of a single node, and uses round ro
 
 ## Documentation and examples
 
-- User guide
-- Examples
+- [User guide](./documentation)
+- [Examples](./examples)
 - API docs (release)
 
 ## License
