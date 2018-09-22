@@ -50,7 +50,7 @@ Once `Session` is successfully created it can be used for communication with Clu
 
 ## Making queries
 
-By default `Session` structure doesn't provide an API for making queries. Query functionality bacomes enabled after importing one or few of following traits:
+By default `Session` structure doesn't provide an API for making queries. Query functionality becomes enabled after importing one or few of following traits:
 
 ```rust
 use cdrs::query::QueryExecutor;
