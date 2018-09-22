@@ -17,7 +17,13 @@ CDRS is Apache **C**assandra **d**river written in pure **R**u**s**t.
 - [ScyllaDB](https://www.scylladb.com/) support;
 - Server events listening;
 - Multiple CQL version support (3, 4), full spec implementation;
-- Query tracing information;
+- Query tracing information.
+
+## Documentation and examples
+
+- [User guide](./documentation).
+- [Examples](./examples).
+- API docs (release).
 
 ## Getting started
 
@@ -26,14 +32,6 @@ Add CDRS to your `Cargo.toml` file as a dependency:
 ```toml
 cdrs = { version = "2" }
 ```
-
-or
-
-```toml
-cdrs = { version = "2", features = ["ssl"] }
-```
-
-to enable SSL feature.
 
 Then add it as an external crate to your `main.rs`:
 
@@ -59,12 +57,6 @@ fn main() {
 ```
 
 This example configures a cluster consisting of a single node, and uses round robin load balancing and default `r2d2` values for connection pool.
-
-## Documentation and examples
-
-- [User guide](./documentation)
-- [Examples](./examples)
-- API docs (release)
 
 ## License
 
