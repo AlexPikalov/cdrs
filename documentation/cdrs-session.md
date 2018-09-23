@@ -12,7 +12,7 @@ let session = new_session(&cluster_config, RoundRobin::new())
   .expect("session should be created");
 ```
 
-Here, in order to create new session a [cluster config](./cluster-configuration.rs) and a load balancing strategy must be provided. Load balancing strategy is used when some query should be performed by driver. At that moment load balancer returns a pool of connections for a node that was picked up in accordance to a strategy. After that CDRS gets from r2d2 pool one of available connections, and then this connection will be used for frames exchange. Such logic guarantees that nodes' loads are balanced and there is no need to establish new connection if there is a one that is released after previous query.
+Here, in order to create new session a [cluster config](./cluster-configuration.md) and a load balancing strategy must be provided. Load balancing strategy is used when some query should be performed by driver. At that moment load balancer returns a pool of connections for a node that was picked up in accordance to a strategy. After that CDRS gets from r2d2 pool one of available connections, and then this connection will be used for frames exchange. Such logic guarantees that nodes' loads are balanced and there is no need to establish new connection if there is a one that is released after previous query.
 
 This is how the architecture looks like:
 
@@ -50,7 +50,7 @@ Once `Session` is successfully created it can be used for communication with Clu
 
 ## Making queries
 
-By default `Session` structure doesn't provide an API for making queries. Query functionality bacomes enabled after importing one or few of following traits:
+By default `Session` structure doesn't provide an API for making queries. Query functionality becomes enabled after importing one or few of following traits:
 
 ```rust
 use cdrs::query::QueryExecutor;
@@ -68,7 +68,7 @@ use cdrs::query::ExecExecutor;
 use cdrs::query::BatchExecutor;
 ```
 
-Detailed Query API and those traits overview please find in [making query](./making-query.rs) section.
+Detailed Query API and those traits overview please find in [making query](./making-query.md) section.
 
 ### Reference
 
