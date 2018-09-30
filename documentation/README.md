@@ -4,7 +4,7 @@ TDB
 
 - [Cluster configuration](./cluster-configuration.md).
 - [CDRS session](./cdrs-session.md):
-- [SSL session](./cdrs-session.md) TODO: fix link
+- [SSL session](./cdrs-session.md)
 - [Making queries](./making-query.md).
 - [Query values](./query-values.md)
 - [Cassandra-to-Rust deserialization](./deserialization.md).
