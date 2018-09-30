@@ -73,6 +73,8 @@ let values = query_values!(1 as i32, 1 as i64);
 session.query_with_values(insert_numbers_query, values).unwrap();
 ```
 
+Here we've provided a generic query string for inserting numbers into `my.numbers` table. This query string doesn't have actual values hardcoded so exactly the same query can be used for multiple insert operations. Such sort of query strings can be used for Prepare-and-Execute operations when a query string is sent just once during Prepare step and then Execution operation is performed each time new values should be inserted. For more detailes see [Preparing and Executing](./preparing-and-executing-queries.md) section.
+
 However the full controll over the query can be achieved via `cdrs::query::QueryParamsBuilder`:
 
 ```rust
@@ -87,10 +89,12 @@ session.query_with_params("SELECT * FROM my.store", query_params).unwrap();
 
 `QueryParamsBuilder` allows to precise all possible parameters of a query: consistency, values, paging properties and others. To get all parameters please refer to CDRS API [docs](https://docs.rs/cdrs/2.0.0-beta.1/cdrs/query/struct.QueryParamsBuilder.html).
 
-Usually developers don't need to use `query_with_params` as almost all functionality is provided by such ergonomic methods as `query_with_params`, `pager` etc.
+Usually developers don't need to use `query_with_params` as almost all functionality is provided by such ergonomic methods as `query_with_values`, `pager` etc.
 
 ### Reference
 
 1. `QueryParamsBuilder` API docs https://docs.rs/cdrs/2.0.0-beta.1/cdrs/query/struct.QueryParamsBuilder.html.
 
-2. The Cassandra Query Language (CQL) http://cassandra.apache.org/doc/4.0/cql/
+2. The Cassandra Query Language (CQL) http://cassandra.apache.org/doc/4.0/cql/.
+
+3. [CDRS: Preparing and executing queries](./preparing-and-executing-queries.md)
