@@ -5,26 +5,25 @@ extern crate cdrs_helpers_derive;
 #[macro_use]
 extern crate maplit;
 
-use std::cell::RefCell;
 use std::collections::HashMap;
 
 use cdrs::authenticators::NoneAuthenticator;
-use cdrs::cluster::{Cluster, Session};
+use cdrs::cluster::session::{new as new_session, Session};
+use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
 use cdrs::load_balancing::RoundRobin;
 use cdrs::query::*;
-use cdrs::transport::TransportTcp;
 
 use cdrs::frame::IntoBytes;
 use cdrs::types::from_cdrs::FromCDRSByName;
 use cdrs::types::prelude::*;
 
-type CurrentSession = Session<RoundRobin<RefCell<TransportTcp>>, NoneAuthenticator>;
+type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;
 
 fn main() {
-  let cluster = Cluster::new(vec!["127.0.0.1:9042"], NoneAuthenticator {});
-  let no_compression = cluster
-    .connect(RoundRobin::new())
-    .expect("No compression connection error");
+  let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+  let cluster_config = ClusterTcpConfig(vec![node]);
+  let no_compression: CurrentSession =
+    new_session(&cluster_config, RoundRobin::new()).expect("session should be created");
 
   create_keyspace(&no_compression);
   create_udt(&no_compression);

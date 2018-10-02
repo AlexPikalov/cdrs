@@ -1,18 +1,24 @@
+use r2d2;
 use std::cell::RefCell;
-use std::io;
 use std::io::Write;
 
-use cluster::{CDRSSession, GetCompressor, GetTransport, SessionPager};
+#[cfg(feature = "ssl")]
+use cluster::{new_ssl_pool, ClusterSslConfig, SslConnectionPool};
+use cluster::{
+  new_tcp_pool, startup, CDRSSession, ClusterTcpConfig, GetCompressor, GetConnection,
+  TcpConnectionPool,
+};
 use error;
 use load_balancing::LoadBalancingStrategy;
 use transport::{CDRSTransport, TransportTcp};
 
 use authenticators::Authenticator;
+use cluster::SessionPager;
 use compression::Compression;
 use events::{new_listener, EventStream, Listener};
 use frame::events::SimpleServerEvent;
 use frame::parser::parse_frame;
-use frame::{Frame, IntoBytes, Opcode};
+use frame::{Frame, IntoBytes};
 use query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
 
 #[cfg(feature = "ssl")]
@@ -20,236 +26,186 @@ use openssl::ssl::SslConnector;
 #[cfg(feature = "ssl")]
 use transport::TransportTls;
 
-pub struct Session<LB, A> {
+/// CDRS session that holds one pool of authorized connecitons per node.
+/// `compression` field contains data compressor that will be used
+/// for decompressing data received from Cassandra server.
+pub struct Session<LB> {
   load_balancing: LB,
   #[allow(dead_code)]
-  authenticator: A,
   pub compression: Compression,
 }
 
-impl<'a, LB, A> GetCompressor<'a> for Session<LB, A> {
+impl<'a, LB> GetCompressor<'a> for Session<LB> {
+  /// Returns compression that current session has.
   fn get_compressor(&self) -> Compression {
     self.compression.clone()
   }
 }
 
-impl<'a, LB: Sized, A: Authenticator + 'a + Sized> Session<LB, A> {
-  pub fn paged<T: CDRSTransport + 'static>(
+impl<'a, LB: Sized> Session<LB> {
+  /// Basing on current session returns new `SessionPager` that can be used
+  /// for performing paged queries.
+  pub fn paged<
+    T: CDRSTransport + 'static,
+    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error>,
+  >(
     &'a self,
     page_size: i32,
-  ) -> SessionPager<'a, Session<LB, A>, T>
+  ) -> SessionPager<'a, M, Session<LB>, T>
   where
-    Session<LB, A>: CDRSSession<'static, T>,
+    Session<LB>: CDRSSession<'static, T, M>,
   {
     return SessionPager::new(self, page_size);
   }
-
-  fn startup<'b, T: CDRSTransport + 'static>(
-    transport: &RefCell<T>,
-    session_authenticator: &'b A,
-  ) -> error::Result<()> {
-    let ref mut compression = Compression::None;
-    let startup_frame = Frame::new_req_startup(compression.as_str()).into_cbytes();
-
-    transport.borrow_mut().write(startup_frame.as_slice())?;
-
-    let start_response = try!(parse_frame(transport, compression));
-
-    if start_response.opcode == Opcode::Ready {
-      return Ok(());
-    }
-
-    if start_response.opcode == Opcode::Authenticate {
-      let body = start_response.get_body()?;
-      let authenticator = body.get_authenticator().expect(
-        "Cassandra Server did communicate that it needed password
-                authentication but the auth schema was missing in the body response",
-      );
-
-      // This creates a new scope; avoiding a clone
-      // and we check whether
-      // 1. any authenticators has been passed in by client and if not send error back
-      // 2. authenticator is provided by the client and `auth_scheme` presented by
-      //      the server and client are same if not send error back
-      // 3. if it falls through it means the preliminary conditions are true
-
-      let auth_check = session_authenticator
-        .get_cassandra_name()
-        .ok_or(error::Error::General(
-          "No authenticator was provided".to_string(),
-        ))
-        .map(|auth| {
-          if authenticator != auth {
-            let io_err = io::Error::new(
-              io::ErrorKind::NotFound,
-              format!(
-                "Unsupported type of authenticator. {:?} got,
-                             but {} is supported.",
-                authenticator, auth
-              ),
-            );
-            return Err(error::Error::Io(io_err));
-          }
-          Ok(())
-        });
-
-      if let Err(err) = auth_check {
-        return Err(err);
-      }
-
-      let auth_token_bytes = session_authenticator.get_auth_token().into_cbytes();
-      try!(
-        transport.borrow_mut().write(
-          Frame::new_req_auth_response(auth_token_bytes)
-            .into_cbytes()
-            .as_slice()
-        )
-      );
-      try!(parse_frame(transport, compression));
-
-      return Ok(());
-    }
-
-    unimplemented!();
-  }
 }
 
 impl<
-    'a,
-    T: CDRSTransport + 'a,
-    LB: LoadBalancingStrategy<RefCell<T>> + Sized,
-    A: Authenticator + Sized,
-  > GetTransport<'a, T> for Session<LB, A>
+    T: CDRSTransport + Send + Sync + 'static,
+    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+    LB: LoadBalancingStrategy<r2d2::Pool<M>>,
+  > GetConnection<T, M> for Session<LB>
 {
-  fn get_transport(&self) -> Option<&RefCell<T>> {
-    self.load_balancing.next()
+  fn get_connection(&self) -> Option<r2d2::PooledConnection<M>> {
+    self.load_balancing.next().and_then(|pool| pool.get().ok())
   }
 }
 
 impl<
     'a,
     T: CDRSTransport + 'static,
-    LB: LoadBalancingStrategy<RefCell<T>> + Sized,
-    A: Authenticator + Sized,
-  > QueryExecutor<T> for Session<LB, A>
-{
-}
+    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+    LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
+  > QueryExecutor<T, M> for Session<LB>
+{}
 
 impl<
     'a,
     T: CDRSTransport + 'static,
-    LB: LoadBalancingStrategy<RefCell<T>> + Sized,
-    A: Authenticator + Sized,
-  > PrepareExecutor<T> for Session<LB, A>
-{
-}
+    LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
+    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+  > PrepareExecutor<T, M> for Session<LB>
+{}
 
 impl<
     'a,
     T: CDRSTransport + 'static,
-    LB: LoadBalancingStrategy<RefCell<T>> + Sized,
-    A: Authenticator + Sized,
-  > ExecExecutor<T> for Session<LB, A>
-{
-}
+    LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
+    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+  > ExecExecutor<T, M> for Session<LB>
+{}
 
 impl<
     'a,
     T: CDRSTransport + 'static,
-    LB: LoadBalancingStrategy<RefCell<T>> + Sized,
-    A: Authenticator + Sized,
-  > BatchExecutor<T> for Session<LB, A>
-{
-}
+    LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
+    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+  > BatchExecutor<T, M> for Session<LB>
+{}
 
 impl<
     'a,
     T: CDRSTransport + 'static,
-    LB: LoadBalancingStrategy<RefCell<T>> + Sized,
-    A: Authenticator + Sized,
-  > CDRSSession<'a, T> for Session<LB, A>
+    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+    LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
+  > CDRSSession<'a, T, M> for Session<LB>
+{}
+
+/// Creates new session that will perform queries without any compression. `Compression` type
+/// can be changed at any time.
+/// As a parameter it takes:
+/// * cluster config
+/// * load balancing strategy (cannot be changed during `Session` life time).
+pub fn new<A, LB>(
+  node_configs: &ClusterTcpConfig<'static, A>,
+  mut load_balancing: LB,
+) -> error::Result<Session<LB>>
+where
+  A: Authenticator + 'static + Sized,
+  LB: LoadBalancingStrategy<TcpConnectionPool<A>> + Sized,
 {
-}
+  let mut nodes: Vec<TcpConnectionPool<A>> = Vec::with_capacity(node_configs.0.len());
 
-impl<'a, LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized, A: Authenticator + 'a + Sized>
-  Session<LB, A>
-{
-  pub fn new(
-    addrs: &Vec<&str>,
-    mut load_balancing: LB,
-    authenticator: A,
-  ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<RefCell<TransportTcp>> = Vec::with_capacity(addrs.len());
-
-    for addr in addrs {
-      let transport = RefCell::new(TransportTcp::new(&addr)?);
-      Self::startup(&transport, &authenticator)?;
-      nodes.push(transport);
-    }
-
-    load_balancing.init(nodes);
-
-    Ok(Session {
-      load_balancing,
-      authenticator,
-      compression: Compression::None,
-    })
+  for node_config in &node_configs.0 {
+    let node_connection_pool = new_tcp_pool(node_config.clone())?;
+    nodes.push(node_connection_pool);
   }
 
-  pub fn new_snappy(
-    addrs: &Vec<&str>,
-    mut load_balancing: LB,
-    authenticator: A,
-  ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<RefCell<TransportTcp>> = Vec::with_capacity(addrs.len());
+  load_balancing.init(nodes);
 
-    for addr in addrs {
-      let transport = RefCell::new(TransportTcp::new(&addr)?);
-      Self::startup(&transport, &authenticator)?;
-      nodes.push(transport);
-    }
+  Ok(Session {
+    load_balancing,
+    compression: Compression::None,
+  })
+}
 
-    load_balancing.init(nodes);
+/// Creates new session that will perform queries with Snappy compression. `Compression` type
+/// can be changed at any time.
+/// As a parameter it takes:
+/// * cluster config
+/// * load balancing strategy (cannot be changed during `Session` life time).
+pub fn new_snappy<A, LB>(
+  node_configs: &ClusterTcpConfig<'static, A>,
+  mut load_balancing: LB,
+) -> error::Result<Session<LB>>
+where
+  A: Authenticator + 'static + Sized,
+  LB: LoadBalancingStrategy<TcpConnectionPool<A>> + Sized,
+{
+  let mut nodes: Vec<TcpConnectionPool<A>> = Vec::with_capacity(node_configs.0.len());
 
-    Ok(Session {
-      load_balancing,
-      authenticator,
-      compression: Compression::Snappy,
-    })
+  for node_config in &node_configs.0 {
+    let node_connection_pool = new_tcp_pool(node_config.clone())?;
+    nodes.push(node_connection_pool);
   }
 
-  pub fn new_lz4(
-    addrs: &Vec<&str>,
-    mut load_balancing: LB,
-    authenticator: A,
-  ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<RefCell<TransportTcp>> = Vec::with_capacity(addrs.len());
+  load_balancing.init(nodes);
 
-    for addr in addrs {
-      let transport = RefCell::new(TransportTcp::new(&addr)?);
-      Self::startup(&transport, &authenticator)?;
-      nodes.push(transport);
-    }
+  Ok(Session {
+    load_balancing,
+    compression: Compression::Snappy,
+  })
+}
 
-    load_balancing.init(nodes);
+/// Creates new session that will perform queries with LZ4 compression. `Compression` type
+/// can be changed at any time.
+/// As a parameter it takes:
+/// * cluster config
+/// * load balancing strategy (cannot be changed during `Session` life time).
+pub fn new_lz4<A, LB>(
+  node_configs: &ClusterTcpConfig<'static, A>,
+  mut load_balancing: LB,
+) -> error::Result<Session<LB>>
+where
+  A: Authenticator + 'static + Sized,
+  LB: LoadBalancingStrategy<TcpConnectionPool<A>> + Sized,
+{
+  let mut nodes: Vec<TcpConnectionPool<A>> = Vec::with_capacity(node_configs.0.len());
 
-    Ok(Session {
-      load_balancing,
-      authenticator,
-      compression: Compression::Lz4,
-    })
+  for node_config in &node_configs.0 {
+    let node_connection_pool = new_tcp_pool(node_config.clone())?;
+    nodes.push(node_connection_pool);
   }
 
-  pub fn listen(
+  load_balancing.init(nodes);
+
+  Ok(Session {
+    load_balancing,
+    compression: Compression::Lz4,
+  })
+}
+
+impl<'a, L> Session<L> {
+  /// Returns new event listener.
+  pub fn listen<A: Authenticator + 'static + Sized>(
     &self,
     node: &str,
+    authenticator: A,
     events: Vec<SimpleServerEvent>,
   ) -> error::Result<(Listener<RefCell<TransportTcp>>, EventStream)> {
-    let authenticator = self.authenticator.clone();
     let compression = self.get_compressor();
     let transport = TransportTcp::new(&node).map(RefCell::new)?;
 
-    Self::startup(&transport, &authenticator)?;
+    startup(&transport, &authenticator)?;
 
     let query_frame = Frame::new_req_register(events).into_cbytes();
     transport.borrow_mut().write(query_frame.as_slice())?;
@@ -259,97 +215,112 @@ impl<'a, LB: LoadBalancingStrategy<RefCell<TransportTcp>> + Sized, A: Authentica
   }
 }
 
+/// Creates new SSL-based session that will perform queries without any compression. `Compression` type
+/// can be changed at any time.
+/// As a parameter it takes:
+/// * SSL cluster config
+/// * load balancing strategy (cannot be changed during `Session` life time).
 #[cfg(feature = "ssl")]
-impl<'a, LB: LoadBalancingStrategy<RefCell<TransportTls>> + Sized, A: Authenticator + 'a + Sized>
-  Session<LB, A>
+pub fn new_ssl<A, LB>(
+  node_configs: &ClusterSslConfig<'static, A>,
+  mut load_balancing: LB,
+) -> error::Result<Session<LB>>
+where
+  A: Authenticator + 'static + Sized,
+  LB: LoadBalancingStrategy<SslConnectionPool<A>> + Sized,
 {
-  pub fn new_ssl(
-    addrs: &Vec<&str>,
-    mut load_balancing: LB,
-    authenticator: A,
-    ssl_connector: &SslConnector,
-  ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<RefCell<TransportTls>> = Vec::with_capacity(addrs.len());
+  let mut nodes: Vec<SslConnectionPool<A>> = Vec::with_capacity(node_configs.0.len());
 
-    for addr in addrs {
-      let transport = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
-      Self::startup(&transport, &authenticator)?;
-      nodes.push(transport);
-    }
-
-    load_balancing.init(nodes);
-
-    Ok(Session {
-      load_balancing,
-      authenticator,
-      compression: Compression::None,
-    })
+  for node_config in &node_configs.0 {
+    let node_connection_pool = new_ssl_pool(node_config.clone())?;
+    nodes.push(node_connection_pool);
   }
 
-  pub fn new_snappy_ssl(
-    addrs: &Vec<&str>,
-    mut load_balancing: LB,
-    authenticator: A,
-    ssl_connector: &SslConnector,
-  ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<RefCell<TransportTls>> = Vec::with_capacity(addrs.len());
+  load_balancing.init(nodes);
 
-    for addr in addrs {
-      let transport = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
-      Self::startup(&transport, &authenticator)?;
-      nodes.push(transport);
-    }
+  Ok(Session {
+    load_balancing,
+    compression: Compression::None,
+  })
+}
 
-    load_balancing.init(nodes);
+/// Creates new SSL-based session that will perform queries with Snappy compression. `Compression` type
+/// can be changed at any time.
+/// As a parameter it takes:
+/// * SSL cluster config
+/// * load balancing strategy (cannot be changed during `Session` life time).
+#[cfg(feature = "ssl")]
+pub fn new_snappy_ssl<A, LB>(
+  node_configs: &ClusterSslConfig<'static, A>,
+  mut load_balancing: LB,
+) -> error::Result<Session<LB>>
+where
+  A: Authenticator + 'static + Sized,
+  LB: LoadBalancingStrategy<SslConnectionPool<A>> + Sized,
+{
+  let mut nodes: Vec<SslConnectionPool<A>> = Vec::with_capacity(node_configs.0.len());
 
-    Ok(Session {
-      load_balancing,
-      authenticator,
-      compression: Compression::Snappy,
-    })
+  for node_config in &node_configs.0 {
+    let node_connection_pool = new_ssl_pool(node_config.clone())?;
+    nodes.push(node_connection_pool);
   }
 
-  pub fn new_lz4_ssl(
-    addrs: &Vec<&str>,
-    mut load_balancing: LB,
-    authenticator: A,
-    ssl_connector: &SslConnector,
-  ) -> error::Result<Session<LB, A>> {
-    let mut nodes: Vec<RefCell<TransportTls>> = Vec::with_capacity(addrs.len());
+  load_balancing.init(nodes);
 
-    for addr in addrs {
-      let transport = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
-      Self::startup(&transport, &authenticator)?;
-      nodes.push(transport);
-    }
+  Ok(Session {
+    load_balancing,
+    compression: Compression::Snappy,
+  })
+}
 
-    load_balancing.init(nodes);
+/// Creates new SSL-based session that will perform queries with LZ4 compression. `Compression` type
+/// can be changed at any time.
+/// As a parameter it takes:
+/// * SSL cluster config
+/// * load balancing strategy (cannot be changed during `Session` life time).
+#[cfg(feature = "ssl")]
+pub fn new_lz4_ssl<A, LB>(
+  node_configs: &ClusterSslConfig<'static, A>,
+  mut load_balancing: LB,
+) -> error::Result<Session<LB>>
+where
+  A: Authenticator + 'static + Sized,
+  LB: LoadBalancingStrategy<SslConnectionPool<A>> + Sized,
+{
+  let mut nodes: Vec<SslConnectionPool<A>> = Vec::with_capacity(node_configs.0.len());
 
-    Ok(Session {
-      load_balancing,
-      authenticator,
-      compression: Compression::Lz4,
-    })
+  for node_config in &node_configs.0 {
+    let node_connection_pool = new_ssl_pool(node_config.clone())?;
+    nodes.push(node_connection_pool);
   }
 
-  pub fn listen_ssl(
+  load_balancing.init(nodes);
+
+  Ok(Session {
+    load_balancing,
+    compression: Compression::Lz4,
+  })
+}
+
+/// Returns new SSL-based event listener.
+#[cfg(feature = "ssl")]
+impl<'a, L> Session<L> {
+  pub fn listen_ssl<A: Authenticator + 'static + Sized>(
     &self,
     node: (&str, &SslConnector),
+    authenticator: A,
     events: Vec<SimpleServerEvent>,
   ) -> error::Result<(Listener<RefCell<TransportTls>>, EventStream)> {
-    let (addr, ssl_connector) = node;
-    let authenticator = self.authenticator.clone();
+    let (addr_ref, ssl_connector_ref) = node;
     let compression = self.get_compressor();
-    let transport = self
-      .get_transport()
-      .ok_or("Cannot connect to a cluster - no nodes provided")?;
-    let transport_cell = RefCell::new(TransportTls::new(&addr, ssl_connector)?);
-    Self::startup(&transport, &authenticator)?;
+    let transport = TransportTls::new(addr_ref, ssl_connector_ref).map(RefCell::new)?;
+
+    startup(&transport, &authenticator)?;
 
     let query_frame = Frame::new_req_register(events).into_cbytes();
-    transport_cell.borrow_mut().write(query_frame.as_slice())?;
-    parse_frame(&transport_cell, &compression)?;
+    transport.borrow_mut().write(query_frame.as_slice())?;
+    parse_frame(&transport, &compression)?;
 
-    Ok(new_listener(transport_cell))
+    Ok(new_listener(transport))
   }
 }

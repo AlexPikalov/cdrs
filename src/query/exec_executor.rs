@@ -1,6 +1,9 @@
-use cluster::{GetCompressor, GetTransport};
+use r2d2;
+use std::cell::RefCell;
+
+use cluster::{GetCompressor, GetConnection};
 use error;
-use frame::parser::parse_frame;
+use frame::parser::from_connection;
 use frame::{Flag, Frame, IntoBytes};
 use query::{QueryParams, QueryParamsBuilder, QueryValues};
 use transport::CDRSTransport;
@@ -8,8 +11,10 @@ use types::CBytesShort;
 
 pub type PreparedQuery = CBytesShort;
 
-pub trait ExecExecutor<T: CDRSTransport + 'static>:
-  GetTransport<'static, T> + GetCompressor<'static>
+pub trait ExecExecutor<
+  T: CDRSTransport + 'static,
+  M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+>: GetConnection<T, M> + GetCompressor<'static>
 {
   fn exec_with_params_tw(
     &self,
@@ -30,7 +35,7 @@ pub trait ExecExecutor<T: CDRSTransport + 'static>:
     let ref compression = self.get_compressor();
 
     self
-      .get_transport()
+      .get_connection()
       .ok_or(error::Error::from("Unable to get transport"))
       .and_then(|transport_cell| {
         let write_res = transport_cell
@@ -39,7 +44,7 @@ pub trait ExecExecutor<T: CDRSTransport + 'static>:
           .map_err(error::Error::from);
         write_res.map(|_| transport_cell)
       })
-      .and_then(|transport_cell| parse_frame(transport_cell, compression))
+      .and_then(|transport_cell| from_connection(&transport_cell, compression))
   }
 
   fn exec_with_params(

@@ -1,6 +1,6 @@
 use types::CBytes;
 
-pub trait Authenticator: Clone {
+pub trait Authenticator: Clone + Send + Sync {
     fn get_auth_token(&self) -> CBytes;
     fn get_cassandra_name(&self) -> Option<&str>;
 }
@@ -13,8 +13,10 @@ pub struct PasswordAuthenticator<'a> {
 
 impl<'a> PasswordAuthenticator<'a> {
     pub fn new<'b>(username: &'b str, password: &'b str) -> PasswordAuthenticator<'b> {
-        PasswordAuthenticator { username: username,
-                                password: password, }
+        PasswordAuthenticator {
+            username: username,
+            password: password,
+        }
     }
 }
 
@@ -64,8 +66,10 @@ mod tests {
     #[test]
     fn test_password_authenticator_get_cassandra_name() {
         let auth = PasswordAuthenticator::new("foo", "bar");
-        assert_eq!(auth.get_cassandra_name(),
-                   Some("org.apache.cassandra.auth.PasswordAuthenticator"));
+        assert_eq!(
+            auth.get_cassandra_name(),
+            Some("org.apache.cassandra.auth.PasswordAuthenticator")
+        );
     }
 
     #[test]

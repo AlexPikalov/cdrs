@@ -1,3 +1,5 @@
+use r2d2;
+use std::cell::RefCell;
 use std::marker::PhantomData;
 
 use cluster::CDRSSession;
@@ -8,22 +10,36 @@ use transport::CDRSTransport;
 use types::rows::Row;
 use types::CBytes;
 
-pub struct SessionPager<'a, S: CDRSSession<'static, T> + 'a, T: CDRSTransport + 'static> {
+pub struct SessionPager<
+  'a,
+  M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+  S: CDRSSession<'static, T, M> + 'a,
+  T: CDRSTransport + 'static,
+> {
   page_size: i32,
   session: &'a S,
   transport_type: PhantomData<&'a T>,
+  connection_type: PhantomData<&'a M>,
 }
 
-impl<'a, 'b: 'a, S: CDRSSession<'static, T>, T: CDRSTransport + 'static> SessionPager<'a, S, T> {
-  pub fn new(session: &'b S, page_size: i32) -> SessionPager<'a, S, T> {
+impl<
+    'a,
+    'b: 'a,
+    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+    S: CDRSSession<'static, T, M>,
+    T: CDRSTransport + 'static,
+  > SessionPager<'a, M, S, T>
+{
+  pub fn new(session: &'b S, page_size: i32) -> SessionPager<'a, M, S, T> {
     SessionPager {
       session,
       page_size,
       transport_type: PhantomData,
+      connection_type: PhantomData,
     }
   }
 
-  pub fn query<Q>(&'a mut self, query: Q) -> QueryPager<'a, Q, SessionPager<'a, S, T>>
+  pub fn query<Q>(&'a mut self, query: Q) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
   where
     Q: ToString,
   {
@@ -35,7 +51,7 @@ impl<'a, 'b: 'a, S: CDRSSession<'static, T>, T: CDRSTransport + 'static> Session
     }
   }
 
-  pub fn exec(&'a mut self, query: &'a PreparedQuery) -> ExecPager<'a, SessionPager<'a, S, T>> {
+  pub fn exec(&'a mut self, query: &'a PreparedQuery) -> ExecPager<'a, SessionPager<'a, M, S, T>> {
     ExecPager {
       pager: self,
       paging_state: None,
@@ -52,8 +68,13 @@ pub struct QueryPager<'a, Q: ToString, P: 'a> {
   query: Q,
 }
 
-impl<'a, Q: ToString, T: CDRSTransport + 'static, S: CDRSSession<'static, T>>
-  QueryPager<'a, Q, SessionPager<'a, S, T>>
+impl<
+    'a,
+    Q: ToString,
+    T: CDRSTransport + 'static,
+    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+    S: CDRSSession<'static, T, M>,
+  > QueryPager<'a, Q, SessionPager<'a, M, S, T>>
 {
   pub fn next(&mut self) -> error::Result<Vec<Row>> {
     let mut params = QueryParamsBuilder::new().page_size(self.pager.page_size);
@@ -91,8 +112,12 @@ pub struct ExecPager<'a, P: 'a> {
   query: &'a PreparedQuery,
 }
 
-impl<'a, T: CDRSTransport + 'static, S: CDRSSession<'static, T>>
-  ExecPager<'a, SessionPager<'a, S, T>>
+impl<
+    'a,
+    T: CDRSTransport + 'static,
+    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+    S: CDRSSession<'static, T, M>,
+  > ExecPager<'a, SessionPager<'a, M, S, T>>
 {
   pub fn next(&mut self) -> error::Result<Vec<Row>> {
     let mut params = QueryParamsBuilder::new().page_size(self.pager.page_size);

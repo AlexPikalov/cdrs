@@ -1,13 +1,27 @@
+use r2d2;
 use std::cell::RefCell;
 use std::io::{Cursor, Read};
+use std::ops::Deref;
 
 use super::*;
 use compression::Compression;
 use error;
 use frame::frame_response::ResponseBody;
 use frame::FromCursor;
+use transport::CDRSTransport;
 use types::data_serialization_types::decode_timeuuid;
 use types::{from_bytes, from_u16_bytes, CStringList, UUID_LEN};
+
+pub fn from_connection<M, T>(
+    conn: &r2d2::PooledConnection<M>,
+    compressor: &Compression,
+) -> error::Result<Frame>
+where
+    T: CDRSTransport + 'static,
+    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+{
+    parse_frame(conn.deref(), compressor)
+}
 
 pub fn parse_frame(cursor_cell: &RefCell<Read>, compressor: &Compression) -> error::Result<Frame> {
     let mut version_bytes = [0; Version::BYTE_LENGTH];

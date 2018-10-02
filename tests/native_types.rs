@@ -11,7 +11,7 @@ use common::*;
 use cdrs::query::QueryExecutor;
 use cdrs::types::blob::Blob;
 use cdrs::types::map::Map;
-use cdrs::types::value::{Bytes, Value};
+use cdrs::types::value::Bytes;
 use cdrs::types::{AsRust, ByName, IntoRustByName};
 use uuid::Uuid;
 
@@ -254,7 +254,8 @@ fn blob() {
     for row in rows {
         let my_blob_row: Blob = row.get_r_by_name("my_blob").expect("my_blob");
         assert_eq!(my_blob_row, my_blob);
-        let my_map_row: HashMap<String, Blob> = row.r_by_name::<Map>("my_mapblob")
+        let my_map_row: HashMap<String, Blob> = row
+            .r_by_name::<Map>("my_mapblob")
             .expect("my_mapblob by name")
             .as_r_rust()
             .expect("my_mapblob as r rust");
