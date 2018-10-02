@@ -46,12 +46,12 @@ impl<N> LoadBalancingStrategy<N> for RoundRobinSync<N> {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use std::sync::Arc;
 
   #[test]
   fn round_robin() {
     let nodes = vec!["a", "b", "c"];
     let nodes_c = nodes.clone();
-    let load_balancer = RoundRobinSync::from(nodes);
     for i in 0..10 {
       assert_eq!(&nodes_c[(i + 1) % 3], load_balancer.next().unwrap());
     }

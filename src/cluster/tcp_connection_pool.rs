@@ -12,8 +12,12 @@ use frame::parser::parse_frame;
 use frame::{Frame, IntoBytes, Opcode};
 use transport::{CDRSTransport, TransportTcp};
 
+/// Shortcut for `r2d2::Pool` type of TCP-based CDRS connections.
 pub type TcpConnectionPool<A> = Pool<TcpConnectionsManager<A>>;
 
+/// `r2d2::Pool` of TCP-based CDRS connections.
+///
+/// Used internally for TCP Session for holding connections to a specific Cassandra node.
 pub fn new_tcp_pool<A: Authenticator + Send + Sync + 'static>(
   node_config: NodeTcpConfig<'static, A>,
 ) -> error::Result<TcpConnectionPool<A>> {
@@ -29,6 +33,7 @@ pub fn new_tcp_pool<A: Authenticator + Send + Sync + 'static>(
     .map_err(|err| error::Error::from(err.description()))
 }
 
+/// `r2d2` connection manager.
 pub struct TcpConnectionsManager<A> {
   addr: &'static str,
   auth: A,

@@ -26,6 +26,9 @@ use openssl::ssl::SslConnector;
 #[cfg(feature = "ssl")]
 use transport::TransportTls;
 
+/// CDRS session that holds one pool of authorized connecitons per node.
+/// `compression` field contains data compressor that will be used
+/// for decompressing data received from Cassandra server.
 pub struct Session<LB> {
   load_balancing: LB,
   #[allow(dead_code)]
@@ -33,12 +36,15 @@ pub struct Session<LB> {
 }
 
 impl<'a, LB> GetCompressor<'a> for Session<LB> {
+  /// Returns compression that current session has.
   fn get_compressor(&self) -> Compression {
     self.compression.clone()
   }
 }
 
 impl<'a, LB: Sized> Session<LB> {
+  /// Basing on current session returns new `SessionPager` that can be used
+  /// for performing paged queries.
   pub fn paged<
     T: CDRSTransport + 'static,
     M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error>,
@@ -104,6 +110,11 @@ impl<
   > CDRSSession<'a, T, M> for Session<LB>
 {}
 
+/// Creates new session that will perform queries without any compression. `Compression` type
+/// can be changed at any time.
+/// As a parameter it takes:
+/// * cluster config
+/// * load balancing strategy (cannot be changed during `Session` life time).
 pub fn new<A, LB>(
   node_configs: &ClusterTcpConfig<'static, A>,
   mut load_balancing: LB,
@@ -127,6 +138,11 @@ where
   })
 }
 
+/// Creates new session that will perform queries with Snappy compression. `Compression` type
+/// can be changed at any time.
+/// As a parameter it takes:
+/// * cluster config
+/// * load balancing strategy (cannot be changed during `Session` life time).
 pub fn new_snappy<A, LB>(
   node_configs: &ClusterTcpConfig<'static, A>,
   mut load_balancing: LB,
@@ -150,6 +166,11 @@ where
   })
 }
 
+/// Creates new session that will perform queries with LZ4 compression. `Compression` type
+/// can be changed at any time.
+/// As a parameter it takes:
+/// * cluster config
+/// * load balancing strategy (cannot be changed during `Session` life time).
 pub fn new_lz4<A, LB>(
   node_configs: &ClusterTcpConfig<'static, A>,
   mut load_balancing: LB,
@@ -174,6 +195,7 @@ where
 }
 
 impl<'a, L> Session<L> {
+  /// Returns new event listener.
   pub fn listen<A: Authenticator + 'static + Sized>(
     &self,
     node: &str,
@@ -193,6 +215,11 @@ impl<'a, L> Session<L> {
   }
 }
 
+/// Creates new SSL-based session that will perform queries without any compression. `Compression` type
+/// can be changed at any time.
+/// As a parameter it takes:
+/// * SSL cluster config
+/// * load balancing strategy (cannot be changed during `Session` life time).
 #[cfg(feature = "ssl")]
 pub fn new_ssl<A, LB>(
   node_configs: &ClusterSslConfig<'static, A>,
@@ -217,6 +244,11 @@ where
   })
 }
 
+/// Creates new SSL-based session that will perform queries with Snappy compression. `Compression` type
+/// can be changed at any time.
+/// As a parameter it takes:
+/// * SSL cluster config
+/// * load balancing strategy (cannot be changed during `Session` life time).
 #[cfg(feature = "ssl")]
 pub fn new_snappy_ssl<A, LB>(
   node_configs: &ClusterSslConfig<'static, A>,
@@ -241,6 +273,11 @@ where
   })
 }
 
+/// Creates new SSL-based session that will perform queries with LZ4 compression. `Compression` type
+/// can be changed at any time.
+/// As a parameter it takes:
+/// * SSL cluster config
+/// * load balancing strategy (cannot be changed during `Session` life time).
 #[cfg(feature = "ssl")]
 pub fn new_lz4_ssl<A, LB>(
   node_configs: &ClusterSslConfig<'static, A>,
@@ -265,6 +302,7 @@ where
   })
 }
 
+/// Returns new SSL-based event listener.
 #[cfg(feature = "ssl")]
 impl<'a, L> Session<L> {
   pub fn listen_ssl<A: Authenticator + 'static + Sized>(

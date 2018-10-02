@@ -13,8 +13,12 @@ use frame::{Frame, IntoBytes};
 use transport::CDRSTransport;
 use transport::TransportTls;
 
+/// Shortcut for `r2d2::Pool` type of SSL-based CDRS connections.
 pub type SslConnectionPool<A> = Pool<SslConnectionsManager<A>>;
 
+/// `r2d2::Pool` of SSL-based CDRS connections.
+///
+/// Used internally for SSL Session for holding connections to a specific Cassandra node.
 pub fn new_ssl_pool<A: Authenticator + Send + Sync + 'static>(
   node_config: NodeSslConfig<'static, A>,
 ) -> error::Result<SslConnectionPool<A>> {
@@ -34,6 +38,7 @@ pub fn new_ssl_pool<A: Authenticator + Send + Sync + 'static>(
     .map_err(|err| error::Error::from(err.description()))
 }
 
+/// `r2d2` connection manager.
 pub struct SslConnectionsManager<A> {
   addr: &'static str,
   ssl_connector: SslConnector,

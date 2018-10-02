@@ -25,20 +25,26 @@ use error;
 use query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
 use transport::CDRSTransport;
 
+/// `GetConnection` trait provides a unified interface for Session to get a connection
+/// from a load balancer
 pub trait GetConnection<
   T: CDRSTransport + Send + Sync + 'static,
   M: r2d2::ManageConnection<Connection = cell::RefCell<T>, Error = error::Error>,
 >
 {
-  /// It selects a node from a cluster
-  /// and return pooled connection pool.
+  /// Returns connection from a load balancer.
   fn get_connection(&self) -> Option<r2d2::PooledConnection<M>>;
 }
 
+/// `GetCompressor` trait provides a unified interface for Session to get a compressor
+/// for further decompressing received data.
 pub trait GetCompressor<'a> {
+  /// Returns actual compressor.
   fn get_compressor(&self) -> Compression;
 }
 
+/// `CDRSSession` trait wrap ups whole query functionality. Use it only if whole query
+/// machinery is needed and direct sub traits otherwise.
 pub trait CDRSSession<
   'a,
   T: CDRSTransport + 'static,
