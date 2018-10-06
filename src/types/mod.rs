@@ -1,13 +1,12 @@
 /// Cassandra types
-
 use std::io;
 use std::io::{Cursor, Read};
 use std::net::SocketAddr;
 
 use byteorder::{BigEndian, ByteOrder, ReadBytesExt, WriteBytesExt};
 use error::{column_is_empty_err, Error as CDRSError, Result as CDRSResult};
-use types::data_serialization_types::decode_inet;
 use frame::traits::{FromBytes, FromCursor, IntoBytes};
+use types::data_serialization_types::decode_inet;
 
 pub const LONG_STR_LEN: usize = 4;
 pub const SHORT_LEN: usize = 2;
@@ -21,20 +20,21 @@ pub mod from_cdrs;
 pub mod list;
 pub mod map;
 pub mod rows;
+pub mod tuple;
 pub mod udt;
 pub mod value;
-pub mod tuple;
 
 pub mod prelude {
+    pub use error::{Error, Result};
+    pub use frame::{TryFromRow, TryFromUDT};
     pub use types::blob::Blob;
     pub use types::list::List;
     pub use types::map::Map;
     pub use types::rows::Row;
-    pub use types::udt::UDT;
     pub use types::tuple::Tuple;
-    pub use types::AsRustType;
+    pub use types::udt::UDT;
     pub use types::value::{Bytes, Value};
-    pub use frame::{TryFromRow, TryFromUDT};
+    pub use types::AsRustType;
 }
 
 /// Should be used to represent a single column as a Rust value.
@@ -655,9 +655,9 @@ pub fn cursor_next_value(cursor: &mut Cursor<&[u8]>, len: u64) -> CDRSResult<Vec
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
     use super::*;
     use frame::traits::{FromCursor, IntoBytes};
+    use std::io::Cursor;
     use std::mem::transmute;
 
     // CString
