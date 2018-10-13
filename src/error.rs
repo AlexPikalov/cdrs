@@ -6,7 +6,7 @@ use std::string::FromUtf8Error;
 use std::fmt::Display;
 use frame::frame_error::CDRSError;
 use compression::CompressionError;
-use uuid::ParseError;
+use uuid::parser::ParseError;
 
 pub type Result<T> = result::Result<T, Error>;
 
