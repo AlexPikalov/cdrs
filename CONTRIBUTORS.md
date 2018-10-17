@@ -7,3 +7,4 @@ List of contributors:
 * j4in
 * ernestas-poskus
 * dfaust
+* Dylan DPC

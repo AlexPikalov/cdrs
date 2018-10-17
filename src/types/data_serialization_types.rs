@@ -189,9 +189,9 @@ pub fn decode_time(bytes: &[u8]) -> Result<i64, io::Error> {
     try_i_from_bytes(bytes)
 }
 
-// Decodes Cassandra `timeuuid` data (bytes) into Rust's `Result<uuid::Uuid, uuid::ParseError>`
-pub fn decode_timeuuid(bytes: &[u8]) -> Result<uuid::Uuid, uuid::ParseError> {
-    uuid::Uuid::from_bytes(bytes)
+// Decodes Cassandra `timeuuid` data (bytes) into Rust's `Result<uuid::Uuid, uuid::BytesError>`
+pub fn decode_timeuuid(bytes: &[u8]) -> Result<uuid::Uuid, uuid::BytesError> {
+    uuid::Uuid::from_slice(bytes)
 }
 
 // Decodes Cassandra `varint` data (bytes) into Rust's `Result<i64, io::Error>`

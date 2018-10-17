@@ -6,7 +6,7 @@ use std::string::FromUtf8Error;
 use std::fmt::Display;
 use frame::frame_error::CDRSError;
 use compression::CompressionError;
-use uuid::ParseError;
+use uuid::BytesError;
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -20,7 +20,7 @@ pub enum Error {
     /// Internal IO error.
     Io(io::Error),
     /// Internal error that may be raised during `uuid::Uuid::from_bytes`
-    UUIDParse(ParseError),
+    UUIDParse(BytesError),
     /// General error
     General(String),
     /// Internal error that may be raised during `String::from_utf8`
@@ -86,8 +86,8 @@ impl From<FromUtf8Error> for Error {
     }
 }
 
-impl From<ParseError> for Error {
-    fn from(err: ParseError) -> Error {
+impl From<BytesError> for Error {
+    fn from(err: BytesError) -> Error {
         Error::UUIDParse(err)
     }
 }
