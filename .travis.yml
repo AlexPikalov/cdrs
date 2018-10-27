@@ -28,11 +28,13 @@ script:
   - cargo test --verbose -- --ignored
 
 deploy:
+  # deploy master to production
   - provider: script
-    script:
-      - cargo publish --token $CARGO_CREDS
+    skip_cleanup: true
+    script: cargo publish --token $PUBLISH_TOKEN
     on:
       tags: true
+      branch: master
 
 addons:
   apt:
