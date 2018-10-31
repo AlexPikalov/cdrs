@@ -31,7 +31,7 @@ let no_compression: CurrentSession =
 
 All existing `NodeTcpConfigBuilder` methods have the same behaviour as ones from `r2d2::Builder`, so for more details please refer to [r2d2](https://docs.rs/r2d2/0.8.2/r2d2/struct.Builder.html) official documentation.
 
-For each node configuration, `Authenticator` should be provided. `Authenticator` is a trat a structure should implement so it can be used by CDRS session. Out of the box CDRS provides two types of authenticators:
+For each node configuration, `Authenticator` should be provided. `Authenticator` is a trait that the structure should implement so it can be used by CDRS session for authentication. Out of the box CDRS provides two types of authenticators:
 
 - `cdrs::authenticators::NoneAuthenticator` that should be used if authentication is disabled by a node ([Cassandra authenticator](http://cassandra.apache.org/doc/latest/configuration/cassandra_config_file.html#authenticator) is set to `AllowAllAuthenticator`) on server.
 
