@@ -32,7 +32,7 @@ impl<N> LoadBalancingStrategy<N> for RoundRobinSync<N> {
 
   /// Returns next node from a cluster
   fn next(&self) -> Option<&N> {
-    let mut prev_idx = self.prev_idx.try_lock();
+    let mut prev_idx = self.prev_idx.lock();
     if let Ok(ref mut mtx) = prev_idx {
       let next_idx = (**mtx + 1) % self.cluster.len();
       **mtx = next_idx;
