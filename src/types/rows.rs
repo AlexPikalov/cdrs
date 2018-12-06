@@ -15,7 +15,7 @@ use types::tuple::Tuple;
 use types::udt::UDT;
 use types::{ByIndex, ByName, CBytes, IntoRustByIndex, IntoRustByName};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Row {
     metadata: RowsMetadata,
     row_content: Vec<CBytes>,
