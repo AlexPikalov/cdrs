@@ -16,6 +16,7 @@ pub const UUID_LEN: usize = 16;
 #[macro_use]
 pub mod blob;
 pub mod data_serialization_types;
+pub mod decimal;
 pub mod from_cdrs;
 pub mod list;
 pub mod map;
@@ -262,6 +263,40 @@ pub fn to_bigint(int: i64) -> Vec<u8> {
     let _ = bytes.write_i64::<BigEndian>(int).unwrap();
 
     bytes
+}
+
+/// Converts integer into Cassandra's [varint].
+pub fn to_varint(int: i32) -> Vec<u8> {
+    if int == 0 {
+        return vec![0];
+    }
+
+    let mut int_bytes = to_int(int);
+    match int.signum() {
+        1 => {
+            int_bytes = int_bytes.into_iter().skip_while(|b| *b == 0x00).collect();
+            if int_bytes
+                .get(0)
+                .map(|b| b.leading_zeros() == 0)
+                .unwrap_or(true)
+            {
+                int_bytes.insert(0, 0x00);
+            }
+        }
+        -1 => {
+            int_bytes = int_bytes.into_iter().skip_while(|b| *b == 0xFF).collect();
+            if int_bytes
+                .get(0)
+                .map(|b| b.leading_zeros() > 0)
+                .unwrap_or(true)
+            {
+                int_bytes.insert(0, 0xFF);
+            }
+        }
+        _ => unreachable!(),
+    }
+
+    int_bytes
 }
 
 /// Converts number i16 into Cassandra's `short`.
@@ -847,6 +882,18 @@ mod tests {
         let bytes: [u8; 8] = unsafe { transmute(12i64.to_be()) }; // or .to_le()
         let val = from_i_bytes(&bytes);
         assert_eq!(val, 12i64);
+    }
+
+    #[test]
+    fn test_to_varint() {
+        assert_eq!(to_varint(0), vec![0x00]);
+        assert_eq!(to_varint(1), vec![0x01]);
+        assert_eq!(to_varint(127), vec![0x7F]);
+        assert_eq!(to_varint(128), vec![0x00, 0x80]);
+        assert_eq!(to_varint(129), vec![0x00, 0x81]);
+        assert_eq!(to_varint(-1), vec![0xFF]);
+        assert_eq!(to_varint(-128), vec![0x80]);
+        assert_eq!(to_varint(-129), vec![0xFF, 0x7F]);
     }
 
 }
