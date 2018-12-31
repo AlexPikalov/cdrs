@@ -1,16 +1,17 @@
+use std::cmp::Eq;
 use std::collections::HashMap;
 use std::convert::Into;
-use std::hash::Hash;
-use std::cmp::Eq;
-use std::net::IpAddr;
 use std::fmt::Debug;
+use std::hash::Hash;
+use std::net::IpAddr;
 
-use uuid::Uuid;
-use time::Timespec;
 use frame::IntoBytes;
+use time::Timespec;
+use uuid::Uuid;
 
-use super::*;
 use super::blob::Blob;
+use super::decimal::Decimal;
+use super::*;
 
 /// Types of Cassandra value: normal value (bits), null value and not-set value
 #[derive(Debug, Clone)]
@@ -40,24 +41,31 @@ pub struct Value {
 impl Value {
     /// The factory method which creates a normal type value basing on provided bytes.
     pub fn new_normal<B>(v: B) -> Value
-        where B: Into<Bytes>
+    where
+        B: Into<Bytes>,
     {
         let bytes = v.into().0;
         let l = bytes.len() as i32;
-        Value { body: bytes,
-                value_type: ValueType::Normal(l), }
+        Value {
+            body: bytes,
+            value_type: ValueType::Normal(l),
+        }
     }
 
     /// The factory method which creates null Cassandra value.
     pub fn new_null() -> Value {
-        Value { body: vec![],
-                value_type: ValueType::Null, }
+        Value {
+            body: vec![],
+            value_type: ValueType::Null,
+        }
     }
 
     /// The factory method which creates non-set Cassandra value.
     pub fn new_not_set() -> Value {
-        Value { body: vec![],
-                value_type: ValueType::NotSet, }
+        Value {
+            body: vec![],
+            value_type: ValueType::NotSet,
+        }
     }
 }
 
@@ -204,6 +212,12 @@ impl Into<Bytes> for Blob {
     }
 }
 
+impl Into<Bytes> for Decimal {
+    fn into(self) -> Bytes {
+        Bytes(self.into_cbytes())
+    }
+}
+
 impl<T: Into<Bytes> + Clone + Debug> From<Vec<T>> for Bytes {
     fn from(vec: Vec<T>) -> Bytes {
         let mut bytes: Vec<u8> = vec![];
@@ -218,8 +232,9 @@ impl<T: Into<Bytes> + Clone + Debug> From<Vec<T>> for Bytes {
 }
 
 impl<K, V> From<HashMap<K, V>> for Bytes
-    where K: Into<Bytes> + Clone + Debug + Hash + Eq,
-          V: Into<Bytes> + Clone + Debug
+where
+    K: Into<Bytes> + Clone + Debug + Hash + Eq,
+    V: Into<Bytes> + Clone + Debug,
 {
     fn from(map: HashMap<K, V>) -> Bytes {
         let mut bytes: Vec<u8> = vec![];

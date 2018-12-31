@@ -10,6 +10,7 @@ use common::*;
 
 use cdrs::query::QueryExecutor;
 use cdrs::types::blob::Blob;
+use cdrs::types::decimal::Decimal;
 use cdrs::types::map::Map;
 use cdrs::types::value::Bytes;
 use cdrs::types::{AsRust, ByName, IntoRustByName};
@@ -181,14 +182,16 @@ fn integer_v4() {
 #[ignore]
 fn float() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_float \
-               (my_float float PRIMARY KEY, my_double double)";
+               (my_float float PRIMARY KEY, my_double double, my_decimal decimal)";
     let session = setup(cql).expect("setup");
 
     let my_float: f32 = 123.456;
     let my_double: f64 = 987.654;
-    let values = query_values!(my_float, my_double);
+    let my_decimal: f32 = 120.01;
+    let values = query_values!(my_float, my_double, Decimal::from(my_decimal));
 
-    let query = "INSERT INTO cdrs_test.test_float (my_float, my_double) VALUES (?, ?)";
+    let query =
+        "INSERT INTO cdrs_test.test_float (my_float, my_double, my_decimal) VALUES (?, ?, ?)";
     session
         .query_with_values(query, values)
         .expect("insert floats error");
@@ -206,8 +209,10 @@ fn float() {
     for row in rows {
         let my_float_row: f32 = row.get_r_by_name("my_float").expect("my_float");
         let my_double_row: f64 = row.get_r_by_name("my_double").expect("my_double");
+        let my_decimal_row: f32 = row.get_r_by_name("my_decimal").expect("my_decimal");
         assert_eq!(my_float_row, my_float);
         assert_eq!(my_double_row, my_double);
+        assert_eq!(my_decimal_row, my_decimal);
     }
 }
 
@@ -224,7 +229,8 @@ fn blob() {
         ("b".to_owned(), b"bbbbb".to_vec().into()),
         ("c".to_owned(), b"ccccc".to_vec().into()),
         ("d".to_owned(), b"ddddd".to_vec().into()),
-    ].into_iter()
+    ]
+        .into_iter()
         .map(|x| x.clone())
         .collect();
 
