@@ -32,7 +32,7 @@ deploy:
   # deploy master to production
   - provider: script
     skip_cleanup: true
-    script: cargo publish --token $PUBLISH_TOKEN
+    script: cargo publish --token $CARGO_CREDS
     on:
       tags: true
       branch: master
