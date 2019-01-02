@@ -72,6 +72,6 @@ Detailed Query API and those traits overview please find in [making query](./mak
 
 ### Reference
 
-1. LZ4 compression algorythm https://en.wikipedia.org/wiki/LZ4_(compression_algorithm).
+1. LZ4 compression algorithm https://en.wikipedia.org/wiki/LZ4_(compression_algorithm).
 
-2. Snappy compression alhorythm https://en.wikipedia.org/wiki/Snappy_(compression).
+2. Snappy compression algorithm https://en.wikipedia.org/wiki/Snappy_(compression).
