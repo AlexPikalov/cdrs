@@ -21,7 +21,7 @@ v4 = []
 appveyor = []
 
 [dependencies]
-byteorder = "1.2.1"
+byteorder = "=1.2.7"
 log = "0.4.1"
 lz4-compress = "=0.1.0"
 openssl = { version = "0.9.23", optional = true }

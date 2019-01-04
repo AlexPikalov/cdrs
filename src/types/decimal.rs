@@ -3,28 +3,31 @@ use frame::traits::IntoBytes;
 
 /// Cassandra Decimal type
 #[derive(Debug, Clone, PartialEq)]
-pub struct Decimal(f32);
+pub struct Decimal(f64);
 
 impl Decimal {
-  /// Method that returns plain `f32` value.
-  pub fn as_plain(&self) -> f32 {
+  /// Method that returns plain `f64` value.
+  pub fn as_plain(&self) -> f64 {
     self.0
   }
 }
 
 impl IntoBytes for Decimal {
   fn into_cbytes(&self) -> Vec<u8> {
-    let mut scaled: f32 = self.0;
     let mut scale: i32 = 0;
+    let mut unscaled: f64 = self.0;
 
-    while scaled.trunc() != scaled {
-      scaled *= 10f32;
+    loop {
+      unscaled = 10f64.powi(scale) * self.0;
+      if unscaled.trunc() == unscaled {
+        break;
+      }
       scale += 1;
     }
 
     let mut bytes: Vec<u8> = vec![];
     bytes.extend(to_int(scale));
-    bytes.extend(to_varint(scaled as i32));
+    bytes.extend(to_varint(unscaled as i64));
 
     bytes
   }
@@ -42,9 +45,11 @@ macro_rules! impl_from_for_decimal {
 
 impl_from_for_decimal!(i8);
 impl_from_for_decimal!(i16);
+impl_from_for_decimal!(i32);
 impl_from_for_decimal!(u8);
 impl_from_for_decimal!(u16);
 impl_from_for_decimal!(f32);
+impl_from_for_decimal!(f64);
 
 #[cfg(test)]
 mod test {

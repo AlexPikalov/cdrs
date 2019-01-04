@@ -63,13 +63,13 @@ pub fn decode_date(bytes: &[u8]) -> Result<i32, io::Error> {
 }
 
 // Decodes Cassandra `decimal` data (bytes) into Rust's `Result<f32, io::Error>`
-pub fn decode_decimal(bytes: &[u8]) -> Result<f32, io::Error> {
+pub fn decode_decimal(bytes: &[u8]) -> Result<f64, io::Error> {
     let lr = bytes.split_at(INT_LEN);
 
     let scale = try_i_from_bytes(lr.0)? as u32;
-    let unscaled = try_i_from_bytes(lr.1)? as f32;
+    let unscaled = try_i_from_bytes(lr.1)? as f64;
 
-    let mult = 10i32.pow(scale) as f32;
+    let mult = 10i64.pow(scale) as f64;
 
     Ok(unscaled / mult)
 }
@@ -339,7 +339,7 @@ mod tests {
 
     #[test]
     fn decode_decimal_test() {
-        assert_eq!(decode_decimal(&[0, 0, 0, 0, 10u8]).unwrap(), 10f32);
+        assert_eq!(decode_decimal(&[0, 0, 0, 0, 10u8]).unwrap(), 10f64);
 
         assert_eq!(129.0, decode_decimal(&[0, 0, 0, 0, 0x00, 0x81]).unwrap());
 
