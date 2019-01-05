@@ -246,10 +246,9 @@ macro_rules! as_rust_type {
     ($data_type_option:ident, $data_value:ident, f64) => {
         match $data_type_option.id {
             ColType::Double => as_res_opt!($data_value, decode_double),
-            ColType::Decimal => as_res_opt!($data_value, decode_decimal),
             _ => Err(Error::General(format!(
                 "Invalid conversion. \
-                 Cannot convert {:?} into f64 (valid types: Decimal, Double).",
+                 Cannot convert {:?} into f64 (valid types: Double).",
                 $data_type_option.id
             ))),
         }
@@ -361,6 +360,19 @@ macro_rules! as_rust_type {
             _ => Err(Error::General(format!(
                 "Invalid conversion. \
                  Cannot convert {:?} into Timespec (valid types: Timestamp).",
+                $data_type_option.id
+            ))),
+        }
+    };
+    ($data_type_option:ident, $data_value:ident, Decimal) => {
+        match $data_type_option.id {
+            ColType::Decimal => match $data_value.as_slice() {
+                Some(ref bytes) => decode_decimal(bytes).map(|d| Some(d)).map_err(Into::into),
+                None => Ok(None),
+            },
+            _ => Err(Error::General(format!(
+                "Invalid conversion. \
+                 Cannot convert {:?} into Decimal (valid types: Decimal).",
                 $data_type_option.id
             ))),
         }

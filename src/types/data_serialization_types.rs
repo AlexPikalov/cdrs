@@ -3,6 +3,7 @@ use std::net;
 use std::string::FromUtf8Error;
 
 use super::blob::Blob;
+use super::decimal::Decimal;
 use super::*;
 use error;
 use frame::FromCursor;
@@ -63,15 +64,13 @@ pub fn decode_date(bytes: &[u8]) -> Result<i32, io::Error> {
 }
 
 // Decodes Cassandra `decimal` data (bytes) into Rust's `Result<f32, io::Error>`
-pub fn decode_decimal(bytes: &[u8]) -> Result<f64, io::Error> {
+pub fn decode_decimal(bytes: &[u8]) -> Result<Decimal, io::Error> {
     let lr = bytes.split_at(INT_LEN);
 
     let scale = try_i_from_bytes(lr.0)? as u32;
-    let unscaled = try_i_from_bytes(lr.1)? as f64;
+    let unscaled = try_i_from_bytes(lr.1)?;
 
-    let mult = 10i64.pow(scale) as f64;
-
-    Ok(unscaled / mult)
+    Ok(Decimal::new(unscaled, scale))
 }
 
 // Decodes Cassandra `double` data (bytes) into Rust's `Result<f32, io::Error>`
@@ -339,15 +338,30 @@ mod tests {
 
     #[test]
     fn decode_decimal_test() {
-        assert_eq!(decode_decimal(&[0, 0, 0, 0, 10u8]).unwrap(), 10f64);
+        assert_eq!(
+            decode_decimal(&[0, 0, 0, 0, 10u8]).unwrap(),
+            Decimal::new(10, 0)
+        );
 
-        assert_eq!(129.0, decode_decimal(&[0, 0, 0, 0, 0x00, 0x81]).unwrap());
+        assert_eq!(
+            decode_decimal(&[0, 0, 0, 0, 0x00, 0x81]).unwrap(),
+            Decimal::new(129, 0)
+        );
 
-        assert_eq!(-129.0, decode_decimal(&[0, 0, 0, 0, 0xFF, 0x7F]).unwrap());
+        assert_eq!(
+            decode_decimal(&[0, 0, 0, 0, 0xFF, 0x7F]).unwrap(),
+            Decimal::new(-129, 0)
+        );
 
-        assert_eq!(12.9, decode_decimal(&[0, 0, 0, 1, 0x00, 0x81]).unwrap());
+        assert_eq!(
+            decode_decimal(&[0, 0, 0, 1, 0x00, 0x81]).unwrap(),
+            Decimal::new(129, 1)
+        );
 
-        assert_eq!(-12.9, decode_decimal(&[0, 0, 0, 1, 0xFF, 0x7F]).unwrap());
+        assert_eq!(
+            decode_decimal(&[0, 0, 0, 1, 0xFF, 0x7F]).unwrap(),
+            Decimal::new(-129, 1)
+        );
     }
 
     #[test]

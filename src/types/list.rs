@@ -1,13 +1,14 @@
-use std::net::IpAddr;
-use uuid::Uuid;
-use frame::frame_result::{ColType, ColTypeOption, ColTypeOptionValue};
-use types::{AsRust, AsRustType, CBytes};
-use types::data_serialization_types::*;
-use types::map::Map;
-use types::udt::UDT;
-use types::tuple::Tuple;
-use types::blob::Blob;
 use error::{Error, Result};
+use frame::frame_result::{ColType, ColTypeOption, ColTypeOptionValue};
+use std::net::IpAddr;
+use types::blob::Blob;
+use types::data_serialization_types::*;
+use types::decimal::Decimal;
+use types::map::Map;
+use types::tuple::Tuple;
+use types::udt::UDT;
+use types::{AsRust, AsRustType, CBytes};
+use uuid::Uuid;
 
 // TODO: consider using pointers to ColTypeOption and Vec<CBytes> instead of owning them.
 #[derive(Debug)]
@@ -20,12 +21,15 @@ pub struct List {
 
 impl List {
     pub fn new(data: Vec<CBytes>, metadata: ColTypeOption) -> List {
-        List { metadata: metadata,
-               data: data, }
+        List {
+            metadata: metadata,
+            data: data,
+        }
     }
 
     fn map<T, F>(&self, f: F) -> Vec<T>
-        where F: FnMut(&CBytes) -> T
+    where
+        F: FnMut(&CBytes) -> T,
     {
         self.data.iter().map(f).collect()
     }
@@ -48,3 +52,4 @@ list_as_rust!(List);
 list_as_rust!(Map);
 list_as_rust!(UDT);
 list_as_rust!(Tuple);
+list_as_rust!(Decimal);

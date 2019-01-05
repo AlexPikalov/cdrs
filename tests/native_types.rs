@@ -187,12 +187,11 @@ fn float() {
 
     let my_float: f32 = 123.456;
     let my_double: f64 = 987.654;
-    let my_decimal_a: f64 = 120.01;
-    let my_decimal_b = std::i32::MAX as f64;
+    let my_decimal_b = std::i64::MAX;
     let values = query_values!(
         my_float,
         my_double,
-        Decimal::from(my_decimal_a),
+        Decimal::new(12001, 2),
         Decimal::from(my_decimal_b)
     );
 
@@ -215,12 +214,12 @@ fn float() {
     for row in rows {
         let my_float_row: f32 = row.get_r_by_name("my_float").expect("my_float");
         let my_double_row: f64 = row.get_r_by_name("my_double").expect("my_double");
-        let my_decimal_row_a: f64 = row.get_r_by_name("my_decimal_a").expect("my_decimal_a");
-        let my_decimal_row_b: f64 = row.get_r_by_name("my_decimal_b").expect("my_decimal_b");
+        let my_decimal_row_a: Decimal = row.get_r_by_name("my_decimal_a").expect("my_decimal_a");
+        let my_decimal_row_b: Decimal = row.get_r_by_name("my_decimal_b").expect("my_decimal_b");
         assert_eq!(my_float_row, my_float);
         assert_eq!(my_double_row, my_double);
-        assert_eq!(my_decimal_row_a, my_decimal_a);
-        assert_eq!(my_decimal_row_b, my_decimal_b);
+        assert_eq!(my_decimal_row_a, Decimal::new(12001, 2));
+        assert_eq!(my_decimal_row_b, Decimal::from(my_decimal_b));
     }
 }
 
