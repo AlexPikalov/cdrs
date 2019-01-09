@@ -29,6 +29,7 @@ pub mod prelude {
     pub use error::{Error, Result};
     pub use frame::{TryFromRow, TryFromUDT};
     pub use types::blob::Blob;
+    pub use types::decimal::Decimal;
     pub use types::list::List;
     pub use types::map::Map;
     pub use types::rows::Row;
