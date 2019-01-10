@@ -183,12 +183,6 @@ fn alter_udt_add() {
     my_map: HashMap<String, MyUdtB>,
   }
 
-  impl RowStructB {
-    fn into_query_values(self) -> QueryValues {
-      query_values!("my_key" => self.my_key, "my_map" => self.my_map)
-    }
-  }
-
   #[derive(Clone, Debug, IntoCDRSValue, TryFromUDT, PartialEq)]
   struct MyUdtB {
     pub my_text: String,

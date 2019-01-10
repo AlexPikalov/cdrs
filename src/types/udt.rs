@@ -1,16 +1,17 @@
-use std::net::IpAddr;
 use std::collections::HashMap;
-use uuid::Uuid;
+use std::net::IpAddr;
 use time::Timespec;
+use uuid::Uuid;
 
+use error::{column_is_empty_err, Error, Result};
 use frame::frame_result::{CUdt, ColType, ColTypeOption, ColTypeOptionValue};
-use types::{ByName, CBytes, IntoRustByName};
+use types::blob::Blob;
 use types::data_serialization_types::*;
+use types::decimal::Decimal;
 use types::list::List;
 use types::map::Map;
 use types::tuple::Tuple;
-use types::blob::Blob;
-use error::{column_is_empty_err, Error, Result};
+use types::{ByName, CBytes, IntoRustByName};
 
 #[derive(Clone, Debug)]
 pub struct UDT {
@@ -53,3 +54,4 @@ into_rust_by_name!(UDT, Map);
 into_rust_by_name!(UDT, UDT);
 into_rust_by_name!(UDT, Tuple);
 into_rust_by_name!(UDT, Timespec);
+into_rust_by_name!(UDT, Decimal);

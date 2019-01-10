@@ -1,16 +1,17 @@
 use std::collections::HashMap;
 use std::net::IpAddr;
-use uuid::Uuid;
 use time::Timespec;
+use uuid::Uuid;
 
-use types::{AsRust, AsRustType, CBytes};
-use frame::frame_result::{ColType, ColTypeOption, ColTypeOptionValue};
-use types::data_serialization_types::*;
-use types::list::List;
-use types::udt::UDT;
-use types::tuple::Tuple;
-use types::blob::Blob;
 use error::{Error, Result};
+use frame::frame_result::{ColType, ColTypeOption, ColTypeOptionValue};
+use types::blob::Blob;
+use types::data_serialization_types::*;
+use types::decimal::Decimal;
+use types::list::List;
+use types::tuple::Tuple;
+use types::udt::UDT;
+use types::{AsRust, AsRustType, CBytes};
 
 #[derive(Debug)]
 pub struct Map {
@@ -21,8 +22,10 @@ pub struct Map {
 impl Map {
     /// Creates new `Map` using the provided data and key and value types.
     pub fn new(data: Vec<(CBytes, CBytes)>, meta: ColTypeOption) -> Map {
-        Map { metadata: meta,
-              data: data, }
+        Map {
+            metadata: meta,
+            data: data,
+        }
     }
 }
 
@@ -49,6 +52,7 @@ map_as_rust!({ Blob }, { List });
 map_as_rust!({ Blob }, { Map });
 map_as_rust!({ Blob }, { UDT });
 map_as_rust!({ Blob }, { Tuple });
+map_as_rust!({ Blob }, { Decimal });
 
 map_as_rust!({ String }, { Blob });
 map_as_rust!({ String }, { String });
@@ -66,6 +70,7 @@ map_as_rust!({ String }, { List });
 map_as_rust!({ String }, { Map });
 map_as_rust!({ String }, { UDT });
 map_as_rust!({ String }, { Tuple });
+map_as_rust!({ String }, { Decimal });
 
 map_as_rust!({ bool }, { Blob });
 map_as_rust!({ bool }, { String });
@@ -83,6 +88,7 @@ map_as_rust!({ bool }, { List });
 map_as_rust!({ bool }, { Map });
 map_as_rust!({ bool }, { UDT });
 map_as_rust!({ bool }, { Tuple });
+map_as_rust!({ bool }, { Decimal });
 
 map_as_rust!({ i64 }, { Blob });
 map_as_rust!({ i64 }, { String });
@@ -100,6 +106,7 @@ map_as_rust!({ i64 }, { List });
 map_as_rust!({ i64 }, { Map });
 map_as_rust!({ i64 }, { UDT });
 map_as_rust!({ i64 }, { Tuple });
+map_as_rust!({ i64 }, { Decimal });
 
 map_as_rust!({ i32 }, { Blob });
 map_as_rust!({ i32 }, { String });
@@ -117,6 +124,7 @@ map_as_rust!({ i32 }, { List });
 map_as_rust!({ i32 }, { Map });
 map_as_rust!({ i32 }, { UDT });
 map_as_rust!({ i32 }, { Tuple });
+map_as_rust!({ i32 }, { Decimal });
 
 map_as_rust!({ i16 }, { Blob });
 map_as_rust!({ i16 }, { String });
@@ -134,6 +142,7 @@ map_as_rust!({ i16 }, { List });
 map_as_rust!({ i16 }, { Map });
 map_as_rust!({ i16 }, { UDT });
 map_as_rust!({ i16 }, { Tuple });
+map_as_rust!({ i16 }, { Decimal });
 
 map_as_rust!({ i8 }, { Blob });
 map_as_rust!({ i8 }, { String });
@@ -151,6 +160,7 @@ map_as_rust!({ i8 }, { List });
 map_as_rust!({ i8 }, { Map });
 map_as_rust!({ i8 }, { UDT });
 map_as_rust!({ i8 }, { Tuple });
+map_as_rust!({ i8 }, { Decimal });
 
 map_as_rust!({ IpAddr }, { Blob });
 map_as_rust!({ IpAddr }, { String });
@@ -168,6 +178,7 @@ map_as_rust!({ IpAddr }, { List });
 map_as_rust!({ IpAddr }, { Map });
 map_as_rust!({ IpAddr }, { UDT });
 map_as_rust!({ IpAddr }, { Tuple });
+map_as_rust!({ IpAddr }, { Decimal });
 
 map_as_rust!({ Uuid }, { Blob });
 map_as_rust!({ Uuid }, { String });
@@ -185,6 +196,7 @@ map_as_rust!({ Uuid }, { List });
 map_as_rust!({ Uuid }, { Map });
 map_as_rust!({ Uuid }, { UDT });
 map_as_rust!({ Uuid }, { Tuple });
+map_as_rust!({ Uuid }, { Decimal });
 
 map_as_rust!({ Timespec }, { Blob });
 map_as_rust!({ Timespec }, { String });
@@ -202,6 +214,7 @@ map_as_rust!({ Timespec }, { List });
 map_as_rust!({ Timespec }, { Map });
 map_as_rust!({ Timespec }, { UDT });
 map_as_rust!({ Timespec }, { Tuple });
+map_as_rust!({ Timespec }, { Decimal });
 
 map_as_rust!({ Tuple }, { Blob });
 map_as_rust!({ Tuple }, { String });
@@ -219,3 +232,4 @@ map_as_rust!({ Tuple }, { List });
 map_as_rust!({ Tuple }, { Map });
 map_as_rust!({ Tuple }, { UDT });
 map_as_rust!({ Tuple }, { Tuple });
+map_as_rust!({ Tuple }, { Decimal });

@@ -1,15 +1,16 @@
 use std::net::IpAddr;
-use uuid::Uuid;
 use time::Timespec;
+use uuid::Uuid;
 
+use error::{column_is_empty_err, Error, Result};
 use frame::frame_result::{CTuple, ColType, ColTypeOption, ColTypeOptionValue};
-use types::{ByIndex, CBytes, IntoRustByIndex};
+use types::blob::Blob;
 use types::data_serialization_types::*;
+use types::decimal::Decimal;
 use types::list::List;
 use types::map::Map;
 use types::udt::UDT;
-use types::blob::Blob;
-use error::{column_is_empty_err, Error, Result};
+use types::{ByIndex, CBytes, IntoRustByIndex};
 
 use std::hash::{Hash, Hasher};
 
@@ -75,3 +76,4 @@ into_rust_by_index!(Tuple, Map);
 into_rust_by_index!(Tuple, UDT);
 into_rust_by_index!(Tuple, Tuple);
 into_rust_by_index!(Tuple, Timespec);
+into_rust_by_index!(Tuple, Decimal);

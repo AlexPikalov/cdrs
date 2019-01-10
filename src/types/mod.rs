@@ -29,6 +29,7 @@ pub mod prelude {
     pub use error::{Error, Result};
     pub use frame::{TryFromRow, TryFromUDT};
     pub use types::blob::Blob;
+    pub use types::decimal::Decimal;
     pub use types::list::List;
     pub use types::map::Map;
     pub use types::rows::Row;
@@ -259,19 +260,19 @@ pub fn to_int(int: i32) -> Vec<u8> {
 /// It panics if given `i64` could not be converted into bytes
 pub fn to_bigint(int: i64) -> Vec<u8> {
     let mut bytes = vec![];
-    // should not panic as input is i16
+    // should not panic as input is i64
     let _ = bytes.write_i64::<BigEndian>(int).unwrap();
 
     bytes
 }
 
 /// Converts integer into Cassandra's [varint].
-pub fn to_varint(int: i32) -> Vec<u8> {
+pub fn to_varint(int: i64) -> Vec<u8> {
     if int == 0 {
         return vec![0];
     }
 
-    let mut int_bytes = to_int(int);
+    let mut int_bytes = to_bigint(int);
     match int.signum() {
         1 => {
             int_bytes = int_bytes.into_iter().skip_while(|b| *b == 0x00).collect();

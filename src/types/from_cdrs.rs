@@ -1,14 +1,15 @@
 use std::net::IpAddr;
-use uuid::Uuid;
 use time::Timespec;
+use uuid::Uuid;
 
 use error::Result as CDRSResult;
-use types::{AsRustType, ByName, IntoRustByName};
 use types::blob::Blob;
+use types::decimal::Decimal;
 use types::list::List;
 use types::map::Map;
-use types::udt::UDT;
 use types::tuple::Tuple;
+use types::udt::UDT;
+use types::{AsRustType, ByName, IntoRustByName};
 
 pub trait FromCDRS {
   fn from_cdrs<T>(cdrs_type: T) -> CDRSResult<Option<Self>>
@@ -44,6 +45,7 @@ impl FromCDRS for Map {}
 impl FromCDRS for UDT {}
 impl FromCDRS for Tuple {}
 impl FromCDRS for Timespec {}
+impl FromCDRS for Decimal {}
 
 pub trait FromCDRSByName {
   fn from_cdrs_by_name<T>(cdrs_type: &T, name: &str) -> CDRSResult<Option<Self>>
@@ -79,3 +81,4 @@ impl FromCDRSByName for Map {}
 impl FromCDRSByName for UDT {}
 impl FromCDRSByName for Tuple {}
 impl FromCDRSByName for Timespec {}
+impl FromCDRSByName for Decimal {}

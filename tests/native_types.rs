@@ -182,16 +182,21 @@ fn integer_v4() {
 #[ignore]
 fn float() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_float \
-               (my_float float PRIMARY KEY, my_double double, my_decimal decimal)";
+               (my_float float PRIMARY KEY, my_double double, my_decimal_a decimal, my_decimal_b decimal)";
     let session = setup(cql).expect("setup");
 
     let my_float: f32 = 123.456;
     let my_double: f64 = 987.654;
-    let my_decimal: f32 = 120.01;
-    let values = query_values!(my_float, my_double, Decimal::from(my_decimal));
+    let my_decimal_b = std::i64::MAX;
+    let values = query_values!(
+        my_float,
+        my_double,
+        Decimal::new(12001, 2),
+        Decimal::from(my_decimal_b)
+    );
 
     let query =
-        "INSERT INTO cdrs_test.test_float (my_float, my_double, my_decimal) VALUES (?, ?, ?)";
+        "INSERT INTO cdrs_test.test_float (my_float, my_double, my_decimal_a, my_decimal_b) VALUES (?, ?, ?, ?)";
     session
         .query_with_values(query, values)
         .expect("insert floats error");
@@ -209,10 +214,12 @@ fn float() {
     for row in rows {
         let my_float_row: f32 = row.get_r_by_name("my_float").expect("my_float");
         let my_double_row: f64 = row.get_r_by_name("my_double").expect("my_double");
-        let my_decimal_row: f32 = row.get_r_by_name("my_decimal").expect("my_decimal");
+        let my_decimal_row_a: Decimal = row.get_r_by_name("my_decimal_a").expect("my_decimal_a");
+        let my_decimal_row_b: Decimal = row.get_r_by_name("my_decimal_b").expect("my_decimal_b");
         assert_eq!(my_float_row, my_float);
         assert_eq!(my_double_row, my_double);
-        assert_eq!(my_decimal_row, my_decimal);
+        assert_eq!(my_decimal_row_a, Decimal::new(12001, 2));
+        assert_eq!(my_decimal_row_b, Decimal::from(my_decimal_b));
     }
 }
 
