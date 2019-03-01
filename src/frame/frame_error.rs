@@ -380,12 +380,12 @@ impl FromCursor for AlreadyExistsError {
 #[derive(Debug)]
 pub struct UnpreparedError {
     /// Unknown ID.
-    pub id: CBytes,
+    pub id: CBytesShort,
 }
 
 impl FromCursor for UnpreparedError {
     fn from_cursor(mut cursor: &mut io::Cursor<&[u8]>) -> error::Result<UnpreparedError> {
-        let id = CBytes::from_cursor(&mut cursor)?;
+        let id = CBytesShort::from_cursor(&mut cursor)?;
 
         Ok(UnpreparedError { id: id })
     }
