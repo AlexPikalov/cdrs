@@ -74,6 +74,6 @@ impl<A: Authenticator + 'static + Send + Sync> ManageConnection for SslConnectio
   }
 
   fn has_broken(&self, conn: &mut Self::Connection) -> bool {
-    conn.borrow().is_alive()
+    !conn.borrow().is_alive()
   }
 }
