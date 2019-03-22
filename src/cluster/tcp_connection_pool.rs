@@ -64,7 +64,7 @@ impl<A: Authenticator + 'static + Send + Sync> ManageConnection for TcpConnectio
   }
 
   fn has_broken(&self, conn: &mut Self::Connection) -> bool {
-    conn.borrow().is_alive()
+    !conn.borrow().is_alive()
   }
 }
 
@@ -122,13 +122,11 @@ pub fn startup<'b, T: CDRSTransport + 'static, A: Authenticator + 'static + Size
     }
 
     let auth_token_bytes = session_authenticator.get_auth_token().into_cbytes();
-    try!(
-      transport.borrow_mut().write(
-        Frame::new_req_auth_response(auth_token_bytes)
-          .into_cbytes()
-          .as_slice()
-      )
-    );
+    try!(transport.borrow_mut().write(
+      Frame::new_req_auth_response(auth_token_bytes)
+        .into_cbytes()
+        .as_slice()
+    ));
     try!(parse_frame(transport, compression));
 
     return Ok(());
