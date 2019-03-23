@@ -35,7 +35,7 @@ use std::collections::HashMap;
 fn simple_udt() {
   let create_type_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.derive_udt (my_text text)";
   let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_derived_udt \
-                          (my_key int PRIMARY KEY, my_udt derive_udt)";
+                          (my_key int PRIMARY KEY, my_udt derive_udt, my_uuid uuid, my_blob blob)";
   let session = setup_multiple(&[create_type_cql, create_table_cql]).expect("setup");
 
   #[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq)]
@@ -48,7 +48,7 @@ fn simple_udt() {
 
   impl RowStruct {
     fn into_query_values(self) -> QueryValues {
-      query_values!("my_key" => self.my_key, "my_udt" => self.my_udt, "my_uuid" => self.my_uuid)
+      query_values!("my_key" => self.my_key, "my_udt" => self.my_udt, "my_uuid" => self.my_uuid, "my_blob" => self.my_blob)
     }
   }
 
