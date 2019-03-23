@@ -67,7 +67,7 @@ fn simple_udt() {
   };
 
   let cql = "INSERT INTO cdrs_test.test_derived_udt \
-             (my_key, my_udt) VALUES (?, ?)";
+             (my_key, my_udt, my_uuid, my_blob) VALUES (?, ?, ?, ?)";
   session
     .query_with_values(cql, row_struct.clone().into_query_values())
     .expect("insert");
