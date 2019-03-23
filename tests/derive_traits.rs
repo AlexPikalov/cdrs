@@ -17,13 +17,16 @@ use cdrs::frame::IntoBytes;
 use cdrs::frame::{TryFromRow, TryFromUDT};
 use cdrs::query::QueryExecutor;
 use cdrs::query::QueryValues;
+use cdrs::types::blob::Blob;
 use cdrs::types::from_cdrs::FromCDRSByName;
 use cdrs::types::map::Map;
 use cdrs::types::rows::Row;
 use cdrs::types::udt::UDT;
 use cdrs::types::value::{Bytes, Value};
 use cdrs::types::{AsRust, AsRustType, IntoRustByName};
+use std::str::FromStr;
 use time::Timespec;
+use uuid::Uuid;
 
 use std::collections::HashMap;
 
@@ -39,11 +42,13 @@ fn simple_udt() {
   struct RowStruct {
     my_key: i32,
     my_udt: MyUdt,
+    my_uuid: Uuid,
+    my_blob: Blob,
   }
 
   impl RowStruct {
     fn into_query_values(self) -> QueryValues {
-      query_values!("my_key" => self.my_key, "my_udt" => self.my_udt)
+      query_values!("my_key" => self.my_key, "my_udt" => self.my_udt, "my_uuid" => self.my_uuid)
     }
   }
 
@@ -57,6 +62,8 @@ fn simple_udt() {
     my_udt: MyUdt {
       my_text: "my_text".to_string(),
     },
+    my_uuid: Uuid::from_str("bb16106a-10bc-4a07-baa3-126ffe208c43").unwrap(),
+    my_blob: Blob::new(vec![]),
   };
 
   let cql = "INSERT INTO cdrs_test.test_derived_udt \
@@ -158,7 +165,8 @@ fn alter_udt_add() {
     drop_type_cql,
     create_type_cql,
     create_table_cql,
-  ]).expect("setup");
+  ])
+  .expect("setup");
 
   #[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq)]
   struct RowStruct {
