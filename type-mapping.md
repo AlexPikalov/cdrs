@@ -17,7 +17,7 @@
 | float | f32 | all |
 | double | f64 | all |
 | uuid | [Uuid](https://doc.rust-lang.org/uuid/uuid/struct.Uuid.html) | all |
-| counter | u64 | all |
+| counter | i64 | all |
 
 #### complex types
 | Cassandra | Rust + CDRS |
