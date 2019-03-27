@@ -35,7 +35,10 @@ fn main() {
   create_keyspace(&no_compression);
   create_table(&no_compression);
   fill_table(&no_compression);
+  println!("Internal pager state\n");
   paged_selection_query(&no_compression);
+  println!("\n\nExternal pager state for stateless executions\n");
+  paged_selection_query_with_state(&no_compression, None)
 }
 
 fn create_keyspace(session: &CurrentSession) {
@@ -80,5 +83,30 @@ fn paged_selection_query(session: &CurrentSession) {
     if !query_pager.has_more() {
       break;
     }
+  }
+}
+
+
+fn paged_selection_query_with_state(session: &CurrentSession, state: Option<String>) {
+  let mut st = state;
+
+  loop {
+
+    let q = "SELECT * FROM test_ks.my_test_table;";
+    let mut pager = session.paged(2);
+    let mut query_pager = pager.query_with_pager_state(q, st).unwrap();
+
+
+    let rows = query_pager.next().expect("pager next");
+    for row in rows {
+      let my_row = RowStruct::try_from_row(row).expect("decode row");
+      println!("row - {:?}", my_row);
+    }
+
+    if !query_pager.has_more() {
+      break;
+    }
+
+    st = query_pager.pager_state();
   }
 }

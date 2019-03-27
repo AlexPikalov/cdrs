@@ -39,6 +39,50 @@ impl<
     }
   }
 
+
+  /// Java native driver also uses this technique to
+  /// perform stateless pagination
+  /// (https://docs.datastax.com/en/developer/java-driver/3.2/manual/paging/)
+  pub fn query_with_pager_state<Q>(&'a mut self, query: Q, state: Option<String>) -> Result<QueryPager<'a, Q, SessionPager<'a, M, S, T>>, error::Error>
+    where
+      Q: ToString,
+  {
+    let tmp_state: Option<Result<Option<CBytes>, &str>> = state
+      .map(|st| {
+        if st.is_empty() || st.len() % 3 != 0 {
+          return Ok(None);
+        }
+
+        let cap: usize = st.len() / 3;
+
+        let mut vec: Vec<u8> = Vec::with_capacity(cap);
+
+        let mut p = st.chars().peekable();
+
+        while p.peek().is_some() {
+          let chunk: String = p.by_ref().take(3).collect();
+          vec.push(chunk.parse::<u8>().map_err(|_p_err| "String must be composed by digits")?);
+        }
+
+        Ok(Some(CBytes::new(vec)))
+      });
+
+    match tmp_state {
+      Some(r_state) => match r_state {
+        Ok(s_state) => {
+          Ok(QueryPager {
+            pager: self,
+            paging_state: s_state,
+            has_more_pages: None,
+            query,
+          })
+        }
+        Err(err) => Err(error::Error::General(err.to_string()))
+      },
+      None => Ok(self.query(query)),
+    }
+  }
+
   pub fn query<Q>(&'a mut self, query: Q) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
   where
     Q: ToString,
@@ -102,6 +146,29 @@ impl<
 
   pub fn has_more(&self) -> bool {
     self.has_more_pages.unwrap_or(false)
+  }
+
+
+  /// Unsigned byte is characterized by one byte or 8 bits.
+  /// Each unsigned byte can represent a number from 0 to 255,
+  /// so we can safely pack the state into 3 chars per byte.
+  pub fn pager_state(&self) -> Option<String> {
+    self.paging_state
+      .clone()
+      .and_then(|c_bytes| match c_bytes.as_slice() {
+        Some(u_vec) => {
+          let cap = u_vec.len() * 3;
+
+          let mut str_state: String = String::with_capacity(cap);
+
+          for byte in u_vec {
+            str_state.push_str(format!("{:03}", byte).as_str());
+          }
+
+          Some(str_state)
+        }
+        None => None
+      })
   }
 }
 
