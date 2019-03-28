@@ -54,7 +54,7 @@ impl<
   where
     Q: ToString,
   {
-    self.query_with_pager_state(query, PagerState { cursor : None, has_more_pages : None})
+    self.query_with_pager_state(query, PagerState::new())
   }
 
   pub fn exec_with_pager_state(&'a mut self, query: &'a PreparedQuery, state: PagerState) -> ExecPager<'a, SessionPager<'a, M, S, T>> {
@@ -66,7 +66,7 @@ impl<
   }
 
   pub fn exec(&'a mut self, query: &'a PreparedQuery) -> ExecPager<'a, SessionPager<'a, M, S, T>> {
-    self.exec_with_pager_state(query, PagerState { cursor : None, has_more_pages : None})
+    self.exec_with_pager_state(query, PagerState::new())
   }
 }
 
