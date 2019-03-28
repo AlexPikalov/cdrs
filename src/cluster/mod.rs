@@ -13,7 +13,7 @@ mod tcp_connection_pool;
 #[cfg(feature = "ssl")]
 pub use cluster::config_ssl::{ClusterSslConfig, NodeSslConfig, NodeSslConfigBuilder};
 pub use cluster::config_tcp::{ClusterTcpConfig, NodeTcpConfig, NodeTcpConfigBuilder};
-pub use cluster::pager::{QueryPager, SessionPager};
+pub use cluster::pager::{QueryPager, SessionPager, PagerState};
 #[cfg(feature = "ssl")]
 pub use cluster::ssl_connection_pool::{new_ssl_pool, SslConnectionPool, SslConnectionsManager};
 pub use cluster::tcp_connection_pool::{

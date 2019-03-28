@@ -5,7 +5,7 @@ extern crate cdrs_helpers_derive;
 
 use cdrs::authenticators::NoneAuthenticator;
 use cdrs::cluster::session::{new as new_session, Session};
-use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
+use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool, PagerState};
 use cdrs::load_balancing::RoundRobin;
 use cdrs::query::*;
 
@@ -38,7 +38,7 @@ fn main() {
   println!("Internal pager state\n");
   paged_selection_query(&no_compression);
   println!("\n\nExternal pager state for stateless executions\n");
-  paged_selection_query_with_state(&no_compression, None)
+  paged_selection_query_with_state(&no_compression, PagerState::new());
 }
 
 fn create_keyspace(session: &CurrentSession) {
@@ -87,15 +87,13 @@ fn paged_selection_query(session: &CurrentSession) {
 }
 
 
-fn paged_selection_query_with_state(session: &CurrentSession, state: Option<String>) {
+fn paged_selection_query_with_state(session: &CurrentSession, state: PagerState) {
   let mut st = state;
 
   loop {
-
     let q = "SELECT * FROM test_ks.my_test_table;";
     let mut pager = session.paged(2);
-    let mut query_pager = pager.query_with_pager_state(q, st).unwrap();
-
+    let mut query_pager = pager.query_with_pager_state(q, st);
 
     let rows = query_pager.next().expect("pager next");
     for row in rows {
