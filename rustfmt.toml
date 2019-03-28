@@ -1,2 +1,5 @@
-indent_style = "Visual"
+indent_style = "Block"
 combine_control_expr = false
+tab_spaces = 2
+brace_style = "SameLineWhere" 
+empty_item_single_line = true
