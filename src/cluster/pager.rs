@@ -179,6 +179,14 @@ impl PagerState {
     PagerState { cursor: None, has_more_pages: None }
   }
 
+  pub fn with_cursor(cursor: CBytes) -> Self {
+    PagerState { cursor: Some(cursor), has_more_pages: None }
+  }
+
+  pub fn with_cursor_and_more_flag(cursor: CBytes, has_more: bool) -> Self {
+    PagerState { cursor: Some(cursor), has_more_pages: Some(has_more) }
+  }
+
   pub fn has_more(&self) -> bool {
     self.has_more_pages.unwrap_or(false)
   }
