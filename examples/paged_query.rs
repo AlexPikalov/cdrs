@@ -5,7 +5,7 @@ extern crate cdrs_helpers_derive;
 
 use cdrs::authenticators::NoneAuthenticator;
 use cdrs::cluster::session::{new as new_session, Session};
-use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
+use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, PagerState, TcpConnectionPool};
 use cdrs::load_balancing::RoundRobin;
 use cdrs::query::*;
 
@@ -35,7 +35,10 @@ fn main() {
   create_keyspace(&no_compression);
   create_table(&no_compression);
   fill_table(&no_compression);
+  println!("Internal pager state\n");
   paged_selection_query(&no_compression);
+  println!("\n\nExternal pager state for stateless executions\n");
+  paged_selection_query_with_state(&no_compression, PagerState::new());
 }
 
 fn create_keyspace(session: &CurrentSession) {
@@ -48,9 +51,8 @@ fn create_table(session: &CurrentSession) {
   let create_table_cql =
     "CREATE TABLE IF NOT EXISTS test_ks.my_test_table (key int PRIMARY KEY, \
      user test_ks.user, map map<text, frozen<test_ks.user>>, list list<frozen<test_ks.user>>);";
-  session
-    .query(create_table_cql)
-    .expect("Table creation error");
+  session.query(create_table_cql)
+         .expect("Table creation error");
 }
 
 fn fill_table(session: &CurrentSession) {
@@ -59,9 +61,8 @@ fn fill_table(session: &CurrentSession) {
   for k in 100..110 {
     let row = RowStruct { key: k as i32 };
 
-    session
-      .query_with_values(insert_struct_cql, row.into_query_values())
-      .expect("insert");
+    session.query_with_values(insert_struct_cql, row.into_query_values())
+           .expect("insert");
   }
 }
 
@@ -80,5 +81,27 @@ fn paged_selection_query(session: &CurrentSession) {
     if !query_pager.has_more() {
       break;
     }
+  }
+}
+
+fn paged_selection_query_with_state(session: &CurrentSession, state: PagerState) {
+  let mut st = state;
+
+  loop {
+    let q = "SELECT * FROM test_ks.my_test_table;";
+    let mut pager = session.paged(2);
+    let mut query_pager = pager.query_with_pager_state(q, st);
+
+    let rows = query_pager.next().expect("pager next");
+    for row in rows {
+      let my_row = RowStruct::try_from_row(row).expect("decode row");
+      println!("row - {:?}", my_row);
+    }
+
+    if !query_pager.has_more() {
+      break;
+    }
+
+    st = query_pager.pager_state();
   }
 }
