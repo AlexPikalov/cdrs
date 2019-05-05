@@ -18,10 +18,10 @@ pub type TcpConnectionPool<A> = Pool<TcpConnectionsManager<A>>;
 /// `r2d2::Pool` of TCP-based CDRS connections.
 ///
 /// Used internally for TCP Session for holding connections to a specific Cassandra node.
-pub fn new_tcp_pool<A: Authenticator + Send + Sync + 'static>(
-  node_config: NodeTcpConfig<'static, A>,
+pub fn new_tcp_pool<'a, A: Authenticator + Send + Sync + 'static>(
+  node_config: NodeTcpConfig<'a, A>,
 ) -> error::Result<TcpConnectionPool<A>> {
-  let manager = TcpConnectionsManager::new(node_config.addr, node_config.authenticator);
+  let manager = TcpConnectionsManager::new(node_config.addr.to_string(), node_config.authenticator);
 
   Builder::new()
     .max_size(node_config.max_size)
@@ -35,13 +35,16 @@ pub fn new_tcp_pool<A: Authenticator + Send + Sync + 'static>(
 
 /// `r2d2` connection manager.
 pub struct TcpConnectionsManager<A> {
-  addr: &'static str,
+  addr: String,
   auth: A,
 }
 
 impl<A> TcpConnectionsManager<A> {
-  pub fn new(addr: &'static str, auth: A) -> Self {
-    TcpConnectionsManager { addr, auth }
+  pub fn new<S: ToString>(addr: S, auth: A) -> Self {
+    TcpConnectionsManager {
+      addr: addr.to_string(),
+      auth,
+    }
   }
 }
 
