@@ -226,8 +226,8 @@ impl<'a, L> Session<L> {
 /// * SSL cluster config
 /// * load balancing strategy (cannot be changed during `Session` life time).
 #[cfg(feature = "ssl")]
-pub fn new_ssl<A, LB>(
-  node_configs: &ClusterSslConfig<'static, A>,
+pub fn new_ssl<'a, A, LB>(
+  node_configs: &ClusterSslConfig<'a, A>,
   mut load_balancing: LB,
 ) -> error::Result<Session<LB>>
 where
@@ -255,8 +255,8 @@ where
 /// * SSL cluster config
 /// * load balancing strategy (cannot be changed during `Session` life time).
 #[cfg(feature = "ssl")]
-pub fn new_snappy_ssl<A, LB>(
-  node_configs: &ClusterSslConfig<'static, A>,
+pub fn new_snappy_ssl<'a, A, LB>(
+  node_configs: &ClusterSslConfig<'a, A>,
   mut load_balancing: LB,
 ) -> error::Result<Session<LB>>
 where
@@ -284,8 +284,8 @@ where
 /// * SSL cluster config
 /// * load balancing strategy (cannot be changed during `Session` life time).
 #[cfg(feature = "ssl")]
-pub fn new_lz4_ssl<A, LB>(
-  node_configs: &ClusterSslConfig<'static, A>,
+pub fn new_lz4_ssl<'a, A, LB>(
+  node_configs: &ClusterSslConfig<'a, A>,
   mut load_balancing: LB,
 ) -> error::Result<Session<LB>>
 where
