@@ -76,7 +76,8 @@ impl<
     M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
     LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
   > QueryExecutor<T, M> for Session<LB>
-{}
+{
+}
 
 impl<
     'a,
@@ -84,7 +85,8 @@ impl<
     LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
     M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
   > PrepareExecutor<T, M> for Session<LB>
-{}
+{
+}
 
 impl<
     'a,
@@ -92,7 +94,8 @@ impl<
     LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
     M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
   > ExecExecutor<T, M> for Session<LB>
-{}
+{
+}
 
 impl<
     'a,
@@ -100,7 +103,8 @@ impl<
     LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
     M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
   > BatchExecutor<T, M> for Session<LB>
-{}
+{
+}
 
 impl<
     'a,
@@ -108,15 +112,16 @@ impl<
     M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
     LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
   > CDRSSession<'a, T, M> for Session<LB>
-{}
+{
+}
 
 /// Creates new session that will perform queries without any compression. `Compression` type
 /// can be changed at any time.
 /// As a parameter it takes:
 /// * cluster config
 /// * load balancing strategy (cannot be changed during `Session` life time).
-pub fn new<A, LB>(
-  node_configs: &ClusterTcpConfig<'static, A>,
+pub fn new<'a, A, LB>(
+  node_configs: &ClusterTcpConfig<'a, A>,
   mut load_balancing: LB,
 ) -> error::Result<Session<LB>>
 where
@@ -143,8 +148,8 @@ where
 /// As a parameter it takes:
 /// * cluster config
 /// * load balancing strategy (cannot be changed during `Session` life time).
-pub fn new_snappy<A, LB>(
-  node_configs: &ClusterTcpConfig<'static, A>,
+pub fn new_snappy<'a, A, LB>(
+  node_configs: &ClusterTcpConfig<'a, A>,
   mut load_balancing: LB,
 ) -> error::Result<Session<LB>>
 where
@@ -171,8 +176,8 @@ where
 /// As a parameter it takes:
 /// * cluster config
 /// * load balancing strategy (cannot be changed during `Session` life time).
-pub fn new_lz4<A, LB>(
-  node_configs: &ClusterTcpConfig<'static, A>,
+pub fn new_lz4<'a, A, LB>(
+  node_configs: &ClusterTcpConfig<'a, A>,
   mut load_balancing: LB,
 ) -> error::Result<Session<LB>>
 where
@@ -221,8 +226,8 @@ impl<'a, L> Session<L> {
 /// * SSL cluster config
 /// * load balancing strategy (cannot be changed during `Session` life time).
 #[cfg(feature = "ssl")]
-pub fn new_ssl<A, LB>(
-  node_configs: &ClusterSslConfig<'static, A>,
+pub fn new_ssl<'a, A, LB>(
+  node_configs: &ClusterSslConfig<'a, A>,
   mut load_balancing: LB,
 ) -> error::Result<Session<LB>>
 where
@@ -250,8 +255,8 @@ where
 /// * SSL cluster config
 /// * load balancing strategy (cannot be changed during `Session` life time).
 #[cfg(feature = "ssl")]
-pub fn new_snappy_ssl<A, LB>(
-  node_configs: &ClusterSslConfig<'static, A>,
+pub fn new_snappy_ssl<'a, A, LB>(
+  node_configs: &ClusterSslConfig<'a, A>,
   mut load_balancing: LB,
 ) -> error::Result<Session<LB>>
 where
@@ -279,8 +284,8 @@ where
 /// * SSL cluster config
 /// * load balancing strategy (cannot be changed during `Session` life time).
 #[cfg(feature = "ssl")]
-pub fn new_lz4_ssl<A, LB>(
-  node_configs: &ClusterSslConfig<'static, A>,
+pub fn new_lz4_ssl<'a, A, LB>(
+  node_configs: &ClusterSslConfig<'a, A>,
   mut load_balancing: LB,
 ) -> error::Result<Session<LB>>
 where

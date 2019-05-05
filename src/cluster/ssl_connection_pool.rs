@@ -19,8 +19,8 @@ pub type SslConnectionPool<A> = Pool<SslConnectionsManager<A>>;
 /// `r2d2::Pool` of SSL-based CDRS connections.
 ///
 /// Used internally for SSL Session for holding connections to a specific Cassandra node.
-pub fn new_ssl_pool<A: Authenticator + Send + Sync + 'static>(
-  node_config: NodeSslConfig<'static, A>,
+pub fn new_ssl_pool<'a, A: Authenticator + Send + Sync + 'static>(
+  node_config: NodeSslConfig<'a, A>,
 ) -> error::Result<SslConnectionPool<A>> {
   let manager = SslConnectionsManager::new(
     node_config.addr,
@@ -40,15 +40,15 @@ pub fn new_ssl_pool<A: Authenticator + Send + Sync + 'static>(
 
 /// `r2d2` connection manager.
 pub struct SslConnectionsManager<A> {
-  addr: &'static str,
+  addr: String,
   ssl_connector: SslConnector,
   auth: A,
 }
 
 impl<A> SslConnectionsManager<A> {
-  pub fn new(addr: &'static str, auth: A, ssl_connector: SslConnector) -> Self {
+  pub fn new<S: ToString>(addr: S, auth: A, ssl_connector: SslConnector) -> Self {
     SslConnectionsManager {
-      addr,
+      addr: addr.to_string(),
       auth,
       ssl_connector,
     }
