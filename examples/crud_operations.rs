@@ -7,7 +7,7 @@ extern crate maplit;
 
 use std::collections::HashMap;
 
-use cdrs::authenticators::NoneAuthenticator;
+use cdrs::authenticators::{NoneAuthenticator, StaticPasswordAuthenticator};
 use cdrs::cluster::session::{new as new_session, Session};
 use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
 use cdrs::load_balancing::RoundRobin;
@@ -17,10 +17,13 @@ use cdrs::frame::IntoBytes;
 use cdrs::types::from_cdrs::FromCDRSByName;
 use cdrs::types::prelude::*;
 
-type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;
+type CurrentSession = Session<RoundRobin<TcpConnectionPool<StaticPasswordAuthenticator>>>;
 
 fn main() {
-  let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+  let user = "user";
+  let password = "password";
+  let auth = StaticPasswordAuthenticator::new(&user, &password);
+  let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", auth).build();
   let cluster_config = ClusterTcpConfig(vec![node]);
   let no_compression: CurrentSession =
     new_session(&cluster_config, RoundRobin::new()).expect("session should be created");
