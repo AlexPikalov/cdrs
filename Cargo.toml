@@ -24,7 +24,7 @@ appveyor = []
 byteorder = "1"
 log = "0.4.1"
 lz4-compress = "=0.1.0"
-openssl = { version = "0.9.23", optional = true }
+openssl = { version = "0.10", optional = true }
 r2d2 = "0.8.2"
 rand = "0.4.1"
 snap = "0.2.3"
