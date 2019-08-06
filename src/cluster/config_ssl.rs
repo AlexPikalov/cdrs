@@ -40,7 +40,6 @@ impl<'a, A: Authenticator + Sized> NodeSslConfigBuilder<'a, A> {
   /// * node socket address as a string
   /// * authenticator
   /// * SSL connector structure (for more details see [openssl docs](https://docs.rs/openssl/0.10.12/openssl/ssl/struct.SslConnector.html))
-  }); 
   pub fn new<'b>(
     addr: &'b str,
     authenticator: A,
