@@ -50,7 +50,7 @@ addons:
       - binutils-dev
       - zlib1g-dev
       # - libbfd-dev
-      - oracle-java8-installer
+      # - oracle-java8-installer
 
 after_success:
   wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&#
