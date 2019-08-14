@@ -12,15 +12,6 @@ services:
   - cassandra
 sudo: required
 
-#before_install:
-#  - sudo update-java-alternatives -s java-8-oracle
-#  - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
-#  - java -version
-#  - sudo rm -rf /var/lib/cassandra/*
-#  - if [ ! -d "apache-cassandra-3.11.2" ]; then wget https://archive.apache.org/dist/cassandra/3.11.2/apache-cassandra-3.11.2-bin.tar.gz && tar -xvzf apache-cassandra-3.11.2-bin.tar.gz; fi
-#  - sudo sh ./apache-cassandra-3.11.2/bin/cassandra -R
-#  - sleep 20
-
 install:
   # - (cargo install rustfmt --force  || true)
   - PATH=$PATH:/home/travis/.cargo/bin
@@ -30,6 +21,7 @@ script:
   - cargo build --verbose
   - cargo test --verbose
   - cargo test --verbose -- --ignored
+  - cargo check --features ssl
 
 deploy:
   # deploy master to production
@@ -50,8 +42,6 @@ addons:
       - gcc
       - binutils-dev
       - zlib1g-dev
-      # - libbfd-dev
-      #- openjdk-8-jre-headless
 
 after_success:
   wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&#
