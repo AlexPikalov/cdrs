@@ -21,7 +21,7 @@ script:
   - cargo build --verbose
   - cargo test --verbose
   - cargo test --verbose -- --ignored
-  - cargo check --features ssl
+  - cargo test --features ssl
 
 deploy:
   # deploy master to production
