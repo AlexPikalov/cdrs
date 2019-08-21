@@ -3,10 +3,11 @@ use std::cell::RefCell;
 
 use cluster::{GetCompressor, GetConnection};
 use error;
-use frame::parser::from_connection;
-use frame::{Flag, Frame, IntoBytes};
+use frame::{Frame, IntoBytes};
 use transport::CDRSTransport;
 use types::CBytesShort;
+
+use super::utils::{prepare_flags, send_frame};
 
 pub type PreparedQuery = CBytesShort;
 
@@ -23,29 +24,15 @@ pub trait PrepareExecutor<
     query: Q,
     with_tracing: bool,
     with_warnings: bool,
-  ) -> error::Result<PreparedQuery> {
-    let mut flags = vec![];
-    if with_tracing {
-      flags.push(Flag::Tracing);
-    }
-    if with_warnings {
-      flags.push(Flag::Warning);
-    }
+  ) -> error::Result<PreparedQuery>
+  where
+    Self: Sized,
+  {
+    let flags = prepare_flags(with_tracing, with_warnings);
 
     let query_frame = Frame::new_req_prepare(query.to_string(), flags).into_cbytes();
-    let ref compression = self.get_compressor();
 
-    self
-      .get_connection()
-      .ok_or(error::Error::from("Unable to get transport"))
-      .and_then(|transport_cell| {
-        let write_res = transport_cell
-          .borrow_mut()
-          .write(query_frame.as_slice())
-          .map_err(error::Error::from);
-        write_res.map(|_| transport_cell)
-      })
-      .and_then(|transport_cell| from_connection(&transport_cell, compression))
+    send_frame(self, query_frame)
       .and_then(|response| response.get_body())
       .and_then(|body| {
         Ok(
@@ -58,7 +45,10 @@ pub trait PrepareExecutor<
   }
 
   /// It prepares query without additional tracing information and warnings.
-  fn prepare<Q: ToString>(&self, query: Q) -> error::Result<PreparedQuery> {
+  fn prepare<Q: ToString>(&self, query: Q) -> error::Result<PreparedQuery>
+  where
+    Self: Sized,
+  {
     self.prepare_tw(query, false, false)
   }
 }

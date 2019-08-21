@@ -8,6 +8,7 @@ mod query_flags;
 mod query_params;
 mod query_params_builder;
 mod query_values;
+mod utils;
 
 pub use query::batch_executor::BatchExecutor;
 pub use query::batch_query_builder::{BatchQueryBuilder, QueryBatch};
