@@ -3,10 +3,11 @@ use std::cell::RefCell;
 
 use cluster::{GetCompressor, GetConnection};
 use error;
-use frame::parser::from_connection;
-use frame::{Flag, Frame, IntoBytes};
+use frame::{Frame, IntoBytes};
 use query::{Query, QueryParams, QueryParamsBuilder, QueryValues};
 use transport::CDRSTransport;
+
+use super::utils::{prepare_flags, send_frame};
 
 pub trait QueryExecutor<
   T: CDRSTransport + 'static,
@@ -19,41 +20,28 @@ pub trait QueryExecutor<
     query_params: QueryParams,
     with_tracing: bool,
     with_warnings: bool,
-  ) -> error::Result<Frame> {
+  ) -> error::Result<Frame>
+  where
+    Self: Sized,
+  {
     let query = Query {
       query: query.to_string(),
       params: query_params,
     };
 
-    let mut flags = vec![];
-
-    if with_tracing {
-      flags.push(Flag::Tracing);
-    }
-
-    if with_warnings {
-      flags.push(Flag::Warning);
-    }
+    let flags = prepare_flags(with_tracing, with_warnings);
 
     let query_frame = Frame::new_query(query, flags).into_cbytes();
-    let ref compression = self.get_compressor();
 
-    self
-      .get_connection()
-      .ok_or(error::Error::from("Unable to get transport"))
-      .and_then(|transport_cell| {
-        let write_res = transport_cell
-          .borrow_mut()
-          .write(query_frame.as_slice())
-          .map_err(error::Error::from);
-        write_res.map(|_| transport_cell)
-      })
-      .and_then(|transport_cell| from_connection(&transport_cell, compression))
+    send_frame(self, query_frame)
   }
 
   /// Executes a query with default parameters:
   /// * TDB
-  fn query<Q: ToString>(&self, query: Q) -> error::Result<Frame> {
+  fn query<Q: ToString>(&self, query: Q) -> error::Result<Frame>
+  where
+    Self: Sized,
+  {
     self.query_tw(query, false, false)
   }
 
@@ -64,7 +52,10 @@ pub trait QueryExecutor<
     query: Q,
     with_tracing: bool,
     with_warnings: bool,
-  ) -> error::Result<Frame> {
+  ) -> error::Result<Frame>
+  where
+    Self: Sized,
+  {
     let query_params = QueryParamsBuilder::new().finalize();
     self.query_with_params_tw(query, query_params, with_tracing, with_warnings)
   }
@@ -74,7 +65,10 @@ pub trait QueryExecutor<
     &self,
     query: Q,
     values: V,
-  ) -> error::Result<Frame> {
+  ) -> error::Result<Frame>
+  where
+    Self: Sized,
+  {
     self.query_with_values_tw(query, values, false, false)
   }
 
@@ -86,7 +80,10 @@ pub trait QueryExecutor<
     values: V,
     with_tracing: bool,
     with_warnings: bool,
-  ) -> error::Result<Frame> {
+  ) -> error::Result<Frame>
+  where
+    Self: Sized,
+  {
     let query_params_builder = QueryParamsBuilder::new();
     let query_params = query_params_builder.values(values.into()).finalize();
     self.query_with_params_tw(query, query_params, with_tracing, with_warnings)
@@ -97,7 +94,10 @@ pub trait QueryExecutor<
     &self,
     query: Q,
     query_params: QueryParams,
-  ) -> error::Result<Frame> {
+  ) -> error::Result<Frame>
+  where
+    Self: Sized,
+  {
     self.query_with_params_tw(query, query_params, false, false)
   }
 }
