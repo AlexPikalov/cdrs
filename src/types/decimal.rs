@@ -1,5 +1,5 @@
 use super::{to_int, to_varint};
-use frame::traits::IntoBytes;
+use crate::frame::traits::IntoBytes;
 
 /// Cassandra Decimal type
 #[derive(Debug, Clone, PartialEq)]

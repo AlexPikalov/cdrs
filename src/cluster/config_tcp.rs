@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use authenticators::Authenticator;
+use crate::authenticators::Authenticator;
 
 /// Cluster configuration that holds per node TCP configs
 pub struct ClusterTcpConfig<'a, A: Authenticator + Sized>(pub Vec<NodeTcpConfig<'a, A>>);

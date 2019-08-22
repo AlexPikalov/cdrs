@@ -2,14 +2,14 @@ use std::net::IpAddr;
 use time::Timespec;
 use uuid::Uuid;
 
-use error::Result as CDRSResult;
-use types::blob::Blob;
-use types::decimal::Decimal;
-use types::list::List;
-use types::map::Map;
-use types::tuple::Tuple;
-use types::udt::UDT;
-use types::{AsRustType, ByName, IntoRustByName};
+use crate::error::Result as CDRSResult;
+use crate::types::blob::Blob;
+use crate::types::decimal::Decimal;
+use crate::types::list::List;
+use crate::types::map::Map;
+use crate::types::tuple::Tuple;
+use crate::types::udt::UDT;
+use crate::types::{AsRustType, ByName, IntoRustByName};
 
 pub trait FromCDRS {
   fn from_cdrs<T>(cdrs_type: T) -> CDRSResult<Option<Self>>

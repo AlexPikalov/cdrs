@@ -1,38 +1,38 @@
-use error::{Error, Result};
-use frame::frame_result::{ColType, ColTypeOption, ColTypeOptionValue};
+use crate::error::{Error, Result};
+use crate::frame::frame_result::{ColType, ColTypeOption, ColTypeOptionValue};
+use crate::types::blob::Blob;
+use crate::types::data_serialization_types::*;
+use crate::types::decimal::Decimal;
+use crate::types::map::Map;
+use crate::types::tuple::Tuple;
+use crate::types::udt::UDT;
+use crate::types::{AsRust, AsRustType, CBytes};
 use std::net::IpAddr;
-use types::blob::Blob;
-use types::data_serialization_types::*;
-use types::decimal::Decimal;
-use types::map::Map;
-use types::tuple::Tuple;
-use types::udt::UDT;
-use types::{AsRust, AsRustType, CBytes};
 use uuid::Uuid;
 
 // TODO: consider using pointers to ColTypeOption and Vec<CBytes> instead of owning them.
 #[derive(Debug)]
 pub struct List {
-    /// column spec of the list, i.e. id should be List as it's a list and value should contain
-    /// a type of list items.
-    metadata: ColTypeOption,
-    data: Vec<CBytes>,
+  /// column spec of the list, i.e. id should be List as it's a list and value should contain
+  /// a type of list items.
+  metadata: ColTypeOption,
+  data: Vec<CBytes>,
 }
 
 impl List {
-    pub fn new(data: Vec<CBytes>, metadata: ColTypeOption) -> List {
-        List {
-            metadata: metadata,
-            data: data,
-        }
+  pub fn new(data: Vec<CBytes>, metadata: ColTypeOption) -> List {
+    List {
+      metadata: metadata,
+      data: data,
     }
+  }
 
-    fn map<T, F>(&self, f: F) -> Vec<T>
-    where
-        F: FnMut(&CBytes) -> T,
-    {
-        self.data.iter().map(f).collect()
-    }
+  fn map<T, F>(&self, f: F) -> Vec<T>
+  where
+    F: FnMut(&CBytes) -> T,
+  {
+    self.data.iter().map(f).collect()
+  }
 }
 
 impl AsRust for List {}

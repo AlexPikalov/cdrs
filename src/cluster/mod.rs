@@ -11,19 +11,21 @@ mod ssl_connection_pool;
 mod tcp_connection_pool;
 
 #[cfg(feature = "ssl")]
-pub use cluster::config_ssl::{ClusterSslConfig, NodeSslConfig, NodeSslConfigBuilder};
-pub use cluster::config_tcp::{ClusterTcpConfig, NodeTcpConfig, NodeTcpConfigBuilder};
-pub use cluster::pager::{QueryPager, SessionPager, PagerState};
+pub use crate::cluster::config_ssl::{ClusterSslConfig, NodeSslConfig, NodeSslConfigBuilder};
+pub use crate::cluster::config_tcp::{ClusterTcpConfig, NodeTcpConfig, NodeTcpConfigBuilder};
+pub use crate::cluster::pager::{PagerState, QueryPager, SessionPager};
 #[cfg(feature = "ssl")]
-pub use cluster::ssl_connection_pool::{new_ssl_pool, SslConnectionPool, SslConnectionsManager};
-pub use cluster::tcp_connection_pool::{
+pub use crate::cluster::ssl_connection_pool::{
+  new_ssl_pool, SslConnectionPool, SslConnectionsManager,
+};
+pub use crate::cluster::tcp_connection_pool::{
   new_tcp_pool, startup, TcpConnectionPool, TcpConnectionsManager,
 };
 
-use compression::Compression;
-use error;
-use query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
-use transport::CDRSTransport;
+use crate::compression::Compression;
+use crate::error;
+use crate::query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
+use crate::transport::CDRSTransport;
 
 /// `GetConnection` trait provides a unified interface for Session to get a connection
 /// from a load balancer

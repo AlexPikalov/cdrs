@@ -1,19 +1,30 @@
+#[cfg(feature = "e2e-tests")]
 use cdrs::authenticators::NoneAuthenticator;
+#[cfg(feature = "e2e-tests")]
 use cdrs::cluster::session::{new as new_session, Session};
+#[cfg(feature = "e2e-tests")]
 use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
+#[cfg(feature = "e2e-tests")]
 use cdrs::error::Result;
+#[cfg(feature = "e2e-tests")]
 use cdrs::load_balancing::RoundRobin;
+#[cfg(feature = "e2e-tests")]
 use cdrs::query::QueryExecutor;
+#[cfg(feature = "e2e-tests")]
 use regex::Regex;
 
+#[cfg(feature = "e2e-tests")]
 const ADDR: &'static str = "127.0.0.1:9042";
 
+#[cfg(feature = "e2e-tests")]
 type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;
 
+#[cfg(feature = "e2e-tests")]
 pub fn setup(create_table_cql: &'static str) -> Result<CurrentSession> {
   setup_multiple(&[create_table_cql])
 }
 
+#[cfg(feature = "e2e-tests")]
 pub fn setup_multiple(create_cqls: &[&'static str]) -> Result<CurrentSession> {
   let node = NodeTcpConfigBuilder::new(ADDR, NoneAuthenticator {}).build();
   let cluster_config = ClusterTcpConfig(vec![node]);

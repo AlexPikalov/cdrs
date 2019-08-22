@@ -1,4 +1,4 @@
-use frame::AsByte;
+use crate::frame::AsByte;
 
 const FLAGS_VALUE: u8 = 0x01;
 const FLAGS_SKIP_METADATA: u8 = 0x02;
@@ -119,137 +119,193 @@ mod tests {
 
   #[test]
   fn has_value_test() {
-    assert!(QueryFlags::has_value(FLAGS_VALUE | 0x10),
-            "should show that the flag has value");
-    assert!(!QueryFlags::has_value(FLAGS_SKIP_METADATA),
-            "should show that the flag does NOT have value");
+    assert!(
+      QueryFlags::has_value(FLAGS_VALUE | 0x10),
+      "should show that the flag has value"
+    );
+    assert!(
+      !QueryFlags::has_value(FLAGS_SKIP_METADATA),
+      "should show that the flag does NOT have value"
+    );
   }
 
   #[test]
   fn set_value_test() {
-    assert_eq!(QueryFlags::set_value(0),
-               FLAGS_VALUE,
-               "should set has value flag");
+    assert_eq!(
+      QueryFlags::set_value(0),
+      FLAGS_VALUE,
+      "should set has value flag"
+    );
   }
 
   #[test]
   fn has_skip_metadata_test() {
-    assert!(QueryFlags::has_skip_metadata(FLAGS_SKIP_METADATA | 0x10),
-            "should show that the flag has skip metadata");
-    assert!(!QueryFlags::has_skip_metadata(FLAGS_VALUE),
-            "should show that the flag does NOT have skip metadata");
+    assert!(
+      QueryFlags::has_skip_metadata(FLAGS_SKIP_METADATA | 0x10),
+      "should show that the flag has skip metadata"
+    );
+    assert!(
+      !QueryFlags::has_skip_metadata(FLAGS_VALUE),
+      "should show that the flag does NOT have skip metadata"
+    );
   }
 
   #[test]
   fn set_skip_metadata_test() {
-    assert_eq!(QueryFlags::set_skip_metadata(0),
-               FLAGS_SKIP_METADATA,
-               "should set has skip metadata flag");
+    assert_eq!(
+      QueryFlags::set_skip_metadata(0),
+      FLAGS_SKIP_METADATA,
+      "should set has skip metadata flag"
+    );
   }
 
   #[test]
   fn has_page_size_test() {
-    assert!(QueryFlags::has_page_size(WITH_PAGE_SIZE | 0x10),
-            "should show that the flag has with page size");
-    assert!(!QueryFlags::has_page_size(FLAGS_VALUE),
-            "should show that the flag does NOT have with page size");
+    assert!(
+      QueryFlags::has_page_size(WITH_PAGE_SIZE | 0x10),
+      "should show that the flag has with page size"
+    );
+    assert!(
+      !QueryFlags::has_page_size(FLAGS_VALUE),
+      "should show that the flag does NOT have with page size"
+    );
   }
 
   #[test]
   fn set_page_size_test() {
-    assert_eq!(QueryFlags::set_page_size(0),
-               WITH_PAGE_SIZE,
-               "should set has page size flag");
+    assert_eq!(
+      QueryFlags::set_page_size(0),
+      WITH_PAGE_SIZE,
+      "should set has page size flag"
+    );
   }
 
   #[test]
   fn has_with_paging_state_test() {
-    assert!(QueryFlags::has_with_paging_state(WITH_PAGING_STATE | 0x10),
-            "should show that the flag has with paging state");
-    assert!(!QueryFlags::has_with_paging_state(FLAGS_VALUE),
-            "should show that the flag does NOT have with paging state");
+    assert!(
+      QueryFlags::has_with_paging_state(WITH_PAGING_STATE | 0x10),
+      "should show that the flag has with paging state"
+    );
+    assert!(
+      !QueryFlags::has_with_paging_state(FLAGS_VALUE),
+      "should show that the flag does NOT have with paging state"
+    );
   }
 
   #[test]
   fn set_with_paging_state_test() {
-    assert_eq!(QueryFlags::set_with_paging_state(0),
-               WITH_PAGING_STATE,
-               "should set has with paging state flag");
+    assert_eq!(
+      QueryFlags::set_with_paging_state(0),
+      WITH_PAGING_STATE,
+      "should set has with paging state flag"
+    );
   }
 
   #[test]
   fn has_with_serial_consistency_test() {
-    assert!(QueryFlags::has_with_serial_consistency(WITH_SERIAL_CONSISTENCY | 0x11),
-            "should show that the flag has with serial consistency");
-    assert!(!QueryFlags::has_with_serial_consistency(FLAGS_VALUE),
-            "should show that the flag does NOT have with serial consistency");
+    assert!(
+      QueryFlags::has_with_serial_consistency(WITH_SERIAL_CONSISTENCY | 0x11),
+      "should show that the flag has with serial consistency"
+    );
+    assert!(
+      !QueryFlags::has_with_serial_consistency(FLAGS_VALUE),
+      "should show that the flag does NOT have with serial consistency"
+    );
   }
 
   #[test]
   fn set_with_serial_consistency_test() {
-    assert_eq!(QueryFlags::set_with_serial_consistency(0),
-               WITH_SERIAL_CONSISTENCY,
-               "should set has with serial consistency flag");
+    assert_eq!(
+      QueryFlags::set_with_serial_consistency(0),
+      WITH_SERIAL_CONSISTENCY,
+      "should set has with serial consistency flag"
+    );
   }
 
   #[test]
   fn has_with_default_timestamp_test() {
-    assert!(QueryFlags::has_with_default_timestamp(WITH_DEFAULT_TIMESTAMP | 0x10),
-            "should show that the flag has with default timestamp");
-    assert!(!QueryFlags::has_with_default_timestamp(FLAGS_VALUE),
-            "should show that the flag does NOT have with default timestamp");
+    assert!(
+      QueryFlags::has_with_default_timestamp(WITH_DEFAULT_TIMESTAMP | 0x10),
+      "should show that the flag has with default timestamp"
+    );
+    assert!(
+      !QueryFlags::has_with_default_timestamp(FLAGS_VALUE),
+      "should show that the flag does NOT have with default timestamp"
+    );
   }
 
   #[test]
   fn set_with_default_timestamp_test() {
-    assert_eq!(QueryFlags::set_with_default_timestamp(0),
-               WITH_DEFAULT_TIMESTAMP,
-               "should set has with serial consistency flag");
+    assert_eq!(
+      QueryFlags::set_with_default_timestamp(0),
+      WITH_DEFAULT_TIMESTAMP,
+      "should set has with serial consistency flag"
+    );
   }
 
   #[test]
   fn has_with_names_for_values_test() {
-    assert!(QueryFlags::has_with_names_for_values(WITH_NAME_FOR_VALUES | 0x10),
-            "should show that the flag has with name for values");
-    assert!(!QueryFlags::has_with_names_for_values(FLAGS_VALUE),
-            "should show that the flag does NOT have with name for values");
+    assert!(
+      QueryFlags::has_with_names_for_values(WITH_NAME_FOR_VALUES | 0x10),
+      "should show that the flag has with name for values"
+    );
+    assert!(
+      !QueryFlags::has_with_names_for_values(FLAGS_VALUE),
+      "should show that the flag does NOT have with name for values"
+    );
   }
 
   #[test]
   fn set_with_names_for_values_test() {
-    assert_eq!(QueryFlags::set_with_names_for_values(0),
-               WITH_NAME_FOR_VALUES,
-               "should set has with name for values flag");
+    assert_eq!(
+      QueryFlags::set_with_names_for_values(0),
+      WITH_NAME_FOR_VALUES,
+      "should set has with name for values flag"
+    );
   }
 
   #[test]
   fn as_byte_test() {
-    assert_eq!(QueryFlags::Value.as_byte(),
-               FLAGS_VALUE,
-               "should propery convert values flag");
+    assert_eq!(
+      QueryFlags::Value.as_byte(),
+      FLAGS_VALUE,
+      "should propery convert values flag"
+    );
 
-    assert_eq!(QueryFlags::SkipMetadata.as_byte(),
-               FLAGS_SKIP_METADATA,
-               "should propery convert skip metadata flag");
+    assert_eq!(
+      QueryFlags::SkipMetadata.as_byte(),
+      FLAGS_SKIP_METADATA,
+      "should propery convert skip metadata flag"
+    );
 
-    assert_eq!(QueryFlags::PageSize.as_byte(),
-               WITH_PAGE_SIZE,
-               "should propery convert with page size flag");
+    assert_eq!(
+      QueryFlags::PageSize.as_byte(),
+      WITH_PAGE_SIZE,
+      "should propery convert with page size flag"
+    );
 
-    assert_eq!(QueryFlags::WithPagingState.as_byte(),
-               WITH_PAGING_STATE,
-               "should propery convert with paging state flag");
+    assert_eq!(
+      QueryFlags::WithPagingState.as_byte(),
+      WITH_PAGING_STATE,
+      "should propery convert with paging state flag"
+    );
 
-    assert_eq!(QueryFlags::WithSerialConsistency.as_byte(),
-               WITH_SERIAL_CONSISTENCY,
-               "should propery convert with serial consistency flag");
+    assert_eq!(
+      QueryFlags::WithSerialConsistency.as_byte(),
+      WITH_SERIAL_CONSISTENCY,
+      "should propery convert with serial consistency flag"
+    );
 
-    assert_eq!(QueryFlags::WithDefaultTimestamp.as_byte(),
-               WITH_DEFAULT_TIMESTAMP,
-               "should propery convert with default timestamp flag");
+    assert_eq!(
+      QueryFlags::WithDefaultTimestamp.as_byte(),
+      WITH_DEFAULT_TIMESTAMP,
+      "should propery convert with default timestamp flag"
+    );
 
-    assert_eq!(QueryFlags::WithNamesForValues.as_byte(),
-               WITH_NAME_FOR_VALUES,
-               "should propery convert with name for values flag");
+    assert_eq!(
+      QueryFlags::WithNamesForValues.as_byte(),
+      WITH_NAME_FOR_VALUES,
+      "should propery convert with name for values flag"
+    );
   }
 }

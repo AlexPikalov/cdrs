@@ -1,6 +1,6 @@
 use super::{QueryFlags, QueryParams, QueryValues};
-use consistency::Consistency;
-use types::CBytes;
+use crate::consistency::Consistency;
+use crate::types::CBytes;
 
 #[derive(Debug, Default)]
 pub struct QueryParamsBuilder {

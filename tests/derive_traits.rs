@@ -1,7 +1,10 @@
+#[cfg(feature = "e2e-tests")]
 #[macro_use]
 extern crate cdrs;
+#[cfg(feature = "e2e-tests")]
 #[macro_use]
 extern crate cdrs_helpers_derive;
+#[cfg(feature = "e2e-tests")]
 #[macro_use]
 extern crate maplit;
 extern crate regex;
@@ -10,28 +13,45 @@ extern crate uuid;
 
 mod common;
 
+#[cfg(feature = "e2e-tests")]
 use common::*;
 
+#[cfg(feature = "e2e-tests")]
 use cdrs::error::Result as CDRSResult;
+#[cfg(feature = "e2e-tests")]
 use cdrs::frame::IntoBytes;
+#[cfg(feature = "e2e-tests")]
 use cdrs::frame::{TryFromRow, TryFromUDT};
+#[cfg(feature = "e2e-tests")]
 use cdrs::query::QueryExecutor;
+#[cfg(feature = "e2e-tests")]
 use cdrs::query::QueryValues;
+#[cfg(feature = "e2e-tests")]
 use cdrs::types::blob::Blob;
+#[cfg(feature = "e2e-tests")]
 use cdrs::types::from_cdrs::FromCDRSByName;
+#[cfg(feature = "e2e-tests")]
 use cdrs::types::map::Map;
+#[cfg(feature = "e2e-tests")]
 use cdrs::types::rows::Row;
+#[cfg(feature = "e2e-tests")]
 use cdrs::types::udt::UDT;
+#[cfg(feature = "e2e-tests")]
 use cdrs::types::value::{Bytes, Value};
+#[cfg(feature = "e2e-tests")]
 use cdrs::types::{AsRust, AsRustType, IntoRustByName};
+#[cfg(feature = "e2e-tests")]
 use std::str::FromStr;
+#[cfg(feature = "e2e-tests")]
 use time::Timespec;
+#[cfg(feature = "e2e-tests")]
 use uuid::Uuid;
 
+#[cfg(feature = "e2e-tests")]
 use std::collections::HashMap;
 
 #[test]
-#[ignore]
+#[cfg(feature = "e2e-tests")]
 fn simple_udt() {
   let create_type_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.derive_udt (my_text text)";
   let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_derived_udt \
@@ -89,7 +109,7 @@ fn simple_udt() {
 }
 
 #[test]
-#[ignore]
+#[cfg(feature = "e2e-tests")]
 fn nested_udt() {
   let create_type1_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.nested_inner_udt (my_text text)";
   let create_type2_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.nested_outer_udt \
@@ -153,7 +173,7 @@ fn nested_udt() {
 }
 
 #[test]
-#[ignore]
+#[cfg(feature = "e2e-tests")]
 fn alter_udt_add() {
   let drop_table_cql = "DROP TABLE IF EXISTS cdrs_test.test_alter_udt_add";
   let drop_type_cql = "DROP TYPE IF EXISTS cdrs_test.alter_udt_add_udt";

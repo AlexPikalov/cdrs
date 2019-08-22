@@ -4,14 +4,14 @@ use std::cell::RefCell;
 use std::error::Error;
 use std::io::Write;
 
-use authenticators::Authenticator;
-use cluster::{startup, NodeSslConfig};
-use compression::Compression;
-use error;
-use frame::parser::parse_frame;
-use frame::{Frame, IntoBytes};
-use transport::CDRSTransport;
-use transport::TransportTls;
+use crate::authenticators::Authenticator;
+use crate::cluster::{startup, NodeSslConfig};
+use crate::compression::Compression;
+use crate::error;
+use crate::frame::parser::parse_frame;
+use crate::frame::{Frame, IntoBytes};
+use crate::transport::CDRSTransport;
+use crate::transport::TransportTls;
 
 /// Shortcut for `r2d2::Pool` type of SSL-based CDRS connections.
 pub type SslConnectionPool<A> = Pool<SslConnectionsManager<A>>;
@@ -68,7 +68,7 @@ impl<A: Authenticator + 'static + Send + Sync> ManageConnection for SslConnectio
 
   fn is_valid(&self, conn: &mut Self::Connection) -> Result<(), Self::Error> {
     let options_frame = Frame::new_req_options().into_cbytes();
-    try!(conn.borrow_mut().write(options_frame.as_slice()));
+    conn.borrow_mut().write(options_frame.as_slice())?;
 
     parse_frame(conn, &Compression::None {}).map(|_| ())
   }

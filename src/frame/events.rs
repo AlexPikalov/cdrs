@@ -1,9 +1,9 @@
 use std::io::Cursor;
 use std::cmp::PartialEq;
 
-use frame::traits::FromCursor;
-use error;
-use types::{CInet, CString, CStringList};
+use crate::frame::traits::FromCursor;
+use crate::error;
+use crate::types::{CInet, CString, CStringList};
 
 // Event types
 const TOPOLOGY_CHANGE: &'static str = "TOPOLOGY_CHANGE";
@@ -307,7 +307,7 @@ mod simple_server_event_test {
 mod topology_change_type_test {
     use super::*;
     use std::io::Cursor;
-    use frame::traits::FromCursor;
+    use crate::frame::traits::FromCursor;
 
     #[test]
     fn from_cursor() {
@@ -335,7 +335,7 @@ mod topology_change_type_test {
 mod status_change_type_test {
     use super::*;
     use std::io::Cursor;
-    use frame::traits::FromCursor;
+    use crate::frame::traits::FromCursor;
 
     #[test]
     fn from_cursor() {
@@ -363,7 +363,7 @@ mod status_change_type_test {
 mod schema_change_type_test {
     use super::*;
     use std::io::Cursor;
-    use frame::traits::FromCursor;
+    use crate::frame::traits::FromCursor;
 
     #[test]
     fn from_cursor() {
@@ -396,7 +396,7 @@ mod schema_change_type_test {
 mod schema_change_target_test {
     use super::*;
     use std::io::Cursor;
-    use frame::traits::FromCursor;
+    use crate::frame::traits::FromCursor;
 
     #[test]
     fn from_cursor() {
@@ -437,7 +437,7 @@ mod schema_change_target_test {
 mod server_event {
     use super::*;
     use std::io::Cursor;
-    use frame::traits::FromCursor;
+    use crate::frame::traits::FromCursor;
 
     #[test]
     fn topology_change_new_node() {

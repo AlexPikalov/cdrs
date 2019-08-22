@@ -2,6 +2,7 @@
 name = "cdrs"
 version = "2.1.1"
 authors = ["Alex Pikalov <alex.pikalov.khar@gmail.com>"]
+edition = "2018"
 
 description = "Cassandra DB driver written in Rust"
 documentation = "https://docs.rs/cdrs"
@@ -18,7 +19,7 @@ v3 = []
 v4 = []
 # enable v5 feature when it's actually implemented
 # v5 = []
-appveyor = []
+e2e-tests = []
 
 [dependencies]
 byteorder = "1"

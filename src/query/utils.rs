@@ -1,10 +1,10 @@
 use std::cell::RefCell;
 
-use cluster::{GetCompressor, GetConnection};
-use error;
-use frame::parser::from_connection;
-use frame::{Flag, Frame};
-use transport::CDRSTransport;
+use crate::cluster::{GetCompressor, GetConnection};
+use crate::error;
+use crate::frame::parser::from_connection;
+use crate::frame::{Flag, Frame};
+use crate::transport::CDRSTransport;
 
 pub fn prepare_flags(with_tracing: bool, with_warnings: bool) -> Vec<Flag> {
   let mut flags = vec![];
