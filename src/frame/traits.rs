@@ -36,7 +36,7 @@ pub trait FromSingleByte {
 /// wich bound to an array of bytes.
 pub trait FromCursor {
   /// It should return an implementor from an `io::Cursor` over an array of bytes.
-  fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<Self>
+  fn from_cursor(cursor: &mut Cursor<&[u8]>) -> error::Result<Self>
   where
     Self: Sized;
 }

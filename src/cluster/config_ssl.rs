@@ -2,7 +2,7 @@
 use openssl::ssl::SslConnector;
 use std::time::Duration;
 
-use authenticators::Authenticator;
+use crate::authenticators::Authenticator;
 
 /// Cluster configuration that holds per node SSL configs
 pub struct ClusterSslConfig<'a, A: Authenticator + Sized>(pub Vec<NodeSslConfig<'a, A>>);

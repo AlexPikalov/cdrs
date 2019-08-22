@@ -691,7 +691,7 @@ pub fn cursor_next_value(cursor: &mut Cursor<&[u8]>, len: u64) -> CDRSResult<Vec
   unsafe {
     buff.set_len(l);
   }
-  cursor.read_exact(&mut buff);
+  cursor.read_exact(&mut buff)?;
   cursor.set_position(current_position + len);
   Ok(buff)
 }

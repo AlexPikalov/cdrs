@@ -68,7 +68,7 @@ impl<A: Authenticator + 'static + Send + Sync> ManageConnection for SslConnectio
 
   fn is_valid(&self, conn: &mut Self::Connection) -> Result<(), Self::Error> {
     let options_frame = Frame::new_req_options().into_cbytes();
-    try!(conn.borrow_mut().write(options_frame.as_slice()));
+    conn.borrow_mut().write(options_frame.as_slice())?;
 
     parse_frame(conn, &Compression::None {}).map(|_| ())
   }
