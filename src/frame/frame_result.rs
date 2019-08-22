@@ -1,10 +1,10 @@
 use std::io::Cursor;
 
-use frame::{FromBytes, FromCursor, IntoBytes};
-use error;
-use types::*;
-use types::rows::Row;
-use frame::events::SchemaChange;
+use crate::frame::{FromBytes, FromCursor, IntoBytes};
+use crate::error;
+use crate::types::*;
+use crate::types::rows::Row;
+use crate::frame::events::SchemaChange;
 
 /// `ResultKind` is enum which represents types of result.
 #[derive(Debug)]

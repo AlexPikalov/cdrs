@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
-use frame::FromCursor;
-use error;
-use types::CBytes;
+use crate::frame::FromCursor;
+use crate::error;
+use crate::types::CBytes;
 
 /// Server authentication challenge.
 #[derive(Debug)]
@@ -20,7 +20,7 @@ impl FromCursor for BodyResAuthChallenge {
 mod tests {
     use std::io::Cursor;
     use super::*;
-    use frame::traits::FromCursor;
+    use crate::frame::traits::FromCursor;
 
     #[test]
     fn body_res_auth_challenge_from_cursor() {

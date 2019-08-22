@@ -1,4 +1,4 @@
-use types::CBytes;
+use crate::types::CBytes;
 
 pub trait Authenticator: Clone + Send + Sync {
   fn get_auth_token(&self) -> CBytes;

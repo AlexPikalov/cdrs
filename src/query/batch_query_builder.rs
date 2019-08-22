@@ -1,8 +1,8 @@
-use error::{Error as CError, Result as CResult};
-use consistency::Consistency;
-use frame::frame_batch::{BatchQuery, BatchQuerySubj, BatchType, BodyReqBatch};
-use query::{QueryFlags, QueryValues};
-use types::{CBytesShort, CStringLong};
+use crate::consistency::Consistency;
+use crate::error::{Error as CError, Result as CResult};
+use crate::frame::frame_batch::{BatchQuery, BatchQuerySubj, BatchType, BodyReqBatch};
+use crate::query::{QueryFlags, QueryValues};
+use crate::types::{CBytesShort, CStringLong};
 
 pub type QueryBatch = BodyReqBatch;
 
@@ -17,11 +17,13 @@ pub struct BatchQueryBuilder {
 
 impl BatchQueryBuilder {
   pub fn new() -> BatchQueryBuilder {
-    BatchQueryBuilder { batch_type: BatchType::Logged,
-                        queries: vec![],
-                        consistency: Consistency::One,
-                        serial_consistency: None,
-                        timestamp: None, }
+    BatchQueryBuilder {
+      batch_type: BatchType::Logged,
+      queries: vec![],
+      consistency: Consistency::One,
+      serial_consistency: None,
+      timestamp: None,
+    }
   }
 
   pub fn batch_type(mut self, batch_type: BatchType) -> Self {
@@ -31,18 +33,21 @@ impl BatchQueryBuilder {
 
   /// Add a query (non-prepared one)
   pub fn add_query<T: Into<String>>(mut self, query: T, values: QueryValues) -> Self {
-    self.queries
-        .push(BatchQuery { is_prepared: false,
-                           subject: BatchQuerySubj::QueryString(CStringLong::new(query.into())),
-                           values, });
+    self.queries.push(BatchQuery {
+      is_prepared: false,
+      subject: BatchQuerySubj::QueryString(CStringLong::new(query.into())),
+      values,
+    });
     self
   }
 
   /// Add a query (prepared one)
   pub fn add_query_prepared(mut self, query_id: CBytesShort, values: QueryValues) -> Self {
-    self.queries.push(BatchQuery { is_prepared: true,
-                                   subject: BatchQuerySubj::PreparedId(query_id),
-                                   values, });
+    self.queries.push(BatchQuery {
+      is_prepared: true,
+      subject: BatchQuerySubj::PreparedId(query_id),
+      values,
+    });
     self
   }
 
@@ -83,8 +88,10 @@ impl BatchQueryBuilder {
       let some_names_for_values = self.queries.iter().any(|q| q.values.with_names());
 
       if some_names_for_values {
-        return Err(CError::General(String::from("Inconsistent query values - mixed \
-                                                 with and without names values")));
+        return Err(CError::General(String::from(
+          "Inconsistent query values - mixed \
+           with and without names values",
+        )));
       }
     }
 
@@ -92,11 +99,13 @@ impl BatchQueryBuilder {
       flags.push(QueryFlags::WithNamesForValues);
     }
 
-    Ok(BodyReqBatch { batch_type: self.batch_type,
-                      queries: self.queries,
-                      query_flags: flags,
-                      consistency: self.consistency,
-                      serial_consistency: self.serial_consistency,
-                      timestamp: self.timestamp, })
+    Ok(BodyReqBatch {
+      batch_type: self.batch_type,
+      queries: self.queries,
+      query_flags: flags,
+      consistency: self.consistency,
+      serial_consistency: self.serial_consistency,
+      timestamp: self.timestamp,
+    })
   }
 }

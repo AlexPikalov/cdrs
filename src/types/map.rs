@@ -3,30 +3,30 @@ use std::net::IpAddr;
 use time::Timespec;
 use uuid::Uuid;
 
-use error::{Error, Result};
-use frame::frame_result::{ColType, ColTypeOption, ColTypeOptionValue};
-use types::blob::Blob;
-use types::data_serialization_types::*;
-use types::decimal::Decimal;
-use types::list::List;
-use types::tuple::Tuple;
-use types::udt::UDT;
-use types::{AsRust, AsRustType, CBytes};
+use crate::error::{Error, Result};
+use crate::frame::frame_result::{ColType, ColTypeOption, ColTypeOptionValue};
+use crate::types::blob::Blob;
+use crate::types::data_serialization_types::*;
+use crate::types::decimal::Decimal;
+use crate::types::list::List;
+use crate::types::tuple::Tuple;
+use crate::types::udt::UDT;
+use crate::types::{AsRust, AsRustType, CBytes};
 
 #[derive(Debug)]
 pub struct Map {
-    metadata: ColTypeOption,
-    data: Vec<(CBytes, CBytes)>,
+  metadata: ColTypeOption,
+  data: Vec<(CBytes, CBytes)>,
 }
 
 impl Map {
-    /// Creates new `Map` using the provided data and key and value types.
-    pub fn new(data: Vec<(CBytes, CBytes)>, meta: ColTypeOption) -> Map {
-        Map {
-            metadata: meta,
-            data: data,
-        }
+  /// Creates new `Map` using the provided data and key and value types.
+  pub fn new(data: Vec<(CBytes, CBytes)>, meta: ColTypeOption) -> Map {
+    Map {
+      metadata: meta,
+      data: data,
     }
+  }
 }
 
 impl AsRust for Map {}

@@ -4,13 +4,13 @@ use std::error::Error;
 use std::io;
 use std::io::Write;
 
-use authenticators::Authenticator;
-use cluster::NodeTcpConfig;
-use compression::Compression;
-use error;
-use frame::parser::parse_frame;
-use frame::{Frame, IntoBytes, Opcode};
-use transport::{CDRSTransport, TransportTcp};
+use crate::authenticators::Authenticator;
+use crate::cluster::NodeTcpConfig;
+use crate::compression::Compression;
+use crate::error;
+use crate::frame::parser::parse_frame;
+use crate::frame::{Frame, IntoBytes, Opcode};
+use crate::transport::{CDRSTransport, TransportTcp};
 
 /// Shortcut for `r2d2::Pool` type of TCP-based CDRS connections.
 pub type TcpConnectionPool<A> = Pool<TcpConnectionsManager<A>>;
@@ -61,7 +61,7 @@ impl<A: Authenticator + 'static + Send + Sync> ManageConnection for TcpConnectio
 
   fn is_valid(&self, conn: &mut Self::Connection) -> Result<(), Self::Error> {
     let options_frame = Frame::new_req_options().into_cbytes();
-    try!(conn.borrow_mut().write(options_frame.as_slice()));
+    conn.borrow_mut().write(options_frame.as_slice())?;
 
     parse_frame(conn, &Compression::None {}).map(|_| ())
   }
@@ -80,7 +80,7 @@ pub fn startup<'b, T: CDRSTransport + 'static, A: Authenticator + 'static + Size
 
   transport.borrow_mut().write(startup_frame.as_slice())?;
 
-  let start_response = try!(parse_frame(transport, compression));
+  let start_response = parse_frame(transport, compression)?;
 
   if start_response.opcode == Opcode::Ready {
     return Ok(());
@@ -125,12 +125,12 @@ pub fn startup<'b, T: CDRSTransport + 'static, A: Authenticator + 'static + Size
     }
 
     let auth_token_bytes = session_authenticator.get_auth_token().into_cbytes();
-    try!(transport.borrow_mut().write(
+    transport.borrow_mut().write(
       Frame::new_req_auth_response(auth_token_bytes)
         .into_cbytes()
-        .as_slice()
-    ));
-    try!(parse_frame(transport, compression));
+        .as_slice(),
+    )?;
+    parse_frame(transport, compression)?;
 
     return Ok(());
   }

@@ -1,9 +1,9 @@
 use std::io::Cursor;
 
-use error;
-use types::rows::Row;
-use types::udt::UDT;
-use query;
+use crate::error;
+use crate::query;
+use crate::types::rows::Row;
+use crate::types::udt::UDT;
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.
 pub trait IntoBytes {
@@ -14,7 +14,7 @@ pub trait IntoBytes {
 /// `FromBytes` should be used to parse an array of bytes into a structure.
 pub trait FromBytes {
   /// It gets and array of bytes and should return an implementor struct.
-  fn from_bytes(&[u8]) -> error::Result<Self>
+  fn from_bytes(bytes: &[u8]) -> error::Result<Self>
   where
     Self: Sized;
 }
@@ -29,14 +29,14 @@ pub trait AsByte {
 /// It is opposite to `AsByte`.
 pub trait FromSingleByte {
   /// It should convert a single byte into an implementor struct.
-  fn from_byte(u8) -> Self;
+  fn from_byte(byte: u8) -> Self;
 }
 
 /// `FromCursor` should be used to get parsed structure from an `io:Cursor`
 /// wich bound to an array of bytes.
 pub trait FromCursor {
   /// It should return an implementor from an `io::Cursor` over an array of bytes.
-  fn from_cursor(&mut Cursor<&[u8]>) -> error::Result<Self>
+  fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<Self>
   where
     Self: Sized;
 }

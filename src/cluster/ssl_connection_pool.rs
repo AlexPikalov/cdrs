@@ -4,14 +4,14 @@ use std::cell::RefCell;
 use std::error::Error;
 use std::io::Write;
 
-use authenticators::Authenticator;
-use cluster::{startup, NodeSslConfig};
-use compression::Compression;
-use error;
-use frame::parser::parse_frame;
-use frame::{Frame, IntoBytes};
-use transport::CDRSTransport;
-use transport::TransportTls;
+use crate::authenticators::Authenticator;
+use crate::cluster::{startup, NodeSslConfig};
+use crate::compression::Compression;
+use crate::error;
+use crate::frame::parser::parse_frame;
+use crate::frame::{Frame, IntoBytes};
+use crate::transport::CDRSTransport;
+use crate::transport::TransportTls;
 
 /// Shortcut for `r2d2::Pool` type of SSL-based CDRS connections.
 pub type SslConnectionPool<A> = Pool<SslConnectionsManager<A>>;

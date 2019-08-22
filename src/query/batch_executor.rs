@@ -1,12 +1,12 @@
 use r2d2;
 use std::cell::RefCell;
 
-use cluster::{GetCompressor, GetConnection};
-use error;
-use frame::traits::IntoBytes;
-use frame::Frame;
-use query::batch_query_builder::QueryBatch;
-use transport::CDRSTransport;
+use crate::cluster::{GetCompressor, GetConnection};
+use crate::error;
+use crate::frame::traits::IntoBytes;
+use crate::frame::Frame;
+use crate::query::batch_query_builder::QueryBatch;
+use crate::transport::CDRSTransport;
 
 use super::utils::{prepare_flags, send_frame};
 

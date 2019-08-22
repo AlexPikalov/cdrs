@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use frame::IntoBytes;
-use types::CString;
-use types::value::Value;
+use crate::frame::IntoBytes;
+use crate::types::value::Value;
+use crate::types::CString;
 
 /// Enum that represents two types of query values:
 /// * values without name
@@ -81,9 +81,9 @@ impl IntoBytes for QueryValues {
     let bytes: Vec<u8> = vec![];
     match *self {
       QueryValues::SimpleValues(ref v) => v.iter().fold(bytes, QueryValues::value_into_bytes_fold),
-      QueryValues::NamedValues(ref v) => {
-        v.iter().fold(bytes, QueryValues::named_value_into_bytes_fold)
-      }
+      QueryValues::NamedValues(ref v) => v
+        .iter()
+        .fold(bytes, QueryValues::named_value_into_bytes_fold),
     }
   }
 }

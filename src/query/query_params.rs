@@ -1,9 +1,9 @@
-use consistency::Consistency;
-use types::{to_bigint, to_int, to_short, CBytes};
-use frame::AsByte;
-use frame::IntoBytes;
-use query::query_flags::QueryFlags;
-use query::query_values::QueryValues;
+use crate::consistency::Consistency;
+use crate::frame::AsByte;
+use crate::frame::IntoBytes;
+use crate::query::query_flags::QueryFlags;
+use crate::query::query_values::QueryValues;
+use crate::types::{to_bigint, to_int, to_short, CBytes};
 
 /// Parameters of Query for query operation.
 #[derive(Debug, Default)]
@@ -81,33 +81,45 @@ impl IntoBytes for QueryParams {
     }
     if QueryFlags::has_page_size(self.flags_as_byte()) && self.page_size.is_some() {
       // XXX clone
-      v.extend_from_slice(to_int(self.page_size
-                                    .clone()
-                                    // unwrap is safe as we've checked that
-                                    // self.page_size.is_some()
-                                    .unwrap())
-                                    .as_slice());
+      v.extend_from_slice(
+        to_int(
+          self
+            .page_size
+            .clone()
+            // unwrap is safe as we've checked that
+            // self.page_size.is_some()
+            .unwrap(),
+        )
+        .as_slice(),
+      );
     }
     if QueryFlags::has_with_paging_state(self.flags_as_byte()) && self.paging_state.is_some() {
       // XXX clone
-      v.extend_from_slice(self.paging_state
-                                    .clone()
-                                    // unwrap is safe as we've checked that
-                                    // self.paging_state.is_some()
-                                    .unwrap()
-                                    .into_cbytes()
-                                    .as_slice());
+      v.extend_from_slice(
+        self
+          .paging_state
+          .clone()
+          // unwrap is safe as we've checked that
+          // self.paging_state.is_some()
+          .unwrap()
+          .into_cbytes()
+          .as_slice(),
+      );
     }
     if QueryFlags::has_with_serial_consistency(self.flags_as_byte())
-       && self.serial_consistency.is_some() {
+      && self.serial_consistency.is_some()
+    {
       // XXX clone
-      v.extend_from_slice(self.serial_consistency
-                                    .clone()
-                                    // unwrap is safe as we've checked that
-                                    // self.serial_consistency.is_some()
-                                    .unwrap()
-                                    .into_cbytes()
-                                    .as_slice());
+      v.extend_from_slice(
+        self
+          .serial_consistency
+          .clone()
+          // unwrap is safe as we've checked that
+          // self.serial_consistency.is_some()
+          .unwrap()
+          .into_cbytes()
+          .as_slice(),
+      );
     }
     if QueryFlags::has_with_default_timestamp(self.flags_as_byte()) && self.timestamp.is_some() {
       // unwrap is safe as we've checked that self.timestamp.is_some()

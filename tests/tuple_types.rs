@@ -1,3 +1,4 @@
+#[cfg(feature = "e2e-tests")]
 #[macro_use]
 extern crate cdrs;
 extern crate regex;
@@ -6,22 +7,33 @@ extern crate uuid;
 
 mod common;
 
+#[cfg(feature = "e2e-tests")]
 use common::*;
 
+#[cfg(feature = "e2e-tests")]
 use cdrs::error::Result;
+#[cfg(feature = "e2e-tests")]
 use cdrs::frame::IntoBytes;
+#[cfg(feature = "e2e-tests")]
 use cdrs::query::QueryExecutor;
+#[cfg(feature = "e2e-tests")]
 use cdrs::types::blob::Blob;
+#[cfg(feature = "e2e-tests")]
 use cdrs::types::tuple::Tuple;
+#[cfg(feature = "e2e-tests")]
 use cdrs::types::value::{Bytes, Value};
+#[cfg(feature = "e2e-tests")]
 use cdrs::types::{IntoRustByIndex, IntoRustByName};
+#[cfg(feature = "e2e-tests")]
 use time::Timespec;
+#[cfg(feature = "e2e-tests")]
 use uuid::Uuid;
 
+#[cfg(feature = "e2e-tests")]
 use std::str::FromStr;
 
 #[test]
-#[ignore]
+#[cfg(feature = "e2e-tests")]
 fn simple_tuple() {
   let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.simple_tuple \
              (my_tuple tuple<text, int> PRIMARY KEY)";
@@ -83,7 +95,7 @@ fn simple_tuple() {
 }
 
 #[test]
-#[ignore]
+#[cfg(feature = "e2e-tests")]
 fn nested_tuples() {
   let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_nested_tuples \
              (my_key int PRIMARY KEY, \

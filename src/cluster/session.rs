@@ -3,28 +3,28 @@ use std::cell::RefCell;
 use std::io::Write;
 
 #[cfg(feature = "ssl")]
-use cluster::{new_ssl_pool, ClusterSslConfig, SslConnectionPool};
-use cluster::{
+use crate::cluster::{new_ssl_pool, ClusterSslConfig, SslConnectionPool};
+use crate::cluster::{
   new_tcp_pool, startup, CDRSSession, ClusterTcpConfig, GetCompressor, GetConnection,
   TcpConnectionPool,
 };
-use error;
-use load_balancing::LoadBalancingStrategy;
-use transport::{CDRSTransport, TransportTcp};
+use crate::error;
+use crate::load_balancing::LoadBalancingStrategy;
+use crate::transport::{CDRSTransport, TransportTcp};
 
-use authenticators::Authenticator;
-use cluster::SessionPager;
-use compression::Compression;
-use events::{new_listener, EventStream, Listener};
-use frame::events::SimpleServerEvent;
-use frame::parser::parse_frame;
-use frame::{Frame, IntoBytes};
-use query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
+use crate::authenticators::Authenticator;
+use crate::cluster::SessionPager;
+use crate::compression::Compression;
+use crate::events::{new_listener, EventStream, Listener};
+use crate::frame::events::SimpleServerEvent;
+use crate::frame::parser::parse_frame;
+use crate::frame::{Frame, IntoBytes};
+use crate::query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
 
+#[cfg(feature = "ssl")]
+use crate::transport::TransportTls;
 #[cfg(feature = "ssl")]
 use openssl::ssl::SslConnector;
-#[cfg(feature = "ssl")]
-use transport::TransportTls;
 
 /// CDRS session that holds one pool of authorized connecitons per node.
 /// `compression` field contains data compressor that will be used
