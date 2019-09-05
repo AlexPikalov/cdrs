@@ -44,7 +44,7 @@ let authenticator = PasswordAuthenticator::new("user", "pass");
 
 If a node has a custom authentication strategy, corresponded `Authenticator` should be implemented by a developer and further used in `NodeTcpConfigBuilder`.
 
-To figure out how a custom `Authenticator` should be implemented refer to [https://github.com/AlexPikalov/cdrs/src/authenticators.rs](./src/authenticators.rs).
+To figure out how a custom `Authenticator` should be implemented refer to [src/authenticators.rs](https://github.com/AlexPikalov/cdrs/src/authenticators.rs).
 
 ### Reference
 
