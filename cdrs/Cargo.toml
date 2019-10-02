@@ -1,0 +1,39 @@
+[package]
+name = "cdrs"
+version = "2.1.1"
+authors = ["Alex Pikalov <alex.pikalov.khar@gmail.com>"]
+
+description = "Cassandra DB driver written in Rust"
+documentation = "https://docs.rs/cdrs"
+homepage = "https://github.com/AlexPikalov/cdrs"
+repository = "https://github.com/AlexPikalov/cdrs"
+readme = "./README.md"
+keywords = ["cassandra", "driver", "client", "cassandradb", "DB"]
+license = "MIT/Apache-2.0"
+
+[features]
+default = ["v4"]
+ssl = ["openssl"]
+v3 = []
+v4 = []
+# enable v5 feature when it's actually implemented
+# v5 = []
+appveyor = []
+
+[dependencies]
+byteorder = "1"
+log = "0.4.1"
+lz4-compress = "=0.1.0"
+openssl = { version = "0.10", optional = true }
+r2d2 = "0.8.2"
+rand = "0.4.1"
+snap = "0.2.3"
+time = "0.1.38"
+uuid = "0.7"
+cassandra-proto = { path = "../cassandra-proto" }
+
+[dev-dependencies]
+env_logger = "0.4.3"
+maplit = "1.0.0"
+regex = "0.2.5"
+cdrs_helpers_derive = "0.1.0"

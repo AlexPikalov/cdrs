@@ -25,6 +25,7 @@ macro_rules! query_values {
     };
 }
 
+#[macro_export]
 macro_rules! builder_opt_field {
     ($field:ident, $field_type:ty) => {
         pub fn $field(mut self,
@@ -35,6 +36,7 @@ macro_rules! builder_opt_field {
     };
 }
 
+#[macro_export]
 macro_rules! list_as_rust {
     ($($into_type:tt)+) => (
         impl AsRustType<Vec<$($into_type)+>> for List {
@@ -63,6 +65,7 @@ macro_rules! list_as_rust {
     );
 }
 
+#[macro_export]
 macro_rules! map_as_rust {
     ({ $($key_type:tt)+ }, { $($val_type:tt)+ }) => (
         impl AsRustType<HashMap<$($key_type)+, $($val_type)+>> for Map {
@@ -91,6 +94,7 @@ macro_rules! map_as_rust {
     );
 }
 
+#[macro_export]
 macro_rules! into_rust_by_name {
     (Row, $($into_type:tt)+) => (
         impl IntoRustByName<$($into_type)+> for Row {
@@ -119,6 +123,7 @@ macro_rules! into_rust_by_name {
     );
 }
 
+#[macro_export]
 macro_rules! into_rust_by_index {
     (Tuple, $($into_type:tt)+) => (
         impl IntoRustByIndex<$($into_type)+> for Tuple {
@@ -148,6 +153,7 @@ macro_rules! into_rust_by_index {
     );
 }
 
+#[macro_export]
 macro_rules! as_res_opt {
     ($data_value:ident, $deserialize:expr) => {
         match $data_value.as_plain() {
@@ -160,6 +166,7 @@ macro_rules! as_res_opt {
 /// Decodes any Cassandra data type into the corresponding Rust type,
 /// given the column type as `ColTypeOption` and the value as `CBytes`
 /// plus the matching Rust type.
+#[macro_export]
 macro_rules! as_rust_type {
     ($data_type_option:ident, $data_value:ident, Blob) => {
         match $data_type_option.id {

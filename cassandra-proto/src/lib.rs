@@ -10,13 +10,13 @@ extern crate rand;
 extern crate time;
 extern crate uuid;
 
-pub mod query;
 pub mod frame;
+pub mod query;
 pub mod types;
 
+pub mod compression;
 pub mod consistency;
 pub mod error;
-pub mod compression;
 
 pub type Error = error::Error;
 pub type Result<T> = error::Result<T>;

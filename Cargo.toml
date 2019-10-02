@@ -4,5 +4,5 @@ members = [
   # cassandra binary protocol
   "cassandra-proto",
   # cassandra client
-  # "cdrs"
+  "cdrs"
 ]
