@@ -319,10 +319,10 @@ fn update_list_with_udt() {
   let params = QueryParamsBuilder::new()
     .consistency(Consistency::Quorum)
     .values(query_values!(
-      MyUdt {
+      vec![MyUdt {
         id: Uuid::parse_str("68f49fa5-934b-4aff-8a87-f3a32872a6ba").expect("udt id"),
         text: "abc".into(),
-      },
+      }],
       Uuid::parse_str("5bd8877a-e2b2-4d6f-aafd-c3f72a6964cf").unwrap()
     ));
   session
