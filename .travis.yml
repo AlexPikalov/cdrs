@@ -1,6 +1,6 @@
 dist: trusty
 language: rust
-cache: cargo
+# cache: cargo
 rust:
   - stable
   - beta
@@ -19,9 +19,9 @@ install:
 script:
   # - cargo fmt -- --write-mode=diff
   - cargo build --verbose
-  - cargo test --verbose
-  - cargo test --verbose --features e2e-tests
-  - cargo test --features ssl
+  - cargo test --verbose --no-fail-fast
+  - cargo test --verbose --no-fail-fast --features e2e-tests
+  - cargo test --no-fail-fast --features ssl
 
 deploy:
   # deploy master to production

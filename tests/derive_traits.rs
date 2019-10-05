@@ -17,6 +17,8 @@ mod common;
 use common::*;
 
 #[cfg(feature = "e2e-tests")]
+use cdrs::consistency::Consistency;
+#[cfg(feature = "e2e-tests")]
 use cdrs::error::Result as CDRSResult;
 #[cfg(feature = "e2e-tests")]
 use cdrs::frame::IntoBytes;
@@ -27,11 +29,15 @@ use cdrs::query::QueryExecutor;
 #[cfg(feature = "e2e-tests")]
 use cdrs::query::QueryValues;
 #[cfg(feature = "e2e-tests")]
+use cdrs::query::*;
+#[cfg(feature = "e2e-tests")]
 use cdrs::types::blob::Blob;
 #[cfg(feature = "e2e-tests")]
 use cdrs::types::from_cdrs::FromCDRSByName;
 #[cfg(feature = "e2e-tests")]
 use cdrs::types::map::Map;
+#[cfg(feature = "e2e-tests")]
+use cdrs::types::prelude::*;
 #[cfg(feature = "e2e-tests")]
 use cdrs::types::rows::Row;
 #[cfg(feature = "e2e-tests")]
@@ -40,6 +46,8 @@ use cdrs::types::udt::UDT;
 use cdrs::types::value::{Bytes, Value};
 #[cfg(feature = "e2e-tests")]
 use cdrs::types::{AsRust, AsRustType, IntoRustByName};
+#[cfg(feature = "e2e-tests")]
+use cdrs_helpers_derive::*;
 #[cfg(feature = "e2e-tests")]
 use std::str::FromStr;
 #[cfg(feature = "e2e-tests")]
@@ -252,5 +260,101 @@ fn alter_udt_add() {
       altered_row.my_map,
       hashmap! { "1".to_string() => expected_nested_udt.clone() }
     );
+  }
+}
+
+#[test]
+#[cfg(feature = "e2e-tests")]
+fn update_list_with_udt() {
+  let drop_table_cql = "DROP TABLE IF EXISTS cdrs_test.update_list_with_udt";
+  let drop_type_cql = "DROP TYPE IF EXISTS cdrs_test.update_list_with_udt";
+  let create_type_cql = "CREATE TYPE cdrs_test.update_list_with_udt (id uuid,
+    text text)";
+  let create_table_cql =
+    "CREATE TABLE IF NOT EXISTS cdrs_test.update_list_with_udt \
+     (id uuid PRIMARY KEY, udts_set set<frozen<cdrs_test.update_list_with_udt>>)";
+  let session = setup_multiple(&[
+    drop_table_cql,
+    drop_type_cql,
+    create_type_cql,
+    create_table_cql,
+  ])
+  .expect("setup");
+
+  #[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq)]
+  struct RowStruct {
+    id: Uuid,
+    udts_set: Vec<MyUdt>,
+  }
+
+  impl RowStruct {
+    fn into_query_values(self) -> QueryValues {
+      query_values!("id" => self.id, "udts_set" => self.udts_set)
+    }
+  }
+
+  #[derive(Clone, Debug, IntoCDRSValue, TryFromUDT, PartialEq)]
+  struct MyUdt {
+    pub id: Uuid,
+    pub text: String,
+  }
+
+  let row_struct = RowStruct {
+    id: Uuid::parse_str("5bd8877a-e2b2-4d6f-aafd-c3f72a6964cf").expect("row id"),
+    udts_set: vec![MyUdt {
+      id: Uuid::parse_str("08f49fa5-934b-4aff-8a87-f3a3287296ba").expect("udt id"),
+      text: "text".into(),
+    }],
+  };
+
+  let cql = "INSERT INTO cdrs_test.update_list_with_udt \
+             (id, udts_set) VALUES (?, ?)";
+  session
+    .query_with_values(cql, row_struct.clone().into_query_values())
+    .expect("insert");
+
+  let query = session
+    .prepare("UPDATE cdrs_test.update_list_with_udt SET udts_set = udts_set + ? WHERE id = ?")
+    .expect("prepare query");
+  let params = QueryParamsBuilder::new()
+    .consistency(Consistency::Quorum)
+    .values(query_values!(
+      vec![MyUdt {
+        id: Uuid::parse_str("68f49fa5-934b-4aff-8a87-f3a32872a6ba").expect("udt id"),
+        text: "abc".into(),
+      }],
+      Uuid::parse_str("5bd8877a-e2b2-4d6f-aafd-c3f72a6964cf").unwrap()
+    ));
+  session
+    .exec_with_params(&query, params.finalize())
+    .expect("update set");
+
+  let expected_row_struct = RowStruct {
+    id: Uuid::parse_str("5bd8877a-e2b2-4d6f-aafd-c3f72a6964cf").expect("row id"),
+    udts_set: vec![
+      MyUdt {
+        id: Uuid::parse_str("08f49fa5-934b-4aff-8a87-f3a3287296ba").expect("udt id"),
+        text: "text".into(),
+      },
+      MyUdt {
+        id: Uuid::parse_str("68f49fa5-934b-4aff-8a87-f3a32872a6ba").expect("udt id"),
+        text: "abc".into(),
+      },
+    ],
+  };
+
+  let cql = "SELECT * FROM cdrs_test.update_list_with_udt";
+  let rows = session
+    .query(cql)
+    .expect("query")
+    .get_body()
+    .expect("get body")
+    .into_rows()
+    .expect("into rows");
+
+  assert_eq!(rows.len(), 1);
+  for row in rows {
+    let altered_row: RowStruct = RowStruct::try_from_row(row).expect("into RowStruct");
+    assert_eq!(altered_row, expected_row_struct);
   }
 }
