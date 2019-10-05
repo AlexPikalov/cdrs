@@ -72,7 +72,7 @@ fn create_udt(session: &CurrentSession) {
 fn create_table(session: &CurrentSession) {
   let create_table_cql =
     "CREATE TABLE IF NOT EXISTS test_ks.my_test_table (key int PRIMARY KEY, \
-     user test_ks.user, map map<text, frozen<test_ks.user>>, list list<frozen<test_ks.user>>);";
+     user frozen<test_ks.user>, map map<text, frozen<test_ks.user>>, list list<frozen<test_ks.user>>);";
   session
     .query(create_table_cql)
     .expect("Table creation error");
