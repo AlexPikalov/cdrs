@@ -1,6 +1,7 @@
 # CDRS examples
 
 - [`crud_operations.rs`](./crud_operations.rs) demonstrates how to create keyspace, table and user defined type. As well basic CRUD (Create, Read, Update, Delete) operations are shown;
+- [`insert_collection.rs`](./insert_collection.rs) demonstrates how to insert items in lists, maps and sets;
 - [`multiple_thread.rs`](./multiple_thread.rs) shows how to use CDRS in multi thread applications;
 - [`paged_query.rs`](./multiple_thread.rs) uncovers query paging;
 - [`prepare_batch_execute.rs`](./prepare_batch_execute.rs) provides an example of query preparation and batching;
