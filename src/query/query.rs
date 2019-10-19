@@ -4,6 +4,6 @@ use super::QueryParams;
 /// its execution
 #[derive(Debug, Default)]
 pub struct Query {
-  pub query: String,
-  pub params: QueryParams,
+    pub query: String,
+    pub params: QueryParams,
 }

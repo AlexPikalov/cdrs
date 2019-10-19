@@ -1,8 +1,8 @@
-use std::io::Cursor;
 use std::cmp::PartialEq;
+use std::io::Cursor;
 
-use crate::frame::traits::FromCursor;
 use crate::error;
+use crate::frame::traits::FromCursor;
 use crate::types::{CInet, CString, CStringList};
 
 // Event types
@@ -97,11 +97,15 @@ impl FromCursor for ServerEvent {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> error::Result<ServerEvent> {
         let event_type = CString::from_cursor(&mut cursor)?;
         match event_type.as_str() {
-            TOPOLOGY_CHANGE => {
-                Ok(ServerEvent::TopologyChange(TopologyChange::from_cursor(&mut cursor)?))
-            }
-            STATUS_CHANGE => Ok(ServerEvent::StatusChange(StatusChange::from_cursor(&mut cursor)?)),
-            SCHEMA_CHANGE => Ok(ServerEvent::SchemaChange(SchemaChange::from_cursor(&mut cursor)?)),
+            TOPOLOGY_CHANGE => Ok(ServerEvent::TopologyChange(TopologyChange::from_cursor(
+                &mut cursor,
+            )?)),
+            STATUS_CHANGE => Ok(ServerEvent::StatusChange(StatusChange::from_cursor(
+                &mut cursor,
+            )?)),
+            SCHEMA_CHANGE => Ok(ServerEvent::SchemaChange(SchemaChange::from_cursor(
+                &mut cursor,
+            )?)),
             _ => Err("Unexpected server event".into()),
         }
     }
@@ -119,8 +123,10 @@ impl FromCursor for TopologyChange {
         let change_type = TopologyChangeType::from_cursor(&mut cursor)?;
         let addr = CInet::from_cursor(&mut cursor)?;
 
-        Ok(TopologyChange { change_type: change_type,
-                            addr: addr, })
+        Ok(TopologyChange {
+            change_type: change_type,
+            addr: addr,
+        })
     }
 }
 
@@ -152,8 +158,10 @@ impl FromCursor for StatusChange {
         let change_type = StatusChangeType::from_cursor(&mut cursor)?;
         let addr = CInet::from_cursor(&mut cursor)?;
 
-        Ok(StatusChange { change_type: change_type,
-                          addr: addr, })
+        Ok(StatusChange {
+            change_type: change_type,
+            addr: addr,
+        })
     }
 }
 
@@ -187,9 +195,11 @@ impl FromCursor for SchemaChange {
         let target = Target::from_cursor(&mut cursor)?;
         let options = ChangeSchemeOptions::from_cursor_and_target(&mut cursor, &target)?;
 
-        Ok(SchemaChange { change_type: change_type,
-                          target: target,
-                          options: options, })
+        Ok(SchemaChange {
+            change_type: change_type,
+            target: target,
+            options: options,
+        })
     }
 }
 
@@ -252,9 +262,10 @@ pub enum ChangeSchemeOptions {
 }
 
 impl ChangeSchemeOptions {
-    fn from_cursor_and_target(mut cursor: &mut Cursor<&[u8]>,
-                              target: &Target)
-                              -> error::Result<ChangeSchemeOptions> {
+    fn from_cursor_and_target(
+        mut cursor: &mut Cursor<&[u8]>,
+        target: &Target,
+    ) -> error::Result<ChangeSchemeOptions> {
         Ok(match *target {
             Target::Keyspace => ChangeSchemeOptions::from_cursor_keyspace(&mut cursor)?,
             Target::Table | Target::Type => {
@@ -267,24 +278,28 @@ impl ChangeSchemeOptions {
     }
 
     fn from_cursor_keyspace(mut cursor: &mut Cursor<&[u8]>) -> error::Result<ChangeSchemeOptions> {
-        Ok(ChangeSchemeOptions::Keyspace(CString::from_cursor(&mut cursor)?.into_plain()))
+        Ok(ChangeSchemeOptions::Keyspace(
+            CString::from_cursor(&mut cursor)?.into_plain(),
+        ))
     }
 
-    fn from_cursor_table_type(mut cursor: &mut Cursor<&[u8]>)
-                              -> error::Result<ChangeSchemeOptions> {
+    fn from_cursor_table_type(
+        mut cursor: &mut Cursor<&[u8]>,
+    ) -> error::Result<ChangeSchemeOptions> {
         let keyspace = CString::from_cursor(&mut cursor)?.into_plain();
         let name = CString::from_cursor(&mut cursor)?.into_plain();
         Ok(ChangeSchemeOptions::TableType((keyspace, name)))
     }
 
-    fn from_cursor_function_aggregate(mut cursor: &mut Cursor<&[u8]>)
-                                      -> error::Result<ChangeSchemeOptions> {
+    fn from_cursor_function_aggregate(
+        mut cursor: &mut Cursor<&[u8]>,
+    ) -> error::Result<ChangeSchemeOptions> {
         let keyspace = CString::from_cursor(&mut cursor)?.into_plain();
         let name = CString::from_cursor(&mut cursor)?.into_plain();
         let types = CStringList::from_cursor(&mut cursor)?.into_plain();
-        Ok(ChangeSchemeOptions::FunctionAggregate((keyspace,
-                                                  name,
-                                                  types)))
+        Ok(ChangeSchemeOptions::FunctionAggregate((
+            keyspace, name, types,
+        )))
     }
 }
 
@@ -294,32 +309,42 @@ mod simple_server_event_test {
 
     #[test]
     fn as_string() {
-        assert_eq!(SimpleServerEvent::TopologyChange.as_string(),
-                   "TOPOLOGY_CHANGE".to_string());
-        assert_eq!(SimpleServerEvent::StatusChange.as_string(),
-                   "STATUS_CHANGE".to_string());
-        assert_eq!(SimpleServerEvent::SchemaChange.as_string(),
-                   "SCHEMA_CHANGE".to_string());
+        assert_eq!(
+            SimpleServerEvent::TopologyChange.as_string(),
+            "TOPOLOGY_CHANGE".to_string()
+        );
+        assert_eq!(
+            SimpleServerEvent::StatusChange.as_string(),
+            "STATUS_CHANGE".to_string()
+        );
+        assert_eq!(
+            SimpleServerEvent::SchemaChange.as_string(),
+            "SCHEMA_CHANGE".to_string()
+        );
     }
 }
 
 #[cfg(test)]
 mod topology_change_type_test {
     use super::*;
-    use std::io::Cursor;
     use crate::frame::traits::FromCursor;
+    use std::io::Cursor;
 
     #[test]
     fn from_cursor() {
         let a = &[0, 8, 78, 69, 87, 95, 78, 79, 68, 69];
         let mut new_node: Cursor<&[u8]> = Cursor::new(a);
-        assert_eq!(TopologyChangeType::from_cursor(&mut new_node).unwrap(),
-                   TopologyChangeType::NewNode);
+        assert_eq!(
+            TopologyChangeType::from_cursor(&mut new_node).unwrap(),
+            TopologyChangeType::NewNode
+        );
 
         let b = &[0, 12, 82, 69, 77, 79, 86, 69, 68, 95, 78, 79, 68, 69];
         let mut removed_node: Cursor<&[u8]> = Cursor::new(b);
-        assert_eq!(TopologyChangeType::from_cursor(&mut removed_node).unwrap(),
-                   TopologyChangeType::RemovedNode);
+        assert_eq!(
+            TopologyChangeType::from_cursor(&mut removed_node).unwrap(),
+            TopologyChangeType::RemovedNode
+        );
     }
 
     #[test]
@@ -334,20 +359,24 @@ mod topology_change_type_test {
 #[cfg(test)]
 mod status_change_type_test {
     use super::*;
-    use std::io::Cursor;
     use crate::frame::traits::FromCursor;
+    use std::io::Cursor;
 
     #[test]
     fn from_cursor() {
         let a = &[0, 2, 85, 80];
         let mut up: Cursor<&[u8]> = Cursor::new(a);
-        assert_eq!(StatusChangeType::from_cursor(&mut up).unwrap(),
-                   StatusChangeType::Up);
+        assert_eq!(
+            StatusChangeType::from_cursor(&mut up).unwrap(),
+            StatusChangeType::Up
+        );
 
         let b = &[0, 4, 68, 79, 87, 78];
         let mut down: Cursor<&[u8]> = Cursor::new(b);
-        assert_eq!(StatusChangeType::from_cursor(&mut down).unwrap(),
-                   StatusChangeType::Down);
+        assert_eq!(
+            StatusChangeType::from_cursor(&mut down).unwrap(),
+            StatusChangeType::Down
+        );
     }
 
     #[test]
@@ -362,25 +391,31 @@ mod status_change_type_test {
 #[cfg(test)]
 mod schema_change_type_test {
     use super::*;
-    use std::io::Cursor;
     use crate::frame::traits::FromCursor;
+    use std::io::Cursor;
 
     #[test]
     fn from_cursor() {
         let a = &[0, 7, 67, 82, 69, 65, 84, 69, 68];
         let mut created: Cursor<&[u8]> = Cursor::new(a);
-        assert_eq!(ChangeType::from_cursor(&mut created).unwrap(),
-                   ChangeType::Created);
+        assert_eq!(
+            ChangeType::from_cursor(&mut created).unwrap(),
+            ChangeType::Created
+        );
 
         let b = &[0, 7, 85, 80, 68, 65, 84, 69, 68];
         let mut updated: Cursor<&[u8]> = Cursor::new(b);
-        assert_eq!(ChangeType::from_cursor(&mut updated).unwrap(),
-                   ChangeType::Updated);
+        assert_eq!(
+            ChangeType::from_cursor(&mut updated).unwrap(),
+            ChangeType::Updated
+        );
 
         let c = &[0, 7, 68, 82, 79, 80, 80, 69, 68];
         let mut dropped: Cursor<&[u8]> = Cursor::new(c);
-        assert_eq!(ChangeType::from_cursor(&mut dropped).unwrap(),
-                   ChangeType::Dropped);
+        assert_eq!(
+            ChangeType::from_cursor(&mut dropped).unwrap(),
+            ChangeType::Dropped
+        );
     }
 
     #[test]
@@ -395,15 +430,17 @@ mod schema_change_type_test {
 #[cfg(test)]
 mod schema_change_target_test {
     use super::*;
-    use std::io::Cursor;
     use crate::frame::traits::FromCursor;
+    use std::io::Cursor;
 
     #[test]
     fn from_cursor() {
         let a = &[0, 8, 75, 69, 89, 83, 80, 65, 67, 69];
         let mut keyspace: Cursor<&[u8]> = Cursor::new(a);
-        assert_eq!(Target::from_cursor(&mut keyspace).unwrap(),
-                   Target::Keyspace);
+        assert_eq!(
+            Target::from_cursor(&mut keyspace).unwrap(),
+            Target::Keyspace
+        );
 
         let b = &[0, 5, 84, 65, 66, 76, 69];
         let mut table: Cursor<&[u8]> = Cursor::new(b);
@@ -415,13 +452,17 @@ mod schema_change_target_test {
 
         let d = &[0, 8, 70, 85, 78, 67, 84, 73, 79, 78];
         let mut function: Cursor<&[u8]> = Cursor::new(d);
-        assert_eq!(Target::from_cursor(&mut function).unwrap(),
-                   Target::Function);
+        assert_eq!(
+            Target::from_cursor(&mut function).unwrap(),
+            Target::Function
+        );
 
         let e = &[0, 9, 65, 71, 71, 82, 69, 71, 65, 84, 69];
         let mut aggregate: Cursor<&[u8]> = Cursor::new(e);
-        assert_eq!(Target::from_cursor(&mut aggregate).unwrap(),
-                   Target::Aggregate);
+        assert_eq!(
+            Target::from_cursor(&mut aggregate).unwrap(),
+            Target::Aggregate
+        );
     }
 
     #[test]
@@ -436,51 +477,17 @@ mod schema_change_target_test {
 #[cfg(test)]
 mod server_event {
     use super::*;
-    use std::io::Cursor;
     use crate::frame::traits::FromCursor;
+    use std::io::Cursor;
 
     #[test]
     fn topology_change_new_node() {
-        let bytes = &[// topology change
-                      0,
-                      15,
-                      84,
-                      79,
-                      80,
-                      79,
-                      76,
-                      79,
-                      71,
-                      89,
-                      95,
-                      67,
-                      72,
-                      65,
-                      78,
-                      71,
-                      69,
-                      // new node
-                      0,
-                      8,
-                      78,
-                      69,
-                      87,
-                      95,
-                      78,
-                      79,
-                      68,
-                      69,
-                      // 127.0.0.1:1
-                      0,
-                      4,
-                      127,
-                      0,
-                      0,
-                      1,
-                      0,
-                      0,
-                      0,
-                      1];
+        let bytes = &[
+            // topology change
+            0, 15, 84, 79, 80, 79, 76, 79, 71, 89, 95, 67, 72, 65, 78, 71, 69, // new node
+            0, 8, 78, 69, 87, 95, 78, 79, 68, 69, // 127.0.0.1:1
+            0, 4, 127, 0, 0, 1, 0, 0, 0, 1,
+        ];
         let mut c: Cursor<&[u8]> = Cursor::new(bytes);
         let event = ServerEvent::from_cursor(&mut c).unwrap();
         match event {
@@ -494,50 +501,13 @@ mod server_event {
 
     #[test]
     fn topology_change_removed_node() {
-        let bytes = &[// topology change
-                      0,
-                      15,
-                      84,
-                      79,
-                      80,
-                      79,
-                      76,
-                      79,
-                      71,
-                      89,
-                      95,
-                      67,
-                      72,
-                      65,
-                      78,
-                      71,
-                      69,
-                      // removed node
-                      0,
-                      12,
-                      82,
-                      69,
-                      77,
-                      79,
-                      86,
-                      69,
-                      68,
-                      95,
-                      78,
-                      79,
-                      68,
-                      69,
-                      // 127.0.0.1:1
-                      0,
-                      4,
-                      127,
-                      0,
-                      0,
-                      1,
-                      0,
-                      0,
-                      0,
-                      1];
+        let bytes = &[
+            // topology change
+            0, 15, 84, 79, 80, 79, 76, 79, 71, 89, 95, 67, 72, 65, 78, 71, 69,
+            // removed node
+            0, 12, 82, 69, 77, 79, 86, 69, 68, 95, 78, 79, 68, 69, // 127.0.0.1:1
+            0, 4, 127, 0, 0, 1, 0, 0, 0, 1,
+        ];
         let mut c: Cursor<&[u8]> = Cursor::new(bytes);
         let event = ServerEvent::from_cursor(&mut c).unwrap();
         match event {
@@ -551,38 +521,12 @@ mod server_event {
 
     #[test]
     fn status_change_up() {
-        let bytes = &[// status change
-                      0,
-                      13,
-                      83,
-                      84,
-                      65,
-                      84,
-                      85,
-                      83,
-                      95,
-                      67,
-                      72,
-                      65,
-                      78,
-                      71,
-                      69,
-                      // up
-                      0,
-                      2,
-                      85,
-                      80,
-                      // 127.0.0.1:1
-                      0,
-                      4,
-                      127,
-                      0,
-                      0,
-                      1,
-                      0,
-                      0,
-                      0,
-                      1];
+        let bytes = &[
+            // status change
+            0, 13, 83, 84, 65, 84, 85, 83, 95, 67, 72, 65, 78, 71, 69, // up
+            0, 2, 85, 80, // 127.0.0.1:1
+            0, 4, 127, 0, 0, 1, 0, 0, 0, 1,
+        ];
         let mut c: Cursor<&[u8]> = Cursor::new(bytes);
         let event = ServerEvent::from_cursor(&mut c).unwrap();
         match event {
@@ -596,40 +540,12 @@ mod server_event {
 
     #[test]
     fn status_change_down() {
-        let bytes = &[// status change
-                      0,
-                      13,
-                      83,
-                      84,
-                      65,
-                      84,
-                      85,
-                      83,
-                      95,
-                      67,
-                      72,
-                      65,
-                      78,
-                      71,
-                      69,
-                      // down
-                      0,
-                      4,
-                      68,
-                      79,
-                      87,
-                      78,
-                      // 127.0.0.1:1
-                      0,
-                      4,
-                      127,
-                      0,
-                      0,
-                      1,
-                      0,
-                      0,
-                      0,
-                      1];
+        let bytes = &[
+            // status change
+            0, 13, 83, 84, 65, 84, 85, 83, 95, 67, 72, 65, 78, 71, 69, // down
+            0, 4, 68, 79, 87, 78, // 127.0.0.1:1
+            0, 4, 127, 0, 0, 1, 0, 0, 0, 1,
+        ];
         let mut c: Cursor<&[u8]> = Cursor::new(bytes);
         let event = ServerEvent::from_cursor(&mut c).unwrap();
         match event {
@@ -644,51 +560,13 @@ mod server_event {
     #[test]
     fn schema_change_created() {
         // keyspace
-        let keyspace = &[// schema change
-                         0,
-                         13,
-                         83,
-                         67,
-                         72,
-                         69,
-                         77,
-                         65,
-                         95,
-                         67,
-                         72,
-                         65,
-                         78,
-                         71,
-                         69,
-                         // created
-                         0,
-                         7,
-                         67,
-                         82,
-                         69,
-                         65,
-                         84,
-                         69,
-                         68,
-                         // keyspace
-                         0,
-                         8,
-                         75,
-                         69,
-                         89,
-                         83,
-                         80,
-                         65,
-                         67,
-                         69,
-                         // my_ks
-                         0,
-                         5,
-                         109,
-                         121,
-                         95,
-                         107,
-                         115];
+        let keyspace = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // created
+            0, 7, 67, 82, 69, 65, 84, 69, 68, // keyspace
+            0, 8, 75, 69, 89, 83, 80, 65, 67, 69, // my_ks
+            0, 5, 109, 121, 95, 107, 115,
+        ];
         let mut ks: Cursor<&[u8]> = Cursor::new(keyspace);
         let ks_event = ServerEvent::from_cursor(&mut ks).unwrap();
         match ks_event {
@@ -703,59 +581,14 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // table
-        let table = &[// schema change
-                      0,
-                      13,
-                      83,
-                      67,
-                      72,
-                      69,
-                      77,
-                      65,
-                      95,
-                      67,
-                      72,
-                      65,
-                      78,
-                      71,
-                      69,
-                      // created
-                      0,
-                      7,
-                      67,
-                      82,
-                      69,
-                      65,
-                      84,
-                      69,
-                      68,
-                      // table
-                      0,
-                      5,
-                      84,
-                      65,
-                      66,
-                      76,
-                      69,
-                      // my_ks
-                      0,
-                      5,
-                      109,
-                      121,
-                      95,
-                      107,
-                      115,
-                      // my_table
-                      0,
-                      8,
-                      109,
-                      121,
-                      95,
-                      116,
-                      97,
-                      98,
-                      108,
-                      101];
+        let table = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // created
+            0, 7, 67, 82, 69, 65, 84, 69, 68, // table
+            0, 5, 84, 65, 66, 76, 69, // my_ks
+            0, 5, 109, 121, 95, 107, 115, // my_table
+            0, 8, 109, 121, 95, 116, 97, 98, 108, 101,
+        ];
         let mut tb: Cursor<&[u8]> = Cursor::new(table);
         let tb_event = ServerEvent::from_cursor(&mut tb).unwrap();
         match tb_event {
@@ -772,58 +605,14 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // type
-        let _type = &[// schema change
-                      0,
-                      13,
-                      83,
-                      67,
-                      72,
-                      69,
-                      77,
-                      65,
-                      95,
-                      67,
-                      72,
-                      65,
-                      78,
-                      71,
-                      69,
-                      // created
-                      0,
-                      7,
-                      67,
-                      82,
-                      69,
-                      65,
-                      84,
-                      69,
-                      68,
-                      // type
-                      0,
-                      4,
-                      84,
-                      89,
-                      80,
-                      69,
-                      // my_ks
-                      0,
-                      5,
-                      109,
-                      121,
-                      95,
-                      107,
-                      115,
-                      // my_table
-                      0,
-                      8,
-                      109,
-                      121,
-                      95,
-                      116,
-                      97,
-                      98,
-                      108,
-                      101];
+        let _type = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // created
+            0, 7, 67, 82, 69, 65, 84, 69, 68, // type
+            0, 4, 84, 89, 80, 69, // my_ks
+            0, 5, 109, 121, 95, 107, 115, // my_table
+            0, 8, 109, 121, 95, 116, 97, 98, 108, 101,
+        ];
         let mut tp: Cursor<&[u8]> = Cursor::new(_type);
         let tp_event = ServerEvent::from_cursor(&mut tp).unwrap();
         match tp_event {
@@ -840,61 +629,15 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // function
-        let function = &[// schema change
-                         0,
-                         13,
-                         83,
-                         67,
-                         72,
-                         69,
-                         77,
-                         65,
-                         95,
-                         67,
-                         72,
-                         65,
-                         78,
-                         71,
-                         69,
-                         // created
-                         0,
-                         7,
-                         67,
-                         82,
-                         69,
-                         65,
-                         84,
-                         69,
-                         68,
-                         // function
-                         0,
-                         8,
-                         70,
-                         85,
-                         78,
-                         67,
-                         84,
-                         73,
-                         79,
-                         78,
-                         // my_ks
-                         0,
-                         5,
-                         109,
-                         121,
-                         95,
-                         107,
-                         115,
-                         // name
-                         0,
-                         4,
-                         110,
-                         97,
-                         109,
-                         101,
-                         // empty list of parameters
-                         0,
-                         0];
+        let function = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // created
+            0, 7, 67, 82, 69, 65, 84, 69, 68, // function
+            0, 8, 70, 85, 78, 67, 84, 73, 79, 78, // my_ks
+            0, 5, 109, 121, 95, 107, 115, // name
+            0, 4, 110, 97, 109, 101, // empty list of parameters
+            0, 0,
+        ];
         let mut fnct: Cursor<&[u8]> = Cursor::new(function);
         let fnct_event = ServerEvent::from_cursor(&mut fnct).unwrap();
         match fnct_event {
@@ -911,62 +654,15 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // function
-        let aggregate = &[// schema change
-                          0,
-                          13,
-                          83,
-                          67,
-                          72,
-                          69,
-                          77,
-                          65,
-                          95,
-                          67,
-                          72,
-                          65,
-                          78,
-                          71,
-                          69,
-                          // created
-                          0,
-                          7,
-                          67,
-                          82,
-                          69,
-                          65,
-                          84,
-                          69,
-                          68,
-                          // aggregate
-                          0,
-                          9,
-                          65,
-                          71,
-                          71,
-                          82,
-                          69,
-                          71,
-                          65,
-                          84,
-                          69,
-                          // my_ks
-                          0,
-                          5,
-                          109,
-                          121,
-                          95,
-                          107,
-                          115,
-                          // name
-                          0,
-                          4,
-                          110,
-                          97,
-                          109,
-                          101,
-                          // empty list of parameters
-                          0,
-                          0];
+        let aggregate = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // created
+            0, 7, 67, 82, 69, 65, 84, 69, 68, // aggregate
+            0, 9, 65, 71, 71, 82, 69, 71, 65, 84, 69, // my_ks
+            0, 5, 109, 121, 95, 107, 115, // name
+            0, 4, 110, 97, 109, 101, // empty list of parameters
+            0, 0,
+        ];
         let mut aggr: Cursor<&[u8]> = Cursor::new(aggregate);
         let aggr_event = ServerEvent::from_cursor(&mut aggr).unwrap();
         match aggr_event {
@@ -987,51 +683,13 @@ mod server_event {
     #[test]
     fn schema_change_updated() {
         // keyspace
-        let keyspace = &[// schema change
-                         0,
-                         13,
-                         83,
-                         67,
-                         72,
-                         69,
-                         77,
-                         65,
-                         95,
-                         67,
-                         72,
-                         65,
-                         78,
-                         71,
-                         69,
-                         // updated
-                         0,
-                         7,
-                         85,
-                         80,
-                         68,
-                         65,
-                         84,
-                         69,
-                         68,
-                         // keyspace
-                         0,
-                         8,
-                         75,
-                         69,
-                         89,
-                         83,
-                         80,
-                         65,
-                         67,
-                         69,
-                         // my_ks
-                         0,
-                         5,
-                         109,
-                         121,
-                         95,
-                         107,
-                         115];
+        let keyspace = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // updated
+            0, 7, 85, 80, 68, 65, 84, 69, 68, // keyspace
+            0, 8, 75, 69, 89, 83, 80, 65, 67, 69, // my_ks
+            0, 5, 109, 121, 95, 107, 115,
+        ];
         let mut ks: Cursor<&[u8]> = Cursor::new(keyspace);
         let ks_event = ServerEvent::from_cursor(&mut ks).unwrap();
         match ks_event {
@@ -1046,59 +704,14 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // table
-        let table = &[// schema change
-                      0,
-                      13,
-                      83,
-                      67,
-                      72,
-                      69,
-                      77,
-                      65,
-                      95,
-                      67,
-                      72,
-                      65,
-                      78,
-                      71,
-                      69,
-                      // updated
-                      0,
-                      7,
-                      85,
-                      80,
-                      68,
-                      65,
-                      84,
-                      69,
-                      68,
-                      // table
-                      0,
-                      5,
-                      84,
-                      65,
-                      66,
-                      76,
-                      69,
-                      // my_ks
-                      0,
-                      5,
-                      109,
-                      121,
-                      95,
-                      107,
-                      115,
-                      // my_table
-                      0,
-                      8,
-                      109,
-                      121,
-                      95,
-                      116,
-                      97,
-                      98,
-                      108,
-                      101];
+        let table = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // updated
+            0, 7, 85, 80, 68, 65, 84, 69, 68, // table
+            0, 5, 84, 65, 66, 76, 69, // my_ks
+            0, 5, 109, 121, 95, 107, 115, // my_table
+            0, 8, 109, 121, 95, 116, 97, 98, 108, 101,
+        ];
         let mut tb: Cursor<&[u8]> = Cursor::new(table);
         let tb_event = ServerEvent::from_cursor(&mut tb).unwrap();
         match tb_event {
@@ -1115,58 +728,14 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // type
-        let _type = &[// schema change
-                      0,
-                      13,
-                      83,
-                      67,
-                      72,
-                      69,
-                      77,
-                      65,
-                      95,
-                      67,
-                      72,
-                      65,
-                      78,
-                      71,
-                      69,
-                      // updated
-                      0,
-                      7,
-                      85,
-                      80,
-                      68,
-                      65,
-                      84,
-                      69,
-                      68,
-                      // type
-                      0,
-                      4,
-                      84,
-                      89,
-                      80,
-                      69,
-                      // my_ks
-                      0,
-                      5,
-                      109,
-                      121,
-                      95,
-                      107,
-                      115,
-                      // my_table
-                      0,
-                      8,
-                      109,
-                      121,
-                      95,
-                      116,
-                      97,
-                      98,
-                      108,
-                      101];
+        let _type = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // updated
+            0, 7, 85, 80, 68, 65, 84, 69, 68, // type
+            0, 4, 84, 89, 80, 69, // my_ks
+            0, 5, 109, 121, 95, 107, 115, // my_table
+            0, 8, 109, 121, 95, 116, 97, 98, 108, 101,
+        ];
         let mut tp: Cursor<&[u8]> = Cursor::new(_type);
         let tp_event = ServerEvent::from_cursor(&mut tp).unwrap();
         match tp_event {
@@ -1183,61 +752,15 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // function
-        let function = &[// schema change
-                         0,
-                         13,
-                         83,
-                         67,
-                         72,
-                         69,
-                         77,
-                         65,
-                         95,
-                         67,
-                         72,
-                         65,
-                         78,
-                         71,
-                         69,
-                         // updated
-                         0,
-                         7,
-                         85,
-                         80,
-                         68,
-                         65,
-                         84,
-                         69,
-                         68,
-                         // function
-                         0,
-                         8,
-                         70,
-                         85,
-                         78,
-                         67,
-                         84,
-                         73,
-                         79,
-                         78,
-                         // my_ks
-                         0,
-                         5,
-                         109,
-                         121,
-                         95,
-                         107,
-                         115,
-                         // name
-                         0,
-                         4,
-                         110,
-                         97,
-                         109,
-                         101,
-                         // empty list of parameters
-                         0,
-                         0];
+        let function = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // updated
+            0, 7, 85, 80, 68, 65, 84, 69, 68, // function
+            0, 8, 70, 85, 78, 67, 84, 73, 79, 78, // my_ks
+            0, 5, 109, 121, 95, 107, 115, // name
+            0, 4, 110, 97, 109, 101, // empty list of parameters
+            0, 0,
+        ];
         let mut fnct: Cursor<&[u8]> = Cursor::new(function);
         let fnct_event = ServerEvent::from_cursor(&mut fnct).unwrap();
         match fnct_event {
@@ -1254,62 +777,15 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // function
-        let aggregate = &[// schema change
-                          0,
-                          13,
-                          83,
-                          67,
-                          72,
-                          69,
-                          77,
-                          65,
-                          95,
-                          67,
-                          72,
-                          65,
-                          78,
-                          71,
-                          69,
-                          // updated
-                          0,
-                          7,
-                          85,
-                          80,
-                          68,
-                          65,
-                          84,
-                          69,
-                          68,
-                          // aggregate
-                          0,
-                          9,
-                          65,
-                          71,
-                          71,
-                          82,
-                          69,
-                          71,
-                          65,
-                          84,
-                          69,
-                          // my_ks
-                          0,
-                          5,
-                          109,
-                          121,
-                          95,
-                          107,
-                          115,
-                          // name
-                          0,
-                          4,
-                          110,
-                          97,
-                          109,
-                          101,
-                          // empty list of parameters
-                          0,
-                          0];
+        let aggregate = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // updated
+            0, 7, 85, 80, 68, 65, 84, 69, 68, // aggregate
+            0, 9, 65, 71, 71, 82, 69, 71, 65, 84, 69, // my_ks
+            0, 5, 109, 121, 95, 107, 115, // name
+            0, 4, 110, 97, 109, 101, // empty list of parameters
+            0, 0,
+        ];
         let mut aggr: Cursor<&[u8]> = Cursor::new(aggregate);
         let aggr_event = ServerEvent::from_cursor(&mut aggr).unwrap();
         match aggr_event {
@@ -1330,51 +806,13 @@ mod server_event {
     #[test]
     fn schema_change_dropped() {
         // keyspace
-        let keyspace = &[// schema change
-                         0,
-                         13,
-                         83,
-                         67,
-                         72,
-                         69,
-                         77,
-                         65,
-                         95,
-                         67,
-                         72,
-                         65,
-                         78,
-                         71,
-                         69,
-                         // dropped
-                         0,
-                         7,
-                         68,
-                         82,
-                         79,
-                         80,
-                         80,
-                         69,
-                         68,
-                         // keyspace
-                         0,
-                         8,
-                         75,
-                         69,
-                         89,
-                         83,
-                         80,
-                         65,
-                         67,
-                         69,
-                         // my_ks
-                         0,
-                         5,
-                         109,
-                         121,
-                         95,
-                         107,
-                         115];
+        let keyspace = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // dropped
+            0, 7, 68, 82, 79, 80, 80, 69, 68, // keyspace
+            0, 8, 75, 69, 89, 83, 80, 65, 67, 69, // my_ks
+            0, 5, 109, 121, 95, 107, 115,
+        ];
         let mut ks: Cursor<&[u8]> = Cursor::new(keyspace);
         let ks_event = ServerEvent::from_cursor(&mut ks).unwrap();
         match ks_event {
@@ -1389,59 +827,14 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // table
-        let table = &[// schema change
-                      0,
-                      13,
-                      83,
-                      67,
-                      72,
-                      69,
-                      77,
-                      65,
-                      95,
-                      67,
-                      72,
-                      65,
-                      78,
-                      71,
-                      69,
-                      // dropped
-                      0,
-                      7,
-                      68,
-                      82,
-                      79,
-                      80,
-                      80,
-                      69,
-                      68,
-                      // table
-                      0,
-                      5,
-                      84,
-                      65,
-                      66,
-                      76,
-                      69,
-                      // my_ks
-                      0,
-                      5,
-                      109,
-                      121,
-                      95,
-                      107,
-                      115,
-                      // my_table
-                      0,
-                      8,
-                      109,
-                      121,
-                      95,
-                      116,
-                      97,
-                      98,
-                      108,
-                      101];
+        let table = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // dropped
+            0, 7, 68, 82, 79, 80, 80, 69, 68, // table
+            0, 5, 84, 65, 66, 76, 69, // my_ks
+            0, 5, 109, 121, 95, 107, 115, // my_table
+            0, 8, 109, 121, 95, 116, 97, 98, 108, 101,
+        ];
         let mut tb: Cursor<&[u8]> = Cursor::new(table);
         let tb_event = ServerEvent::from_cursor(&mut tb).unwrap();
         match tb_event {
@@ -1458,58 +851,14 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // type
-        let _type = &[// schema change
-                      0,
-                      13,
-                      83,
-                      67,
-                      72,
-                      69,
-                      77,
-                      65,
-                      95,
-                      67,
-                      72,
-                      65,
-                      78,
-                      71,
-                      69,
-                      // dropped
-                      0,
-                      7,
-                      68,
-                      82,
-                      79,
-                      80,
-                      80,
-                      69,
-                      68,
-                      // type
-                      0,
-                      4,
-                      84,
-                      89,
-                      80,
-                      69,
-                      // my_ks
-                      0,
-                      5,
-                      109,
-                      121,
-                      95,
-                      107,
-                      115,
-                      // my_table
-                      0,
-                      8,
-                      109,
-                      121,
-                      95,
-                      116,
-                      97,
-                      98,
-                      108,
-                      101];
+        let _type = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // dropped
+            0, 7, 68, 82, 79, 80, 80, 69, 68, // type
+            0, 4, 84, 89, 80, 69, // my_ks
+            0, 5, 109, 121, 95, 107, 115, // my_table
+            0, 8, 109, 121, 95, 116, 97, 98, 108, 101,
+        ];
         let mut tp: Cursor<&[u8]> = Cursor::new(_type);
         let tp_event = ServerEvent::from_cursor(&mut tp).unwrap();
         match tp_event {
@@ -1526,61 +875,15 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // function
-        let function = &[// schema change
-                         0,
-                         13,
-                         83,
-                         67,
-                         72,
-                         69,
-                         77,
-                         65,
-                         95,
-                         67,
-                         72,
-                         65,
-                         78,
-                         71,
-                         69,
-                         // dropped
-                         0,
-                         7,
-                         68,
-                         82,
-                         79,
-                         80,
-                         80,
-                         69,
-                         68,
-                         // function
-                         0,
-                         8,
-                         70,
-                         85,
-                         78,
-                         67,
-                         84,
-                         73,
-                         79,
-                         78,
-                         // my_ks
-                         0,
-                         5,
-                         109,
-                         121,
-                         95,
-                         107,
-                         115,
-                         // name
-                         0,
-                         4,
-                         110,
-                         97,
-                         109,
-                         101,
-                         // empty list of parameters
-                         0,
-                         0];
+        let function = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // dropped
+            0, 7, 68, 82, 79, 80, 80, 69, 68, // function
+            0, 8, 70, 85, 78, 67, 84, 73, 79, 78, // my_ks
+            0, 5, 109, 121, 95, 107, 115, // name
+            0, 4, 110, 97, 109, 101, // empty list of parameters
+            0, 0,
+        ];
         let mut fnct: Cursor<&[u8]> = Cursor::new(function);
         let fnct_event = ServerEvent::from_cursor(&mut fnct).unwrap();
         match fnct_event {
@@ -1597,62 +900,15 @@ mod server_event {
             _ => panic!("should be schema change"),
         }
         // function
-        let aggregate = &[// schema change
-                          0,
-                          13,
-                          83,
-                          67,
-                          72,
-                          69,
-                          77,
-                          65,
-                          95,
-                          67,
-                          72,
-                          65,
-                          78,
-                          71,
-                          69,
-                          // dropped
-                          0,
-                          7,
-                          68,
-                          82,
-                          79,
-                          80,
-                          80,
-                          69,
-                          68,
-                          // aggregate
-                          0,
-                          9,
-                          65,
-                          71,
-                          71,
-                          82,
-                          69,
-                          71,
-                          65,
-                          84,
-                          69,
-                          // my_ks
-                          0,
-                          5,
-                          109,
-                          121,
-                          95,
-                          107,
-                          115,
-                          // name
-                          0,
-                          4,
-                          110,
-                          97,
-                          109,
-                          101,
-                          // empty list of parameters
-                          0,
-                          0];
+        let aggregate = &[
+            // schema change
+            0, 13, 83, 67, 72, 69, 77, 65, 95, 67, 72, 65, 78, 71, 69, // dropped
+            0, 7, 68, 82, 79, 80, 80, 69, 68, // aggregate
+            0, 9, 65, 71, 71, 82, 69, 71, 65, 84, 69, // my_ks
+            0, 5, 109, 121, 95, 107, 115, // name
+            0, 4, 110, 97, 109, 101, // empty list of parameters
+            0, 0,
+        ];
         let mut aggr: Cursor<&[u8]> = Cursor::new(aggregate);
         let aggr_event = ServerEvent::from_cursor(&mut aggr).unwrap();
         match aggr_event {

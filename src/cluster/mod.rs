@@ -16,10 +16,10 @@ pub use crate::cluster::config_tcp::{ClusterTcpConfig, NodeTcpConfig, NodeTcpCon
 pub use crate::cluster::pager::{PagerState, QueryPager, SessionPager};
 #[cfg(feature = "ssl")]
 pub use crate::cluster::ssl_connection_pool::{
-  new_ssl_pool, SslConnectionPool, SslConnectionsManager,
+    new_ssl_pool, SslConnectionPool, SslConnectionsManager,
 };
 pub use crate::cluster::tcp_connection_pool::{
-  new_tcp_pool, startup, TcpConnectionPool, TcpConnectionsManager,
+    new_tcp_pool, startup, TcpConnectionPool, TcpConnectionsManager,
 };
 
 use crate::compression::Compression;
@@ -30,33 +30,33 @@ use crate::transport::CDRSTransport;
 /// `GetConnection` trait provides a unified interface for Session to get a connection
 /// from a load balancer
 pub trait GetConnection<
-  T: CDRSTransport + Send + Sync + 'static,
-  M: r2d2::ManageConnection<Connection = cell::RefCell<T>, Error = error::Error>,
+    T: CDRSTransport + Send + Sync + 'static,
+    M: r2d2::ManageConnection<Connection = cell::RefCell<T>, Error = error::Error>,
 >
 {
-  /// Returns connection from a load balancer.
-  fn get_connection(&self) -> Option<r2d2::PooledConnection<M>>;
+    /// Returns connection from a load balancer.
+    fn get_connection(&self) -> Option<r2d2::PooledConnection<M>>;
 }
 
 /// `GetCompressor` trait provides a unified interface for Session to get a compressor
 /// for further decompressing received data.
 pub trait GetCompressor<'a> {
-  /// Returns actual compressor.
-  fn get_compressor(&self) -> Compression;
+    /// Returns actual compressor.
+    fn get_compressor(&self) -> Compression;
 }
 
 /// `CDRSSession` trait wrap ups whole query functionality. Use it only if whole query
 /// machinery is needed and direct sub traits otherwise.
 pub trait CDRSSession<
-  'a,
-  T: CDRSTransport + 'static,
-  M: r2d2::ManageConnection<Connection = cell::RefCell<T>, Error = error::Error>,
+    'a,
+    T: CDRSTransport + 'static,
+    M: r2d2::ManageConnection<Connection = cell::RefCell<T>, Error = error::Error>,
 >:
-  GetCompressor<'static>
-  + GetConnection<T, M>
-  + QueryExecutor<T, M>
-  + PrepareExecutor<T, M>
-  + ExecExecutor<T, M>
-  + BatchExecutor<T, M>
+    GetCompressor<'static>
+    + GetConnection<T, M>
+    + QueryExecutor<T, M>
+    + PrepareExecutor<T, M>
+    + ExecExecutor<T, M>
+    + BatchExecutor<T, M>
 {
 }

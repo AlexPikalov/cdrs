@@ -15,18 +15,18 @@ use crate::types::{AsRust, AsRustType, CBytes};
 
 #[derive(Debug)]
 pub struct Map {
-  metadata: ColTypeOption,
-  data: Vec<(CBytes, CBytes)>,
+    metadata: ColTypeOption,
+    data: Vec<(CBytes, CBytes)>,
 }
 
 impl Map {
-  /// Creates new `Map` using the provided data and key and value types.
-  pub fn new(data: Vec<(CBytes, CBytes)>, meta: ColTypeOption) -> Map {
-    Map {
-      metadata: meta,
-      data: data,
+    /// Creates new `Map` using the provided data and key and value types.
+    pub fn new(data: Vec<(CBytes, CBytes)>, meta: ColTypeOption) -> Map {
+        Map {
+            metadata: meta,
+            data: data,
+        }
     }
-  }
 }
 
 impl AsRust for Map {}

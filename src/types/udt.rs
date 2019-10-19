@@ -15,25 +15,25 @@ use crate::types::{ByName, CBytes, IntoRustByName};
 
 #[derive(Clone, Debug)]
 pub struct UDT {
-  data: HashMap<String, (ColTypeOption, CBytes)>,
+    data: HashMap<String, (ColTypeOption, CBytes)>,
 }
 
 impl UDT {
-  pub fn new<'a>(data: Vec<CBytes>, metadata: &'a CUdt) -> UDT {
-    let meta_iter = metadata.descriptions.iter();
+    pub fn new<'a>(data: Vec<CBytes>, metadata: &'a CUdt) -> UDT {
+        let meta_iter = metadata.descriptions.iter();
 
-    let acc: HashMap<String, (ColTypeOption, CBytes)> =
-      HashMap::with_capacity(metadata.descriptions.len());
-    let d = meta_iter.zip(data.iter()).fold(acc, |mut a, v| {
-      let (m, val_b) = v;
-      let &(ref name_b, ref val_type) = m;
-      let name = name_b.as_plain();
-      a.insert(name, (val_type.clone(), val_b.clone()));
-      a
-    });
+        let acc: HashMap<String, (ColTypeOption, CBytes)> =
+            HashMap::with_capacity(metadata.descriptions.len());
+        let d = meta_iter.zip(data.iter()).fold(acc, |mut a, v| {
+            let (m, val_b) = v;
+            let &(ref name_b, ref val_type) = m;
+            let name = name_b.as_plain();
+            a.insert(name, (val_type.clone(), val_b.clone()));
+            a
+        });
 
-    UDT { data: d }
-  }
+        UDT { data: d }
+    }
 }
 
 impl ByName for UDT {}
