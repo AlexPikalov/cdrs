@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::error::{column_is_empty_err, Error, Result};
 use crate::frame::frame_result::{
-  BodyResResultRows, ColSpec, ColType, ColTypeOption, ColTypeOptionValue, RowsMetadata,
+    BodyResResultRows, ColSpec, ColType, ColTypeOption, ColTypeOptionValue, RowsMetadata,
 };
 use crate::types::blob::Blob;
 use crate::types::data_serialization_types::*;
@@ -17,40 +17,38 @@ use crate::types::{ByIndex, ByName, CBytes, IntoRustByIndex, IntoRustByName};
 
 #[derive(Clone, Debug)]
 pub struct Row {
-  metadata: RowsMetadata,
-  row_content: Vec<CBytes>,
+    metadata: RowsMetadata,
+    row_content: Vec<CBytes>,
 }
 
 impl Row {
-  pub fn from_frame_body(body: BodyResResultRows) -> Vec<Row> {
-    body
-      .rows_content
-      .iter()
-      .map(|row| Row {
-        metadata: body.metadata.clone(),
-        row_content: row.clone(),
-      })
-      .collect()
-  }
+    pub fn from_frame_body(body: BodyResResultRows) -> Vec<Row> {
+        body.rows_content
+            .iter()
+            .map(|row| Row {
+                metadata: body.metadata.clone(),
+                row_content: row.clone(),
+            })
+            .collect()
+    }
 
-  fn get_col_spec_by_name(&self, name: &str) -> Option<(&ColSpec, &CBytes)> {
-    self
-      .metadata
-      .col_specs
-      .iter()
-      .position(|spec| spec.name.as_str() == name)
-      .map(|i| {
-        let ref col_spec = self.metadata.col_specs[i];
-        let ref data = self.row_content[i];
-        (col_spec, data)
-      })
-  }
+    fn get_col_spec_by_name(&self, name: &str) -> Option<(&ColSpec, &CBytes)> {
+        self.metadata
+            .col_specs
+            .iter()
+            .position(|spec| spec.name.as_str() == name)
+            .map(|i| {
+                let ref col_spec = self.metadata.col_specs[i];
+                let ref data = self.row_content[i];
+                (col_spec, data)
+            })
+    }
 
-  fn get_col_spec_by_index(&self, index: usize) -> Option<(&ColSpec, &CBytes)> {
-    let specs = self.metadata.col_specs.iter();
-    let values = self.row_content.iter();
-    specs.zip(values).nth(index)
-  }
+    fn get_col_spec_by_index(&self, index: usize) -> Option<(&ColSpec, &CBytes)> {
+        let specs = self.metadata.col_specs.iter();
+        let values = self.row_content.iter();
+        specs.zip(values).nth(index)
+    }
 }
 
 impl ByName for Row {}

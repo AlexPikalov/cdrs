@@ -1,6 +1,5 @@
 dist: trusty
 language: rust
-# cache: cargo
 rust:
   - stable
   - beta
@@ -13,11 +12,13 @@ services:
 sudo: required
 
 install:
-  # - (cargo install rustfmt --force  || true)
   - PATH=$PATH:/home/travis/.cargo/bin
 
+before_script:
+  - rustup component add rustfmt
+
 script:
-  # - cargo fmt -- --write-mode=diff
+  - cargo fmt -- --check
   - cargo build --verbose
   - cargo test --verbose --no-fail-fast
   - cargo test --verbose --no-fail-fast --features e2e-tests

@@ -12,21 +12,21 @@ use crate::types::udt::UDT;
 use crate::types::{AsRustType, ByName, IntoRustByName};
 
 pub trait FromCDRS {
-  fn from_cdrs<T>(cdrs_type: T) -> CDRSResult<Option<Self>>
-  where
-    Self: Sized,
-    T: AsRustType<Self> + Sized,
-  {
-    cdrs_type.as_rust_type()
-  }
+    fn from_cdrs<T>(cdrs_type: T) -> CDRSResult<Option<Self>>
+    where
+        Self: Sized,
+        T: AsRustType<Self> + Sized,
+    {
+        cdrs_type.as_rust_type()
+    }
 
-  fn from_cdrs_r<T>(cdrs_type: T) -> CDRSResult<Self>
-  where
-    Self: Sized,
-    T: AsRustType<Self> + Sized,
-  {
-    cdrs_type.as_r_type()
-  }
+    fn from_cdrs_r<T>(cdrs_type: T) -> CDRSResult<Self>
+    where
+        Self: Sized,
+        T: AsRustType<Self> + Sized,
+    {
+        cdrs_type.as_r_type()
+    }
 }
 
 impl FromCDRS for Blob {}
@@ -48,21 +48,21 @@ impl FromCDRS for Timespec {}
 impl FromCDRS for Decimal {}
 
 pub trait FromCDRSByName {
-  fn from_cdrs_by_name<T>(cdrs_type: &T, name: &str) -> CDRSResult<Option<Self>>
-  where
-    Self: Sized,
-    T: ByName + IntoRustByName<Self> + Sized,
-  {
-    cdrs_type.by_name(name)
-  }
+    fn from_cdrs_by_name<T>(cdrs_type: &T, name: &str) -> CDRSResult<Option<Self>>
+    where
+        Self: Sized,
+        T: ByName + IntoRustByName<Self> + Sized,
+    {
+        cdrs_type.by_name(name)
+    }
 
-  fn from_cdrs_r<T>(cdrs_type: &T, name: &str) -> CDRSResult<Self>
-  where
-    Self: Sized,
-    T: ByName + IntoRustByName<Self> + Sized + ::std::fmt::Debug,
-  {
-    cdrs_type.r_by_name(name)
-  }
+    fn from_cdrs_r<T>(cdrs_type: &T, name: &str) -> CDRSResult<Self>
+    where
+        Self: Sized,
+        T: ByName + IntoRustByName<Self> + Sized + ::std::fmt::Debug,
+    {
+        cdrs_type.r_by_name(name)
+    }
 }
 
 impl FromCDRSByName for Blob {}

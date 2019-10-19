@@ -270,5 +270,4 @@ mod tests {
             .expect("Should work without exceptions");
         assert_eq!(snappy_compression.decode(encoded).unwrap(), v);
     }
-
 }

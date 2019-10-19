@@ -13,26 +13,26 @@ use uuid::Uuid;
 // TODO: consider using pointers to ColTypeOption and Vec<CBytes> instead of owning them.
 #[derive(Debug)]
 pub struct List {
-  /// column spec of the list, i.e. id should be List as it's a list and value should contain
-  /// a type of list items.
-  metadata: ColTypeOption,
-  data: Vec<CBytes>,
+    /// column spec of the list, i.e. id should be List as it's a list and value should contain
+    /// a type of list items.
+    metadata: ColTypeOption,
+    data: Vec<CBytes>,
 }
 
 impl List {
-  pub fn new(data: Vec<CBytes>, metadata: ColTypeOption) -> List {
-    List {
-      metadata: metadata,
-      data: data,
+    pub fn new(data: Vec<CBytes>, metadata: ColTypeOption) -> List {
+        List {
+            metadata: metadata,
+            data: data,
+        }
     }
-  }
 
-  fn map<T, F>(&self, f: F) -> Vec<T>
-  where
-    F: FnMut(&CBytes) -> T,
-  {
-    self.data.iter().map(f).collect()
-  }
+    fn map<T, F>(&self, f: F) -> Vec<T>
+    where
+        F: FnMut(&CBytes) -> T,
+    {
+        self.data.iter().map(f).collect()
+    }
 }
 
 impl AsRust for List {}
