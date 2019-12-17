@@ -59,7 +59,7 @@ impl<'a, A: Authenticator + Sized> NodeTcpConfigBuilder<'a, A> {
     /// connections at all times, while respecting the value of `max_size`.
     /// Defaults to None (equivalent to the value of `max_size`).
     pub fn min_idle(mut self, min_idle: Option<u32>) -> Self {
-        self.max_size = min_idle;
+        self.min_idle = min_idle;
         self
     }
 
