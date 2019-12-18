@@ -24,12 +24,12 @@ impl IntoBytes for BodyReqAuthResponse {
 
 impl Frame {
     /// Creates new frame of type `AuthResponse`.
-    pub fn new_req_auth_response(bytes: Vec<u8>) -> Frame {
+    pub fn new_req_auth_response(token_bytes: CBytes) -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
         let stream = rand::random::<u16>();
         let opcode = Opcode::AuthResponse;
-        let body = BodyReqAuthResponse::new(CBytes::new(bytes));
+        let body = BodyReqAuthResponse::new(token_bytes);
 
         Frame {
             version: version,
@@ -60,7 +60,7 @@ mod tests {
     #[test]
     fn frame_body_req_auth_response() {
         let bytes = vec![1, 2, 3];
-        let frame = Frame::new_req_auth_response(bytes);
+        let frame = Frame::new_req_auth_response(CBytes::new(bytes));
 
         assert_eq!(frame.version, Version::Request);
         assert_eq!(frame.flags, vec![Flag::Ignore]);

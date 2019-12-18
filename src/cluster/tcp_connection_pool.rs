@@ -125,7 +125,7 @@ pub fn startup<'b, T: CDRSTransport + 'static, A: Authenticator + 'static + Size
             return Err(err);
         }
 
-        let auth_token_bytes = session_authenticator.get_auth_token().into_cbytes();
+        let auth_token_bytes = session_authenticator.get_auth_token();
         transport.borrow_mut().write(
             Frame::new_req_auth_response(auth_token_bytes)
                 .into_cbytes()
