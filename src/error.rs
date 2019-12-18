@@ -7,7 +7,7 @@ use std::string::FromUtf8Error;
 
 use crate::compression::CompressionError;
 use crate::frame::frame_error::CDRSError;
-use uuid::BytesError;
+use uuid::Error as UUIDError;
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -21,7 +21,7 @@ pub enum Error {
     /// Internal IO error.
     Io(io::Error),
     /// Internal error that may be raised during `uuid::Uuid::from_bytes`
-    UUIDParse(BytesError),
+    UUIDParse(UUIDError),
     /// General error
     General(String),
     /// Internal error that may be raised during `String::from_utf8`
@@ -87,8 +87,8 @@ impl From<FromUtf8Error> for Error {
     }
 }
 
-impl From<BytesError> for Error {
-    fn from(err: BytesError) -> Error {
+impl From<UUIDError> for Error {
+    fn from(err: UUIDError) -> Error {
         Error::UUIDParse(err)
     }
 }
