@@ -18,7 +18,7 @@ before_script:
   - rustup component add rustfmt
 
 script:
-  - cargo fmt -- --check
+#   - cargo fmt -- --check
   - cargo build --verbose
   - cargo test --verbose --no-fail-fast
   - cargo test --verbose --no-fail-fast --features e2e-tests
