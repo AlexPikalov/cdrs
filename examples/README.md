@@ -6,3 +6,4 @@
 - [`paged_query.rs`](./paged_query.rs) uncovers query paging;
 - [`prepare_batch_execute.rs`](./prepare_batch_execute.rs) provides an example of query preparation and batching;
 - [`server_events.rs`](./server_events.rs) illustrates a process of server events (create table, schema change etc.) listening.
+- [`aws cassandra crud operations`](https://github.com/AERC18/cdrs-aws-cassandra) illustrates how to connect and do CRUD operations on Amazon Managed Apache Cassandra Service.
