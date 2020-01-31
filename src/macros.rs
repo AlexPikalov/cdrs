@@ -11,6 +11,21 @@ macro_rules! query_values {
             QueryValues::SimpleValues(values)
         }
     };
+    (vec $vec:expr) => {
+        {
+            use cdrs::types::value::Value;
+            use cdrs::query::QueryValues;
+            QueryValues::from($vec)
+        }
+    };
+    (iter $iter:expr) => {
+        {
+            use cdrs::types::value::Value;
+            use cdrs::query::QueryValues;
+            let values: Vec<Value> = $iter.map(|v| v.clone().into()).collect();
+            QueryValues::SimpleValues(values)
+        }
+    };
     ($($name:expr => $value:expr),*) => {
         {
             use cdrs::types::value::Value;
