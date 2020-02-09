@@ -5,8 +5,8 @@ use std::io::Write;
 #[cfg(feature = "ssl")]
 use crate::cluster::{new_ssl_pool, ClusterSslConfig, SslConnectionPool};
 use crate::cluster::{
-    new_tcp_pool, startup, CDRSSession, ClusterTcpConfig, GetCompressor, GetConnection,
-    TcpConnectionPool,
+    new_tcp_pool, startup, CDRSSession, ClusterTcpConfig, ConnectionPool, GetCompressor,
+    GetConnection, TcpConnectionPool,
 };
 use crate::error;
 use crate::load_balancing::LoadBalancingStrategy;
@@ -62,11 +62,13 @@ impl<'a, LB: Sized> Session<LB> {
 impl<
         T: CDRSTransport + Send + Sync + 'static,
         M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
-        LB: LoadBalancingStrategy<r2d2::Pool<M>>,
+        LB: LoadBalancingStrategy<ConnectionPool<M>> + Sized,
     > GetConnection<T, M> for Session<LB>
 {
     fn get_connection(&self) -> Option<r2d2::PooledConnection<M>> {
-        self.load_balancing.next().and_then(|pool| pool.get().ok())
+        self.load_balancing
+            .next()
+            .and_then(|pool| pool.get_pool().get().ok())
     }
 }
 
@@ -74,7 +76,7 @@ impl<
         'a,
         T: CDRSTransport + 'static,
         M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
-        LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
+        LB: LoadBalancingStrategy<ConnectionPool<M>> + Sized,
     > QueryExecutor<T, M> for Session<LB>
 {
 }
@@ -82,7 +84,7 @@ impl<
 impl<
         'a,
         T: CDRSTransport + 'static,
-        LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
+        LB: LoadBalancingStrategy<ConnectionPool<M>> + Sized,
         M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
     > PrepareExecutor<T, M> for Session<LB>
 {
@@ -91,7 +93,7 @@ impl<
 impl<
         'a,
         T: CDRSTransport + 'static,
-        LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
+        LB: LoadBalancingStrategy<ConnectionPool<M>> + Sized,
         M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
     > ExecExecutor<T, M> for Session<LB>
 {
@@ -100,7 +102,7 @@ impl<
 impl<
         'a,
         T: CDRSTransport + 'static,
-        LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
+        LB: LoadBalancingStrategy<ConnectionPool<M>> + Sized,
         M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
     > BatchExecutor<T, M> for Session<LB>
 {
@@ -110,7 +112,7 @@ impl<
         'a,
         T: CDRSTransport + 'static,
         M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
-        LB: LoadBalancingStrategy<r2d2::Pool<M>> + Sized,
+        LB: LoadBalancingStrategy<ConnectionPool<M>> + Sized,
     > CDRSSession<'a, T, M> for Session<LB>
 {
 }

@@ -3,8 +3,10 @@ use r2d2::{Builder, ManageConnection, Pool};
 use std::cell::RefCell;
 use std::error::Error;
 use std::io::Write;
+use std::net::SocketAddr;
 
 use crate::authenticators::Authenticator;
+use crate::cluster::ConnectionPool;
 use crate::cluster::{startup, NodeSslConfig};
 use crate::compression::Compression;
 use crate::error;
@@ -14,7 +16,7 @@ use crate::transport::CDRSTransport;
 use crate::transport::TransportTls;
 
 /// Shortcut for `r2d2::Pool` type of SSL-based CDRS connections.
-pub type SslConnectionPool<A> = Pool<SslConnectionsManager<A>>;
+type SslConnectionPool<A> = ConnectionPool<SslConnectionsManager<A>>;
 
 /// `r2d2::Pool` of SSL-based CDRS connections.
 ///
@@ -28,14 +30,22 @@ pub fn new_ssl_pool<'a, A: Authenticator + Send + Sync + 'static>(
         node_config.ssl_connector,
     );
 
-    Builder::new()
+    let pool = Builder::new()
         .max_size(node_config.max_size)
         .min_idle(node_config.min_idle)
         .max_lifetime(node_config.max_lifetime)
         .idle_timeout(node_config.idle_timeout)
         .connection_timeout(node_config.connection_timeout)
         .build(manager)
-        .map_err(|err| error::Error::from(err.description()))
+        .map_err(|err| error::Error::from(err.description()))?;
+
+    Ok(SslConnectionPool {
+        pool,
+        addr: node_config
+            .addr
+            .parse::<SocketAddr>()
+            .map_err(|err| error::Error::from(err.description()))?,
+    })
 }
 
 /// `r2d2` connection manager.

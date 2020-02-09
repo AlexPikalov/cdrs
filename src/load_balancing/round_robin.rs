@@ -37,6 +37,15 @@ impl<N> LoadBalancingStrategy<N> for RoundRobin<N> {
         self.prev_idx.replace(next_idx);
         self.cluster.get(next_idx)
     }
+
+    fn remove_node<F>(&mut self, filter: F)
+    where
+        F: FnMut(&N) -> bool,
+    {
+        if let Some(i) = self.cluster.iter().position(filter) {
+            self.cluster.remove(i);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -51,5 +60,15 @@ mod tests {
         for i in 0..10 {
             assert_eq!(&nodes_c[(i + 1) % 3], load_balancer.next().unwrap());
         }
+    }
+
+    #[test]
+    fn remove_from_round_robin() {
+        let nodes = vec!["a", "b"];
+        let mut load_balancer = RoundRobin::from(nodes);
+        assert_eq!(&"b", load_balancer.next().unwrap());
+
+        load_balancer.remove_node(|n| n == &"a");
+        assert_eq!(&"b", load_balancer.next().unwrap());
     }
 }

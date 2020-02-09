@@ -1,3 +1,5 @@
+use std::net::IpAddr;
+
 use rand;
 
 use super::LoadBalancingStrategy;
@@ -11,7 +13,7 @@ impl<N> Random<N> {
         Random { cluster }
     }
 
-    /// Returns random number from a range
+    /// Returns a random number from a range
     fn rnd_idx(bounds: (usize, usize)) -> usize {
         let min = bounds.0;
         let max = bounds.1;
@@ -30,10 +32,23 @@ impl<N> LoadBalancingStrategy<N> for Random<N> {
     fn init(&mut self, cluster: Vec<N>) {
         self.cluster = cluster;
     }
+
     /// Returns next random node from a cluster
     fn next(&self) -> Option<&N> {
         let len = self.cluster.len();
+        if len == 0 {
+            return None;
+        }
         self.cluster.get(Self::rnd_idx((0, len)))
+    }
+
+    fn remove_node<F>(&mut self, filter: F)
+    where
+        F: FnMut(&N) -> bool,
+    {
+        if let Some(i) = self.cluster.iter().position(filter) {
+            self.cluster.remove(i);
+        }
     }
 }
 
@@ -42,12 +57,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn random() {
+    fn next_random() {
         let nodes = vec!["a", "b", "c", "d", "e", "f", "g"];
         let load_balancer = Random::from(nodes);
         for _ in 0..100 {
             let s = load_balancer.next();
             assert!(s.is_some());
         }
+    }
+
+    #[test]
+    fn remove_from_random() {
+        let nodes = vec!["a"];
+        let mut load_balancer = Random::from(nodes);
+
+        let s = load_balancer.next();
+        assert!(s.is_some());
+
+        load_balancer.remove_node(|n| n == &"a");
+        let s = load_balancer.next();
+        assert!(s.is_none());
     }
 }
