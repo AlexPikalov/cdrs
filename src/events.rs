@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::error::Error;
 use std::iter::Iterator;
 use std::sync::mpsc::{channel, Receiver, Sender};
 
@@ -64,7 +63,7 @@ impl<X: CDRSTransport + 'static> Listener<RefCell<X>> {
                 continue;
             };
             match self.tx.send(event) {
-                Err(err) => return Err(error::Error::General(err.description().to_string())),
+                Err(err) => return Err(error::Error::General(err.to_string())),
                 _ => continue,
             }
         }

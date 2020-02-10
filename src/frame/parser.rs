@@ -23,7 +23,7 @@ where
     parse_frame(conn.deref(), compressor)
 }
 
-pub fn parse_frame(cursor_cell: &RefCell<Read>, compressor: &Compression) -> error::Result<Frame> {
+pub fn parse_frame(cursor_cell: &RefCell<dyn Read>, compressor: &Compression) -> error::Result<Frame> {
     let mut version_bytes = [0; Version::BYTE_LENGTH];
     let mut flag_bytes = [0; Flag::BYTE_LENGTH];
     let mut opcode_bytes = [0; Opcode::BYTE_LENGTH];

@@ -43,10 +43,10 @@ impl fmt::Display for CompressionError {
 }
 
 impl Error for CompressionError {
-    fn description(&self) -> &str {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
         match *self {
-            CompressionError::Snappy(ref err) => err.description(),
-            CompressionError::Lz4(ref err) => err.description(),
+            CompressionError::Snappy(ref err) => Some(err),
+            CompressionError::Lz4(ref err) => Some(err)
         }
     }
 }
