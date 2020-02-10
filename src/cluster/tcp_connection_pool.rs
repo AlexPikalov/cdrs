@@ -1,6 +1,5 @@
 use r2d2::{Builder, ManageConnection, Pool};
 use std::cell::RefCell;
-use std::error::Error;
 use std::io;
 use std::io::Write;
 
@@ -31,7 +30,7 @@ pub fn new_tcp_pool<'a, A: Authenticator + Send + Sync + 'static>(
         .idle_timeout(node_config.idle_timeout)
         .connection_timeout(node_config.connection_timeout)
         .build(manager)
-        .map_err(|err| error::Error::from(err.description()))
+        .map_err(|err| error::Error::from(err.to_string()))
 }
 
 /// `r2d2` connection manager.
