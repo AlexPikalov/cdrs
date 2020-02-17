@@ -15,6 +15,7 @@ pub struct PasswordAuthenticator<'a> {
     password: &'a str,
 }
 
+#[allow(deprecated)]
 impl<'a> PasswordAuthenticator<'a> {
     pub fn new<'b>(username: &'b str, password: &'b str) -> PasswordAuthenticator<'b> {
         PasswordAuthenticator {
@@ -24,6 +25,7 @@ impl<'a> PasswordAuthenticator<'a> {
     }
 }
 
+#[allow(deprecated)]
 impl<'a> Authenticator for PasswordAuthenticator<'a> {
     fn get_auth_token(&self) -> CBytes {
         let mut token = vec![0];
