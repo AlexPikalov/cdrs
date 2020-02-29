@@ -1,12 +1,15 @@
 use r2d2;
+use std::borrow::{Borrow, BorrowMut};
 use std::cell::RefCell;
 use std::io::Write;
+use std::iter::Iterator;
+use std::sync::Mutex;
 
 #[cfg(feature = "ssl")]
 use crate::cluster::{new_ssl_pool, ClusterSslConfig, SslConnectionPool};
 use crate::cluster::{
     new_tcp_pool, startup, CDRSSession, ClusterTcpConfig, ConnectionPool, GetCompressor,
-    GetConnection, TcpConnectionPool,
+    GetConnection, NodeTcpConfig, TcpConnectionPool,
 };
 use crate::error;
 use crate::load_balancing::LoadBalancingStrategy;
@@ -15,8 +18,9 @@ use crate::transport::{CDRSTransport, TransportTcp};
 use crate::authenticators::Authenticator;
 use crate::cluster::SessionPager;
 use crate::compression::Compression;
-use crate::events::{new_listener, EventStream, Listener};
+use crate::events::{new_listener, EventStream, EventStreamNonBlocking, Listener};
 use crate::frame::events::SimpleServerEvent;
+use crate::frame::events::{ServerEvent, TopologyChange, TopologyChangeType};
 use crate::frame::parser::parse_frame;
 use crate::frame::{Frame, IntoBytes};
 use crate::query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
@@ -30,7 +34,8 @@ use openssl::ssl::SslConnector;
 /// `compression` field contains data compressor that will be used
 /// for decompressing data received from Cassandra server.
 pub struct Session<LB> {
-    load_balancing: LB,
+    load_balancing: Mutex<LB>,
+    event_stream: Option<Mutex<EventStreamNonBlocking>>,
     #[allow(dead_code)]
     pub compression: Compression,
 }
@@ -66,7 +71,31 @@ impl<
     > GetConnection<T, M> for Session<LB>
 {
     fn get_connection(&self) -> Option<r2d2::PooledConnection<M>> {
+        if let Some(ref event_stream_mx) = self.event_stream {
+            if let Ok(ref mut event_stream) = event_stream_mx.try_lock() {
+                loop {
+                    if let Some(ServerEvent::TopologyChange(TopologyChange {
+                        addr,
+                        change_type: TopologyChangeType::RemovedNode,
+                    })) = event_stream.borrow_mut().next()
+                    {
+                        self.load_balancing
+                            .lock()
+                            .ok()?
+                            .borrow_mut()
+                            .remove_node(|pool| pool.get_addr() == addr.addr);
+                        continue;
+                    }
+
+                    break;
+                }
+            }
+        }
+
         self.load_balancing
+            .lock()
+            .ok()?
+            .borrow()
             .next()
             .and_then(|pool| pool.get_pool().get().ok())
     }
@@ -140,9 +169,51 @@ where
     load_balancing.init(nodes);
 
     Ok(Session {
-        load_balancing,
+        load_balancing: Mutex::new(load_balancing),
+        event_stream: None,
         compression: Compression::None,
     })
+}
+
+/// Creates new session that will perform queries without any compression. `Compression` type
+/// can be changed at any time. Once received topology change event, it will adjust an inner load
+/// balancer.
+/// As a parameter it takes:
+/// * cluster config
+/// * load balancing strategy (cannot be changed during `Session` life time).
+/// * node address where to listen events
+pub fn new_dynamic<'a, A, LB>(
+    node_configs: &ClusterTcpConfig<'a, A>,
+    mut load_balancing: LB,
+    event_src: NodeTcpConfig<'a, A>,
+) -> error::Result<Session<LB>>
+where
+    A: Authenticator + 'static + Sized,
+    LB: LoadBalancingStrategy<TcpConnectionPool<A>> + Sized,
+{
+    let mut nodes: Vec<TcpConnectionPool<A>> = Vec::with_capacity(node_configs.0.len());
+
+    for node_config in &node_configs.0 {
+        let node_connection_pool = new_tcp_pool(node_config.clone())?;
+        nodes.push(node_connection_pool);
+    }
+
+    load_balancing.init(nodes);
+
+    let mut session = Session {
+        load_balancing: Mutex::new(load_balancing),
+        event_stream: None,
+        compression: Compression::None,
+    };
+
+    let (listener, event_stream) =
+        session.listen_non_blocking(event_src.addr, event_src.authenticator, vec![])?;
+
+    ::std::thread::spawn(move || listener.start(&Compression::None));
+
+    session.event_stream = Some(Mutex::new(event_stream));
+
+    Ok(session)
 }
 
 /// Creates new session that will perform queries with Snappy compression. `Compression` type
@@ -168,7 +239,8 @@ where
     load_balancing.init(nodes);
 
     Ok(Session {
-        load_balancing,
+        load_balancing: Mutex::new(load_balancing),
+        event_stream: None,
         compression: Compression::Snappy,
     })
 }
@@ -196,7 +268,8 @@ where
     load_balancing.init(nodes);
 
     Ok(Session {
-        load_balancing,
+        load_balancing: Mutex::new(load_balancing),
+        event_stream: None,
         compression: Compression::Lz4,
     })
 }
@@ -219,6 +292,18 @@ impl<'a, L> Session<L> {
         parse_frame(&transport, &compression)?;
 
         Ok(new_listener(transport))
+    }
+
+    pub fn listen_non_blocking<A: Authenticator + 'static + Sized>(
+        &self,
+        node: &str,
+        authenticator: A,
+        events: Vec<SimpleServerEvent>,
+    ) -> error::Result<(Listener<RefCell<TransportTcp>>, EventStreamNonBlocking)> {
+        self.listen(node, authenticator, events).map(|l| {
+            let (listener, stream) = l;
+            (listener, stream.into())
+        })
     }
 }
 
@@ -246,7 +331,8 @@ where
     load_balancing.init(nodes);
 
     Ok(Session {
-        load_balancing,
+        load_balancing: Mutex::new(load_balancing),
+        event_stream: None,
         compression: Compression::None,
     })
 }
@@ -275,7 +361,8 @@ where
     load_balancing.init(nodes);
 
     Ok(Session {
-        load_balancing,
+        load_balancing: Mutex::new(load_balancing),
+        event_stream: None,
         compression: Compression::Snappy,
     })
 }
@@ -304,7 +391,8 @@ where
     load_balancing.init(nodes);
 
     Ok(Session {
-        load_balancing,
+        load_balancing: Mutex::new(load_balancing),
+        event_stream: None,
         compression: Compression::Lz4,
     })
 }
@@ -329,5 +417,17 @@ impl<'a, L> Session<L> {
         parse_frame(&transport, &compression)?;
 
         Ok(new_listener(transport))
+    }
+
+    pub fn listen_non_blocking_ssl<A: Authenticator + 'static + Sized>(
+        &self,
+        node: (&str, &SslConnector),
+        authenticator: A,
+        events: Vec<SimpleServerEvent>,
+    ) -> error::Result<(Listener<RefCell<TransportTls>>, EventStreamNonBlocking)> {
+        self.listen_ssl(node, authenticator, events).map(|l| {
+            let (listener, stream) = l;
+            (listener, stream.into())
+        })
     }
 }

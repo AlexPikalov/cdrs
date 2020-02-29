@@ -22,8 +22,8 @@ struct RowStruct {
 
 impl RowStruct {
     fn into_query_values(self) -> QueryValues {
-        /// **IMPORTANT NOTE:** query values should be WITHOUT NAMES
-        /// https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L413
+        // **IMPORTANT NOTE:** query values should be WITHOUT NAMES
+        // https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L413
         query_values!(self.key)
     }
 }

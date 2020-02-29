@@ -7,7 +7,7 @@ extern crate maplit;
 
 use std::collections::HashMap;
 
-use cdrs::authenticators::{NoneAuthenticator, StaticPasswordAuthenticator};
+use cdrs::authenticators::StaticPasswordAuthenticator;
 use cdrs::cluster::session::{new as new_session, Session};
 use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
 use cdrs::load_balancing::RoundRobin;

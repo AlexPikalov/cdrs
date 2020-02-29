@@ -16,7 +16,7 @@ use crate::transport::CDRSTransport;
 use crate::transport::TransportTls;
 
 /// Shortcut for `r2d2::Pool` type of SSL-based CDRS connections.
-type SslConnectionPool<A> = ConnectionPool<SslConnectionsManager<A>>;
+pub type SslConnectionPool<A> = ConnectionPool<SslConnectionsManager<A>>;
 
 /// `r2d2::Pool` of SSL-based CDRS connections.
 ///
@@ -39,13 +39,13 @@ pub fn new_ssl_pool<'a, A: Authenticator + Send + Sync + 'static>(
         .build(manager)
         .map_err(|err| error::Error::from(err.description()))?;
 
-    Ok(SslConnectionPool {
+    Ok(SslConnectionPool::new(
         pool,
-        addr: node_config
+        node_config
             .addr
             .parse::<SocketAddr>()
             .map_err(|err| error::Error::from(err.description()))?,
-    })
+    ))
 }
 
 /// `r2d2` connection manager.

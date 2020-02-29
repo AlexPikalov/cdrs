@@ -1,4 +1,4 @@
-use r2d2::{Builder, ManageConnection, Pool};
+use r2d2::{Builder, ManageConnection};
 use std::cell::RefCell;
 use std::io;
 use std::io::Write;

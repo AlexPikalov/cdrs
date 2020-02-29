@@ -1,5 +1,3 @@
-use std::net::IpAddr;
-
 use rand;
 
 use super::LoadBalancingStrategy;
