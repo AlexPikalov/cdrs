@@ -19,7 +19,7 @@ use crate::authenticators::Authenticator;
 use crate::cluster::SessionPager;
 use crate::compression::Compression;
 use crate::events::{new_listener, EventStream, EventStreamNonBlocking, Listener};
-use crate::frame::events::{ServerEvent, SimpleServerEvent, TopologyChange, TopologyChangeType};
+use crate::frame::events::{ServerEvent, SimpleServerEvent, StatusChange, StatusChangeType};
 use crate::frame::parser::parse_frame;
 use crate::frame::{Frame, IntoBytes};
 use crate::query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
@@ -77,9 +77,9 @@ impl<
 
                     match next_event {
                         None => break,
-                        Some(ServerEvent::TopologyChange(TopologyChange {
+                        Some(ServerEvent::StatusChange(StatusChange {
                             addr,
-                            change_type: TopologyChangeType::RemovedNode,
+                            change_type: StatusChangeType::Down,
                         })) => {
                             self.load_balancing
                                 .lock()
@@ -200,7 +200,7 @@ where
     let (listener, event_stream) = session.listen_non_blocking(
         event_src.addr,
         event_src.authenticator,
-        vec![SimpleServerEvent::TopologyChange],
+        vec![SimpleServerEvent::StatusChange],
     )?;
 
     ::std::thread::spawn(move || listener.start(&Compression::None));
