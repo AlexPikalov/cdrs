@@ -485,8 +485,8 @@ mod server_event {
         let bytes = &[
             // topology change
             0, 15, 84, 79, 80, 79, 76, 79, 71, 89, 95, 67, 72, 65, 78, 71, 69, // new node
-            0, 8, 78, 69, 87, 95, 78, 79, 68, 69, // 127.0.0.1:1
-            0, 4, 127, 0, 0, 1, 0, 0, 0, 1,
+            0, 8, 78, 69, 87, 95, 78, 79, 68, 69, //
+            4, 127, 0, 0, 1, 0, 0, 0, 1, // 127.0.0.1:1
         ];
         let mut c: Cursor<&[u8]> = Cursor::new(bytes);
         let event = ServerEvent::from_cursor(&mut c).unwrap();
@@ -505,8 +505,8 @@ mod server_event {
             // topology change
             0, 15, 84, 79, 80, 79, 76, 79, 71, 89, 95, 67, 72, 65, 78, 71, 69,
             // removed node
-            0, 12, 82, 69, 77, 79, 86, 69, 68, 95, 78, 79, 68, 69, // 127.0.0.1:1
-            0, 4, 127, 0, 0, 1, 0, 0, 0, 1,
+            0, 12, 82, 69, 77, 79, 86, 69, 68, 95, 78, 79, 68, 69, //
+            4, 127, 0, 0, 1, 0, 0, 0, 1, // 127.0.0.1:1
         ];
         let mut c: Cursor<&[u8]> = Cursor::new(bytes);
         let event = ServerEvent::from_cursor(&mut c).unwrap();
@@ -524,8 +524,8 @@ mod server_event {
         let bytes = &[
             // status change
             0, 13, 83, 84, 65, 84, 85, 83, 95, 67, 72, 65, 78, 71, 69, // up
-            0, 2, 85, 80, // 127.0.0.1:1
-            0, 4, 127, 0, 0, 1, 0, 0, 0, 1,
+            0, 2, 85, 80, //
+            4, 127, 0, 0, 1, 0, 0, 0, 1, // 127.0.0.1:1
         ];
         let mut c: Cursor<&[u8]> = Cursor::new(bytes);
         let event = ServerEvent::from_cursor(&mut c).unwrap();
@@ -543,8 +543,8 @@ mod server_event {
         let bytes = &[
             // status change
             0, 13, 83, 84, 65, 84, 85, 83, 95, 67, 72, 65, 78, 71, 69, // down
-            0, 4, 68, 79, 87, 78, // 127.0.0.1:1
-            0, 4, 127, 0, 0, 1, 0, 0, 0, 1,
+            0, 4, 68, 79, 87, 78, //
+            4, 127, 0, 0, 1, 0, 0, 0, 1, // 127.0.0.1:1
         ];
         let mut c: Cursor<&[u8]> = Cursor::new(bytes);
         let event = ServerEvent::from_cursor(&mut c).unwrap();

@@ -41,6 +41,15 @@ impl<N> LoadBalancingStrategy<N> for RoundRobinSync<N> {
             return None;
         }
     }
+
+    fn remove_node<F>(&mut self, filter: F)
+    where
+        F: FnMut(&N) -> bool,
+    {
+        if let Some(i) = self.cluster.iter().position(filter) {
+            self.cluster.remove(i);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -48,12 +57,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn round_robin() {
+    fn next_round_robin() {
         let nodes = vec!["a", "b", "c"];
         let nodes_c = nodes.clone();
         let load_balancer = RoundRobinSync::from(nodes);
         for i in 0..10 {
             assert_eq!(&nodes_c[(i + 1) % 3], load_balancer.next().unwrap());
         }
+    }
+
+    #[test]
+    fn remove_from_round_robin() {
+        let nodes = vec!["a", "b"];
+        let mut load_balancer = RoundRobinSync::from(nodes);
+        assert_eq!(&"b", load_balancer.next().unwrap());
+
+        load_balancer.remove_node(|n| n == &"a");
+        assert_eq!(&"b", load_balancer.next().unwrap());
     }
 }

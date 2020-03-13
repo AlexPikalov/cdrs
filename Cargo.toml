@@ -20,6 +20,9 @@ v4 = []
 # enable v5 feature when it's actually implemented
 # v5 = []
 e2e-tests = []
+# enables dynamic cluster adjustments basing on status
+# changes server events
+unstable-dynamic-cluster = []
 
 [dependencies]
 byteorder = "1"
@@ -37,3 +40,7 @@ env_logger = "0.4.3"
 maplit = "1.0.0"
 regex = "0.2.5"
 cdrs_helpers_derive = "0.1.0"
+
+[[example]]
+name = "dynamic_cluster"
+required-features = ["unstable-dynamic-cluster"]

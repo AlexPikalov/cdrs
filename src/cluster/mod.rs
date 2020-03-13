@@ -4,6 +4,7 @@ use std::cell;
 #[cfg(feature = "ssl")]
 mod config_ssl;
 mod config_tcp;
+mod generic_connection_pool;
 mod pager;
 pub mod session;
 #[cfg(feature = "ssl")]
@@ -21,6 +22,7 @@ pub use crate::cluster::ssl_connection_pool::{
 pub use crate::cluster::tcp_connection_pool::{
     new_tcp_pool, startup, TcpConnectionPool, TcpConnectionsManager,
 };
+pub(crate) use generic_connection_pool::ConnectionPool;
 
 use crate::compression::Compression;
 use crate::error;

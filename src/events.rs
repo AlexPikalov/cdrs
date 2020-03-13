@@ -83,3 +83,23 @@ impl Iterator for EventStream {
         self.rx.recv().ok()
     }
 }
+
+impl Into<EventStreamNonBlocking> for EventStream {
+    fn into(self) -> EventStreamNonBlocking {
+        EventStreamNonBlocking { rx: self.rx }
+    }
+}
+
+/// `EventStreamNonBlocking` is an iterator which returns new events once they come.
+/// It is similar to `Receiver::iter`. It's a non-blocking version of `EventStream`
+pub struct EventStreamNonBlocking {
+    rx: Receiver<ServerEvent>,
+}
+
+impl Iterator for EventStreamNonBlocking {
+    type Item = ServerEvent;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.rx.try_recv().ok()
+    }
+}

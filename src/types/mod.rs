@@ -668,7 +668,7 @@ pub struct CInet {
 
 impl FromCursor for CInet {
     fn from_cursor(mut cursor: &mut Cursor<&[u8]>) -> CDRSResult<CInet> {
-        let n = CIntShort::from_cursor(&mut cursor)?;
+        let n = cursor_next_value(&mut cursor, 1)?[0];
         let ip = decode_inet(cursor_next_value(&mut cursor, n as u64)?.as_slice())?;
         let port = CInt::from_cursor(&mut cursor)?;
         let socket_addr = SocketAddr::new(ip, port as u16);
