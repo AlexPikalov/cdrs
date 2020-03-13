@@ -5,11 +5,13 @@ use std::io::Write;
 use std::iter::Iterator;
 use std::sync::Mutex;
 
+#[cfg(feature = "unstable-dynamic-cluster")]
+use crate::cluster::NodeTcpConfig;
 #[cfg(feature = "ssl")]
 use crate::cluster::{new_ssl_pool, ClusterSslConfig, NodeSslConfig, SslConnectionPool};
 use crate::cluster::{
     new_tcp_pool, startup, CDRSSession, ClusterTcpConfig, ConnectionPool, GetCompressor,
-    GetConnection, NodeTcpConfig, TcpConnectionPool,
+    GetConnection, TcpConnectionPool,
 };
 use crate::error;
 use crate::load_balancing::LoadBalancingStrategy;
@@ -70,24 +72,26 @@ impl<
     > GetConnection<T, M> for Session<LB>
 {
     fn get_connection(&self) -> Option<r2d2::PooledConnection<M>> {
-        if let Some(ref event_stream_mx) = self.event_stream {
-            if let Ok(ref mut event_stream) = event_stream_mx.try_lock() {
-                loop {
-                    let next_event = event_stream.borrow_mut().next();
+        if cfg!(feature = "unstable-dynamic-cluster") {
+            if let Some(ref event_stream_mx) = self.event_stream {
+                if let Ok(ref mut event_stream) = event_stream_mx.try_lock() {
+                    loop {
+                        let next_event = event_stream.borrow_mut().next();
 
-                    match next_event {
-                        None => break,
-                        Some(ServerEvent::StatusChange(StatusChange {
-                            addr,
-                            change_type: StatusChangeType::Down,
-                        })) => {
-                            self.load_balancing
-                                .lock()
-                                .ok()?
-                                .borrow_mut()
-                                .remove_node(|pool| pool.get_addr() == addr.addr);
+                        match next_event {
+                            None => break,
+                            Some(ServerEvent::StatusChange(StatusChange {
+                                addr,
+                                change_type: StatusChangeType::Down,
+                            })) => {
+                                self.load_balancing
+                                    .lock()
+                                    .ok()?
+                                    .borrow_mut()
+                                    .remove_node(|pool| pool.get_addr() == addr.addr);
+                            }
+                            Some(_) => continue,
                         }
-                        Some(_) => continue,
                     }
                 }
             }
@@ -172,6 +176,7 @@ where
     })
 }
 
+#[cfg(feature = "unstable-dynamic-cluster")]
 fn connect_dynamic<'a, A, LB>(
     node_configs: &ClusterTcpConfig<'a, A>,
     mut load_balancing: LB,
@@ -233,6 +238,7 @@ where
 /// * cluster config
 /// * load balancing strategy (cannot be changed during `Session` life time).
 /// * node address where to listen events
+#[cfg(feature = "unstable-dynamic-cluster")]
 pub fn new_dynamic<'a, A, LB>(
     node_configs: &ClusterTcpConfig<'a, A>,
     load_balancing: LB,
@@ -268,6 +274,7 @@ where
 /// * cluster config
 /// * load balancing strategy (cannot be changed during `Session` life time).
 /// * node address where to listen events
+#[cfg(feature = "unstable-dynamic-cluster")]
 pub fn new_snappy_dynamic<'a, A, LB>(
     node_configs: &ClusterTcpConfig<'a, A>,
     load_balancing: LB,
@@ -303,6 +310,7 @@ where
 /// * cluster config
 /// * load balancing strategy (cannot be changed during `Session` life time).
 /// * node address where to listen events
+#[cfg(feature = "unstable-dynamic-cluster")]
 pub fn new_lz4_dynamic<'a, A, LB>(
     node_configs: &ClusterTcpConfig<'a, A>,
     load_balancing: LB,

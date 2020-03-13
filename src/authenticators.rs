@@ -85,6 +85,7 @@ impl Authenticator for NoneAuthenticator {
 }
 
 #[cfg(test)]
+#[allow(deprecated)]
 mod tests {
     use super::*;
 

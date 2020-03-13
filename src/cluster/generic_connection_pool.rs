@@ -18,7 +18,7 @@ impl<M: r2d2::ManageConnection> ConnectionPool<M> {
     }
   }
 
-  /// Returns reference to underlying `r2d2::Poo`.
+  /// Returns reference to underlying `r2d2::Pool`.
   pub fn get_pool(&self) -> Arc<r2d2::Pool<M>> {
     self.pool.clone()
   }
