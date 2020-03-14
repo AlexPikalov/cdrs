@@ -1,6 +1,7 @@
 use rand;
 
 use super::LoadBalancingStrategy;
+use std::borrow::Borrow;
 
 pub struct Random<N> {
     pub cluster: Vec<N>,
@@ -38,6 +39,10 @@ impl<N> LoadBalancingStrategy<N> for Random<N> {
             return None;
         }
         self.cluster.get(Self::rnd_idx((0, len)))
+    }
+
+    fn get_all_nodes(&self) -> &Vec<N> {
+        self.cluster.borrow()
     }
 
     fn remove_node<F>(&mut self, filter: F)

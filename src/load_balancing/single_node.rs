@@ -1,4 +1,5 @@
 use super::LoadBalancingStrategy;
+use std::borrow::Borrow;
 
 pub struct SingleNode<N> {
     cluster: Vec<N>,
@@ -24,6 +25,10 @@ impl<N> LoadBalancingStrategy<N> for SingleNode<N> {
     /// Returns first node from a cluster
     fn next(&self) -> Option<&N> {
         self.cluster.get(0)
+    }
+
+    fn get_all_nodes(&self) -> &Vec<N> {
+        self.cluster.borrow()
     }
 }
 

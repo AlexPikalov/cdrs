@@ -11,7 +11,7 @@ use crate::cluster::NodeTcpConfig;
 use crate::cluster::{new_ssl_pool, ClusterSslConfig, NodeSslConfig, SslConnectionPool};
 use crate::cluster::{
     new_tcp_pool, startup, CDRSSession, ClusterTcpConfig, ConnectionPool, GetCompressor,
-    GetConnection, TcpConnectionPool,
+    GetConnection, GetAllConnections, TcpConnectionPool,
 };
 use crate::error;
 use crate::load_balancing::LoadBalancingStrategy;
@@ -103,6 +103,24 @@ impl<
             .borrow()
             .next()
             .and_then(|pool| pool.get_pool().get().ok())
+    }
+}
+
+impl<
+    T: CDRSTransport + Send + Sync + 'static,
+    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+    LB: LoadBalancingStrategy<ConnectionPool<M>> + Sized,
+> GetAllConnections<T, M> for Session<LB>
+{
+    fn get_all_connections(&self) -> Vec<Option<r2d2::PooledConnection<M>>> {
+        self.load_balancing
+            .lock()
+            .ok()
+            .unwrap()
+            .get_all_nodes()
+            .into_iter()
+            .map(|pool_ref| pool_ref.get_pool().get().ok())
+            .collect()
     }
 }
 

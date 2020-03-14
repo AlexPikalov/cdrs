@@ -40,6 +40,15 @@ pub trait GetConnection<
     fn get_connection(&self) -> Option<r2d2::PooledConnection<M>>;
 }
 
+pub trait GetAllConnections<
+    T: CDRSTransport + Send + Sync + 'static,
+    M: r2d2::ManageConnection<Connection = cell::RefCell<T>, Error = error::Error>,
+>
+{
+    /// Returns all connections from the load balancer.
+    fn get_all_connections(&self) -> Vec<Option<r2d2::PooledConnection<M>>>;
+}
+
 /// `GetCompressor` trait provides a unified interface for Session to get a compressor
 /// for further decompressing received data.
 pub trait GetCompressor<'a> {

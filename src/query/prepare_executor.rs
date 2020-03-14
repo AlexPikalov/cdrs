@@ -1,20 +1,22 @@
 use r2d2;
 use std::cell::RefCell;
 
-use crate::cluster::{GetCompressor, GetConnection};
+use crate::cluster::{GetCompressor, GetAllConnections};
 use crate::error;
 use crate::frame::{Frame, IntoBytes};
 use crate::transport::CDRSTransport;
 use crate::types::CBytesShort;
 
-use super::utils::{prepare_flags, send_frame};
+use super::utils::prepare_flags;
+use crate::query::utils::send_frame_to_all_connections;
+
 
 pub type PreparedQuery = CBytesShort;
 
 pub trait PrepareExecutor<
     T: CDRSTransport + 'static,
     M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
->: GetConnection<T, M> + GetCompressor<'static>
+>: GetAllConnections<T, M> + GetCompressor<'static>
 {
     /// It prepares a query for execution, along with query itself
     /// the method takes `with_tracing` and `with_warnings` flags
@@ -32,7 +34,7 @@ pub trait PrepareExecutor<
 
         let query_frame = Frame::new_req_prepare(query.to_string(), flags).into_cbytes();
 
-        send_frame(self, query_frame)
+        send_frame_to_all_connections(self, query_frame)
             .and_then(|response| response.get_body())
             .and_then(|body| {
                 Ok(body

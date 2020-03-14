@@ -33,7 +33,7 @@ pub mod traits;
 
 use crate::error;
 
-#[derive(Debug)]
+#[derive(Clone,Debug)]
 pub struct Frame {
     pub version: Version,
     pub flags: Vec<Flag>,
@@ -98,7 +98,7 @@ impl<'a> IntoBytes for Frame {
 }
 
 /// Frame's version
-#[derive(Debug, PartialEq)]
+#[derive(Clone,Debug, PartialEq)]
 pub enum Version {
     Request,
     Response,
@@ -187,7 +187,7 @@ impl From<Vec<u8>> for Version {
 
 /// Frame's flag
 // Is not implemented functionality. Only Igonore works for now
-#[derive(Debug, PartialEq)]
+#[derive(Clone,Debug, PartialEq)]
 pub enum Flag {
     Compression,
     Tracing,
@@ -276,7 +276,7 @@ impl From<u8> for Flag {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone,Debug, PartialEq)]
 pub enum Opcode {
     Error,
     Startup,
