@@ -6,6 +6,8 @@
 
 CDRS is Apache **C**assandra **d**river written in pure **R**u**s**t.
 
+💡Looking for an async version? - https://github.com/AlexPikalov/cdrs-async
+
 ## Features
 
 - TCP/SSL connection;
