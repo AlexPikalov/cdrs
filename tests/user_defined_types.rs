@@ -33,13 +33,15 @@ use time::Timespec;
 #[cfg(feature = "e2e-tests")]
 use std::collections::HashMap;
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn simple_udt() {
+async fn simple_udt() {
     let create_type_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.simple_udt (my_text text)";
     let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_simple_udt \
                             (my_key int PRIMARY KEY, my_udt simple_udt)";
-    let session = setup_multiple(&[create_type_cql, create_table_cql]).expect("setup");
+    let session = setup_multiple(&[create_type_cql, create_table_cql])
+        .await
+        .expect("setup");
 
     #[derive(Debug, Clone, PartialEq)]
     struct MyUdt {
@@ -69,11 +71,15 @@ fn simple_udt() {
 
     let cql = "INSERT INTO cdrs_test.test_simple_udt \
                (my_key, my_udt) VALUES (?, ?)";
-    session.query_with_values(cql, values).expect("insert");
+    session
+        .query_with_values(cql, values)
+        .await
+        .expect("insert");
 
     let cql = "SELECT * FROM cdrs_test.test_simple_udt";
     let rows = session
         .query(cql)
+        .await
         .expect("query")
         .get_body()
         .expect("get body")
@@ -88,16 +94,17 @@ fn simple_udt() {
     }
 }
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn nested_udt() {
+async fn nested_udt() {
     let create_type1_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.nested_inner_udt (my_text text)";
     let create_type2_cql = "CREATE TYPE IF NOT EXISTS cdrs_test.nested_outer_udt \
                             (my_inner_udt frozen<nested_inner_udt>)";
     let create_table_cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_nested_udt \
                             (my_key int PRIMARY KEY, my_outer_udt nested_outer_udt)";
-    let session =
-        setup_multiple(&[create_type1_cql, create_type2_cql, create_table_cql]).expect("setup");
+    let session = setup_multiple(&[create_type1_cql, create_type2_cql, create_table_cql])
+        .await
+        .expect("setup");
 
     #[derive(Debug, Clone, PartialEq)]
     struct MyInnerUdt {
@@ -154,11 +161,15 @@ fn nested_udt() {
 
     let cql = "INSERT INTO cdrs_test.test_nested_udt \
                (my_key, my_outer_udt) VALUES (?, ?)";
-    session.query_with_values(cql, values).expect("insert");
+    session
+        .query_with_values(cql, values)
+        .await
+        .expect("insert");
 
     let cql = "SELECT * FROM cdrs_test.test_nested_udt";
     let rows = session
         .query(cql)
+        .await
         .expect("query")
         .get_body()
         .expect("get body")
@@ -173,9 +184,9 @@ fn nested_udt() {
     }
 }
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn alter_udt_add() {
+async fn alter_udt_add() {
     let drop_table_cql = "DROP TABLE IF EXISTS cdrs_test.test_alter_udt_add";
     let drop_type_cql = "DROP TYPE IF EXISTS cdrs_test.alter_udt_add_udt";
     let create_type_cql = "CREATE TYPE cdrs_test.alter_udt_add_udt (my_text text)";
@@ -187,6 +198,7 @@ fn alter_udt_add() {
         create_type_cql,
         create_table_cql,
     ])
+    .await
     .expect("setup");
 
     #[derive(Debug, Clone, PartialEq)]
@@ -228,10 +240,13 @@ fn alter_udt_add() {
 
     let cql = "INSERT INTO cdrs_test.test_alter_udt_add \
                (my_key, my_map) VALUES (?, ?)";
-    session.query_with_values(cql, values).expect("insert");
+    session
+        .query_with_values(cql, values)
+        .await
+        .expect("insert");
 
     let cql = "ALTER TYPE cdrs_test.alter_udt_add_udt ADD my_timestamp timestamp";
-    session.query(cql).expect("alter type");
+    session.query(cql).await.expect("alter type");
 
     let my_udt_b = MyUdtB {
         my_text: my_udt_a.my_text,
@@ -241,6 +256,7 @@ fn alter_udt_add() {
     let cql = "SELECT * FROM cdrs_test.test_alter_udt_add";
     let rows = session
         .query(cql)
+        .await
         .expect("query")
         .get_body()
         .expect("get body")

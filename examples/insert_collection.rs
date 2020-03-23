@@ -19,27 +19,28 @@ use cdrs::types::prelude::*;
 
 type CurrentSession = Session<RoundRobin<TcpConnectionPool<StaticPasswordAuthenticator>>>;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let user = "user";
     let password = "password";
     let auth = StaticPasswordAuthenticator::new(&user, &password);
     let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", auth).build();
     let cluster_config = ClusterTcpConfig(vec![node]);
     let no_compression: CurrentSession =
-        new_session(&cluster_config, RoundRobin::new()).expect("session should be created");
+        new_session(&cluster_config, RoundRobin::new()).await.expect("session should be created");
 
-    create_keyspace(&no_compression);
-    create_udt(&no_compression);
-    create_table(&no_compression);
+    create_keyspace(&no_compression).await;
+    create_udt(&no_compression).await;
+    create_table(&no_compression).await;
 
-    insert_struct(&no_compression);
-    append_list(&no_compression);
-    prepend_list(&no_compression);
-    append_set(&no_compression);
-    append_map(&no_compression);
+    insert_struct(&no_compression).await;
+    append_list(&no_compression).await;
+    prepend_list(&no_compression).await;
+    append_set(&no_compression).await;
+    append_map(&no_compression).await;
 
-    select_struct(&no_compression);
-    delete_struct(&no_compression);
+    select_struct(&no_compression).await;
+    delete_struct(&no_compression).await;
 }
 
 #[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq)]
@@ -61,30 +62,32 @@ struct User {
     username: String,
 }
 
-fn create_keyspace(session: &CurrentSession) {
+async fn create_keyspace(session: &CurrentSession) {
     let create_ks: &'static str = "CREATE KEYSPACE IF NOT EXISTS test_ks WITH REPLICATION = { \
                                    'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
-    session.query(create_ks).expect("Keyspace creation error");
+    session.query(create_ks).await.expect("Keyspace creation error");
 }
 
-fn create_udt(session: &CurrentSession) {
+async fn create_udt(session: &CurrentSession) {
     let create_type_cql = "CREATE TYPE IF NOT EXISTS test_ks.user (username text)";
     session
         .query(create_type_cql)
+        .await
         .expect("Keyspace creation error");
 }
 
-fn create_table(session: &CurrentSession) {
+async fn create_table(session: &CurrentSession) {
     let create_table_cql =
         "CREATE TABLE IF NOT EXISTS test_ks.collection_table (key int PRIMARY KEY, \
          user frozen<test_ks.user>, map map<text, frozen<test_ks.user>>, \
          list list<frozen<test_ks.user>>, cset set<frozen<test_ks.user>>);";
     session
         .query(create_table_cql)
+        .await
         .expect("Table creation error");
 }
 
-fn append_list(session: &CurrentSession) {
+async fn append_list(session: &CurrentSession) {
     let key = 3i32;
     let extra_values = vec![
         User {
@@ -98,10 +101,11 @@ fn append_list(session: &CurrentSession) {
                            WHERE key = ?";
     session
         .query_with_values(append_list_cql, query_values!(extra_values, key))
+        .await
         .expect("append list");
 }
 
-fn prepend_list(session: &CurrentSession) {
+async fn prepend_list(session: &CurrentSession) {
     let key = 3i32;
     let extra_values = vec![
         User {
@@ -115,10 +119,11 @@ fn prepend_list(session: &CurrentSession) {
                             WHERE key = ?";
     session
         .query_with_values(prepend_list_cql, query_values!(extra_values, key))
+        .await
         .expect("prepend list");
 }
 
-fn append_set(session: &CurrentSession) {
+async fn append_set(session: &CurrentSession) {
     let key = 3i32;
     let extra_values = vec![
         User {
@@ -132,10 +137,11 @@ fn append_set(session: &CurrentSession) {
                           WHERE key = ?";
     session
         .query_with_values(append_set_cql, query_values!(extra_values, key))
+        .await
         .expect("append set");
 }
 
-fn append_map(session: &CurrentSession) {
+async fn append_map(session: &CurrentSession) {
     let key = 3i32;
     let extra_values = hashmap![
         "Joe".to_string() => User { username: "Joe".to_string() },
@@ -145,10 +151,11 @@ fn append_map(session: &CurrentSession) {
                           WHERE key = ?";
     session
         .query_with_values(append_map_cql, query_values!(extra_values, key))
+        .await
         .expect("append map");
 }
 
-fn insert_struct(session: &CurrentSession) {
+async fn insert_struct(session: &CurrentSession) {
     let row = RowStruct {
         key: 3i32,
         map: hashmap! { "John".to_string() => User { username: "John".to_string() } },
@@ -164,13 +171,15 @@ fn insert_struct(session: &CurrentSession) {
                              (key, map, list, cset) VALUES (?, ?, ?, ?)";
     session
         .query_with_values(insert_struct_cql, row.into_query_values())
+        .await
         .expect("insert");
 }
 
-fn select_struct(session: &CurrentSession) {
+async fn select_struct(session: &CurrentSession) {
     let select_struct_cql = "SELECT * FROM test_ks.collection_table";
     let rows = session
         .query(select_struct_cql)
+        .await
         .expect("query")
         .get_body()
         .expect("get body")
@@ -183,10 +192,11 @@ fn select_struct(session: &CurrentSession) {
     }
 }
 
-fn delete_struct(session: &CurrentSession) {
+async fn delete_struct(session: &CurrentSession) {
     let delete_struct_cql = "DELETE FROM test_ks.collection_table WHERE key = ?";
     let user_key = 3i32;
     session
         .query_with_values(delete_struct_cql, query_values!(user_key))
+        .await
         .expect("delete");
 }

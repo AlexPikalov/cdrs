@@ -1,25 +1,25 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use r2d2;
+use bb8;
 
 /// Generic pool connection that is able to return an
-/// `r2r2::Pool` as well as an IP address of a node.
-pub struct ConnectionPool<M: r2d2::ManageConnection> {
-  pool: Arc<r2d2::Pool<M>>,
+/// `bb8::Pool` as well as an IP address of a node.
+pub struct ConnectionPool<M: bb8::ManageConnection> {
+  pool: Arc<bb8::Pool<M>>,
   addr: SocketAddr,
 }
 
-impl<M: r2d2::ManageConnection> ConnectionPool<M> {
-  pub fn new(pool: r2d2::Pool<M>, addr: SocketAddr) -> Self {
+impl<M: bb8::ManageConnection> ConnectionPool<M> {
+  pub fn new(pool: bb8::Pool<M>, addr: SocketAddr) -> Self {
     ConnectionPool {
       pool: Arc::new(pool),
       addr,
     }
   }
 
-  /// Returns reference to underlying `r2d2::Pool`.
-  pub fn get_pool(&self) -> Arc<r2d2::Pool<M>> {
+  /// Returns reference to underlying `bb8::Pool`.
+  pub fn get_pool(&self) -> Arc<bb8::Pool<M>> {
     self.pool.clone()
   }
 

@@ -14,7 +14,7 @@ license = "MIT/Apache-2.0"
 
 [features]
 default = ["v4"]
-ssl = ["openssl"]
+ssl = ["tokio-tls", "native-tls"]
 v3 = []
 v4 = []
 # enable v5 feature when it's actually implemented
@@ -25,14 +25,17 @@ e2e-tests = []
 unstable-dynamic-cluster = []
 
 [dependencies]
+async-trait = "0.1.24"
 byteorder = "1"
 log = "0.4.1"
 lz4-compress = "=0.1.0"
-openssl = { version = "0.10", optional = true }
-r2d2 = "0.8.7"
+tokio-tls = { version = "0.3", optional = true }
+native-tls = { version = "0.2", optional = true }
+bb8 = "0.4"
 rand = "0.4.1"
 snap = "0.2.3"
 time = "0.1.38"
+tokio = { version = "0.2", features = ["tcp", "io-util", "dns", "sync", "macros"] }
 uuid = "0.8.1"
 
 [dev-dependencies]

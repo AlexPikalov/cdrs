@@ -1,5 +1,5 @@
-use r2d2;
-use std::cell::RefCell;
+use bb8;
+use tokio::sync::Mutex;
 use std::marker::PhantomData;
 
 use crate::cluster::CDRSSession;
@@ -12,9 +12,9 @@ use crate::types::CBytes;
 
 pub struct SessionPager<
     'a,
-    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+    M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
     S: CDRSSession<'static, T, M> + 'a,
-    T: CDRSTransport + 'static,
+    T: CDRSTransport + Unpin + 'static,
 > {
     page_size: i32,
     session: &'a S,
@@ -25,9 +25,9 @@ pub struct SessionPager<
 impl<
         'a,
         'b: 'a,
-        M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+        M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
         S: CDRSSession<'static, T, M>,
-        T: CDRSTransport + 'static,
+        T: CDRSTransport + Unpin + 'static,
     > SessionPager<'a, M, S, T>
 {
     pub fn new(session: &'b S, page_size: i32) -> SessionPager<'a, M, S, T> {
@@ -90,12 +90,12 @@ pub struct QueryPager<'a, Q: ToString, P: 'a> {
 impl<
         'a,
         Q: ToString,
-        T: CDRSTransport + 'static,
-        M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
-        S: CDRSSession<'static, T, M>,
+        T: CDRSTransport + Unpin + 'static,
+        M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
+        S: CDRSSession<'static, T, M> + Sync,
     > QueryPager<'a, Q, SessionPager<'a, M, S, T>>
 {
-    pub fn next(&mut self) -> error::Result<Vec<Row>> {
+    pub async fn next(&mut self) -> error::Result<Vec<Row>> {
         let mut params = QueryParamsBuilder::new().page_size(self.pager.page_size);
         if self.pager_state.cursor.is_some() {
             params = params.paging_state(self.pager_state.cursor.clone().unwrap());
@@ -105,6 +105,7 @@ impl<
             .pager
             .session
             .query_with_params(self.query.to_string(), params.finalize())
+            .await
             .and_then(|frame| frame.get_body())?;
 
         let metadata_res: error::Result<RowsMetadata> = body
@@ -138,12 +139,12 @@ pub struct ExecPager<'a, P: 'a> {
 
 impl<
         'a,
-        T: CDRSTransport + 'static,
-        M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
-        S: CDRSSession<'static, T, M>,
+        T: CDRSTransport + Unpin + 'static,
+        M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
+        S: CDRSSession<'static, T, M> + Sync,
     > ExecPager<'a, SessionPager<'a, M, S, T>>
 {
-    pub fn next(&mut self) -> error::Result<Vec<Row>> {
+    pub async fn next(&mut self) -> error::Result<Vec<Row>> {
         let mut params = QueryParamsBuilder::new().page_size(self.pager.page_size);
         if self.pager_state.cursor.is_some() {
             params = params.paging_state(self.pager_state.cursor.clone().unwrap());
@@ -153,6 +154,7 @@ impl<
             .pager
             .session
             .exec_with_params(self.query, params.finalize())
+            .await
             .and_then(|frame| frame.get_body())?;
 
         let metadata_res: error::Result<RowsMetadata> = body

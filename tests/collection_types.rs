@@ -33,13 +33,13 @@ use std::collections::HashMap;
 #[cfg(feature = "e2e-tests")]
 use std::str::FromStr;
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn list() {
+async fn list() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_lists \
                (my_text_list frozen<list<text>> PRIMARY KEY, \
                my_nested_list list<frozen<list<int>>>)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_text_list = vec!["text1", "text2", "text3"];
     let my_nested_list: Vec<Vec<i32>> =
@@ -50,11 +50,13 @@ fn list() {
                (my_text_list, my_nested_list) VALUES (?, ?)";
     session
         .query_with_values(cql, values)
+        .await
         .expect("insert lists error");
 
     let cql = "SELECT * FROM cdrs_test.test_lists";
     let rows = session
         .query(cql)
+        .await
         .expect("query lists error")
         .get_body()
         .expect("get body with lists error")
@@ -85,14 +87,14 @@ fn list() {
     }
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
 #[cfg(all(feature = "v4", feature = "e2e-tests"))]
-fn list_v4() {
+async fn list_v4() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_lists_v4 \
                (my_text_list frozen<list<text>> PRIMARY KEY, \
                my_nested_list list<frozen<list<smallint>>>)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_text_list = vec![
         "text1".to_string(),
@@ -105,11 +107,15 @@ fn list_v4() {
 
     let cql = "INSERT INTO cdrs_test.test_lists_v4 \
                (my_text_list, my_nested_list) VALUES (?, ?)";
-    session.query_with_values(cql, values).expect("insert");
+    session
+        .query_with_values(cql, values)
+        .await
+        .expect("insert");
 
     let cql = "SELECT * FROM cdrs_test.test_lists_v4";
     let rows = session
         .query(cql)
+        .await
         .expect("query")
         .get_body()
         .expect("get body")
@@ -140,13 +146,13 @@ fn list_v4() {
     }
 }
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn set() {
+async fn set() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_sets \
                (my_text_set frozen<set<text>> PRIMARY KEY, \
                my_nested_set set<frozen<set<int>>>)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_text_set = vec![
         "text1".to_string(),
@@ -159,11 +165,15 @@ fn set() {
 
     let cql = "INSERT INTO cdrs_test.test_sets \
                (my_text_set, my_nested_set) VALUES (?, ?)";
-    session.query_with_values(cql, values).expect("insert");
+    session
+        .query_with_values(cql, values)
+        .await
+        .expect("insert");
 
     let cql = "SELECT * FROM cdrs_test.test_sets";
     let rows = session
         .query(cql)
+        .await
         .expect("query")
         .get_body()
         .expect("get body")
@@ -194,13 +204,13 @@ fn set() {
     }
 }
 
-#[test]
+#[tokio::test]
 #[cfg(all(feature = "v4", feature = "e2e-tests"))]
-fn set_v4() {
+async fn set_v4() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_sets_v4 \
                (my_text_set frozen<set<text>> PRIMARY KEY, \
                my_nested_set set<frozen<set<smallint>>>)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_text_set = vec![
         "text1".to_string(),
@@ -213,11 +223,15 @@ fn set_v4() {
 
     let cql = "INSERT INTO cdrs_test.test_sets_v4 \
                (my_text_set, my_nested_set) VALUES (?, ?)";
-    session.query_with_values(cql, values).expect("insert");
+    session
+        .query_with_values(cql, values)
+        .await
+        .expect("insert");
 
     let cql = "SELECT * FROM cdrs_test.test_sets_v4";
     let rows = session
         .query(cql)
+        .await
         .expect("query")
         .get_body()
         .expect("get body")
@@ -248,14 +262,14 @@ fn set_v4() {
     }
 }
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn map_without_blob() {
+async fn map_without_blob() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_maps_without_blob \
                (my_key int PRIMARY KEY, \
                my_text_map map<text, text>, \
                my_nested_map map<uuid, frozen<map<bigint, int>>>)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_text_map = hashmap! {
         "key1".to_string() => "value1".to_string(),
@@ -280,11 +294,15 @@ fn map_without_blob() {
 
     let cql = "INSERT INTO cdrs_test.test_maps_without_blob \
                (my_key, my_text_map, my_nested_map) VALUES (?, ?, ?)";
-    session.query_with_values(cql, values).expect("insert");
+    session
+        .query_with_values(cql, values)
+        .await
+        .expect("insert");
 
     let cql = "SELECT * FROM cdrs_test.test_maps_without_blob";
     let rows = session
         .query(cql)
+        .await
         .expect("query")
         .get_body()
         .expect("get body")
@@ -315,13 +333,13 @@ fn map_without_blob() {
     }
 }
 
-#[test]
+#[tokio::test]
 #[cfg(all(feature = "v4", feature = "e2e-tests"))]
-fn map_without_blob_v4() {
+async fn map_without_blob_v4() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_maps_without_blob_v4 \
                (my_text_map frozen<map<text, text>> PRIMARY KEY, \
                my_nested_map map<uuid, frozen<map<bigint, tinyint>>>)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_text_map = hashmap! {
         "key1".to_string() => "value1".to_string(),
@@ -346,11 +364,15 @@ fn map_without_blob_v4() {
 
     let cql = "INSERT INTO cdrs_test.test_maps_without_blob_v4 \
                (my_text_map, my_nested_map) VALUES (?, ?)";
-    session.query_with_values(cql, values).expect("insert");
+    session
+        .query_with_values(cql, values)
+        .await
+        .expect("insert");
 
     let cql = "SELECT * FROM cdrs_test.test_maps_without_blob_v4";
     let rows = session
         .query(cql)
+        .await
         .expect("query")
         .get_body()
         .expect("get body")
@@ -381,13 +403,13 @@ fn map_without_blob_v4() {
     }
 }
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn map() {
+async fn map() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_maps \
                (my_text_map frozen<map<text, text>> PRIMARY KEY, \
                my_nested_map map<uuid, frozen<map<bigint, blob>>>)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_text_map = hashmap! {
         "key1".to_string() => "value1".to_string(),
@@ -412,11 +434,15 @@ fn map() {
 
     let cql = "INSERT INTO cdrs_test.test_maps \
                (my_text_map, my_nested_map) VALUES (?, ?)";
-    session.query_with_values(cql, values).expect("insert");
+    session
+        .query_with_values(cql, values)
+        .await
+        .expect("insert");
 
     let cql = "SELECT * FROM cdrs_test.test_maps";
     let rows = session
         .query(cql)
+        .await
         .expect("query")
         .get_body()
         .expect("get body")

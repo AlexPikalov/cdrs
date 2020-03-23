@@ -1,7 +1,8 @@
-use r2d2;
-use std::cell::RefCell;
-use std::io::{Cursor, Read};
+use bb8;
+use std::io::Cursor;
 use std::ops::Deref;
+use tokio::io::{AsyncRead, AsyncReadExt};
+use tokio::sync::Mutex;
 
 use super::*;
 use crate::compression::Compression;
@@ -12,31 +13,31 @@ use crate::transport::CDRSTransport;
 use crate::types::data_serialization_types::decode_timeuuid;
 use crate::types::{from_bytes, from_u16_bytes, CStringList, UUID_LEN};
 
-pub fn from_connection<M, T>(
-    conn: &r2d2::PooledConnection<M>,
+pub async fn from_connection<M, T>(
+    conn: &bb8::PooledConnection<'_, M>,
     compressor: &Compression,
 ) -> error::Result<Frame>
 where
-    T: CDRSTransport + 'static,
-    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+    T: CDRSTransport + Unpin + 'static,
+    M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
 {
-    parse_frame(conn.deref(), compressor)
+    parse_frame(conn.deref(), compressor).await
 }
 
-pub fn parse_frame(cursor_cell: &RefCell<dyn Read>, compressor: &Compression) -> error::Result<Frame> {
+pub async fn parse_frame<T>(cursor_cell: &Mutex<T>, compressor: &Compression) -> error::Result<Frame> where T: AsyncRead + Unpin {
     let mut version_bytes = [0; Version::BYTE_LENGTH];
     let mut flag_bytes = [0; Flag::BYTE_LENGTH];
     let mut opcode_bytes = [0; Opcode::BYTE_LENGTH];
     let mut stream_bytes = [0; STREAM_LEN];
     let mut length_bytes = [0; LENGTH_LEN];
-    let mut cursor = cursor_cell.borrow_mut();
+    let mut cursor = cursor_cell.lock().await;
 
     // NOTE: order of reads matters
-    cursor.read_exact(&mut version_bytes)?;
-    cursor.read_exact(&mut flag_bytes)?;
-    cursor.read_exact(&mut stream_bytes)?;
-    cursor.read_exact(&mut opcode_bytes)?;
-    cursor.read_exact(&mut length_bytes)?;
+    cursor.read_exact(&mut version_bytes).await?;
+    cursor.read_exact(&mut flag_bytes).await?;
+    cursor.read_exact(&mut stream_bytes).await?;
+    cursor.read_exact(&mut opcode_bytes).await?;
+    cursor.read_exact(&mut length_bytes).await?;
 
     let version = Version::from(version_bytes.to_vec());
     let flags = Flag::get_collection(flag_bytes[0]);
@@ -49,7 +50,7 @@ pub fn parse_frame(cursor_cell: &RefCell<dyn Read>, compressor: &Compression) ->
         body_bytes.set_len(length);
     }
 
-    cursor.read_exact(&mut body_bytes)?;
+    cursor.read_exact(&mut body_bytes).await?;
 
     let full_body = if flags.iter().any(|flag| flag == &Flag::Compression) {
         compressor.decode(body_bytes)?
@@ -65,7 +66,7 @@ pub fn parse_frame(cursor_cell: &RefCell<dyn Read>, compressor: &Compression) ->
         unsafe {
             tracing_bytes.set_len(UUID_LEN);
         }
-        body_cursor.read_exact(&mut tracing_bytes)?;
+        std::io::Read::read_exact(&mut body_cursor, &mut tracing_bytes)?;
 
         decode_timeuuid(tracing_bytes.as_slice()).ok()
     } else {
@@ -80,7 +81,7 @@ pub fn parse_frame(cursor_cell: &RefCell<dyn Read>, compressor: &Compression) ->
 
     let mut body = vec![];
 
-    body_cursor.read_to_end(&mut body)?;
+    std::io::Read::read_to_end(&mut body_cursor, &mut body)?;
 
     let frame = Frame {
         version: version,

@@ -1,13 +1,14 @@
+use std::sync::Arc;
 use rand;
 
 use super::LoadBalancingStrategy;
 
 pub struct Random<N> {
-    pub cluster: Vec<N>,
+    pub cluster: Vec<Arc<N>>,
 }
 
 impl<N> Random<N> {
-    pub fn new(cluster: Vec<N>) -> Self {
+    pub fn new(cluster: Vec<Arc<N>>) -> Self {
         Random { cluster }
     }
 
@@ -20,31 +21,31 @@ impl<N> Random<N> {
     }
 }
 
-impl<N> From<Vec<N>> for Random<N> {
-    fn from(cluster: Vec<N>) -> Random<N> {
+impl<N> From<Vec<Arc<N>>> for Random<N> {
+    fn from(cluster: Vec<Arc<N>>) -> Random<N> {
         Random { cluster }
     }
 }
 
-impl<N> LoadBalancingStrategy<N> for Random<N> {
-    fn init(&mut self, cluster: Vec<N>) {
+impl<N> LoadBalancingStrategy<N> for Random<N> where N: Sync {
+    fn init(&mut self, cluster: Vec<Arc<N>>) {
         self.cluster = cluster;
     }
 
     /// Returns next random node from a cluster
-    fn next(&self) -> Option<&N> {
+    fn next(&self) -> Option<Arc<N>> {
         let len = self.cluster.len();
         if len == 0 {
             return None;
         }
-        self.cluster.get(Self::rnd_idx((0, len)))
+        self.cluster.get(Self::rnd_idx((0, len))).map(|node| node.clone())
     }
 
-    fn remove_node<F>(&mut self, filter: F)
+    fn remove_node<F>(&mut self, mut filter: F)
     where
         F: FnMut(&N) -> bool,
     {
-        if let Some(i) = self.cluster.iter().position(filter) {
+        if let Some(i) = self.cluster.iter().position(|node| filter(node)) {
             self.cluster.remove(i);
         }
     }
@@ -57,7 +58,7 @@ mod tests {
     #[test]
     fn next_random() {
         let nodes = vec!["a", "b", "c", "d", "e", "f", "g"];
-        let load_balancer = Random::from(nodes);
+        let load_balancer = Random::from(nodes.iter().map(|value| Arc::new(*value)).collect::<Vec<Arc<&str>>>());
         for _ in 0..100 {
             let s = load_balancer.next();
             assert!(s.is_some());
@@ -67,7 +68,7 @@ mod tests {
     #[test]
     fn remove_from_random() {
         let nodes = vec!["a"];
-        let mut load_balancer = Random::from(nodes);
+        let mut load_balancer = Random::from(nodes.iter().map(|value| Arc::new(*value)).collect::<Vec<Arc<&str>>>());
 
         let s = load_balancer.next();
         assert!(s.is_some());

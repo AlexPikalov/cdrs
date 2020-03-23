@@ -1,5 +1,7 @@
-use r2d2;
-use std::cell;
+use bb8;
+use async_trait::async_trait;
+use tokio::sync::Mutex;
+use std::sync::Arc;
 
 #[cfg(feature = "ssl")]
 mod config_ssl;
@@ -31,13 +33,14 @@ use crate::transport::CDRSTransport;
 
 /// `GetConnection` trait provides a unified interface for Session to get a connection
 /// from a load balancer
+#[async_trait]
 pub trait GetConnection<
     T: CDRSTransport + Send + Sync + 'static,
-    M: r2d2::ManageConnection<Connection = cell::RefCell<T>, Error = error::Error>,
+    M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error>,
 >
 {
     /// Returns connection from a load balancer.
-    fn get_connection(&self) -> Option<r2d2::PooledConnection<M>>;
+    async fn get_connection(&self) -> Option<Arc<ConnectionPool<M>>>;
 }
 
 /// `GetCompressor` trait provides a unified interface for Session to get a compressor
@@ -51,8 +54,8 @@ pub trait GetCompressor<'a> {
 /// machinery is needed and direct sub traits otherwise.
 pub trait CDRSSession<
     'a,
-    T: CDRSTransport + 'static,
-    M: r2d2::ManageConnection<Connection = cell::RefCell<T>, Error = error::Error>,
+    T: CDRSTransport + Unpin + 'static,
+    M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error>,
 >:
     GetCompressor<'static>
     + GetConnection<T, M>

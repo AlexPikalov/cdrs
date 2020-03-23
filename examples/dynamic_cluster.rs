@@ -8,6 +8,7 @@ extern crate maplit;
 use std::collections::HashMap;
 use std::io;
 use std::process::{Command, Output};
+use std::time::Duration;
 
 use cdrs::authenticators::NoneAuthenticator;
 use cdrs::cluster::session::{new_dynamic as new_session, Session};
@@ -71,17 +72,18 @@ fn start_cluster() {
         .and_then(start_node_a)
         .expect("starting first node");
 
-    ::std::thread::sleep_ms(15_000);
+    ::std::thread::sleep(Duration::from_millis(15_000));
 
     println!("> > Starting node b...");
     remove_container_b(())
         .and_then(start_node_b)
         .expect("starting second node");
 
-    ::std::thread::sleep_ms(15_000);
+    ::std::thread::sleep(Duration::from_millis(15_000));
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let auth = NoneAuthenticator {};
     let node_a = NodeTcpConfigBuilder::new("127.0.0.1:9042", auth.clone()).build();
     let node_b = NodeTcpConfigBuilder::new("127.0.0.1:9043", auth.clone()).build();
@@ -92,22 +94,23 @@ fn main() {
     // start_cluster();
 
     let no_compression: CurrentSession = new_session(&cluster_config, RoundRobin::new(), event_src)
+        .await
         .expect("session should be created");
 
-    create_keyspace(&no_compression);
-    create_udt(&no_compression);
-    create_table(&no_compression);
+    create_keyspace(&no_compression).await;
+    create_udt(&no_compression).await;
+    create_table(&no_compression).await;
 
     println!("> Stopping node b...");
     remove_container_b(());
     println!("> waiting 30 secs...");
-    ::std::thread::sleep_ms(30_000);
+    ::std::thread::sleep(Duration::from_millis(30_000));
     println!("> stopped");
 
-    insert_struct(&no_compression);
-    select_struct(&no_compression);
-    update_struct(&no_compression);
-    delete_struct(&no_compression);
+    insert_struct(&no_compression).await;
+    select_struct(&no_compression).await;
+    update_struct(&no_compression).await;
+    delete_struct(&no_compression).await;
 }
 
 #[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq)]
@@ -129,29 +132,34 @@ struct User {
     username: String,
 }
 
-fn create_keyspace(session: &CurrentSession) {
+async fn create_keyspace(session: &CurrentSession) {
     let create_ks: &'static str = "CREATE KEYSPACE IF NOT EXISTS test_ks WITH REPLICATION = { \
                                    'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
-    session.query(create_ks).expect("Keyspace creation error");
-}
-
-fn create_udt(session: &CurrentSession) {
-    let create_type_cql = "CREATE TYPE IF NOT EXISTS test_ks.user (username text)";
     session
-        .query(create_type_cql)
+        .query(create_ks)
+        .await
         .expect("Keyspace creation error");
 }
 
-fn create_table(session: &CurrentSession) {
+async fn create_udt(session: &CurrentSession) {
+    let create_type_cql = "CREATE TYPE IF NOT EXISTS test_ks.user (username text)";
+    session
+        .query(create_type_cql)
+        .await
+        .expect("Keyspace creation error");
+}
+
+async fn create_table(session: &CurrentSession) {
     let create_table_cql =
     "CREATE TABLE IF NOT EXISTS test_ks.my_test_table (key int PRIMARY KEY, \
      user frozen<test_ks.user>, map map<text, frozen<test_ks.user>>, list list<frozen<test_ks.user>>);";
     session
         .query(create_table_cql)
+        .await
         .expect("Table creation error");
 }
 
-fn insert_struct(session: &CurrentSession) {
+async fn insert_struct(session: &CurrentSession) {
     let row = RowStruct {
         key: 3i32,
         user: User {
@@ -167,13 +175,15 @@ fn insert_struct(session: &CurrentSession) {
                              (key, user, map, list) VALUES (?, ?, ?, ?)";
     session
         .query_with_values(insert_struct_cql, row.into_query_values())
+        .await
         .expect("insert");
 }
 
-fn select_struct(session: &CurrentSession) {
+async fn select_struct(session: &CurrentSession) {
     let select_struct_cql = "SELECT * FROM test_ks.my_test_table";
     let rows = session
         .query(select_struct_cql)
+        .await
         .expect("query")
         .get_body()
         .expect("get body")
@@ -186,7 +196,7 @@ fn select_struct(session: &CurrentSession) {
     }
 }
 
-fn update_struct(session: &CurrentSession) {
+async fn update_struct(session: &CurrentSession) {
     let update_struct_cql = "UPDATE test_ks.my_test_table SET user = ? WHERE key = ?";
     let upd_user = User {
         username: "Marry".to_string(),
@@ -194,13 +204,15 @@ fn update_struct(session: &CurrentSession) {
     let user_key = 1i32;
     session
         .query_with_values(update_struct_cql, query_values!(upd_user, user_key))
+        .await
         .expect("update");
 }
 
-fn delete_struct(session: &CurrentSession) {
+async fn delete_struct(session: &CurrentSession) {
     let delete_struct_cql = "DELETE FROM test_ks.my_test_table WHERE key = ?";
     let user_key = 1i32;
     session
         .query_with_values(delete_struct_cql, query_values!(user_key))
+        .await
         .expect("delete");
 }

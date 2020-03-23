@@ -1,8 +1,9 @@
-use r2d2::{Builder, ManageConnection};
-use std::cell::RefCell;
+use async_trait::async_trait;
+use bb8::{Builder, ManageConnection};
 use std::io;
-use std::io::Write;
 use std::net::SocketAddr;
+use tokio::io::AsyncWriteExt;
+use tokio::sync::Mutex;
 
 use crate::authenticators::Authenticator;
 use crate::cluster::ConnectionPool;
@@ -13,13 +14,13 @@ use crate::frame::parser::parse_frame;
 use crate::frame::{Frame, IntoBytes, Opcode};
 use crate::transport::{CDRSTransport, TransportTcp};
 
-/// Shortcut for `r2d2::Pool` type of TCP-based CDRS connections.
+/// Shortcut for `bb8::Pool` type of TCP-based CDRS connections.
 pub type TcpConnectionPool<A> = ConnectionPool<TcpConnectionsManager<A>>;
 
-/// `r2d2::Pool` of TCP-based CDRS connections.
+/// `bb8::Pool` of TCP-based CDRS connections.
 ///
 /// Used internally for TCP Session for holding connections to a specific Cassandra node.
-pub fn new_tcp_pool<'a, A: Authenticator + Send + Sync + 'static>(
+pub async fn new_tcp_pool<'a, A: Authenticator + Send + Sync + 'static>(
     node_config: NodeTcpConfig<'a, A>,
 ) -> error::Result<TcpConnectionPool<A>> {
     let manager =
@@ -32,6 +33,7 @@ pub fn new_tcp_pool<'a, A: Authenticator + Send + Sync + 'static>(
         .idle_timeout(node_config.idle_timeout)
         .connection_timeout(node_config.connection_timeout)
         .build(manager)
+        .await
         .map_err(|err| error::Error::from(err.to_string()))?;
 
     let addr = node_config
@@ -42,7 +44,7 @@ pub fn new_tcp_pool<'a, A: Authenticator + Send + Sync + 'static>(
     Ok(TcpConnectionPool::new(pool, addr))
 }
 
-/// `r2d2` connection manager.
+/// `bb8` connection manager.
 pub struct TcpConnectionsManager<A> {
     addr: String,
     auth: A,
@@ -57,39 +59,41 @@ impl<A> TcpConnectionsManager<A> {
     }
 }
 
+#[async_trait]
 impl<A: Authenticator + 'static + Send + Sync> ManageConnection for TcpConnectionsManager<A> {
-    type Connection = RefCell<TransportTcp>;
+    type Connection = Mutex<TransportTcp>;
     type Error = error::Error;
 
-    fn connect(&self) -> Result<Self::Connection, Self::Error> {
-        let transport = RefCell::new(TransportTcp::new(&self.addr)?);
-        startup(&transport, &self.auth)?;
+    async fn connect(&self) -> Result<Self::Connection, Self::Error> {
+        let transport = Mutex::new(TransportTcp::new(&self.addr).await?);
+        startup(&transport, &self.auth).await?;
 
         Ok(transport)
     }
 
-    fn is_valid(&self, conn: &mut Self::Connection) -> Result<(), Self::Error> {
+    async fn is_valid(&self, conn: Self::Connection) -> Result<Self::Connection, Self::Error> {
         let options_frame = Frame::new_req_options().into_cbytes();
-        conn.borrow_mut().write(options_frame.as_slice())?;
+        conn.lock().await.write(options_frame.as_slice()).await?;
 
-        parse_frame(conn, &Compression::None {}).map(|_| ())
+        parse_frame(&conn, &Compression::None {}).await.map(|_| conn)
     }
 
-    fn has_broken(&self, conn: &mut Self::Connection) -> bool {
-        !conn.borrow().is_alive()
+    fn has_broken(&self, _conn: &mut Self::Connection) -> bool {
+        // cannot synchronously determine broken connection, so return false as per r2d2 docs
+        false
     }
 }
 
-pub fn startup<'b, T: CDRSTransport + 'static, A: Authenticator + 'static + Sized>(
-    transport: &RefCell<T>,
+pub async fn startup<'b, T: CDRSTransport + Unpin + 'static, A: Authenticator + 'static + Sized>(
+    transport: &Mutex<T>,
     session_authenticator: &'b A,
 ) -> error::Result<()> {
     let ref mut compression = Compression::None;
     let startup_frame = Frame::new_req_startup(compression.as_str()).into_cbytes();
 
-    transport.borrow_mut().write(startup_frame.as_slice())?;
+    transport.lock().await.write(startup_frame.as_slice()).await?;
 
-    let start_response = parse_frame(transport, compression)?;
+    let start_response = parse_frame(transport, compression).await?;
 
     if start_response.opcode == Opcode::Ready {
         return Ok(());
@@ -134,12 +138,12 @@ pub fn startup<'b, T: CDRSTransport + 'static, A: Authenticator + 'static + Size
         }
 
         let auth_token_bytes = session_authenticator.get_auth_token();
-        transport.borrow_mut().write(
+        transport.lock().await.write(
             Frame::new_req_auth_response(auth_token_bytes)
                 .into_cbytes()
                 .as_slice(),
-        )?;
-        parse_frame(transport, compression)?;
+        ).await?;
+        parse_frame(transport, compression).await?;
 
         return Ok(());
     }

@@ -20,23 +20,23 @@ const ADDR: &'static str = "127.0.0.1:9042";
 type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;
 
 #[cfg(feature = "e2e-tests")]
-pub fn setup(create_table_cql: &'static str) -> Result<CurrentSession> {
-    setup_multiple(&[create_table_cql])
+pub async fn setup(create_table_cql: &'static str) -> Result<CurrentSession> {
+    setup_multiple(&[create_table_cql]).await
 }
 
 #[cfg(feature = "e2e-tests")]
-pub fn setup_multiple(create_cqls: &[&'static str]) -> Result<CurrentSession> {
+pub async fn setup_multiple(create_cqls: &[&'static str]) -> Result<CurrentSession> {
     let node = NodeTcpConfigBuilder::new(ADDR, NoneAuthenticator {}).build();
     let cluster_config = ClusterTcpConfig(vec![node]);
     let lb = RoundRobin::new();
-    let session = new_session(&cluster_config, lb).expect("session should be created");
+    let session = new_session(&cluster_config, lb).await.expect("session should be created");
     let re_table_name = Regex::new(r"CREATE TABLE IF NOT EXISTS (\w+\.\w+)").unwrap();
 
     let create_keyspace_query =
         "CREATE KEYSPACE IF NOT EXISTS cdrs_test WITH \
          replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
          AND durable_writes = false";
-    session.query(create_keyspace_query)?;
+    session.query(create_keyspace_query).await?;
 
     for create_cql in create_cqls.iter() {
         let table_name = re_table_name
@@ -52,11 +52,11 @@ pub fn setup_multiple(create_cqls: &[&'static str]) -> Result<CurrentSession> {
         //     session.query(query, true, true)?;
         // }
 
-        session.query(create_cql.to_owned())?;
+        session.query(create_cql.to_owned()).await?;
 
         if let Some(table_name) = table_name {
             let cql = format!("TRUNCATE TABLE {}", table_name);
-            session.query(cql)?;
+            session.query(cql).await?;
         }
     }
 

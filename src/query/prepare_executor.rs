@@ -1,5 +1,6 @@
-use r2d2;
-use std::cell::RefCell;
+use async_trait::async_trait;
+use bb8;
+use tokio::sync::Mutex;
 
 use crate::cluster::{GetCompressor, GetConnection};
 use crate::error;
@@ -11,15 +12,16 @@ use super::utils::{prepare_flags, send_frame};
 
 pub type PreparedQuery = CBytesShort;
 
+#[async_trait]
 pub trait PrepareExecutor<
-    T: CDRSTransport + 'static,
-    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
+    T: CDRSTransport + Unpin + 'static,
+    M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
 >: GetConnection<T, M> + GetCompressor<'static>
 {
     /// It prepares a query for execution, along with query itself
     /// the method takes `with_tracing` and `with_warnings` flags
     /// to get tracing information and warnings.
-    fn prepare_tw<Q: ToString>(
+    async fn prepare_tw<Q: ToString + Sync + Send>(
         &self,
         query: Q,
         with_tracing: bool,
@@ -33,6 +35,7 @@ pub trait PrepareExecutor<
         let query_frame = Frame::new_req_prepare(query.to_string(), flags).into_cbytes();
 
         send_frame(self, query_frame)
+            .await
             .and_then(|response| response.get_body())
             .and_then(|body| {
                 Ok(body
@@ -43,10 +46,10 @@ pub trait PrepareExecutor<
     }
 
     /// It prepares query without additional tracing information and warnings.
-    fn prepare<Q: ToString>(&self, query: Q) -> error::Result<PreparedQuery>
+    async fn prepare<Q: ToString + Sync + Send>(&self, query: Q) -> error::Result<PreparedQuery>
     where
-        Self: Sized,
+        Self: Sized + Sync,
     {
-        self.prepare_tw(query, false, false)
+        self.prepare_tw(query, false, false).await
     }
 }
