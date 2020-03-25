@@ -24,7 +24,7 @@ async fn main() {
     let user = "user";
     let password = "password";
     let auth = StaticPasswordAuthenticator::new(&user, &password);
-    let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", auth).build();
+    let node = NodeTcpConfigBuilder::new("localhost:9042", auth).build();
     let cluster_config = ClusterTcpConfig(vec![node]);
     let mut no_compression: CurrentSession =
         new_session(&cluster_config, RoundRobin::new()).await.expect("session should be created");

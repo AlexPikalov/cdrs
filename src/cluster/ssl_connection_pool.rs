@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use bb8::{Builder, ManageConnection};
 use tokio::sync::Mutex;
 use tokio::io::AsyncWriteExt;
-use std::net::SocketAddr;
+use std::net::{SocketAddr, ToSocketAddrs};
 
 use crate::authenticators::Authenticator;
 use crate::cluster::ConnectionPool;
@@ -37,13 +37,13 @@ pub async fn new_ssl_pool<'a, A: Authenticator + Send + Sync + 'static>(
         .await
         .map_err(|err| error::Error::from(err.to_string()))?;
 
-    Ok(SslConnectionPool::new(
-        pool,
-        node_config
-            .addr
-            .parse::<SocketAddr>()
-            .map_err(|err| error::Error::from(err.to_string()))?,
-    ))
+    let addr = node_config
+        .addr
+        .to_socket_addrs()?
+        .next()
+        .ok_or_else(|| error::Error::from("Cannot parse address"))?;
+
+    Ok(SslConnectionPool::new(pool, addr))
 }
 
 /// `bb8` connection manager.
