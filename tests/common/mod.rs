@@ -14,7 +14,7 @@ use cdrs::query::QueryExecutor;
 use regex::Regex;
 
 #[cfg(feature = "e2e-tests")]
-const ADDR: &'static str = "127.0.0.1:9042";
+const ADDR: &'static str = "localhost:9042";
 
 #[cfg(feature = "e2e-tests")]
 type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;
@@ -32,8 +32,7 @@ pub fn setup_multiple(create_cqls: &[&'static str]) -> Result<CurrentSession> {
     let session = new_session(&cluster_config, lb).expect("session should be created");
     let re_table_name = Regex::new(r"CREATE TABLE IF NOT EXISTS (\w+\.\w+)").unwrap();
 
-    let create_keyspace_query =
-        "CREATE KEYSPACE IF NOT EXISTS cdrs_test WITH \
+    let create_keyspace_query = "CREATE KEYSPACE IF NOT EXISTS cdrs_test WITH \
          replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
          AND durable_writes = false";
     session.query(create_keyspace_query)?;

@@ -3,7 +3,7 @@ use r2d2::{Builder, ManageConnection, Pool};
 use std::cell::RefCell;
 use std::error::Error;
 use std::io::Write;
-use std::net::SocketAddr;
+use std::net::{SocketAddr, ToSocketAddrs};
 
 use crate::authenticators::Authenticator;
 use crate::cluster::ConnectionPool;
@@ -39,13 +39,13 @@ pub fn new_ssl_pool<'a, A: Authenticator + Send + Sync + 'static>(
         .build(manager)
         .map_err(|err| error::Error::from(err.description()))?;
 
-    Ok(SslConnectionPool::new(
-        pool,
-        node_config
-            .addr
-            .parse::<SocketAddr>()
-            .map_err(|err| error::Error::from(err.description()))?,
-    ))
+    let addr = node_config
+        .addr
+        .to_socket_addrs()?
+        .next()
+        .ok_or_else(|| error::Error::from("Cannot parse address"))?;
+
+    Ok(SslConnectionPool::new(pool, addr))
 }
 
 /// `r2d2` connection manager.
