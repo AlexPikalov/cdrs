@@ -210,7 +210,7 @@ where
     let mut session = Session {
         load_balancing: Mutex::new(load_balancing),
         event_stream: None,
-        responses: FnvHashMap::default(),
+        responses: Mutex::new(FnvHashMap::default()),
         compression,
     };
 
@@ -390,7 +390,7 @@ where
     Ok(Session {
         load_balancing: Mutex::new(load_balancing),
         event_stream: None,
-        responses: FnvHashMap::default(),
+        responses: Mutex::new(FnvHashMap::default()),
         compression,
     })
 }
@@ -418,7 +418,7 @@ where
     let mut session = Session {
         load_balancing: Mutex::new(load_balancing),
         event_stream: None,
-        responses: FnvHashMap::default(),
+        responses: Mutex::new(FnvHashMap::default()),
         compression,
     };
 
