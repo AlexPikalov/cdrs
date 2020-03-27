@@ -1,5 +1,3 @@
-use rand;
-
 use crate::frame::*;
 use crate::query::QueryParams;
 use crate::types::*;
@@ -41,7 +39,6 @@ impl Frame {
         flags: Vec<Flag>,
     ) -> Frame {
         let version = Version::Request;
-        let stream = rand::random::<u16>();
         let opcode = Opcode::Execute;
         debug!(
             "prepared statement id{:?} getting executed with parameters {:?}",
@@ -49,15 +46,6 @@ impl Frame {
         );
         let body = BodyReqExecute::new(id, query_parameters);
 
-        Frame {
-            version: version,
-            flags: flags,
-            stream: stream,
-            opcode: opcode,
-            body: body.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame::new(version, flags, opcode, body.into_cbytes(), None, vec![])
     }
 }

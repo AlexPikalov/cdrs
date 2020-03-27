@@ -32,12 +32,12 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 #[cfg(feature = "e2e-tests")]
 use std::str::FromStr;
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn string() {
+async fn string() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_string \
                (my_ascii ascii PRIMARY KEY, my_text text, my_varchar varchar)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_ascii = "my_ascii";
     let my_text = "my_text";
@@ -48,11 +48,13 @@ fn string() {
                  (my_ascii, my_text, my_varchar) VALUES (?, ?, ?)";
     session
         .query_with_values(query, values)
+        .await
         .expect("insert stings error");
 
     let cql = "SELECT * FROM cdrs_test.test_string";
     let rows = session
         .query(cql)
+        .await
         .expect("select strings query error")
         .get_body()
         .expect("get body error")
@@ -70,12 +72,12 @@ fn string() {
     }
 }
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn counter() {
+async fn counter() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_counter \
                (my_bigint bigint PRIMARY KEY, my_counter counter)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_bigint: i64 = 10_000_000_000_000_000;
     let my_counter: i64 = 100_000_000;
@@ -83,11 +85,15 @@ fn counter() {
 
     let query = "UPDATE cdrs_test.test_counter SET my_counter = my_counter + ? \
                  WHERE my_bigint = ?";
-    session.query_with_values(query, values).expect("insert");
+    session
+        .query_with_values(query, values)
+        .await
+        .expect("insert");
 
     let cql = "SELECT * FROM cdrs_test.test_counter";
     let rows = session
         .query(cql)
+        .await
         .expect("select counter query error")
         .get_body()
         .expect("get counter body error")
@@ -104,12 +110,12 @@ fn counter() {
 }
 
 // TODO varint
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn integer() {
+async fn integer() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_integer \
                (my_bigint bigint PRIMARY KEY, my_int int, my_boolean boolean)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_bigint: i64 = 10_000_000_000_000_000;
     let my_int: i32 = 100_000_000;
@@ -120,11 +126,13 @@ fn integer() {
                  (my_bigint, my_int, my_boolean) VALUES (?, ?, ?)";
     session
         .query_with_values(query, values)
+        .await
         .expect("insert integers error");
 
     let cql = "SELECT * FROM cdrs_test.test_integer";
     let rows = session
         .query(cql)
+        .await
         .expect("select integers query error")
         .get_body()
         .expect("get body with integers error")
@@ -143,13 +151,13 @@ fn integer() {
 }
 
 // TODO counter, varint
-#[test]
+#[tokio::test]
 #[cfg(all(feature = "v4", feature = "e2e-tests"))]
-fn integer_v4() {
+async fn integer_v4() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_integer_v4 \
                (my_bigint bigint PRIMARY KEY, my_int int, my_smallint smallint, \
                my_tinyint tinyint, my_boolean boolean)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_bigint: i64 = 10_000_000_000_000_000;
     let my_int: i32 = 100_000_000;
@@ -162,11 +170,13 @@ fn integer_v4() {
                  (my_bigint, my_int, my_smallint, my_tinyint, my_boolean) VALUES (?, ?, ?, ?, ?)";
     session
         .query_with_values(query, values)
+        .await
         .expect("insert integers error");
 
     let cql = "SELECT * FROM cdrs_test.test_integer_v4";
     let rows = session
         .query(cql)
+        .await
         .expect("query integers error")
         .get_body()
         .expect("get body with integers error")
@@ -189,13 +199,12 @@ fn integer_v4() {
 }
 
 // TODO decimal
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn float() {
-    let cql =
-    "CREATE TABLE IF NOT EXISTS cdrs_test.test_float \
+async fn float() {
+    let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_float \
      (my_float float PRIMARY KEY, my_double double, my_decimal_a decimal, my_decimal_b decimal)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_float: f32 = 123.456;
     let my_double: f64 = 987.654;
@@ -211,11 +220,13 @@ fn float() {
         "INSERT INTO cdrs_test.test_float (my_float, my_double, my_decimal_a, my_decimal_b) VALUES (?, ?, ?, ?)";
     session
         .query_with_values(query, values)
+        .await
         .expect("insert floats error");
 
     let cql = "SELECT * FROM cdrs_test.test_float";
     let rows = session
         .query(cql)
+        .await
         .expect("query floats error")
         .get_body()
         .expect("get body with floats error")
@@ -235,12 +246,12 @@ fn float() {
     }
 }
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn blob() {
+async fn blob() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_blob \
                (my_blob blob PRIMARY KEY, my_mapblob map<text, blob>)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_blob: Blob = vec![0, 1, 2, 4, 8, 16, 32, 64, 128, 255].into();
     let my_map: HashMap<String, Blob> = [
@@ -264,11 +275,13 @@ fn blob() {
     let query = "INSERT INTO cdrs_test.test_blob (my_blob, my_mapblob) VALUES (?,?)";
     session
         .query_with_values(query, values)
+        .await
         .expect("insert blob error");
 
     let cql = "SELECT * FROM cdrs_test.test_blob";
     let rows = session
         .query(cql)
+        .await
         .expect("query blobs error")
         .get_body()
         .expect("get body with blobs error")
@@ -289,12 +302,12 @@ fn blob() {
 }
 
 // TODO timeuuid
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn uuid() {
+async fn uuid() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_uuid \
                (my_uuid uuid PRIMARY KEY)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_uuid = Uuid::from_str("bb16106a-10bc-4a07-baa3-126ffe208c43").unwrap();
     let values = query_values!(my_uuid);
@@ -302,11 +315,13 @@ fn uuid() {
     let query = "INSERT INTO cdrs_test.test_uuid (my_uuid) VALUES (?)";
     session
         .query_with_values(query, values)
+        .await
         .expect("insert UUID error");
 
     let cql = "SELECT * FROM cdrs_test.test_uuid";
     let rows = session
         .query(cql)
+        .await
         .expect("query UUID error")
         .get_body()
         .expect("get body with UUID error")
@@ -321,12 +336,12 @@ fn uuid() {
 }
 
 // TODO date, time, duration
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn time() {
+async fn time() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_time \
                (my_timestamp timestamp PRIMARY KEY)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_timestamp = time::get_time();
     let values = query_values!(my_timestamp);
@@ -334,11 +349,13 @@ fn time() {
     let query = "INSERT INTO cdrs_test.test_time (my_timestamp) VALUES (?)";
     session
         .query_with_values(query, values)
+        .await
         .expect("insert timestamp error");
 
     let cql = "SELECT * FROM cdrs_test.test_time";
     let rows = session
         .query(cql)
+        .await
         .expect("query with time error")
         .get_body()
         .expect("get body with time error")
@@ -357,12 +374,12 @@ fn time() {
     }
 }
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn inet() {
+async fn inet() {
     let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_inet \
                (my_inet_v4 inet PRIMARY KEY, my_inet_v6 inet)";
-    let session = setup(cql).expect("setup");
+    let session = setup(cql).await.expect("setup");
 
     let my_inet_v4 = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
     let my_inet_v6 = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1));
@@ -371,11 +388,13 @@ fn inet() {
     let query = "INSERT INTO cdrs_test.test_inet (my_inet_v4, my_inet_v6) VALUES (?, ?)";
     session
         .query_with_values(query, values)
+        .await
         .expect("insert inet error");
 
     let query = "SELECT * FROM cdrs_test.test_inet";
     let rows = session
         .query(query)
+        .await
         .expect("query inet error")
         .get_body()
         .expect("get body with inet error")

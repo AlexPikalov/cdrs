@@ -6,9 +6,9 @@ use std::collections::HashMap;
 #[cfg(feature = "e2e-tests")]
 use cdrs::authenticators::NoneAuthenticator;
 #[cfg(feature = "e2e-tests")]
-use cdrs::cluster::session::{new as new_session, Session};
+use cdrs::cluster::session::new as new_session;
 #[cfg(feature = "e2e-tests")]
-use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
+use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder};
 #[cfg(feature = "e2e-tests")]
 use cdrs::load_balancing::RoundRobin;
 #[cfg(feature = "e2e-tests")]
@@ -18,25 +18,24 @@ use cdrs::types::map::Map;
 #[cfg(feature = "e2e-tests")]
 use cdrs::types::{AsRust, ByName, IntoRustByName};
 #[cfg(feature = "e2e-tests")]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-const ADDR: &'static str = "127.0.0.1:9042";
-
-#[test]
-#[cfg(feature = "e2e-tests")]
-fn create_keyspace() {
+async fn create_keyspace() {
     let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
     let cluster_config = ClusterTcpConfig(vec![node]);
     let lb = RoundRobin::new();
-    let session = new_session(&cluster_config, lb).expect("session should be created");
+    let session = new_session(&cluster_config, lb)
+        .await
+        .expect("session should be created");
 
     let drop_query = "DROP KEYSPACE IF EXISTS create_ks_test";
-    let keyspace_droped = session.query(drop_query).is_ok();
+    let keyspace_droped = session.query(drop_query).await.is_ok();
     assert!(keyspace_droped, "Should drop new keyspace without errors");
 
     let create_query = "CREATE KEYSPACE IF NOT EXISTS create_ks_test WITH \
                         replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
                         AND durable_writes = false";
-    let keyspace_created = session.query(create_query).is_ok();
+    let keyspace_created = session.query(create_query).await.is_ok();
     assert!(
         keyspace_created,
         "Should create new keyspace without errors"
@@ -46,6 +45,7 @@ fn create_keyspace() {
         "SELECT * FROM system_schema.keyspaces WHERE keyspace_name = 'create_ks_test'";
     let keyspace_selected = session
         .query(select_query)
+        .await
         .expect("select keyspace query")
         .get_body()
         .expect("get select keyspace query body")
@@ -86,22 +86,24 @@ fn create_keyspace() {
     );
 }
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn alter_keyspace() {
+async fn alter_keyspace() {
     let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
     let cluster_config = ClusterTcpConfig(vec![node]);
     let lb = RoundRobin::new();
-    let session = new_session(&cluster_config, lb).expect("session should be created");
+    let session = new_session(&cluster_config, lb)
+        .await
+        .expect("session should be created");
 
     let drop_query = "DROP KEYSPACE IF EXISTS alter_ks_test";
-    let keyspace_droped = session.query(drop_query).is_ok();
+    let keyspace_droped = session.query(drop_query).await.is_ok();
     assert!(keyspace_droped, "Should drop new keyspace without errors");
 
     let create_query = "CREATE KEYSPACE IF NOT EXISTS alter_ks_test WITH \
                         replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
                         AND durable_writes = false";
-    let keyspace_created = session.query(create_query).is_ok();
+    let keyspace_created = session.query(create_query).await.is_ok();
     assert!(
         keyspace_created,
         "Should create new keyspace without errors"
@@ -111,7 +113,7 @@ fn alter_keyspace() {
                        replication = {'class': 'SimpleStrategy', 'replication_factor': 3} \
                        AND durable_writes = false";
     assert!(
-        session.query(alter_query).is_ok(),
+        session.query(alter_query).await.is_ok(),
         "alter should be without errors"
     );
 
@@ -119,6 +121,7 @@ fn alter_keyspace() {
         "SELECT * FROM system_schema.keyspaces WHERE keyspace_name = 'alter_ks_test'";
     let keyspace_selected = session
         .query(select_query)
+        .await
         .expect("select keyspace query")
         .get_body()
         .expect("get select keyspace query body")
@@ -142,18 +145,20 @@ fn alter_keyspace() {
     );
 }
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn use_keyspace() {
+async fn use_keyspace() {
     let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
     let cluster_config = ClusterTcpConfig(vec![node]);
     let lb = RoundRobin::new();
-    let session = new_session(&cluster_config, lb).expect("session should be created");
+    let session = new_session(&cluster_config, lb)
+        .await
+        .expect("session should be created");
 
     let create_query = "CREATE KEYSPACE IF NOT EXISTS use_ks_test WITH \
                         replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
                         AND durable_writes = false";
-    let keyspace_created = session.query(create_query).is_ok();
+    let keyspace_created = session.query(create_query).await.is_ok();
     assert!(
         keyspace_created,
         "Should create new keyspace without errors"
@@ -162,6 +167,7 @@ fn use_keyspace() {
     let use_query = "USE use_ks_test";
     let keyspace_used = session
         .query(use_query)
+        .await
         .expect("should use selected")
         .get_body()
         .expect("should get body")
@@ -171,24 +177,26 @@ fn use_keyspace() {
     assert_eq!(keyspace_used.as_str(), "use_ks_test", "wrong kespace used");
 }
 
-#[test]
+#[tokio::test]
 #[cfg(feature = "e2e-tests")]
-fn drop_keyspace() {
+async fn drop_keyspace() {
     let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
     let cluster_config = ClusterTcpConfig(vec![node]);
     let lb = RoundRobin::new();
-    let session = new_session(&cluster_config, lb).expect("session should be created");
+    let session = new_session(&cluster_config, lb)
+        .await
+        .expect("session should be created");
 
     let create_query = "CREATE KEYSPACE IF NOT EXISTS drop_ks_test WITH \
                         replication = {'class': 'SimpleStrategy', 'replication_factor': 1} \
                         AND durable_writes = false";
-    let keyspace_created = session.query(create_query).is_ok();
+    let keyspace_created = session.query(create_query).await.is_ok();
     assert!(
         keyspace_created,
         "Should create new keyspace without errors"
     );
 
     let drop_query = "DROP KEYSPACE drop_ks_test";
-    let keyspace_droped = session.query(drop_query).is_ok();
+    let keyspace_droped = session.query(drop_query).await.is_ok();
     assert!(keyspace_droped, "Should drop new keyspace without errors");
 }

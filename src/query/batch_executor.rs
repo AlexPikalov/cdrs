@@ -1,7 +1,8 @@
-use r2d2;
-use std::cell::RefCell;
+use bb8;
+use tokio::sync::Mutex;
+use async_trait::async_trait;
 
-use crate::cluster::{GetCompressor, GetConnection};
+use crate::cluster::{GetCompressor, GetConnection, ResponseCache};
 use crate::error;
 use crate::frame::traits::IntoBytes;
 use crate::frame::Frame;
@@ -10,12 +11,13 @@ use crate::transport::CDRSTransport;
 
 use super::utils::{prepare_flags, send_frame};
 
+#[async_trait]
 pub trait BatchExecutor<
-    T: CDRSTransport + 'static,
-    M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
->: GetConnection<T, M> + GetCompressor<'static>
+    T: CDRSTransport + Unpin + 'static,
+    M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
+>: GetConnection<T, M> + GetCompressor<'static> + ResponseCache + Sync
 {
-    fn batch_with_params_tw(
+    async fn batch_with_params_tw(
         &self,
         batch: QueryBatch,
         with_tracing: bool,
@@ -26,15 +28,15 @@ pub trait BatchExecutor<
     {
         let flags = prepare_flags(with_tracing, with_warnings);
 
-        let query_frame = Frame::new_req_batch(batch, flags).into_cbytes();
+        let query_frame = Frame::new_req_batch(batch, flags);
 
-        send_frame(self, query_frame)
+        send_frame(self, query_frame.into_cbytes(), query_frame.stream ).await
     }
 
-    fn batch_with_params(&self, batch: QueryBatch) -> error::Result<Frame>
+    async fn batch_with_params(&self, batch: QueryBatch) -> error::Result<Frame>
     where
         Self: Sized,
     {
-        self.batch_with_params_tw(batch, false, false)
+        self.batch_with_params_tw(batch, false, false).await
     }
 }

@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use rand;
-
 use crate::frame::*;
 use crate::types::to_short;
 
@@ -57,20 +55,10 @@ impl Frame {
     pub fn new_req_startup(compression: Option<&str>) -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
-        let stream = rand::random::<u16>();
         let opcode = Opcode::Startup;
         let body = BodyReqStartup::new(compression);
 
-        Frame {
-            version: version,
-            flags: vec![flag],
-            stream: stream,
-            opcode: opcode,
-            body: body.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame::new(version, vec![flag], opcode, body.into_cbytes(),  None, vec![])
     }
 }
 

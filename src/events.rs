@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use tokio::sync::Mutex;
 use std::iter::Iterator;
 use std::sync::mpsc::{channel, Receiver, Sender};
 
@@ -48,11 +48,12 @@ pub struct Listener<X> {
     tx: Sender<ServerEvent>,
 }
 
-impl<X: CDRSTransport + 'static> Listener<RefCell<X>> {
+impl<X: CDRSTransport + Unpin + 'static> Listener<Mutex<X>> {
     /// It starts a process of listening to new events. Locks a frame.
-    pub fn start(self, compressor: &Compression) -> error::Result<()> {
+    pub async fn start(self, compressor: &Compression) -> error::Result<()> {
         loop {
-            let event_opt = parse_frame(&self.transport, compressor)?
+            let event_opt = parse_frame(&self.transport, compressor)
+                .await?
                 .get_body()?
                 .into_server_event();
 

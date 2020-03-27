@@ -1,8 +1,7 @@
-use openssl::ssl::SslConnector;
-use r2d2::{Builder, ManageConnection, Pool};
-use std::cell::RefCell;
-use std::error::Error;
-use std::io::Write;
+use async_trait::async_trait;
+use bb8::{Builder, ManageConnection};
+use tokio::sync::Mutex;
+use tokio::io::AsyncWriteExt;
 use std::net::SocketAddr;
 
 use crate::authenticators::Authenticator;
@@ -12,22 +11,20 @@ use crate::compression::Compression;
 use crate::error;
 use crate::frame::parser::parse_frame;
 use crate::frame::{Frame, IntoBytes};
-use crate::transport::CDRSTransport;
 use crate::transport::TransportTls;
 
-/// Shortcut for `r2d2::Pool` type of SSL-based CDRS connections.
+/// Shortcut for `bb8::Pool` type of SSL-based CDRS connections.
 pub type SslConnectionPool<A> = ConnectionPool<SslConnectionsManager<A>>;
 
-/// `r2d2::Pool` of SSL-based CDRS connections.
+/// `bb8::Pool` of SSL-based CDRS connections.
 ///
 /// Used internally for SSL Session for holding connections to a specific Cassandra node.
-pub fn new_ssl_pool<'a, A: Authenticator + Send + Sync + 'static>(
+pub async fn new_ssl_pool<'a, A: Authenticator + Send + Sync + 'static>(
     node_config: NodeSslConfig<'a, A>,
 ) -> error::Result<SslConnectionPool<A>> {
     let manager = SslConnectionsManager::new(
         node_config.addr,
         node_config.authenticator,
-        node_config.ssl_connector,
     );
 
     let pool = Builder::new()
@@ -37,53 +34,53 @@ pub fn new_ssl_pool<'a, A: Authenticator + Send + Sync + 'static>(
         .idle_timeout(node_config.idle_timeout)
         .connection_timeout(node_config.connection_timeout)
         .build(manager)
-        .map_err(|err| error::Error::from(err.description()))?;
+        .await
+        .map_err(|err| error::Error::from(err.to_string()))?;
 
     Ok(SslConnectionPool::new(
         pool,
         node_config
             .addr
             .parse::<SocketAddr>()
-            .map_err(|err| error::Error::from(err.description()))?,
+            .map_err(|err| error::Error::from(err.to_string()))?,
     ))
 }
 
-/// `r2d2` connection manager.
+/// `bb8` connection manager.
 pub struct SslConnectionsManager<A> {
     addr: String,
-    ssl_connector: SslConnector,
     auth: A,
 }
 
 impl<A> SslConnectionsManager<A> {
-    pub fn new<S: ToString>(addr: S, auth: A, ssl_connector: SslConnector) -> Self {
+    pub fn new<S: ToString>(addr: S, auth: A) -> Self {
         SslConnectionsManager {
             addr: addr.to_string(),
             auth,
-            ssl_connector,
         }
     }
 }
 
+#[async_trait]
 impl<A: Authenticator + 'static + Send + Sync> ManageConnection for SslConnectionsManager<A> {
-    type Connection = RefCell<TransportTls>;
+    type Connection = Mutex<TransportTls>;
     type Error = error::Error;
 
-    fn connect(&self) -> Result<Self::Connection, Self::Error> {
-        let transport = RefCell::new(TransportTls::new(&self.addr, &self.ssl_connector)?);
-        startup(&transport, &self.auth)?;
+    async fn connect(&self) -> Result<Self::Connection, Self::Error> {
+        let transport = Mutex::new(TransportTls::new(&self.addr).await?);
+        startup(&transport, &self.auth).await?;
 
         Ok(transport)
     }
 
-    fn is_valid(&self, conn: &mut Self::Connection) -> Result<(), Self::Error> {
+    async fn is_valid(&self, conn: Self::Connection) -> Result<Self::Connection, Self::Error> {
         let options_frame = Frame::new_req_options().into_cbytes();
-        conn.borrow_mut().write(options_frame.as_slice())?;
+        conn.lock().await.write(options_frame.as_slice()).await?;
 
-        parse_frame(conn, &Compression::None {}).map(|_| ())
+        parse_frame(&conn, &Compression::None {}).await.map(|_| conn)
     }
 
-    fn has_broken(&self, conn: &mut Self::Connection) -> bool {
-        !conn.borrow().is_alive()
+    fn has_broken(&self, _conn: &mut Self::Connection) -> bool {
+        false
     }
 }

@@ -1,5 +1,3 @@
-use rand;
-
 use crate::consistency::Consistency;
 use crate::frame::*;
 use crate::query::QueryFlags;
@@ -143,18 +141,8 @@ impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
     pub fn new_req_batch(query: BodyReqBatch, flags: Vec<Flag>) -> Frame {
         let version = Version::Request;
-        let stream = rand::random::<u16>();
         let opcode = Opcode::Batch;
 
-        Frame {
-            version: version,
-            flags: flags,
-            stream: stream,
-            opcode: opcode,
-            body: query.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame::new(version, flags, opcode, query.into_cbytes(), None, vec![])
     }
 }

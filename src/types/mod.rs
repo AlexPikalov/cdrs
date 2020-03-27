@@ -227,6 +227,15 @@ pub fn from_u16_bytes(bytes: &[u8]) -> u16 {
     try_u16_from_bytes(bytes).unwrap()
 }
 
+/// Converts byte-array into i16
+///
+/// # Panics
+///
+/// It panics if given bytes could not be converted into `u16`
+pub fn from_i16_bytes(bytes: &[u8]) -> i16 {
+    try_i16_from_bytes(bytes).unwrap()
+}
+
 /// Converts number i16 into Cassandra's [short].
 ///
 /// # Panics
