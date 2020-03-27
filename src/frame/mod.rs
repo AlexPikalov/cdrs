@@ -1,4 +1,6 @@
 //! `frame` module contains general Frame functionality.
+use std::sync::atomic::{Ordering, AtomicI16};
+
 use crate::compression::Compression;
 use crate::frame::frame_response::ResponseBody;
 pub use crate::frame::traits::*;
@@ -33,18 +35,31 @@ pub mod traits;
 
 use crate::error;
 
+static STREAM_ID: AtomicI16 = AtomicI16::new(0);
+
+pub type StreamId = i16;
+
 #[derive(Debug)]
 pub struct Frame {
     pub version: Version,
     pub flags: Vec<Flag>,
     pub opcode: Opcode,
-    pub stream: u16,
+    pub stream: StreamId,
     pub body: Vec<u8>,
     pub tracing_id: Option<Uuid>,
     pub warnings: Vec<String>,
 }
 
 impl Frame {
+    pub fn new(version: Version, flags: Vec<Flag>, opcode: Opcode, body: Vec<u8>, tracing_id: Option<Uuid>, warnings: Vec<String>) -> Self {
+        let mut stream = STREAM_ID.fetch_add(1, Ordering::SeqCst);
+        if stream < 0 {
+            stream += std::i16::MAX;
+        }
+
+        Frame { version, flags, opcode, stream, body, tracing_id, warnings }
+    }
+
     pub fn get_body(&self) -> error::Result<ResponseBody> {
         ResponseBody::from(self.body.as_slice(), &self.opcode)
     }

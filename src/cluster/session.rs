@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use bb8;
+use fnv::FnvHashMap;
 use std::iter::Iterator;
 use std::sync::Arc;
 use tokio::{io::AsyncWriteExt, sync::Mutex};
@@ -8,10 +9,7 @@ use tokio::{io::AsyncWriteExt, sync::Mutex};
 use crate::cluster::NodeTcpConfig;
 #[cfg(feature = "ssl")]
 use crate::cluster::{new_ssl_pool, ClusterSslConfig, NodeSslConfig, SslConnectionPool};
-use crate::cluster::{
-    new_tcp_pool, startup, CDRSSession, ClusterTcpConfig, ConnectionPool, GetCompressor,
-    GetConnection, TcpConnectionPool,
-};
+use crate::cluster::{new_tcp_pool, startup, CDRSSession, ClusterTcpConfig, ConnectionPool, GetCompressor, GetConnection, TcpConnectionPool, ResponseCache};
 use crate::error;
 use crate::load_balancing::LoadBalancingStrategy;
 use crate::transport::{CDRSTransport, TransportTcp};
@@ -22,7 +20,7 @@ use crate::compression::Compression;
 use crate::events::{new_listener, EventStream, EventStreamNonBlocking, Listener};
 use crate::frame::events::{ServerEvent, SimpleServerEvent, StatusChange, StatusChangeType};
 use crate::frame::parser::parse_frame;
-use crate::frame::{Frame, IntoBytes};
+use crate::frame::{Frame, IntoBytes, StreamId};
 use crate::query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
 
 #[cfg(feature = "ssl")]
@@ -34,6 +32,7 @@ use crate::transport::TransportTls;
 pub struct Session<LB> {
     load_balancing: Mutex<LB>,
     event_stream: Option<Mutex<EventStreamNonBlocking>>,
+    responses: Mutex<FnvHashMap<StreamId, Frame>>,
     #[allow(dead_code)]
     pub compression: Compression,
 }
@@ -52,7 +51,7 @@ impl<'a, LB: Sized> Session<LB> {
         T: CDRSTransport + Unpin + 'static,
         M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error>,
     >(
-        &'a self,
+        &'a mut self,
         page_size: i32,
     ) -> SessionPager<'a, M, Session<LB>, T>
     where
@@ -150,6 +149,18 @@ impl<
 {
 }
 
+#[async_trait]
+impl <LB> ResponseCache for Session<LB> where LB: Send {
+    async fn match_or_cache_response(&self, stream_id: i16, frame: Frame) -> Option<Frame> {
+        if frame.stream == stream_id {
+            return Some(frame);
+        }
+
+        self.responses.lock().await.insert(frame.stream, frame);
+        self.responses.lock().await.remove(&stream_id)
+    }
+}
+
 async fn connect_static<A, LB>(
     node_configs: &ClusterTcpConfig<'_, A>,
     mut load_balancing: LB,
@@ -171,6 +182,7 @@ where
     Ok(Session {
         load_balancing: Mutex::new(load_balancing),
         event_stream: None,
+        responses: Mutex::new(FnvHashMap::default()),
         compression,
     })
 }
@@ -198,6 +210,7 @@ where
     let mut session = Session {
         load_balancing: Mutex::new(load_balancing),
         event_stream: None,
+        responses: FnvHashMap::default(),
         compression,
     };
 
@@ -377,6 +390,7 @@ where
     Ok(Session {
         load_balancing: Mutex::new(load_balancing),
         event_stream: None,
+        responses: FnvHashMap::default(),
         compression,
     })
 }
@@ -404,6 +418,7 @@ where
     let mut session = Session {
         load_balancing: Mutex::new(load_balancing),
         event_stream: None,
+        responses: FnvHashMap::default(),
         compression,
     };
 

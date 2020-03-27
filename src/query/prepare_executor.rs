@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use bb8;
 use tokio::sync::Mutex;
 
-use crate::cluster::{GetCompressor, GetConnection};
+use crate::cluster::{GetCompressor, GetConnection, ResponseCache};
 use crate::error;
 use crate::frame::{Frame, IntoBytes};
 use crate::transport::CDRSTransport;
@@ -16,7 +16,7 @@ pub type PreparedQuery = CBytesShort;
 pub trait PrepareExecutor<
     T: CDRSTransport + Unpin + 'static,
     M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
->: GetConnection<T, M> + GetCompressor<'static>
+>: GetConnection<T, M> + GetCompressor<'static> + ResponseCache + Sync
 {
     /// It prepares a query for execution, along with query itself
     /// the method takes `with_tracing` and `with_warnings` flags
@@ -32,9 +32,9 @@ pub trait PrepareExecutor<
     {
         let flags = prepare_flags(with_tracing, with_warnings);
 
-        let query_frame = Frame::new_req_prepare(query.to_string(), flags).into_cbytes();
+        let query_frame = Frame::new_req_prepare(query.to_string(), flags);
 
-        send_frame(self, query_frame)
+        send_frame(self, query_frame.into_cbytes(), query_frame.stream)
             .await
             .and_then(|response| response.get_body())
             .and_then(|body| {

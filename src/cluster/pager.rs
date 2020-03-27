@@ -17,7 +17,7 @@ pub struct SessionPager<
     T: CDRSTransport + Unpin + 'static,
 > {
     page_size: i32,
-    session: &'a S,
+    session: &'a mut S,
     transport_type: PhantomData<&'a T>,
     connection_type: PhantomData<&'a M>,
 }
@@ -30,7 +30,7 @@ impl<
         T: CDRSTransport + Unpin + 'static,
     > SessionPager<'a, M, S, T>
 {
-    pub fn new(session: &'b S, page_size: i32) -> SessionPager<'a, M, S, T> {
+    pub fn new(session: &'b mut S, page_size: i32) -> SessionPager<'a, M, S, T> {
         SessionPager {
             session,
             page_size,
@@ -92,7 +92,7 @@ impl<
         Q: ToString,
         T: CDRSTransport + Unpin + 'static,
         M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
-        S: CDRSSession<'static, T, M> + Sync,
+        S: CDRSSession<'static, T, M> + Sync + Send,
     > QueryPager<'a, Q, SessionPager<'a, M, S, T>>
 {
     pub async fn next(&mut self) -> error::Result<Vec<Row>> {
@@ -100,11 +100,12 @@ impl<
         if self.pager_state.cursor.is_some() {
             params = params.paging_state(self.pager_state.cursor.clone().unwrap());
         }
+        let query = self.query.to_string();
 
         let body = self
             .pager
             .session
-            .query_with_params(self.query.to_string(), params.finalize())
+            .query_with_params(query, params.finalize())
             .await
             .and_then(|frame| frame.get_body())?;
 
@@ -141,7 +142,7 @@ impl<
         'a,
         T: CDRSTransport + Unpin + 'static,
         M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
-        S: CDRSSession<'static, T, M> + Sync,
+        S: CDRSSession<'static, T, M> + Sync + Send,
     > ExecPager<'a, SessionPager<'a, M, S, T>>
 {
     pub async fn next(&mut self) -> error::Result<Vec<Row>> {

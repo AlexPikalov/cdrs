@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use bb8;
 use tokio::sync::Mutex;
 
-use crate::cluster::{GetCompressor, GetConnection};
+use crate::cluster::{GetCompressor, GetConnection, ResponseCache};
 use crate::error;
 use crate::frame::{Frame, IntoBytes};
 use crate::query::{QueryParams, QueryParamsBuilder, QueryValues};
@@ -17,7 +17,7 @@ pub type PreparedQuery = CBytesShort;
 pub trait ExecExecutor<
     T: CDRSTransport + Unpin + 'static,
     M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
->: GetConnection<T, M> + GetCompressor<'static>
+>: GetConnection<T, M> + GetCompressor<'static> + ResponseCache + Sync
 {
     async fn exec_with_params_tw(
         &self,
@@ -30,9 +30,9 @@ pub trait ExecExecutor<
         Self: Sized,
     {
         let flags = prepare_flags(with_tracing, with_warnings);
-        let options_frame = Frame::new_req_execute(prepared, query_parameters, flags).into_cbytes();
+        let options_frame = Frame::new_req_execute(prepared, query_parameters, flags);
 
-        send_frame(self, options_frame).await
+        send_frame(self, options_frame.into_cbytes(), options_frame.stream).await
     }
 
     async fn exec_with_params(
@@ -85,7 +85,7 @@ pub trait ExecExecutor<
         self.exec_with_params_tw(prepared, query_params, with_tracing, with_warnings).await
     }
 
-    async fn exec(&mut self, prepared: &PreparedQuery) -> error::Result<Frame>
+    async fn exec(&self, prepared: &PreparedQuery) -> error::Result<Frame>
     where
         Self: Sized + Sync,
     {

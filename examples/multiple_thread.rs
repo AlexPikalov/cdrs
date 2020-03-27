@@ -25,8 +25,8 @@ async fn main() {
     let no_compression: Arc<CurrentSession> =
         Arc::new(new_session(&cluster_config, lb).await.expect("session should be created"));
 
-    create_keyspace(&no_compression.clone()).await;
-    create_table(&no_compression.clone()).await;
+    create_keyspace(no_compression.clone()).await;
+    create_table(no_compression.clone()).await;
 
     for i in 0..20 {
         let thread_session = no_compression.clone();
@@ -34,7 +34,7 @@ async fn main() {
             .expect("thread error");
     }
 
-    select_struct(&no_compression).await;
+    select_struct(no_compression).await;
 }
 
 #[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq)]
@@ -53,13 +53,13 @@ struct User {
     username: String,
 }
 
-async fn create_keyspace(session: &CurrentSession) {
+async fn create_keyspace(session: Arc<CurrentSession>) {
     let create_ks: &'static str = "CREATE KEYSPACE IF NOT EXISTS test_ks WITH REPLICATION = { \
                                    'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
     session.query(create_ks).await.expect("Keyspace creation error");
 }
 
-async fn create_table(session: &CurrentSession) {
+async fn create_table(session: Arc<CurrentSession>) {
     let create_table_cql =
         "CREATE TABLE IF NOT EXISTS test_ks.multi_thread_table (key int PRIMARY KEY);";
     session
@@ -78,7 +78,7 @@ async fn insert_struct(session: Arc<CurrentSession>, key: i32) {
         .expect("insert");
 }
 
-async fn select_struct(session: &CurrentSession) {
+async fn select_struct(session: Arc<CurrentSession>) {
     let select_struct_cql = "SELECT * FROM test_ks.multi_thread_table";
     let rows = session
         .query(select_struct_cql)

@@ -2,7 +2,7 @@ use bb8;
 use tokio::sync::Mutex;
 use async_trait::async_trait;
 
-use crate::cluster::{GetCompressor, GetConnection};
+use crate::cluster::{GetCompressor, GetConnection, ResponseCache};
 use crate::error;
 use crate::frame::{Frame, IntoBytes};
 use crate::query::{Query, QueryParams, QueryParamsBuilder, QueryValues};
@@ -14,7 +14,7 @@ use super::utils::{prepare_flags, send_frame};
 pub trait QueryExecutor<
     T: CDRSTransport + Unpin + 'static,
     M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
->: GetConnection<T, M> + GetCompressor<'static>
+>: GetConnection<T, M> + GetCompressor<'static> + ResponseCache + Sync
 {
     async fn query_with_params_tw<Q: ToString + Send>(
         &self,
@@ -33,9 +33,9 @@ pub trait QueryExecutor<
 
         let flags = prepare_flags(with_tracing, with_warnings);
 
-        let query_frame = Frame::new_query(query, flags).into_cbytes();
+        let query_frame = Frame::new_query(query, flags);
 
-        send_frame(self, query_frame).await
+        send_frame(self, query_frame.into_cbytes(), query_frame.stream).await
     }
 
     /// Executes a query with default parameters:

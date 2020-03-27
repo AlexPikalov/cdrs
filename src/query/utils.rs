@@ -1,9 +1,9 @@
 use tokio::sync::Mutex;
 
-use crate::cluster::{GetCompressor, GetConnection};
+use crate::cluster::{GetCompressor, GetConnection, ResponseCache};
 use crate::error;
 use crate::frame::parser::from_connection;
-use crate::frame::{Flag, Frame};
+use crate::frame::{Flag, Frame, StreamId};
 use crate::transport::CDRSTransport;
 
 pub fn prepare_flags(with_tracing: bool, with_warnings: bool) -> Vec<Flag> {
@@ -20,9 +20,9 @@ pub fn prepare_flags(with_tracing: bool, with_warnings: bool) -> Vec<Flag> {
     flags
 }
 
-pub async fn send_frame<S, T, M>(sender: &S, frame_bytes: Vec<u8>) -> error::Result<Frame>
+pub async fn send_frame<S, T, M>(sender: &S, frame_bytes: Vec<u8>, stream_id: StreamId) -> error::Result<Frame>
 where
-    S: GetConnection<T, M> + GetCompressor<'static> + Sized,
+    S: GetConnection<T, M> + GetCompressor<'static> + ResponseCache + Sized,
     T: CDRSTransport + Unpin + 'static,
     M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
 {
@@ -48,8 +48,13 @@ where
 
     let result = write_res.map(|_| pool);
     match result {
-        Ok(ref pool) => from_connection(pool, compression).await,
-        Err(error) => Err(error)
+        Ok(ref pool) => loop {
+            let frame = from_connection(pool, compression).await?;
+            if let Some(frame) = sender.match_or_cache_response(stream_id, frame).await {
+                return Ok(frame);
+            }
+        },
+        Err(error) => return Err(error)
     }
 }
 

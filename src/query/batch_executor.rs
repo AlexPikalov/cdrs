@@ -2,7 +2,7 @@ use bb8;
 use tokio::sync::Mutex;
 use async_trait::async_trait;
 
-use crate::cluster::{GetCompressor, GetConnection};
+use crate::cluster::{GetCompressor, GetConnection, ResponseCache};
 use crate::error;
 use crate::frame::traits::IntoBytes;
 use crate::frame::Frame;
@@ -15,7 +15,7 @@ use super::utils::{prepare_flags, send_frame};
 pub trait BatchExecutor<
     T: CDRSTransport + Unpin + 'static,
     M: bb8::ManageConnection<Connection = Mutex<T>, Error = error::Error> + Sized,
->: GetConnection<T, M> + GetCompressor<'static>
+>: GetConnection<T, M> + GetCompressor<'static> + ResponseCache + Sync
 {
     async fn batch_with_params_tw(
         &self,
@@ -28,9 +28,9 @@ pub trait BatchExecutor<
     {
         let flags = prepare_flags(with_tracing, with_warnings);
 
-        let query_frame = Frame::new_req_batch(batch, flags).into_cbytes();
+        let query_frame = Frame::new_req_batch(batch, flags);
 
-        send_frame(self, query_frame).await
+        send_frame(self, query_frame.into_cbytes(), query_frame.stream ).await
     }
 
     async fn batch_with_params(&self, batch: QueryBatch) -> error::Result<Frame>

@@ -26,16 +26,16 @@ async fn main() {
     let auth = StaticPasswordAuthenticator::new(&user, &password);
     let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", auth).build();
     let cluster_config = ClusterTcpConfig(vec![node]);
-    let no_compression: CurrentSession =
+    let mut no_compression: CurrentSession =
         new_session(&cluster_config, RoundRobin::new()).await.expect("session should be created");
 
-    create_keyspace(&no_compression).await;
-    create_udt(&no_compression).await;
-    create_table(&no_compression).await;
-    insert_struct(&no_compression).await;
-    select_struct(&no_compression).await;
-    update_struct(&no_compression).await;
-    delete_struct(&no_compression).await;
+    create_keyspace(&mut no_compression).await;
+    create_udt(&mut no_compression).await;
+    create_table(&mut no_compression).await;
+    insert_struct(&mut no_compression).await;
+    select_struct(&mut no_compression).await;
+    update_struct(&mut no_compression).await;
+    delete_struct(&mut no_compression).await;
 }
 
 #[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq)]
@@ -57,13 +57,13 @@ struct User {
     username: String,
 }
 
-async fn create_keyspace(session: &CurrentSession) {
+async fn create_keyspace(session: &mut CurrentSession) {
     let create_ks: &'static str = "CREATE KEYSPACE IF NOT EXISTS test_ks WITH REPLICATION = { \
                                    'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
     session.query(create_ks).await.expect("Keyspace creation error");
 }
 
-async fn create_udt(session: &CurrentSession) {
+async fn create_udt(session: &mut CurrentSession) {
     let create_type_cql = "CREATE TYPE IF NOT EXISTS test_ks.user (username text)";
     session
         .query(create_type_cql)
@@ -71,7 +71,7 @@ async fn create_udt(session: &CurrentSession) {
         .expect("Keyspace creation error");
 }
 
-async fn create_table(session: &CurrentSession) {
+async fn create_table(session: &mut CurrentSession) {
     let create_table_cql =
     "CREATE TABLE IF NOT EXISTS test_ks.my_test_table (key int PRIMARY KEY, \
      user frozen<test_ks.user>, map map<text, frozen<test_ks.user>>, list list<frozen<test_ks.user>>);";
@@ -81,7 +81,7 @@ async fn create_table(session: &CurrentSession) {
         .expect("Table creation error");
 }
 
-async fn insert_struct(session: &CurrentSession) {
+async fn insert_struct(session: &mut CurrentSession) {
     let row = RowStruct {
         key: 3i32,
         user: User {
@@ -101,7 +101,7 @@ async fn insert_struct(session: &CurrentSession) {
         .expect("insert");
 }
 
-async fn select_struct(session: &CurrentSession) {
+async fn select_struct(session: &mut CurrentSession) {
     let select_struct_cql = "SELECT * FROM test_ks.my_test_table";
     let rows = session
         .query(select_struct_cql)
@@ -118,7 +118,7 @@ async fn select_struct(session: &CurrentSession) {
     }
 }
 
-async fn update_struct(session: &CurrentSession) {
+async fn update_struct(session: &mut CurrentSession) {
     let update_struct_cql = "UPDATE test_ks.my_test_table SET user = ? WHERE key = ?";
     let upd_user = User {
         username: "Marry".to_string(),
@@ -130,7 +130,7 @@ async fn update_struct(session: &CurrentSession) {
         .expect("update");
 }
 
-async fn delete_struct(session: &CurrentSession) {
+async fn delete_struct(session: &mut CurrentSession) {
     let delete_struct_cql = "DELETE FROM test_ks.my_test_table WHERE key = ?";
     let user_key = 1i32;
     session

@@ -26,21 +26,21 @@ async fn main() {
     let auth = StaticPasswordAuthenticator::new(&user, &password);
     let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", auth).build();
     let cluster_config = ClusterTcpConfig(vec![node]);
-    let no_compression: CurrentSession =
+    let mut no_compression: CurrentSession =
         new_session(&cluster_config, RoundRobin::new()).await.expect("session should be created");
 
-    create_keyspace(&no_compression).await;
-    create_udt(&no_compression).await;
-    create_table(&no_compression).await;
+    create_keyspace(&mut no_compression).await;
+    create_udt(&mut no_compression).await;
+    create_table(&mut no_compression).await;
 
-    insert_struct(&no_compression).await;
-    append_list(&no_compression).await;
-    prepend_list(&no_compression).await;
-    append_set(&no_compression).await;
-    append_map(&no_compression).await;
+    insert_struct(&mut no_compression).await;
+    append_list(&mut no_compression).await;
+    prepend_list(&mut no_compression).await;
+    append_set(&mut no_compression).await;
+    append_map(&mut no_compression).await;
 
-    select_struct(&no_compression).await;
-    delete_struct(&no_compression).await;
+    select_struct(&mut no_compression).await;
+    delete_struct(&mut no_compression).await;
 }
 
 #[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq)]
@@ -62,13 +62,13 @@ struct User {
     username: String,
 }
 
-async fn create_keyspace(session: &CurrentSession) {
+async fn create_keyspace(session: &mut CurrentSession) {
     let create_ks: &'static str = "CREATE KEYSPACE IF NOT EXISTS test_ks WITH REPLICATION = { \
                                    'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
     session.query(create_ks).await.expect("Keyspace creation error");
 }
 
-async fn create_udt(session: &CurrentSession) {
+async fn create_udt(session: &mut CurrentSession) {
     let create_type_cql = "CREATE TYPE IF NOT EXISTS test_ks.user (username text)";
     session
         .query(create_type_cql)
@@ -76,7 +76,7 @@ async fn create_udt(session: &CurrentSession) {
         .expect("Keyspace creation error");
 }
 
-async fn create_table(session: &CurrentSession) {
+async fn create_table(session: &mut CurrentSession) {
     let create_table_cql =
         "CREATE TABLE IF NOT EXISTS test_ks.collection_table (key int PRIMARY KEY, \
          user frozen<test_ks.user>, map map<text, frozen<test_ks.user>>, \
@@ -87,7 +87,7 @@ async fn create_table(session: &CurrentSession) {
         .expect("Table creation error");
 }
 
-async fn append_list(session: &CurrentSession) {
+async fn append_list(session: &mut CurrentSession) {
     let key = 3i32;
     let extra_values = vec![
         User {
@@ -105,7 +105,7 @@ async fn append_list(session: &CurrentSession) {
         .expect("append list");
 }
 
-async fn prepend_list(session: &CurrentSession) {
+async fn prepend_list(session: &mut CurrentSession) {
     let key = 3i32;
     let extra_values = vec![
         User {
@@ -123,7 +123,7 @@ async fn prepend_list(session: &CurrentSession) {
         .expect("prepend list");
 }
 
-async fn append_set(session: &CurrentSession) {
+async fn append_set(session: &mut CurrentSession) {
     let key = 3i32;
     let extra_values = vec![
         User {
@@ -141,7 +141,7 @@ async fn append_set(session: &CurrentSession) {
         .expect("append set");
 }
 
-async fn append_map(session: &CurrentSession) {
+async fn append_map(session: &mut CurrentSession) {
     let key = 3i32;
     let extra_values = hashmap![
         "Joe".to_string() => User { username: "Joe".to_string() },
@@ -155,7 +155,7 @@ async fn append_map(session: &CurrentSession) {
         .expect("append map");
 }
 
-async fn insert_struct(session: &CurrentSession) {
+async fn insert_struct(session: &mut CurrentSession) {
     let row = RowStruct {
         key: 3i32,
         map: hashmap! { "John".to_string() => User { username: "John".to_string() } },
@@ -175,7 +175,7 @@ async fn insert_struct(session: &CurrentSession) {
         .expect("insert");
 }
 
-async fn select_struct(session: &CurrentSession) {
+async fn select_struct(session: &mut CurrentSession) {
     let select_struct_cql = "SELECT * FROM test_ks.collection_table";
     let rows = session
         .query(select_struct_cql)
@@ -192,7 +192,7 @@ async fn select_struct(session: &CurrentSession) {
     }
 }
 
-async fn delete_struct(session: &CurrentSession) {
+async fn delete_struct(session: &mut CurrentSession) {
     let delete_struct_cql = "DELETE FROM test_ks.collection_table WHERE key = ?";
     let user_key = 3i32;
     session

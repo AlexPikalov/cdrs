@@ -1,5 +1,3 @@
-use rand;
-
 use crate::frame::*;
 
 /// The structure which represents a body of a frame of type `options`.
@@ -19,20 +17,10 @@ impl Frame {
     pub fn new_req_options() -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
-        let stream = rand::random::<u16>();
         let opcode = Opcode::Options;
         let body: BodyReqOptions = Default::default();
 
-        Frame {
-            version: version,
-            flags: vec![flag],
-            stream: stream,
-            opcode: opcode,
-            body: body.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame::new(version, vec![flag], opcode, body.into_cbytes(), None, vec![])
     }
 }
 

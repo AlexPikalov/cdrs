@@ -33,10 +33,10 @@ async fn main() {
     let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
     let cluster_config = ClusterTcpConfig(vec![node]);
     let lb = RoundRobin::new();
-    let no_compression = new_session(&cluster_config, lb).await.expect("session should be created");
+    let mut no_compression = new_session(&cluster_config, lb).await.expect("session should be created");
 
-    create_keyspace(&no_compression).await;
-    create_table(&no_compression).await;
+    create_keyspace(&mut no_compression).await;
+    create_table(&mut no_compression).await;
 
     let insert_struct_cql = "INSERT INTO test_ks.my_test_table (key) VALUES (?)";
     let prepared_query = no_compression
@@ -47,19 +47,19 @@ async fn main() {
     for k in 100..110 {
         let row = RowStruct { key: k as i32 };
 
-        insert_row(&no_compression, row, &prepared_query).await;
+        insert_row(&mut no_compression, row, &prepared_query).await;
     }
 
-    batch_few_queries(&no_compression, &insert_struct_cql).await;
+    batch_few_queries(&mut no_compression, &insert_struct_cql).await;
 }
 
-async fn create_keyspace(session: &CurrentSession) {
+async fn create_keyspace(session: &mut CurrentSession) {
     let create_ks: &'static str = "CREATE KEYSPACE IF NOT EXISTS test_ks WITH REPLICATION = { \
                                    'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
     session.query(create_ks).await.expect("Keyspace creation error");
 }
 
-async fn create_table(session: &CurrentSession) {
+async fn create_table(session: &mut CurrentSession) {
     let create_table_cql =
         "CREATE TABLE IF NOT EXISTS test_ks.my_test_table (key int PRIMARY KEY);";
     session
@@ -68,14 +68,14 @@ async fn create_table(session: &CurrentSession) {
         .expect("Table creation error");
 }
 
-async fn insert_row(session: &CurrentSession, row: RowStruct, prepared_query: &PreparedQuery) {
+async fn insert_row(session: &mut CurrentSession, row: RowStruct, prepared_query: &PreparedQuery) {
     session
         .exec_with_values(prepared_query, row.into_query_values())
         .await
         .expect("exec_with_values error");
 }
 
-async fn batch_few_queries(session: &CurrentSession, query: &str) {
+async fn batch_few_queries(session: &mut CurrentSession, query: &str) {
     let prepared_query = session.prepare(query).await.expect("Prepare query error");
     let row_1 = RowStruct { key: 1001 as i32 };
     let row_2 = RowStruct { key: 2001 as i32 };

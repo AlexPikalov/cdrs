@@ -30,6 +30,7 @@ use crate::compression::Compression;
 use crate::error;
 use crate::query::{BatchExecutor, ExecExecutor, PrepareExecutor, QueryExecutor};
 use crate::transport::CDRSTransport;
+use crate::frame::{Frame, StreamId};
 
 /// `GetConnection` trait provides a unified interface for Session to get a connection
 /// from a load balancer
@@ -48,6 +49,12 @@ pub trait GetConnection<
 pub trait GetCompressor<'a> {
     /// Returns actual compressor.
     fn get_compressor(&self) -> Compression;
+}
+
+/// `ResponseCache` caches responses to match them by their stream id to requests.
+#[async_trait]
+pub trait ResponseCache {
+    async fn match_or_cache_response(&self, stream_id: StreamId, frame: Frame) -> Option<Frame>;
 }
 
 /// `CDRSSession` trait wrap ups whole query functionality. Use it only if whole query

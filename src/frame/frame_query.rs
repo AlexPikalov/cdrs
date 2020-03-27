@@ -1,7 +1,5 @@
 #![warn(missing_docs)]
 //! Contains Query Frame related functionality.
-use rand;
-
 use crate::consistency::Consistency;
 use crate::frame::*;
 use crate::query::{Query, QueryFlags, QueryParams, QueryValues};
@@ -90,7 +88,6 @@ impl Frame {
         flags: Vec<Flag>,
     ) -> Frame {
         let version = Version::Request;
-        let stream = rand::random::<u16>();
         let opcode = Opcode::Query;
         let body = BodyReqQuery::new(
             query,
@@ -103,16 +100,7 @@ impl Frame {
             timestamp,
         );
 
-        Frame {
-            version: version,
-            flags: flags,
-            stream: stream,
-            opcode: opcode,
-            body: body.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame::new(version, flags, opcode, body.into_cbytes(), None, vec![])
     }
 
     /// **Note:** This function should be used internally for building query request frames.

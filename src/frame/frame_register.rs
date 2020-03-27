@@ -1,5 +1,3 @@
-use rand;
-
 use crate::frame::events::SimpleServerEvent;
 use crate::frame::*;
 use crate::types::{CString, CStringList};
@@ -29,19 +27,9 @@ impl Frame {
     pub fn new_req_register(events: Vec<SimpleServerEvent>) -> Frame {
         let version = Version::Request;
         let flag = Flag::Ignore;
-        let stream = rand::random::<u16>();
         let opcode = Opcode::Register;
         let register_body = BodyReqRegister { events: events };
 
-        Frame {
-            version: version,
-            flags: vec![flag],
-            stream: stream,
-            opcode: opcode,
-            body: register_body.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame::new(version, vec![flag], opcode, register_body.into_cbytes(), None, vec![])
     }
 }

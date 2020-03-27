@@ -1,5 +1,3 @@
-use rand;
-
 use crate::frame::*;
 use crate::types::*;
 
@@ -28,19 +26,9 @@ impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
     pub fn new_req_prepare(query: String, flags: Vec<Flag>) -> Frame {
         let version = Version::Request;
-        let stream = rand::random::<u16>();
         let opcode = Opcode::Prepare;
         let body = BodyReqPrepare::new(query);
 
-        Frame {
-            version: version,
-            flags: flags,
-            stream: stream,
-            opcode: opcode,
-            body: body.into_cbytes(),
-            // for request frames it's always None
-            tracing_id: None,
-            warnings: vec![],
-        }
+        Frame::new(version, flags, opcode, body.into_cbytes(), None, vec![])
     }
 }
