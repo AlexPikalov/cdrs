@@ -156,8 +156,10 @@ impl <LB> ResponseCache for Session<LB> where LB: Send {
             return Some(frame);
         }
 
-        self.responses.lock().await.insert(frame.stream, frame);
-        self.responses.lock().await.remove(&stream_id)
+        let mut responses = self.responses.lock().await;
+
+        responses.insert(frame.stream, frame);
+        responses.remove(&stream_id)
     }
 }
 
