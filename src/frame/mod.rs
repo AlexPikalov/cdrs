@@ -54,7 +54,7 @@ impl Frame {
     pub fn new(version: Version, flags: Vec<Flag>, opcode: Opcode, body: Vec<u8>, tracing_id: Option<Uuid>, warnings: Vec<String>) -> Self {
         let mut stream = STREAM_ID.fetch_add(1, Ordering::SeqCst);
         if stream < 0 {
-            stream += std::i16::MAX;
+            stream += std::i16::MAX + 1;
         }
 
         Frame { version, flags, opcode, stream, body, tracing_id, warnings }
