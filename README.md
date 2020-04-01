@@ -26,6 +26,7 @@ CDRS is Apache **C**assandra **d**river written in pure **R**u**s**t.
 - [User guide](./documentation).
 - [Examples](./examples).
 - API docs (release).
+- Using ScyllaDB with RUST [lesson](https://university.scylladb.com/courses/using-scylla-drivers/lessons/rust-and-scylla/).
 
 ## Getting started
 
