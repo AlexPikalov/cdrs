@@ -2,8 +2,6 @@ use std::io::Cursor;
 
 use crate::error;
 use crate::query;
-use crate::types::rows::Row;
-use crate::types::udt::UDT;
 
 /// `IntoBytes` should be used to convert a structure into array of bytes.
 pub trait IntoBytes {
@@ -47,9 +45,9 @@ pub trait IntoQueryValues {
 }
 
 pub trait TryFromRow: Sized {
-    fn try_from_row(row: Row) -> error::Result<Self>;
+    fn try_from_row(row: crate::types::rows::Row) -> error::Result<Self>;
 }
 
 pub trait TryFromUDT: Sized {
-    fn try_from_udt(udt: UDT) -> error::Result<Self>;
+    fn try_from_udt(udt: crate::types::udt::UDT) -> error::Result<Self>;
 }
