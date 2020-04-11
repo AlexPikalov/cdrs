@@ -14,7 +14,7 @@ use super::decimal::Decimal;
 use super::*;
 
 /// Types of Cassandra value: normal value (bits), null value and not-set value
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ValueType {
     Normal(i32),
     Null,
@@ -32,7 +32,7 @@ impl IntoBytes for ValueType {
 }
 
 /// Cassandra value which could be an array of bytes, null and non-set values.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Value {
     pub body: Vec<u8>,
     pub value_type: ValueType,
