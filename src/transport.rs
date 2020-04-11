@@ -18,6 +18,7 @@ use std::io::{Read, Write};
 use std::net;
 use std::net::TcpStream;
 use std::time::Duration;
+use std::sync::Arc;
 
 // TODO [v 2.x.x]: CDRSTransport: ... + BufReader + ButWriter + ...
 ///General CDRS transport trait. Both [`TranportTcp`][transportTcp]
@@ -105,6 +106,72 @@ impl CDRSTransport for TransportTcp {
 
     fn is_alive(&self) -> bool {
         self.tcp.peer_addr().is_ok()
+    }
+}
+
+#[cfg(feature = "rust-tls")]
+pub struct TransportRustls {
+    inner: rustls::StreamOwned<rustls::ClientSession, net::TcpStream>,
+    config: Arc<rustls::ClientConfig>,
+    addr: net::SocketAddr,
+    dns_name: webpki::DNSName,
+}
+
+#[cfg(feature = "rust-tls")]
+impl TransportRustls {
+    ///Creates new instance with provided configuration
+    pub fn new(addr: net::SocketAddr, dns_name: webpki::DNSName, config: Arc<rustls::ClientConfig>) -> io::Result<Self> {
+        let socket = std::net::TcpStream::connect(addr)?;
+        let session = rustls::ClientSession::new(&config, dns_name.as_ref());
+
+        Ok(Self {
+            inner: rustls::StreamOwned::new(session, socket),
+            config,
+            addr,
+            dns_name,
+        })
+    }
+}
+
+#[cfg(feature = "rust-tls")]
+impl Read for TransportRustls {
+    #[inline]
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.inner.read(buf)
+    }
+}
+
+#[cfg(feature = "rust-tls")]
+impl Write for TransportRustls {
+    #[inline]
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.inner.write(buf)
+    }
+
+    #[inline]
+    fn flush(&mut self) -> io::Result<()> {
+        self.inner.flush()
+    }
+}
+
+#[cfg(feature = "rust-tls")]
+impl CDRSTransport for TransportRustls {
+    #[inline]
+    fn try_clone(&self) -> io::Result<Self> {
+        Self::new(self.addr, self.dns_name.clone(), self.config.clone())
+    }
+
+    fn close(&mut self, close: net::Shutdown) -> io::Result<()> {
+        self.inner.get_mut().shutdown(close)
+    }
+
+    fn set_timeout(&mut self, dur: Option<Duration>) -> io::Result<()> {
+        self.inner.get_mut().set_read_timeout(dur)?;
+        self.inner.get_mut().set_write_timeout(dur)
+    }
+
+    fn is_alive(&self) -> bool {
+        self.inner.get_ref().peer_addr().is_ok()
     }
 }
 

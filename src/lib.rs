@@ -10,6 +10,8 @@ extern crate log;
 extern crate lz4_compress;
 #[cfg(feature = "ssl")]
 extern crate openssl;
+#[cfg(feature = "rust-tls")]
+extern crate rustls;
 extern crate r2d2;
 extern crate rand;
 extern crate time;

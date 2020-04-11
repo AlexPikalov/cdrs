@@ -3,21 +3,31 @@ use std::cell;
 
 #[cfg(feature = "ssl")]
 mod config_ssl;
+#[cfg(feature = "rust-tls")]
+mod config_rustls;
 mod config_tcp;
 mod generic_connection_pool;
 mod pager;
 pub mod session;
 #[cfg(feature = "ssl")]
 mod ssl_connection_pool;
+#[cfg(feature = "rust-tls")]
+mod rustls_connection_pool;
 mod tcp_connection_pool;
 
 #[cfg(feature = "ssl")]
 pub use crate::cluster::config_ssl::{ClusterSslConfig, NodeSslConfig, NodeSslConfigBuilder};
+#[cfg(feature = "rust-tls")]
+pub use crate::cluster::config_rustls::{ClusterRustlsConfig, NodeRustlsConfig, NodeRustlsConfigBuilder};
 pub use crate::cluster::config_tcp::{ClusterTcpConfig, NodeTcpConfig, NodeTcpConfigBuilder};
 pub use crate::cluster::pager::{PagerState, QueryPager, SessionPager};
 #[cfg(feature = "ssl")]
 pub use crate::cluster::ssl_connection_pool::{
     new_ssl_pool, SslConnectionPool, SslConnectionsManager,
+};
+#[cfg(feature = "rust-tls")]
+pub use crate::cluster::rustls_connection_pool::{
+    new_rustls_pool, RustlsConnectionPool, RustlsConnectionsManager,
 };
 pub use crate::cluster::tcp_connection_pool::{
     new_tcp_pool, startup, TcpConnectionPool, TcpConnectionsManager,
