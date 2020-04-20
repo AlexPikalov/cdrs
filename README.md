@@ -6,7 +6,9 @@
 
 CDRS is Apache **C**assandra **d**river written in pure **R**u**s**t.
 
-💡Looking for an async version? - https://github.com/AlexPikalov/cdrs-async
+💡Looking for an async version?
+  - async-std https://github.com/AlexPikalov/cdrs-async (API is not fully compatible with https://github.com/AlexPikalov/cdrs)
+  - tokio https://github.com/AlexPikalov/cdrs/tree/async-tokio
 
 ## Features
 
