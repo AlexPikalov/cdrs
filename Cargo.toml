@@ -46,7 +46,7 @@ default-features = false
 env_logger = "0.4.3"
 maplit = "1.0.0"
 regex = "0.2.5"
-cdrs_helpers_derive = "0.1.0"
+cdrs_helpers_derive = { git = "hhttps://github.com/Jasperav/cdrs-helpers-derive.git" }
 
 [[example]]
 name = "dynamic_cluster"
