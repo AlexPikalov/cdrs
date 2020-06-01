@@ -84,11 +84,11 @@ impl<T: Into<Bytes>> From<T> for Value {
     }
 }
 
-impl<T: Into<Bytes>> From<Option<T>> for Value {
-    fn from(b: Option<T>) -> Value {
-        match b {
-            Some(b) => Value::new_normal(b.into()),
-            None => Value::new_null(),
+impl <T: serde::Serialize + Into<Bytes>> Into<Bytes> for Option<T> {
+    fn into(self) -> Bytes {
+        match self {
+            None => "".to_string().into(),
+            Some(t) => t.into(),
         }
     }
 }
