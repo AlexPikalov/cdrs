@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 use crate::cluster::CDRSSession;
 use crate::error;
 use crate::frame::frame_result::{RowsMetadata, RowsMetadataFlag};
-use crate::query::{PreparedQuery, QueryParamsBuilder};
+use crate::query::{PreparedQuery, QueryParamsBuilder, QueryValues};
 use crate::transport::CDRSTransport;
 use crate::types::rows::Row;
 use crate::types::CBytes;
@@ -42,6 +42,7 @@ impl<
     pub fn query_with_pager_state<Q>(
         &'a mut self,
         query: Q,
+        qv: Option<QueryValues>,
         state: PagerState,
     ) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
     where
@@ -51,14 +52,15 @@ impl<
             pager: self,
             pager_state: state,
             query,
+            qv
         }
     }
 
-    pub fn query<Q>(&'a mut self, query: Q) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
+    pub fn query<Q>(&'a mut self, query: Q, qv: Option<QueryValues>) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
     where
         Q: ToString,
     {
-        self.query_with_pager_state(query, PagerState::new())
+        self.query_with_pager_state(query, qv, PagerState::new())
     }
 
     pub fn exec_with_pager_state(
@@ -85,6 +87,7 @@ pub struct QueryPager<'a, Q: ToString, P: 'a> {
     pager: &'a mut P,
     pager_state: PagerState,
     query: Q,
+    qv: Option<QueryValues>,
 }
 
 impl<
@@ -97,8 +100,12 @@ impl<
 {
     pub fn next(&mut self) -> error::Result<Vec<Row>> {
         let mut params = QueryParamsBuilder::new().page_size(self.pager.page_size);
-        if self.pager_state.cursor.is_some() {
-            params = params.paging_state(self.pager_state.cursor.clone().unwrap());
+
+        if let Some(qv) = &self.qv {
+            params = params.values(qv.clone());
+        }
+        if let Some(cursor) = &self.pager_state.cursor {
+            params = params.paging_state(cursor.clone());
         }
 
         let body = self
