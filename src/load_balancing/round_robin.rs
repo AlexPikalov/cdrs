@@ -2,6 +2,7 @@ use std::sync::{Mutex, Arc};
 
 use super::LoadBalancingStrategy;
 
+#[derive(Debug)]
 pub struct RoundRobin<N> {
     cluster: Vec<Arc<N>>,
     prev_idx: Mutex<usize>,
