@@ -45,6 +45,7 @@ pub async fn new_tcp_pool<'a, A: Authenticator + Send + Sync + 'static>(
 }
 
 /// `bb8` connection manager.
+#[derive(Debug)]
 pub struct TcpConnectionsManager<A> {
     addr: String,
     auth: A,
