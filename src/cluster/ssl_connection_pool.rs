@@ -47,6 +47,7 @@ pub async fn new_ssl_pool<'a, A: Authenticator + Send + Sync + 'static>(
 }
 
 /// `bb8` connection manager.
+#[derive(Debug)]
 pub struct SslConnectionsManager<A> {
     addr: String,
     auth: A,
