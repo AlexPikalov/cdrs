@@ -92,6 +92,7 @@ impl Into<EventStreamNonBlocking> for EventStream {
 
 /// `EventStreamNonBlocking` is an iterator which returns new events once they come.
 /// It is similar to `Receiver::iter`. It's a non-blocking version of `EventStream`
+#[derive(Debug)]
 pub struct EventStreamNonBlocking {
     rx: Receiver<ServerEvent>,
 }
