@@ -34,7 +34,7 @@ r2d2 = "0.8.7"
 rand = "0.4.1"
 snap = "0.2.3"
 time = "0.1.38"
-uuid = { git = "https://github.com/Jasperav/uuid.git" }
+uuid = "0.8.1"
 serde = "1.0.*"
 webpki = { version = "0.21", optional = true }
 
