@@ -5,6 +5,7 @@ use bb8;
 
 /// Generic pool connection that is able to return an
 /// `bb8::Pool` as well as an IP address of a node.
+#[derive(Debug)]
 pub struct ConnectionPool<M: bb8::ManageConnection> {
   pool: Arc<bb8::Pool<M>>,
   addr: SocketAddr,
