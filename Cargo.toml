@@ -35,7 +35,7 @@ native-tls = { version = "0.2", optional = true }
 bb8 = "0.4"
 rand = "0.4.1"
 snap = "0.2.3"
-time = "0.1.38"
+time = "0.2.16"
 tokio = { version = "0.2", features = ["tcp", "io-util", "dns", "sync", "macros"] }
 uuid = "0.8.1"
 

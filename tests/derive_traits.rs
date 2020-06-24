@@ -51,7 +51,7 @@ use cdrs_helpers_derive::*;
 #[cfg(feature = "e2e-tests")]
 use std::str::FromStr;
 #[cfg(feature = "e2e-tests")]
-use time::Timespec;
+use time::PrimitiveDateTime;
 #[cfg(feature = "e2e-tests")]
 use uuid::Uuid;
 
@@ -230,7 +230,7 @@ async fn alter_udt_add() {
     #[derive(Clone, Debug, IntoCDRSValue, TryFromUDT, PartialEq)]
     struct MyUdtB {
         pub my_text: String,
-        pub my_timestamp: Option<Timespec>,
+        pub my_timestamp: Option<PrimitiveDateTime>,
     }
 
     let row_struct = RowStruct {

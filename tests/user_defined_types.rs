@@ -28,7 +28,7 @@ use cdrs::types::value::{Bytes, Value};
 #[cfg(feature = "e2e-tests")]
 use cdrs::types::{AsRust, IntoRustByName};
 #[cfg(feature = "e2e-tests")]
-use time::Timespec;
+use time::PrimitiveDateTime;
 
 #[cfg(feature = "e2e-tests")]
 use std::collections::HashMap;
@@ -218,13 +218,13 @@ async fn alter_udt_add() {
     #[derive(Debug, Clone, PartialEq)]
     struct MyUdtB {
         pub my_text: String,
-        pub my_timestamp: Option<Timespec>,
+        pub my_timestamp: Option<PrimitiveDateTime>,
     }
 
     impl MyUdtB {
         pub fn try_from(udt: UDT) -> Result<MyUdtB> {
             let my_text: String = udt.get_r_by_name("my_text")?;
-            let my_timestamp: Option<Timespec> = udt.get_by_name("my_timestamp")?;
+            let my_timestamp: Option<PrimitiveDateTime> = udt.get_by_name("my_timestamp")?;
             Ok(MyUdtB {
                 my_text: my_text,
                 my_timestamp: my_timestamp,

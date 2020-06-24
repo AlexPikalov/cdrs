@@ -343,7 +343,7 @@ async fn time() {
                (my_timestamp timestamp PRIMARY KEY)";
     let session = setup(cql).await.expect("setup");
 
-    let my_timestamp = time::get_time();
+    let my_timestamp = time::PrimitiveDateTime::now();
     let values = query_values!(my_timestamp);
 
     let query = "INSERT INTO cdrs_test.test_time (my_timestamp) VALUES (?)";
@@ -364,7 +364,7 @@ async fn time() {
 
     assert_eq!(rows.len(), 1);
     for row in rows {
-        let my_timestamp_row: time::Timespec =
+        let my_timestamp_row: time::PrimitiveDateTime =
             row.get_r_by_name("my_timestamp").expect("my_timestamp");
         assert_eq!(my_timestamp_row.sec, my_timestamp.sec);
         assert_eq!(
