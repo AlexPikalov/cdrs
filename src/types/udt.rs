@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::net::IpAddr;
-use time::Timespec;
+use time::PrimitiveDateTime;
 use uuid::Uuid;
 
 use crate::error::{column_is_empty_err, Error, Result};
@@ -53,5 +53,5 @@ into_rust_by_name!(UDT, List);
 into_rust_by_name!(UDT, Map);
 into_rust_by_name!(UDT, UDT);
 into_rust_by_name!(UDT, Tuple);
-into_rust_by_name!(UDT, Timespec);
+into_rust_by_name!(UDT, PrimitiveDateTime);
 into_rust_by_name!(UDT, Decimal);

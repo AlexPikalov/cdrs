@@ -1,5 +1,5 @@
 use std::net::IpAddr;
-use time::Timespec;
+use time::PrimitiveDateTime;
 use uuid::Uuid;
 
 use crate::error::Result as CDRSResult;
@@ -44,7 +44,7 @@ impl FromCDRS for List {}
 impl FromCDRS for Map {}
 impl FromCDRS for UDT {}
 impl FromCDRS for Tuple {}
-impl FromCDRS for Timespec {}
+impl FromCDRS for PrimitiveDateTime {}
 impl FromCDRS for Decimal {}
 
 pub trait FromCDRSByName {
@@ -80,5 +80,5 @@ impl FromCDRSByName for List {}
 impl FromCDRSByName for Map {}
 impl FromCDRSByName for UDT {}
 impl FromCDRSByName for Tuple {}
-impl FromCDRSByName for Timespec {}
+impl FromCDRSByName for PrimitiveDateTime {}
 impl FromCDRSByName for Decimal {}

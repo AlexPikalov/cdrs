@@ -33,7 +33,7 @@ openssl = { version = "0.10", optional = true }
 r2d2 = "0.8.7"
 rand = "0.4.1"
 snap = "0.2.3"
-time = "0.1.38"
+time = "0.2.16"
 uuid = "0.8.1"
 webpki = { version = "0.21", optional = true }
 
