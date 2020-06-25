@@ -175,10 +175,6 @@ fn nested_tuples() {
         my_text: "my_text".to_string(),
         my_int: 1_000,
         my_timestamp: PrimitiveDateTime::new(),
-        // my_timestamp: Timespec {
-        //     sec: 1,
-        //     nsec: 999_000_000,
-        // },
     };
     let my_outer_tuple = MyOuterTuple {
         my_uuid: my_uuid,
