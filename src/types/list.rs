@@ -9,7 +9,6 @@ use crate::types::udt::UDT;
 use crate::types::{AsRust, AsRustType, CBytes};
 use std::net::IpAddr;
 use uuid::Uuid;
-use time::Timespec;
 
 // TODO: consider using pointers to ColTypeOption and Vec<CBytes> instead of owning them.
 #[derive(Debug)]
@@ -54,4 +53,3 @@ list_as_rust!(Map);
 list_as_rust!(UDT);
 list_as_rust!(Tuple);
 list_as_rust!(Decimal);
-list_as_rust!(Timespec);

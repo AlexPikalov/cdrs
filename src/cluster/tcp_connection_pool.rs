@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use bb8::{Builder, ManageConnection};
 use std::io;
-use std::net::{SocketAddr, ToSocketAddrs};
+use std::net::ToSocketAddrs;
 use tokio::io::AsyncWriteExt;
 use tokio::sync::Mutex;
 
