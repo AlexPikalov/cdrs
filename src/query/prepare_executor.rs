@@ -3,6 +3,7 @@ use std::cell::RefCell;
 
 use crate::cluster::{GetCompressor, GetConnection};
 use crate::error;
+use crate::frame::frame_result::BodyResResultPrepared;
 use crate::frame::{Frame, IntoBytes};
 use crate::transport::CDRSTransport;
 use crate::types::CBytesShort;
@@ -16,15 +17,16 @@ pub trait PrepareExecutor<
     M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
 >: GetConnection<T, M> + GetCompressor<'static>
 {
-    /// It prepares a query for execution, along with query itself
-    /// the method takes `with_tracing` and `with_warnings` flags
-    /// to get tracing information and warnings.
-    fn prepare_tw<Q: ToString>(
+    /// It prepares a query for execution, along with query itself the
+    /// method takes `with_tracing` and `with_warnings` flags to get
+    /// tracing information and warnings. Return the raw prepared
+    /// query result.
+    fn prepare_raw_tw<Q: ToString>(
         &self,
         query: Q,
         with_tracing: bool,
         with_warnings: bool,
-    ) -> error::Result<PreparedQuery>
+    ) -> error::Result<BodyResResultPrepared>
     where
         Self: Sized,
     {
@@ -37,12 +39,38 @@ pub trait PrepareExecutor<
             .and_then(|body| {
                 Ok(body
                     .into_prepared()
-                    .expect("CDRS BUG: cannot convert frame into prepared")
-                    .id)
+                    .expect("CDRS BUG: cannot convert frame into prepared"))
             })
     }
 
     /// It prepares query without additional tracing information and warnings.
+    /// Return the raw prepared query result.
+    fn prepare_raw<Q: ToString>(&self, query: Q) -> error::Result<BodyResResultPrepared>
+    where
+        Self: Sized,
+    {
+        self.prepare_raw_tw(query, false, false)
+    }
+
+    /// It prepares a query for execution, along with query itself
+    /// the method takes `with_tracing` and `with_warnings` flags
+    /// to get tracing information and warnings. Return the prepared
+    /// query ID.
+    fn prepare_tw<Q: ToString>(
+        &self,
+        query: Q,
+        with_tracing: bool,
+        with_warnings: bool,
+    ) -> error::Result<PreparedQuery>
+    where
+        Self: Sized,
+    {
+        self.prepare_raw_tw(query, with_tracing, with_warnings)
+            .map(|x| x.id)
+    }
+
+    /// It prepares query without additional tracing information and warnings.
+    /// Return the prepared query ID.
     fn prepare<Q: ToString>(&self, query: Q) -> error::Result<PreparedQuery>
     where
         Self: Sized,
