@@ -6,7 +6,7 @@ use std::hash::Hash;
 use std::net::IpAddr;
 
 use crate::frame::IntoBytes;
-use crate::time::Timespec;
+use crate::time::PrimitiveDateTime;
 use uuid::Uuid;
 
 use super::blob::Blob;
@@ -199,9 +199,9 @@ impl Into<Bytes> for f64 {
     }
 }
 
-impl Into<Bytes> for Timespec {
+impl Into<Bytes> for PrimitiveDateTime {
     fn into(self) -> Bytes {
-        let ts: i64 = self.sec * 1_000 + self.nsec as i64 / 1_000_000;
+        let ts: i64 = self.assume_utc().timestamp() * 1_000 + self.nanosecond() as i64 / 1_000_000;
         Bytes(to_bigint(ts))
     }
 }

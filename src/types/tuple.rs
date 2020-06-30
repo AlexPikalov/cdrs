@@ -1,5 +1,5 @@
 use std::net::IpAddr;
-use time::Timespec;
+use time::PrimitiveDateTime;
 use uuid::Uuid;
 
 use crate::error::{column_is_empty_err, Error, Result};
@@ -75,5 +75,5 @@ into_rust_by_index!(Tuple, List);
 into_rust_by_index!(Tuple, Map);
 into_rust_by_index!(Tuple, UDT);
 into_rust_by_index!(Tuple, Tuple);
-into_rust_by_index!(Tuple, Timespec);
+into_rust_by_index!(Tuple, PrimitiveDateTime);
 into_rust_by_index!(Tuple, Decimal);

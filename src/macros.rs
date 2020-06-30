@@ -349,17 +349,21 @@ macro_rules! as_rust_type {
             ))),
         }
     };
-    ($data_type_option:ident, $data_value:ident, Timespec) => {
+    ($data_type_option:ident, $data_value:ident, PrimitiveDateTime) => {
         match $data_type_option.id {
             ColType::Timestamp => match $data_value.as_slice() {
                 Some(ref bytes) => decode_timestamp(bytes)
-                    .map(|ts| Some(Timespec::new(ts / 1_000, (ts % 1_000 * 1_000_000) as i32)))
+                    .map(|ts| {
+                        let unix_epoch = time::date!(1970-01-01).midnight();
+                        let tm = unix_epoch + time::Duration::new(ts / 1_000, (ts % 1_000 * 1_000_000) as i32);
+                        Some(tm)
+                    })
                     .map_err(Into::into),
                 None => Ok(None),
             },
             _ => Err(Error::General(format!(
                 "Invalid conversion. \
-                 Cannot convert {:?} into Timespec (valid types: Timestamp).",
+                 Cannot convert {:?} into PrimitiveDateTime (valid types: Timestamp).",
                 $data_type_option.id
             ))),
         }
