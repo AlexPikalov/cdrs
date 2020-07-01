@@ -9,6 +9,7 @@ use crate::query::{PreparedQuery, QueryParamsBuilder, QueryValues};
 use crate::transport::CDRSTransport;
 use crate::types::rows::Row;
 use crate::types::CBytes;
+use crate::consistency::Consistency;
 
 pub struct SessionPager<
     'a,
@@ -44,6 +45,7 @@ impl<
         query: Q,
         qv: Option<QueryValues>,
         state: PagerState,
+        consistency: Consistency,
     ) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
     where
         Q: ToString,
@@ -52,15 +54,16 @@ impl<
             pager: self,
             pager_state: state,
             query,
-            qv
+            qv,
+            consistency
         }
     }
 
-    pub fn query<Q>(&'a mut self, query: Q, qv: Option<QueryValues>) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
+    pub fn query<Q>(&'a mut self, query: Q, qv: Option<QueryValues>, consistency: Consistency) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
     where
         Q: ToString,
     {
-        self.query_with_pager_state(query, qv, PagerState::new())
+        self.query_with_pager_state(query, qv, PagerState::new(), consistency)
     }
 
     pub fn exec_with_pager_state(
@@ -88,6 +91,7 @@ pub struct QueryPager<'a, Q: ToString, P: 'a> {
     pager_state: PagerState,
     query: Q,
     qv: Option<QueryValues>,
+    consistency: Consistency
 }
 
 impl<
@@ -99,7 +103,9 @@ impl<
     > QueryPager<'a, Q, SessionPager<'a, M, S, T>>
 {
     pub fn next(&mut self) -> error::Result<Vec<Row>> {
-        let mut params = QueryParamsBuilder::new().page_size(self.pager.page_size);
+        let mut params = QueryParamsBuilder::new()
+            .consistency(self.consistency)
+            .page_size(self.pager.page_size);
 
         if let Some(qv) = &self.qv {
             params = params.values(qv.clone());
