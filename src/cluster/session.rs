@@ -34,6 +34,7 @@ use openssl::ssl::SslConnector;
 /// CDRS session that holds one pool of authorized connecitons per node.
 /// `compression` field contains data compressor that will be used
 /// for decompressing data received from Cassandra server.
+#[derive(Debug)]
 pub struct Session<LB> {
     load_balancing: Mutex<LB>,
     event_stream: Option<Mutex<EventStreamNonBlocking>>,

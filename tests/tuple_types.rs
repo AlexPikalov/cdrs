@@ -25,7 +25,7 @@ use cdrs::types::value::{Bytes, Value};
 #[cfg(feature = "e2e-tests")]
 use cdrs::types::{IntoRustByIndex, IntoRustByName};
 #[cfg(feature = "e2e-tests")]
-use time::Timespec;
+use time::PrimitiveDateTime;
 #[cfg(feature = "e2e-tests")]
 use uuid::Uuid;
 
@@ -106,14 +106,14 @@ fn nested_tuples() {
     struct MyInnerTuple {
         pub my_text: String,
         pub my_int: i32,
-        pub my_timestamp: Timespec,
+        pub my_timestamp: PrimitiveDateTime,
     }
 
     impl MyInnerTuple {
         pub fn try_from(tuple: Tuple) -> Result<MyInnerTuple> {
             let my_text: String = tuple.get_r_by_index(0)?;
             let my_int: i32 = tuple.get_r_by_index(1)?;
-            let my_timestamp: Timespec = tuple.get_r_by_index(2)?;
+            let my_timestamp: PrimitiveDateTime = tuple.get_r_by_index(2)?;
             Ok(MyInnerTuple {
                 my_text: my_text,
                 my_int: my_int,
@@ -174,10 +174,7 @@ fn nested_tuples() {
     let my_inner_tuple = MyInnerTuple {
         my_text: "my_text".to_string(),
         my_int: 1_000,
-        my_timestamp: Timespec {
-            sec: 1,
-            nsec: 999_000_000,
-        },
+        my_timestamp: PrimitiveDateTime::new(),
     };
     let my_outer_tuple = MyOuterTuple {
         my_uuid: my_uuid,
