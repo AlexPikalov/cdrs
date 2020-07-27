@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 use crate::cluster::CDRSSession;
 use crate::error;
 use crate::frame::frame_result::{RowsMetadata, RowsMetadataFlag};
-use crate::query::{PreparedQuery, QueryParamsBuilder, QueryValues};
+use crate::query::{PreparedQuery, QueryParamsBuilder, QueryValues, QueryParams};
 use crate::transport::CDRSTransport;
 use crate::types::rows::Row;
 use crate::types::CBytes;
@@ -43,9 +43,8 @@ impl<
     pub fn query_with_pager_state<Q>(
         &'a mut self,
         query: Q,
-        qv: Option<QueryValues>,
         state: PagerState,
-        consistency: Consistency,
+        qp: QueryParams,
     ) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
     where
         Q: ToString,
@@ -54,16 +53,25 @@ impl<
             pager: self,
             pager_state: state,
             query,
-            qv,
-            consistency
+            qv: qp.values,
+            consistency: qp.consistency
         }
     }
 
-    pub fn query<Q>(&'a mut self, query: Q, qv: Option<QueryValues>, consistency: Consistency) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
+    pub fn query<Q>(&'a mut self, query: Q) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
     where
         Q: ToString,
     {
-        self.query_with_pager_state(query, qv, PagerState::new(), consistency)
+             self.query_with_param(query,QueryParamsBuilder::new()
+                 .consistency(Consistency::One)
+                 .finalize())
+    }
+
+    pub fn query_with_param<Q>(&'a mut self, query: Q, qp: QueryParams) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
+        where
+            Q: ToString,
+    {
+        self.query_with_pager_state(query, PagerState::new(), qp)
     }
 
     pub fn exec_with_pager_state(

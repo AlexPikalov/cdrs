@@ -12,6 +12,7 @@ use cdrs::query::*;
 use cdrs::frame::IntoBytes;
 use cdrs::types::from_cdrs::FromCDRSByName;
 use cdrs::types::prelude::*;
+use cdrs::consistency::Consistency;
 
 type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;
 
@@ -112,7 +113,7 @@ fn paged_with_value(session: &CurrentSession) {
 
     let q = "SELECT * FROM test_ks.another_test_table where a = ? and b = 1 and c = ?";
     let mut pager = session.paged(3);
-    let mut query_pager = pager.query(q, Some(query_values!(1, 2)));
+    let mut query_pager = pager.query_with_param(q, QueryParamsBuilder::new().values(query_values!(1, 2)).finalize());
 
     // Oddly enough, this returns false the first time...
     assert!(!query_pager.has_more());
@@ -135,7 +136,9 @@ fn paged_with_value(session: &CurrentSession) {
 fn paged_with_values_list(session: &CurrentSession) {
     let q = "SELECT * FROM test_ks.my_test_table where key in (?)";
     let mut pager = session.paged(2);
-    let mut query_pager = pager.query(q, Some(query_values!(vec![100, 101, 102, 103, 104, 105])));
+    let mut query_pager = pager.query_with_param(q, QueryParamsBuilder::new()
+        .values(query_values!(vec![100, 101, 102, 103, 104, 105]))
+        .finalize());
 
     let mut assert_amount = |a| {
         let rows = query_pager.next().expect("pager next");
@@ -154,7 +157,7 @@ fn paged_with_values_list(session: &CurrentSession) {
 fn paged_selection_query(session: &CurrentSession) {
     let q = "SELECT * FROM test_ks.my_test_table;";
     let mut pager = session.paged(2);
-    let mut query_pager = pager.query(q, None);
+    let mut query_pager = pager.query(q);
 
     loop {
         let rows = query_pager.next().expect("pager next");
@@ -175,7 +178,7 @@ fn paged_selection_query_with_state(session: &CurrentSession, state: PagerState)
     loop {
         let q = "SELECT * FROM test_ks.my_test_table;";
         let mut pager = session.paged(2);
-        let mut query_pager = pager.query_with_pager_state(q, None, st);
+        let mut query_pager = pager.query_with_pager_state(q, st, QueryParams::default());
 
         let rows = query_pager.next().expect("pager next");
         for row in rows {
