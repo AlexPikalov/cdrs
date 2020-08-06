@@ -96,7 +96,7 @@ impl<
 
 pub struct QueryPager<'a, Q: ToString, P: 'a> {
     pager: &'a mut P,
-    pager_state: PagerState,
+    pub pager_state: PagerState,
     query: Q,
     qv: Option<QueryValues>,
     consistency: Consistency
