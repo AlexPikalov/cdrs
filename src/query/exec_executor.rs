@@ -4,18 +4,16 @@ use std::cell::RefCell;
 use crate::cluster::{GetCompressor, GetConnection};
 use crate::error;
 use crate::frame::{Frame, IntoBytes};
-use crate::query::{QueryParams, QueryParamsBuilder, QueryValues};
+use crate::query::{QueryParams, QueryParamsBuilder, QueryValues, PreparedQuery, PrepareExecutor};
 use crate::transport::CDRSTransport;
-use crate::types::CBytesShort;
 
 use super::utils::{prepare_flags, send_frame};
-
-pub type PreparedQuery = CBytesShort;
+use crate::error::Error;
 
 pub trait ExecExecutor<
     T: CDRSTransport + 'static,
     M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
->: GetConnection<T, M> + GetCompressor<'static>
+>: GetConnection<T, M> + GetCompressor<'static> + PrepareExecutor<T, M>
 {
     fn exec_with_params_tw(
         &self,
@@ -28,9 +26,20 @@ pub trait ExecExecutor<
         Self: Sized,
     {
         let flags = prepare_flags(with_tracing, with_warnings);
-        let options_frame = Frame::new_req_execute(prepared, query_parameters, flags).into_cbytes();
+        let options_frame = Frame::new_req_execute(&prepared.id.borrow(), &query_parameters, flags).into_cbytes();
 
-        send_frame(self, options_frame)
+        let mut result = send_frame(self, options_frame);
+        if let Err(Error::Server(error)) = &result {
+            if error.error_code == 0x2500 {
+                if let Ok(new) = self.prepare_raw(&prepared.query) {
+                    prepared.id.replace(new.id);
+                    let flags = prepare_flags(with_tracing, with_warnings);
+                    let options_frame = Frame::new_req_execute(&prepared.id.borrow(), &query_parameters, flags).into_cbytes();
+                    result = send_frame(self, options_frame);
+                }
+            }
+        }
+        result
     }
 
     fn exec_with_params(

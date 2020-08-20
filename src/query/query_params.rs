@@ -6,7 +6,7 @@ use crate::query::query_values::QueryValues;
 use crate::types::{to_bigint, to_int, to_short, CBytes};
 
 /// Parameters of Query for query operation.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct QueryParams {
     /// Cassandra consistency level.
     pub consistency: Consistency,
