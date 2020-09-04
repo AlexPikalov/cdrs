@@ -14,9 +14,6 @@ sudo: required
 install:
   - PATH=$PATH:/home/travis/.cargo/bin
 
-before_script:
-  - rustup component add rustfmt
-
 script:
 #   - cargo fmt -- --check
   - cargo build --verbose
@@ -32,31 +29,3 @@ deploy:
     on:
       tags: true
       branch: master
-
-addons:
-  apt:
-    packages:
-      - libcurl4-openssl-dev
-      - libelf-dev
-      - libdw-dev
-      - cmake
-      - gcc
-      - binutils-dev
-      - zlib1g-dev
-
-after_success:
-  wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&#
-  tar xzf master.tar.gz &&
-  cd kcov-master &&
-  mkdir build &&
-  cd build &&
-  cmake .. &&
-  make &&
-  sudo make install &&
-  cd ../.. &&
-  rm -rf kcov-master &&
-  for file in target/debug/cdrs-*; do mkdir -p "target/cov/$(basename $file)"; kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done &&
-  bash <(curl -s https://codecov.io/bash) &&
-  rm -rf target/cov &&
-  for file in target/debug/cdrs-*; do mkdir -p "target/coverall/$(basename $file)"; kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo,/usr/lib --verify "target/coverall/$(basename $file)" "$file"; done &&
-  echo "Uploaded code coverage"
