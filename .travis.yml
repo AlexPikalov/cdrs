@@ -14,9 +14,6 @@ sudo: required
 install:
   - PATH=$PATH:/home/travis/.cargo/bin
 
-before_script:
-  - rustup component add rustfmt
-
 script:
 #   - cargo fmt -- --check
   - cargo build --verbose
