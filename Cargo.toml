@@ -1,6 +1,6 @@
 [package]
-name = "cdrs"
-version = "2.3.3"
+name = "cdrs_temp"
+version = "0.1.0"
 authors = ["Alex Pikalov <alex.pikalov.khar@gmail.com>"]
 edition = "2018"
 
