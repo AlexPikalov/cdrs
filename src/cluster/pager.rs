@@ -94,6 +94,21 @@ impl<
     }
 }
 
+macro_rules! body_to_rows {
+    ($body: ident, $this: ident) => {{
+        let metadata_res: error::Result<RowsMetadata> = $body
+            .as_rows_metadata()
+            .ok_or("Pager query should yield a vector of rows".into());
+        let metadata = metadata_res?;
+
+        $this.pager_state.has_more_pages =
+            Some(RowsMetadataFlag::has_has_more_pages(metadata.flags));
+        $this.pager_state.cursor = metadata.paging_state;
+        $body.into_rows()
+            .ok_or("Pager query should yield a vector of rows".into())
+    }};
+}
+
 pub struct QueryPager<'a, Q: ToString, P: 'a> {
     pager: &'a mut P,
     pub pager_state: PagerState,
@@ -128,16 +143,7 @@ impl<
             .query_with_params(self.query.to_string(), params.finalize())
             .and_then(|frame| frame.get_body())?;
 
-        let metadata_res: error::Result<RowsMetadata> = body
-            .as_rows_metadata()
-            .ok_or("Pager query should yield a vector of rows".into());
-        let metadata = metadata_res?;
-
-        self.pager_state.has_more_pages =
-            Some(RowsMetadataFlag::has_has_more_pages(metadata.flags.clone()));
-        self.pager_state.cursor = metadata.paging_state.clone();
-        body.into_rows()
-            .ok_or("Pager query should yield a vector of rows".into())
+        body_to_rows!(body, self)
     }
 
     pub fn has_more(&self) -> bool {
@@ -166,8 +172,9 @@ impl<
 {
     pub fn next(&mut self) -> error::Result<Vec<Row>> {
         let mut params = QueryParamsBuilder::new().page_size(self.pager.page_size);
-        if self.pager_state.cursor.is_some() {
-            params = params.paging_state(self.pager_state.cursor.clone().unwrap());
+
+        if let Some(cursor) = &self.pager_state.cursor {
+            params = params.paging_state(cursor.clone());
         }
 
         let body = self
@@ -176,16 +183,7 @@ impl<
             .exec_with_params(self.query, params.finalize())
             .and_then(|frame| frame.get_body())?;
 
-        let metadata_res: error::Result<RowsMetadata> = body
-            .as_rows_metadata()
-            .ok_or("Pager query should yield a vector of rows".into());
-        let metadata = metadata_res?;
-
-        self.pager_state.has_more_pages =
-            Some(RowsMetadataFlag::has_has_more_pages(metadata.flags.clone()));
-        self.pager_state.cursor = metadata.paging_state.clone();
-        body.into_rows()
-            .ok_or("Pager query should yield a vector of rows".into())
+        body_to_rows!(body, self)
     }
 
     pub fn has_more(&self) -> bool {
