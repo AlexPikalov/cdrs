@@ -18,6 +18,7 @@ use std::io::{Read, Write};
 use std::net;
 use std::net::TcpStream;
 use std::time::Duration;
+use std::sync::Arc;
 
 // TODO [v 2.x.x]: CDRSTransport: ... + BufReader + ButWriter + ...
 ///General CDRS transport trait. Both [`TranportTcp`][transportTcp]
