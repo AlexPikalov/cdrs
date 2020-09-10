@@ -30,6 +30,7 @@ pub trait ExecExecutor<
 
         let mut result = send_frame(self, options_frame);
         if let Err(Error::Server(error)) = &result {
+            // if query is unprepared
             if error.error_code == 0x2500 {
                 if let Ok(new) = self.prepare_raw(&prepared.query) {
                     prepared.id.replace(new.id);
