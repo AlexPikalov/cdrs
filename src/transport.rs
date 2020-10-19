@@ -13,6 +13,8 @@
 
 #[cfg(feature = "ssl")]
 use native_tls::TlsConnector;
+#[cfg(feature = "rust-tls")]
+use tokio_rustls::{TlsConnector as RustlsConnector, client::TlsStream as RustlsStream};
 use std::io;
 use tokio::io::AsyncWriteExt;
 use tokio::prelude::*;
@@ -20,6 +22,7 @@ use std::task::Context;
 use tokio::macros::support::{Pin, Poll};
 use std::io::Error;
 use std::net;
+use std::sync::Arc;
 use tokio::net::TcpStream;
 use async_trait::async_trait;
 #[cfg(feature = "ssl")]
@@ -110,6 +113,74 @@ impl CDRSTransport for TransportTcp {
 
     fn is_alive(&self) -> bool {
         self.tcp.peer_addr().is_ok()
+    }
+}
+
+#[cfg(feature = "rust-tls")]
+pub struct TransportRustls {
+    inner: RustlsStream<TcpStream>,
+    config: Arc<rustls::ClientConfig>,
+    addr: net::SocketAddr,
+    dns_name: webpki::DNSName,
+}
+
+#[cfg(feature = "rust-tls")]
+impl TransportRustls {
+    ///Creates new instance with provided configuration
+    pub async fn new(addr: net::SocketAddr, dns_name: webpki::DNSName, config: Arc<rustls::ClientConfig>) -> io::Result<Self> {
+        let stream = TcpStream::connect(addr).await?;
+        let connector = RustlsConnector::from(config.clone());
+        let stream = connector.connect(dns_name.as_ref(), stream).await?;
+
+        Ok(Self {
+            inner: stream,
+            config,
+            addr,
+            dns_name,
+        })
+    }
+}
+
+#[cfg(feature = "rust-tls")]
+impl AsyncRead for TransportRustls {
+    #[inline]
+    fn poll_read(mut self: Pin<&mut Self>, cx: &mut Context<'_>, buf: &mut [u8]) -> Poll<io::Result<usize>> {
+        Pin::new(&mut self.inner).poll_read(cx, buf)
+    }
+}
+
+#[cfg(feature = "rust-tls")]
+impl AsyncWrite for TransportRustls {
+    #[inline]
+    fn poll_write(mut self: Pin<&mut Self>, cx: &mut Context<'_>, buf: &[u8]) -> Poll<Result<usize, Error>> {
+        Pin::new(&mut self.inner).poll_write(cx, buf)
+    }
+
+    #[inline]
+    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Error>> {
+        Pin::new(&mut self.inner).poll_flush(cx)
+    }
+
+    #[inline]
+    fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Error>> {
+        Pin::new(&mut self.inner).poll_shutdown(cx)
+    }
+}
+
+#[cfg(feature = "rust-tls")]
+#[async_trait]
+impl CDRSTransport for TransportRustls {
+    #[inline]
+    async fn try_clone(&self) -> io::Result<Self> {
+        Self::new(self.addr, self.dns_name.clone(), self.config.clone()).await
+    }
+
+    async fn close(&mut self, _close: net::Shutdown) -> io::Result<()> {
+        self.inner.get_mut().0.shutdown().await
+    }
+
+    fn is_alive(&self) -> bool {
+        self.inner.get_ref().0.peer_addr().is_ok()
     }
 }
 

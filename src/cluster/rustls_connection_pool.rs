@@ -1,29 +1,30 @@
 use async_trait::async_trait;
 use bb8::{Builder, ManageConnection};
-use tokio::sync::Mutex;
 use tokio::io::AsyncWriteExt;
-use std::net::ToSocketAddrs;
+use tokio::sync::Mutex;
 
+use std::net;
+use std::sync::Arc;
+
+use crate::cluster::{startup, NodeRustlsConfig};
 use crate::authenticators::Authenticator;
 use crate::cluster::ConnectionPool;
-use crate::cluster::{startup, NodeSslConfig};
 use crate::compression::Compression;
-use crate::error;
 use crate::frame::parser::parse_frame;
 use crate::frame::{Frame, IntoBytes};
-use crate::transport::TransportTls;
+use crate::transport::TransportRustls;
+use crate::error;
 
-/// Shortcut for `bb8::Pool` type of SSL-based CDRS connections.
-pub type SslConnectionPool<A> = ConnectionPool<SslConnectionsManager<A>>;
+pub type RustlsConnectionPool<A> = ConnectionPool<RustlsConnectionsManager<A>>;
 
 /// `bb8::Pool` of SSL-based CDRS connections.
 ///
 /// Used internally for SSL Session for holding connections to a specific Cassandra node.
-pub async fn new_ssl_pool<'a, A: Authenticator + Send + Sync + 'static>(
-    node_config: NodeSslConfig<'a, A>,
-) -> error::Result<SslConnectionPool<A>> {
-    let manager = SslConnectionsManager::new(
+pub async fn new_rustls_pool<A: Authenticator + Send + Sync + 'static>(node_config: NodeRustlsConfig<A>) -> error::Result<RustlsConnectionPool<A>> {
+    let manager = RustlsConnectionsManager::new(
         node_config.addr,
+        node_config.dns_name,
+        node_config.config,
         node_config.authenticator,
     );
 
@@ -37,38 +38,36 @@ pub async fn new_ssl_pool<'a, A: Authenticator + Send + Sync + 'static>(
         .await
         .map_err(|err| error::Error::from(err.to_string()))?;
 
-    let addr = node_config
-        .addr
-        .to_socket_addrs()?
-        .next()
-        .ok_or_else(|| error::Error::from("Cannot parse address"))?;
-
-    Ok(SslConnectionPool::new(pool, addr))
+    Ok(RustlsConnectionPool::new(pool, node_config.addr))
 }
 
 /// `bb8` connection manager.
-#[derive(Debug)]
-pub struct SslConnectionsManager<A> {
-    addr: String,
+pub struct RustlsConnectionsManager<A> {
+    addr: net::SocketAddr,
+    dns_name: webpki::DNSName,
+    config: Arc<rustls::ClientConfig>,
     auth: A,
 }
 
-impl<A> SslConnectionsManager<A> {
-    pub fn new<S: ToString>(addr: S, auth: A) -> Self {
-        SslConnectionsManager {
-            addr: addr.to_string(),
+impl<A> RustlsConnectionsManager<A> {
+    #[inline]
+    pub fn new(addr: net::SocketAddr, dns_name: webpki::DNSName, config: Arc<rustls::ClientConfig>, auth: A) -> Self {
+        Self {
+            addr,
+            dns_name,
+            config,
             auth,
         }
     }
 }
 
 #[async_trait]
-impl<A: Authenticator + 'static + Send + Sync> ManageConnection for SslConnectionsManager<A> {
-    type Connection = Mutex<TransportTls>;
+impl<A: Authenticator + 'static + Send + Sync> ManageConnection for RustlsConnectionsManager<A> {
+    type Connection = Mutex<TransportRustls>;
     type Error = error::Error;
 
     async fn connect(&self) -> Result<Self::Connection, Self::Error> {
-        let transport = Mutex::new(TransportTls::new(&self.addr).await?);
+        let transport = Mutex::new(TransportRustls::new(self.addr, self.dns_name.clone(), self.config.clone()).await?);
         startup(&transport, &self.auth).await?;
 
         Ok(transport)

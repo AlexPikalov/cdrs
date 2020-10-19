@@ -15,6 +15,7 @@ license = "MIT/Apache-2.0"
 [features]
 default = ["v4"]
 ssl = ["tokio-tls", "native-tls"]
+rust-tls = ["rustls", "tokio-rustls", "webpki"]
 v3 = []
 v4 = []
 # enable v5 feature when it's actually implemented
@@ -37,7 +38,14 @@ rand = "0.4.1"
 snap = "0.2.3"
 time = "0.2.16"
 tokio = { version = "0.2", features = ["tcp", "io-util", "dns", "sync", "macros"] }
+tokio-rustls = { version = "0.14", optional = true }
 uuid = "0.8.1"
+webpki = { version = "0.21", optional = true }
+
+[dependencies.rustls]
+version = "0.18"
+optional = true
+default-features = false
 
 [dev-dependencies]
 env_logger = "0.4.3"
