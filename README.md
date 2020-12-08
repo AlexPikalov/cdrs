@@ -1,5 +1,7 @@
 # CDRS [![crates.io version](https://img.shields.io/crates/v/cdrs.svg)](https://crates.io/crates/cdrs) [![Build Status](https://travis-ci.org/AlexPikalov/cdrs.svg?branch=master)](https://travis-ci.org/AlexPikalov/cdrs) [![Build status](https://ci.appveyor.com/api/projects/status/sirj4flws6o0dvb7/branch/master?svg=true)](https://ci.appveyor.com/project/harrydevnull/cdrs/branch/master)
 
+## CDRS is looking for maintainers
+
 <p align="center">
   <img src="./cdrs-logo.png" alt="CDRS - Apache Cassandra driver"/>
 </p>
