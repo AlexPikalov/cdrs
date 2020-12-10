@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 
 use super::LoadBalancingStrategy;
+use std::borrow::Borrow;
 
 pub struct RoundRobin<N> {
     cluster: Vec<N>,
@@ -36,6 +37,10 @@ impl<N> LoadBalancingStrategy<N> for RoundRobin<N> {
         let next_idx = (prev_idx + 1) % self.cluster.len();
         self.prev_idx.replace(next_idx);
         self.cluster.get(next_idx)
+    }
+
+    fn get_all_nodes(&self) -> &Vec<N> {
+        self.cluster.borrow()
     }
 
     fn remove_node<F>(&mut self, filter: F)

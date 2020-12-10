@@ -1,6 +1,7 @@
 use std::sync::Mutex;
 
 use super::LoadBalancingStrategy;
+use std::borrow::Borrow;
 
 pub struct RoundRobinSync<N> {
     cluster: Vec<N>,
@@ -40,6 +41,10 @@ impl<N> LoadBalancingStrategy<N> for RoundRobinSync<N> {
         } else {
             return None;
         }
+    }
+
+    fn get_all_nodes(&self) -> &Vec<N> {
+        self.cluster.borrow()
     }
 
     fn remove_node<F>(&mut self, filter: F)

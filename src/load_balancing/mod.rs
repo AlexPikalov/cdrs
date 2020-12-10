@@ -11,6 +11,7 @@ pub use crate::load_balancing::single_node::SingleNode;
 pub trait LoadBalancingStrategy<N>: Sized {
     fn init(&mut self, cluster: Vec<N>);
     fn next(&self) -> Option<&N>;
+    fn get_all_nodes(&self) -> &Vec<N>;
     fn remove_node<F>(&mut self, _filter: F)
     where
         F: FnMut(&N) -> bool,
