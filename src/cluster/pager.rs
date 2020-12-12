@@ -48,13 +48,7 @@ impl<
     where
         Q: ToString,
     {
-        QueryPager {
-            pager: self,
-            pager_state: state,
-            query,
-            qv: None,
-            consistency: Consistency::One,
-        }
+        self.query_with_pager_state_params(query, state, Default::default())
     }
 
     pub fn query_with_pager_state_params<Q>(
