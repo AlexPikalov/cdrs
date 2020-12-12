@@ -3,13 +3,13 @@ use std::cell::RefCell;
 use std::marker::PhantomData;
 
 use crate::cluster::CDRSSession;
+use crate::consistency::Consistency;
 use crate::error;
 use crate::frame::frame_result::{RowsMetadata, RowsMetadataFlag};
-use crate::query::{PreparedQuery, QueryParamsBuilder, QueryValues, QueryParams};
+use crate::query::{PreparedQuery, QueryParams, QueryParamsBuilder, QueryValues};
 use crate::transport::CDRSTransport;
 use crate::types::rows::Row;
 use crate::types::CBytes;
-use crate::consistency::Consistency;
 
 pub struct SessionPager<
     'a,
@@ -44,6 +44,23 @@ impl<
         &'a mut self,
         query: Q,
         state: PagerState,
+    ) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
+    where
+        Q: ToString,
+    {
+        QueryPager {
+            pager: self,
+            pager_state: state,
+            query,
+            qv: None,
+            consistency: Consistency::One,
+        }
+    }
+
+    pub fn query_with_pager_state_params<Q>(
+        &'a mut self,
+        query: Q,
+        state: PagerState,
         qp: QueryParams,
     ) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
     where
@@ -54,7 +71,7 @@ impl<
             pager_state: state,
             query,
             qv: qp.values,
-            consistency: qp.consistency
+            consistency: qp.consistency,
         }
     }
 
@@ -62,16 +79,23 @@ impl<
     where
         Q: ToString,
     {
-             self.query_with_param(query,QueryParamsBuilder::new()
-                 .consistency(Consistency::One)
-                 .finalize())
+        self.query_with_param(
+            query,
+            QueryParamsBuilder::new()
+                .consistency(Consistency::One)
+                .finalize(),
+        )
     }
 
-    pub fn query_with_param<Q>(&'a mut self, query: Q, qp: QueryParams) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
-        where
-            Q: ToString,
+    pub fn query_with_param<Q>(
+        &'a mut self,
+        query: Q,
+        qp: QueryParams,
+    ) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
+    where
+        Q: ToString,
     {
-        self.query_with_pager_state(query, PagerState::new(), qp)
+        self.query_with_pager_state_params(query, PagerState::new(), qp)
     }
 
     pub fn exec_with_pager_state(
@@ -99,7 +123,7 @@ pub struct QueryPager<'a, Q: ToString, P: 'a> {
     pub pager_state: PagerState,
     query: Q,
     qv: Option<QueryValues>,
-    consistency: Consistency
+    consistency: Consistency,
 }
 
 impl<

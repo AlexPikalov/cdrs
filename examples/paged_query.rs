@@ -5,7 +5,7 @@ extern crate cdrs_helpers_derive;
 
 use cdrs::authenticators::NoneAuthenticator;
 use cdrs::cluster::session::{new as new_session, Session};
-use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, PagerState, TcpConnectionPool};
+use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, PagerState, TcpConnectionPool, QueryPager, SessionPager, TcpConnectionsManager};
 use cdrs::load_balancing::RoundRobin;
 use cdrs::query::*;
 
@@ -13,6 +13,7 @@ use cdrs::frame::IntoBytes;
 use cdrs::types::from_cdrs::FromCDRSByName;
 use cdrs::types::prelude::*;
 use cdrs::consistency::Consistency;
+use cdrs::transport::TransportTcp;
 
 type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;
 
@@ -49,6 +50,7 @@ fn main() {
     let no_compression = new_session(&cluster_config, lb).expect("session should be created");
 
     create_keyspace(&no_compression);
+    create_udt(&no_compression);
     create_table(&no_compression);
     fill_table(&no_compression);
     println!("Internal pager state\n");
@@ -56,8 +58,7 @@ fn main() {
     println!("\n\nExternal pager state for stateless executions\n");
     paged_selection_query_with_state(&no_compression, PagerState::new());
     println!("\n\nPager with query values (list)\n");
-    // TODO: Why does this method throws an error?
-    //paged_with_values_list(&no_compression);
+    paged_with_values_list(&no_compression);
     println!("\n\nPager with query value (no list)\n");
     paged_with_value(&no_compression);
     println!("\n\nFinished paged query tests\n");
@@ -67,6 +68,13 @@ fn create_keyspace(session: &CurrentSession) {
     let create_ks: &'static str = "CREATE KEYSPACE IF NOT EXISTS test_ks WITH REPLICATION = { \
                                    'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
     session.query(create_ks).expect("Keyspace creation error");
+}
+
+fn create_udt(session: &CurrentSession) {
+    let create_type_cql = "CREATE TYPE IF NOT EXISTS test_ks.user (username text)";
+    session
+        .query(create_type_cql)
+        .expect("Keyspace creation error");
 }
 
 fn create_table(session: &CurrentSession) {
@@ -132,26 +140,36 @@ fn paged_with_value(session: &CurrentSession) {
     assert!(!query_pager.has_more());
 }
 
-// TODO: Why does this throw 'Expected 4 or 0 byte int (52)'
 fn paged_with_values_list(session: &CurrentSession) {
-    let q = "SELECT * FROM test_ks.my_test_table where key in (?)";
+    let q = "SELECT * FROM test_ks.my_test_table where key in ?";
     let mut pager = session.paged(2);
     let mut query_pager = pager.query_with_param(q, QueryParamsBuilder::new()
-        .values(query_values!(vec![100, 101, 102, 103, 104, 105]))
+        .values(query_values!(vec![100, 101, 102, 103, 104]))
         .finalize());
 
-    let mut assert_amount = |a| {
-        let rows = query_pager.next().expect("pager next");
+    // Macro instead of a function or closure, since problem with lifetimes
+    macro_rules! assert_amount_query_pager {
+        ($row_amount: expr) => {{
+            let rows = query_pager.next().expect("pager next");
 
-        assert_eq!(a, rows.len());
-    };
+            assert_eq!($row_amount, rows.len());
+        }};
+    }
 
-    assert_amount(2);
-    assert_amount(2);
-    assert_amount(1);
-    assert_amount(0);
-
-    assert!(!query_pager.has_more())
+    println!("Testing values 100 and 101");
+    assert_amount_query_pager!(2);
+    assert!(query_pager.has_more());
+    assert!(!query_pager.pager_state().get_cursor().unwrap().is_empty());
+    println!("Testing values 102 and 103");
+    assert_amount_query_pager!(2);
+    assert!(query_pager.has_more());
+    assert!(!query_pager.pager_state().get_cursor().unwrap().is_empty());
+    println!("Testing value 104");
+    assert_amount_query_pager!(1);
+    // Now no more rows should be queried
+    println!("Testing no more values are present");
+    assert!(!query_pager.has_more());
+    assert!(query_pager.pager_state().get_cursor().is_none());
 }
 
 fn paged_selection_query(session: &CurrentSession) {
@@ -178,7 +196,7 @@ fn paged_selection_query_with_state(session: &CurrentSession, state: PagerState)
     loop {
         let q = "SELECT * FROM test_ks.my_test_table;";
         let mut pager = session.paged(2);
-        let mut query_pager = pager.query_with_pager_state(q, st, QueryParams::default());
+        let mut query_pager = pager.query_with_pager_state(q, st);
 
         let rows = query_pager.next().expect("pager next");
         for row in rows {
