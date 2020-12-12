@@ -44,10 +44,27 @@ impl<
         &'a mut self,
         query: Q,
         state: PagerState,
-        qp: QueryParams,
     ) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
     where
         Q: ToString,
+    {
+        QueryPager {
+            pager: self,
+            pager_state: state,
+            query,
+            qv: None,
+            consistency: Consistency::One
+        }
+    }
+
+    pub fn query_with_pager_state_params<Q>(
+        &'a mut self,
+        query: Q,
+        state: PagerState,
+        qp: QueryParams,
+    ) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
+        where
+            Q: ToString,
     {
         QueryPager {
             pager: self,
@@ -71,7 +88,7 @@ impl<
         where
             Q: ToString,
     {
-        self.query_with_pager_state(query, PagerState::new(), qp)
+        self.query_with_pager_state_params(query, PagerState::new(), qp)
     }
 
     pub fn exec_with_pager_state(

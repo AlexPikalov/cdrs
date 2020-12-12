@@ -546,7 +546,10 @@ impl CBytes {
         // self.bytes.map(|v| v.as_slice())
     }
     pub fn is_empty(&self) -> bool {
-        self.bytes.is_some()
+        match &self.bytes {
+            None => true,
+            Some(bytes) => bytes.is_empty()
+        }
     }
 }
 
