@@ -7,6 +7,7 @@ use std::io;
 use crate::error;
 use crate::frame::{FromBytes, FromCursor, IntoBytes};
 use crate::types::*;
+use std::str::FromStr;
 
 /// `Consistency` is an enum which represents Cassandra's consistency levels.
 /// To find more details about each consistency level please refer to the following documentation:
@@ -97,6 +98,32 @@ impl IntoBytes for Consistency {
             Consistency::Unknown => to_short(0x0063),
             // giving Unknown a value of 99
         }
+    }
+}
+
+impl FromStr for Consistency {
+    type Err = error::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let consistency = match s {
+            "Any" => Consistency::Any,
+            "One" => Consistency::One,
+            "Two" => Consistency::Two,
+            "Three" => Consistency::Three,
+            "Quorum" => Consistency::Quorum,
+            "All" => Consistency::All,
+            "LocalQuorum" => Consistency::LocalQuorum,
+            "EachQuorum" => Consistency::EachQuorum,
+            "Serial" => Consistency::Serial,
+            "LocalSerial" => Consistency::LocalSerial,
+            "LocalOne" => Consistency::LocalOne,
+            _ => Err(error::Error::General(format!(
+                "Invalid consistency provided: {}",
+                s
+            )))?,
+        };
+
+        Ok(consistency)
     }
 }
 
