@@ -27,18 +27,16 @@ where
     M: r2d2::ManageConnection<Connection = RefCell<T>, Error = error::Error> + Sized,
 {
     let ref compression = sender.get_compressor();
-
-    sender
+    let transport_cell = sender
         .get_connection()
-        .ok_or(error::Error::from("Unable to get transport"))
-        .and_then(|transport_cell| {
-            let write_res = transport_cell
-                .borrow_mut()
-                .write(frame_bytes.as_slice())
-                .map_err(error::Error::from);
-            write_res.map(|_| transport_cell)
-        })
-        .and_then(|transport_cell| from_connection(&transport_cell, compression))
+        .ok_or(error::Error::from("Unable to get transport"))?;
+
+    transport_cell
+        .borrow_mut()
+        .write_all(frame_bytes.as_slice())
+        .map_err(error::Error::from)?;
+
+    from_connection(&transport_cell, compression)
 }
 
 #[cfg(test)]
