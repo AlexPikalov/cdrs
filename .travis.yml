@@ -15,20 +15,20 @@ install:
   - PATH=$PATH:/home/travis/.cargo/bin
 
 script:
-#   - cargo fmt -- --check
+  #   - cargo fmt -- --check
   - cargo build --verbose
   - cargo test --verbose --no-fail-fast
   - cargo test --verbose --no-fail-fast --features e2e-tests
   - cargo test --no-fail-fast --features ssl
 
-deploy:
-  # deploy master to production
-  - provider: script
-    skip_cleanup: true
-    script: cargo publish --token $CARGO_CREDS
-    on:
-      tags: true
-      branch: master
+# deploy:
+# deploy master to production
+# - provider: script
+#   skip_cleanup: true
+#   script: cargo publish --token $CARGO_CREDS
+#   on:
+#     tags: true
+#     branch: master
 
 addons:
   apt:
