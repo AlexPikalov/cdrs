@@ -192,8 +192,7 @@ fn integer_v4() {
 #[test]
 #[cfg(feature = "e2e-tests")]
 fn float() {
-    let cql =
-    "CREATE TABLE IF NOT EXISTS cdrs_test.test_float \
+    let cql = "CREATE TABLE IF NOT EXISTS cdrs_test.test_float \
      (my_float float PRIMARY KEY, my_double double, my_decimal_a decimal, my_decimal_b decimal)";
     let session = setup(cql).expect("setup");
 
@@ -349,10 +348,10 @@ fn time() {
     for row in rows {
         let my_timestamp_row: time::PrimitiveDateTime =
             row.get_r_by_name("my_timestamp").expect("my_timestamp");
-        assert_eq!(my_timestamp_row.sec, my_timestamp.sec);
+        assert_eq!(my_timestamp_row.second(), my_timestamp.second());
         assert_eq!(
-            my_timestamp_row.nsec / 1_000_000,
-            my_timestamp.nsec / 1_000_000
+            my_timestamp_row.nanosecond() / 1_000_000,
+            my_timestamp.nanosecond() / 1_000_000
         ); // C* `timestamp` has millisecond precision
     }
 }

@@ -174,7 +174,7 @@ fn nested_tuples() {
     let my_inner_tuple = MyInnerTuple {
         my_text: "my_text".to_string(),
         my_int: 1_000,
-        my_timestamp: PrimitiveDateTime::new(),
+        my_timestamp: PrimitiveDateTime::unix_epoch(),
     };
     let my_outer_tuple = MyOuterTuple {
         my_uuid: my_uuid,
