@@ -2,7 +2,7 @@ use rand;
 
 use crate::consistency::Consistency;
 use crate::frame::*;
-use crate::query::QueryFlags;
+use crate::query::{QueryFlags, PreparedQuery};
 use crate::query::QueryValues;
 use crate::types::*;
 
@@ -107,7 +107,7 @@ pub struct BatchQuery {
 /// It contains either an id of prepared query or CQL string.
 #[derive(Debug, Clone)]
 pub enum BatchQuerySubj {
-    PreparedId(CBytesShort),
+    PreparedId(PreparedQuery),
     QueryString(CStringLong),
 }
 
@@ -124,7 +124,7 @@ impl IntoBytes for BatchQuery {
 
         match self.subject {
             BatchQuerySubj::PreparedId(ref s) => {
-                bytes.extend_from_slice(s.into_cbytes().as_slice());
+                bytes.extend_from_slice(s.id.borrow().into_cbytes().as_slice());
             }
             BatchQuerySubj::QueryString(ref s) => {
                 bytes.extend_from_slice(s.into_cbytes().as_slice());

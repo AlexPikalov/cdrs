@@ -6,11 +6,9 @@ use crate::error;
 use crate::frame::frame_result::BodyResResultPrepared;
 use crate::frame::{Frame, IntoBytes};
 use crate::transport::CDRSTransport;
-use crate::types::CBytesShort;
 
 use super::utils::{prepare_flags, send_frame};
-
-pub type PreparedQuery = CBytesShort;
+use crate::query::PreparedQuery;
 
 pub trait PrepareExecutor<
     T: CDRSTransport + 'static,
@@ -65,8 +63,9 @@ pub trait PrepareExecutor<
     where
         Self: Sized,
     {
+        let str = query.to_string();
         self.prepare_raw_tw(query, with_tracing, with_warnings)
-            .map(|x| x.id)
+            .map(|x| PreparedQuery { id: RefCell::new(x.id), query: str })
     }
 
     /// It prepares query without additional tracing information and warnings.

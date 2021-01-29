@@ -11,12 +11,12 @@ pub struct BodyReqExecute<'a> {
     id: &'a CBytesShort,
     /// Query paramaters which have the same meaning as one for `query`
     /// TODO: clarify if it is QueryParams or its shortened variant
-    query_parameters: QueryParams,
+    query_parameters: &'a QueryParams,
 }
 
 impl<'a> BodyReqExecute<'a> {
     /// The method which creates new instance of `BodyReqExecute`
-    pub fn new(id: &CBytesShort, query_parameters: QueryParams) -> BodyReqExecute {
+    pub fn new<'b>(id: &'b CBytesShort, query_parameters: &'b QueryParams) -> BodyReqExecute<'b> {
         BodyReqExecute {
             id: id,
             query_parameters: query_parameters,
@@ -37,7 +37,7 @@ impl Frame {
     /// **Note:** This function should be used internally for building query request frames.
     pub fn new_req_execute(
         id: &CBytesShort,
-        query_parameters: QueryParams,
+        query_parameters: &QueryParams,
         flags: Vec<Flag>,
     ) -> Frame {
         let version = Version::Request;

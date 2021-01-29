@@ -1,8 +1,8 @@
 use crate::consistency::Consistency;
 use crate::error::{Error as CError, Result as CResult};
 use crate::frame::frame_batch::{BatchQuery, BatchQuerySubj, BatchType, BodyReqBatch};
-use crate::query::{QueryFlags, QueryValues};
-use crate::types::{CBytesShort, CStringLong};
+use crate::query::{QueryFlags, QueryValues, PreparedQuery};
+use crate::types::CStringLong;
 
 pub type QueryBatch = BodyReqBatch;
 
@@ -42,10 +42,10 @@ impl BatchQueryBuilder {
     }
 
     /// Add a query (prepared one)
-    pub fn add_query_prepared(mut self, query_id: CBytesShort, values: QueryValues) -> Self {
+    pub fn add_query_prepared(mut self, query: PreparedQuery, values: QueryValues) -> Self {
         self.queries.push(BatchQuery {
             is_prepared: true,
-            subject: BatchQuerySubj::PreparedId(query_id),
+            subject: BatchQuerySubj::PreparedId(query),
             values,
         });
         self
