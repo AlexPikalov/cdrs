@@ -516,7 +516,7 @@ impl FromCursor for CStringList {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 /// The structure that represents Cassandra byte type.
 pub struct CBytes {
-    bytes: Option<Vec<u8>>,
+    pub bytes: Option<Vec<u8>>,
 }
 
 impl CBytes {
@@ -546,7 +546,10 @@ impl CBytes {
         // self.bytes.map(|v| v.as_slice())
     }
     pub fn is_empty(&self) -> bool {
-        self.bytes.is_some()
+        match &self.bytes {
+            None => true,
+            Some(bytes) => bytes.is_empty()
+        }
     }
 }
 
