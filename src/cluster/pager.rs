@@ -5,10 +5,11 @@ use std::marker::PhantomData;
 use crate::cluster::CDRSSession;
 use crate::error;
 use crate::frame::frame_result::{RowsMetadata, RowsMetadataFlag};
-use crate::query::{PreparedQuery, QueryParamsBuilder};
+use crate::query::{PreparedQuery, QueryParamsBuilder, QueryValues, QueryParams};
 use crate::transport::CDRSTransport;
 use crate::types::rows::Row;
 use crate::types::CBytes;
+use crate::consistency::Consistency;
 
 pub struct SessionPager<
     'a,
@@ -43,6 +44,7 @@ impl<
         &'a mut self,
         query: Q,
         state: PagerState,
+        qp: QueryParams,
     ) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
     where
         Q: ToString,
@@ -51,6 +53,8 @@ impl<
             pager: self,
             pager_state: state,
             query,
+            qv: qp.values,
+            consistency: qp.consistency
         }
     }
 
@@ -58,7 +62,16 @@ impl<
     where
         Q: ToString,
     {
-        self.query_with_pager_state(query, PagerState::new())
+             self.query_with_param(query,QueryParamsBuilder::new()
+                 .consistency(Consistency::One)
+                 .finalize())
+    }
+
+    pub fn query_with_param<Q>(&'a mut self, query: Q, qp: QueryParams) -> QueryPager<'a, Q, SessionPager<'a, M, S, T>>
+        where
+            Q: ToString,
+    {
+        self.query_with_pager_state(query, PagerState::new(), qp)
     }
 
     pub fn exec_with_pager_state(
@@ -83,8 +96,10 @@ impl<
 
 pub struct QueryPager<'a, Q: ToString, P: 'a> {
     pager: &'a mut P,
-    pager_state: PagerState,
+    pub pager_state: PagerState,
     query: Q,
+    qv: Option<QueryValues>,
+    consistency: Consistency
 }
 
 impl<
@@ -96,9 +111,15 @@ impl<
     > QueryPager<'a, Q, SessionPager<'a, M, S, T>>
 {
     pub fn next(&mut self) -> error::Result<Vec<Row>> {
-        let mut params = QueryParamsBuilder::new().page_size(self.pager.page_size);
-        if self.pager_state.cursor.is_some() {
-            params = params.paging_state(self.pager_state.cursor.clone().unwrap());
+        let mut params = QueryParamsBuilder::new()
+            .consistency(self.consistency)
+            .page_size(self.pager.page_size);
+
+        if let Some(qv) = &self.qv {
+            params = params.values(qv.clone());
+        }
+        if let Some(cursor) = &self.pager_state.cursor {
+            params = params.paging_state(cursor.clone());
         }
 
         let body = self

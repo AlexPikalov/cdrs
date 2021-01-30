@@ -26,6 +26,7 @@ e2e-tests = []
 unstable-dynamic-cluster = []
 
 [dependencies]
+serde = "1.0.*"
 byteorder = "1"
 log = "0.4.1"
 lz4-compress = "=0.1.0"
