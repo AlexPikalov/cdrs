@@ -9,12 +9,15 @@ use crate::frame::{FromBytes, FromCursor, IntoBytes};
 use crate::types::*;
 
 /// `Consistency` is an enum which represents Cassandra's consistency levels.
-/// To find more details about each consistency level please refer to Cassandra official docs.
+/// To find more details about each consistency level please refer to the following documentation:
+/// https://docs.datastax.com/en/cql-oss/3.x/cql/cql_reference/cqlshConsistency.html
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Consistency {
-    /// A write must be written to the commit log and memtable on all replica nodes in the cluster
-    /// for that partition key.	Provides the highest consistency
-    /// and the lowest availability of any other level.
+    /// Closest replica, as determined by the snitch.
+    /// If all replica nodes are down, write succeeds after a hinted handoff.
+    /// Provides low latency, guarantees writes never fail.
+    /// Note: this consistency level can only be used for writes.
+    /// It provides the lowest consistency and the highest availability.
     Any,
     ///
     /// A write must be written to the commit log and memtable of at least one replica node.
