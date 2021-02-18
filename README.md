@@ -8,6 +8,9 @@
 
 CDRS is Apache **C**assandra **d**river written in pure **R**u**s**t.
 
+💡There is an official maintained native ScyllaDB Rust driver, consider using that crate when using ScyllaDB since this repo is not actively maintained:
+https://github.com/scylladb/scylla-rust-driver
+
 💡Looking for an async version?
   - async-std https://github.com/AlexPikalov/cdrs-async (API is not fully compatible with https://github.com/AlexPikalov/cdrs)
   - tokio https://github.com/AlexPikalov/cdrs/tree/async-tokio
